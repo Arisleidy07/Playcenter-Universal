@@ -1,11 +1,12 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import SearchBar from "./SearchBar";
-import './Header.css'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import SearchBar from './SearchBar'; // ✅ nombre corregido
+import './Header.css';
 
 function Header() {
   return (
-    <header className="header">
+    <header className="header fixed top-0 left-0 w-full bg-white shadow-md z-50 flex flex-col md:flex-row items-center justify-between px-6 py-3">
+      {/* Logo */}
       <div className="logo text-3xl font-bold flex gap-[2px]">
         <span className="text-red-500">P</span>
         <span className="text-blue-500">l</span>
@@ -28,13 +29,16 @@ function Header() {
         <span className="text-fuchsia-600">l</span>
       </div>
 
-      <Searchbar />
+      {/* Buscador */}
+      <SearchBar />
 
+      {/* Menú */}
       <nav className="menu flex gap-4 items-center">
         <Link to="/" className="nav-link">Inicio</Link>
         <Link to="/categorias" className="nav-link">Categorías</Link>
         <Link to="/nosotros" className="nav-link">Nosotros</Link>
         <Link to="/contacto" className="nav-link">Contáctanos</Link>
+
         <Link to="/favoritos" className="link hover-animate">
           <span className="link-icon">❤️</span>
           <span className="link-title">Favoritos</span>
@@ -45,10 +49,8 @@ function Header() {
         </Link>
       </nav>
     </header>
-  )
+  );
 }
 
-export default Header
-
-
+export default Header;
 
