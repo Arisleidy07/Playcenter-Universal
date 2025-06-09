@@ -1,7 +1,7 @@
 // src/pages/Products.jsx
 import React from 'react';
 
-function Products() {
+function Productos() {
     return (
     <div className="min-h-screen p-6">
         <h2 className="text-3xl font-bold mb-4 text-accent">Productos Destacados</h2>
@@ -23,4 +23,4 @@ function Products() {
     );
 }
 
-export default Products;
+export default Productos;
