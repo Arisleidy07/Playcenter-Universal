@@ -1,14 +1,26 @@
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import './index.css';
+
+import Home from './pages/Home';
+import Productos from './pages/Productos';
+import Favoritos from './pages/Favoritos';
+import Carrito from './pages/Carrito';
+import Nosotros from './pages/Nosotros';
+import Contacto from './pages/Contacto';
 
 function App() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-white pt-20 flex flex-col items-center justify-center gap-6">
-        <h1 className="text-4xl font-bold text-primary">¡Bienvenido!</h1>
-        <p className="text-neutral">Aquí va tu contenido principal.</p>
-      </main>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/productos" element={<Productos />} />
+        <Route path="/favoritos" element={<Favoritos />} />
+        <Route path="/carrito" element={<Carrito />} />
+        <Route path="/nosotros" element={<Nosotros />} />
+        <Route path="/contacto" element={<Contacto />} />
+      </Routes>
     </>
   );
 }
