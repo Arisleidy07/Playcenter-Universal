@@ -1,28 +1,26 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
 import Inicio from "./pages/Inicio";
-import Productos from './pages/Productos';
-import Nosotros from './pages/Nosotros';
-import Contacto from './pages/Contacto';
-import Favoritos from './pages/Favoritos';
-import Carrito from './pages/Carrito';
-import Categorias from './pages/Categorias';
+import Categorias from "./pages/Categorias";
+import Productos from "./pages/Productos";
+import Carrito from "./pages/Carrito";
+import Favoritos from "./pages/Favoritos";
+import Contacto from "./pages/Contacto";
 
 function App() {
   return (
-    <>
+    <Router>
       <Header />
       <Routes>
         <Route path="/" element={<Inicio />} />
+        <Route path="/categorias" element={<Categorias />} />
         <Route path="/productos" element={<Productos />} />
-        <Route path="/nosotros" element={<Nosotros />} />
-        <Route path="/contacto" element={<Contacto />} />
-        <Route path="/favoritos" element={<Favoritos />} />
         <Route path="/carrito" element={<Carrito />} />
-        <Route path="/categorias/*" element={<Categorias />} />
+        <Route path="/favoritos" element={<Favoritos />} />
+        <Route path="/contacto" element={<Contacto />} />
       </Routes>
-    </>
+    </Router>
   );
 }
 
