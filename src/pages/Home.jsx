@@ -1,26 +1,14 @@
-// src/pages/Home.jsx
-import React from 'react';
+import React from 'react'
+import CategorySlider from '../components/CategorySlider'
 
-function Home() {
-    return (
-    <div className="min-h-screen p-6">
-        <h1 className="text-4xl font-bold text-center mb-6 text-primary">Bienvenido a Playcenter Universal</h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        <div className="bg-purple-100 p-4 rounded-lg shadow hover:scale-105 transition">
-            Consolas
-        </div>
-        <div className="bg-blue-100 p-4 rounded-lg shadow hover:scale-105 transition">
-            Juegos
-        </div>
-        <div className="bg-green-100 p-4 rounded-lg shadow hover:scale-105 transition">
-            Accesorios
-        </div>
-        <div className="bg-yellow-100 p-4 rounded-lg shadow hover:scale-105 transition">
-            Tecnología
-        </div>
-        </div>
+const Home = () => (
+    <div className="p-6 mt-24">
+    <h1 className="text-4xl font-bold text-center mb-6 text-purple-700">Ofertas del día</h1>
+    <div className="bg-purple-100 text-center p-4 mb-6 rounded-xl shadow-md animate-pulse">
+        🚨 ¡Super descuentos por tiempo limitado en consolas y más! 🚨
     </div>
-    );
-}
+    <CategorySlider />
+    </div>
+)
 
-export default Home;
+export default Home

@@ -1,11 +1,12 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './Header.css';
+import React from 'react'
+import { Link } from 'react-router-dom'
+import Searchbar from './Searchbar'
+import './Header.css'
 
 function Header() {
   return (
-    <header className="header fixed top-0 left-0 w-full bg-white shadow-md z-50 flex items-center justify-between px-6 py-3">
-      <div className="text-3xl font-bold flex gap-[2px]">
+    <header className="header">
+      <div className="logo text-3xl font-bold flex gap-[2px]">
         <span className="text-red-500">P</span>
         <span className="text-blue-500">l</span>
         <span className="text-yellow-400">a</span>
@@ -16,8 +17,7 @@ function Header() {
         <span className="text-red-500">t</span>
         <span className="text-blue-500">e</span>
         <span className="text-yellow-400">r</span>
-        <span>&nbsp;</span>
-        <span className="text-green-500">U</span>
+        <span className="text-green-500">&nbsp;U</span>
         <span className="text-purple-500">n</span>
         <span className="text-pink-500">i</span>
         <span className="text-amber-500">v</span>
@@ -28,24 +28,27 @@ function Header() {
         <span className="text-fuchsia-600">l</span>
       </div>
 
-      <nav className="flex items-center gap-5">
+      <Searchbar />
+
+      <nav className="menu flex gap-4 items-center">
         <Link to="/" className="nav-link">Inicio</Link>
-        <Link to="/productos" className="nav-link">Productos</Link>
+        <Link to="/categorias" className="nav-link">Categorías</Link>
         <Link to="/nosotros" className="nav-link">Nosotros</Link>
         <Link to="/contacto" className="nav-link">Contáctanos</Link>
-
-        <Link to="/favoritos" className="link pop-icon">
+        <Link to="/favoritos" className="link hover-animate">
           <span className="link-icon">❤️</span>
           <span className="link-title">Favoritos</span>
         </Link>
-
-        <Link to="/carrito" className="link pop-icon">
+        <Link to="/carrito" className="link hover-animate">
           <span className="link-icon">🛒</span>
           <span className="link-title">Mi carrito</span>
         </Link>
       </nav>
     </header>
-  );
+  )
 }
+
+export default Header
+
 
 export default Header;
