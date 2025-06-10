@@ -17,3 +17,4 @@ function Categorias() {
 }
 
 export default Categorias;
+5
