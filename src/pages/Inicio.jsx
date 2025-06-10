@@ -1,67 +1,48 @@
-import React from 'react';
-import CategoryCard from '../components/CategoryCard';
-
-const categorias = [
-    { nombre: 'Videojuegos', imagen: '/categories/videojuegos.jpg', ruta: '/videojuegos' },
-    { nombre: 'Accesorios', imagen: '/categories/accesorios.jpg', ruta: '/accesorios' },
-    { nombre: 'Cargadores', imagen: '/categories/cargadores.jpg', ruta: '/cargadores' },
-    { nombre: 'Tablets', imagen: '/categories/tablets.jpg', ruta: '/tablets' },
-    { nombre: 'Celulares', imagen: '/categories/celulares.jpg', ruta: '/celulares' },
-    { nombre: 'Smart TV', imagen: '/categories/smarttv.jpg', ruta: '/smarttv' },
-    { nombre: 'Teclados', imagen: '/categories/teclados.jpg', ruta: '/teclados' },
-    { nombre: 'Gaming Chairs', imagen: '/categories/gamingchairs.jpg', ruta: '/gamingchairs' },
-    { nombre: 'Electrodomésticos', imagen: '/categories/electrodomesticos.jpg', ruta: '/electrodomesticos' },
-    { nombre: 'Monitores', imagen: '/categories/monitores.jpg', ruta: '/monitores' },
-    { nombre: 'Discos Duros', imagen: '/categories/discos.jpg', ruta: '/discosduros' },
-    { nombre: 'Memorias USB', imagen: '/categories/memorias.jpg', ruta: '/memoriasusb' },
-    { nombre: 'Impresoras', imagen: '/categories/impresoras.jpg', ruta: '/impresoras' },
-    { nombre: 'Relojes Inteligentes', imagen: '/categories/relojes.jpg', ruta: '/relojesinteligentes' },
-    { nombre: 'Hogar Inteligente', imagen: '/categories/hogar.jpg', ruta: '/hogarinteligente' },
-    { nombre: 'Ofertas Especiales', imagen: '/categories/ofertas.jpg', ruta: '/ofertasespeciales' },
-    { nombre: 'Nuevos Lanzamientos', imagen: '/categories/nuevos.jpg', ruta: '/nuevoslanzamientos' },
-];
+// src/pages/Inicio.jsx
+import React from "react";
+import { Link } from "react-router-dom";
 
 function Inicio() {
-    return (
-    <div className="pt-28 px-6">
-      {/* Slider de anuncios */}
-        <div className="mb-8">
-        <img src="/ads/anuncio1.jpg" alt="Anuncio" className="rounded-lg shadow-md w-full h-64 object-cover animate-fade-in" />
+  return (
+    <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen">
+      {/* Banner principal */}
+      <section className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 sm:p-10 rounded-2xl shadow-lg mb-10">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">
+          Bienvenido a Playcenter Universal
+        </h1>
+        <p className="text-lg sm:text-xl mb-6 max-w-2xl">
+          Descubre miles de productos, promociones exclusivas y mucho más.
+        </p>
+        <Link to="/productos" className="inline-block bg-white text-purple-600 font-bold px-6 py-3 rounded-xl shadow hover:bg-purple-100 transition-all">
+          Ver productos
+        </Link>
+      </section>
+
+      {/* Sección destacada */}
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {/* Tarjeta 1 */}
+        <div className="bg-blue-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
+          <h2 className="text-xl font-semibold mb-2">Categorías variadas</h2>
+          <p className="text-sm mb-4">Explora más de 20 categorías con productos increíbles.</p>
+          <Link to="/categorias" className="text-blue-600 font-medium hover:underline">Explorar</Link>
         </div>
 
-      {/* Ofertas Destacadas */}
-        <div className="mb-12">
-        <h2 className="text-3xl font-bold mb-4 text-purple-700">Ofertas del día</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow hover:scale-105 transition">
-            <img src="/products/oferta1.png" className="w-full h-40 object-contain" />
-            <h3 className="font-semibold mt-2">Consola Retro</h3>
-            <p className="text-purple-600 font-bold">$89.99</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow hover:scale-105 transition">
-            <img src="/products/oferta2.png" className="w-full h-40 object-contain" />
-            <h3 className="font-semibold mt-2">Tablet 10"</h3>
-            <p className="text-purple-600 font-bold">$129.99</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow hover:scale-105 transition">
-            <img src="/products/oferta3.png" className="w-full h-40 object-contain" />
-            <h3 className="font-semibold mt-2">Headset Gamer</h3>
-            <p className="text-purple-600 font-bold">$59.99</p>
-            </div>
-        </div>
+        {/* Tarjeta 2 */}
+        <div className="bg-green-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
+          <h2 className="text-xl font-semibold mb-2">Ofertas especiales</h2>
+          <p className="text-sm mb-4">Descuentos únicos en tecnología, accesorios, ropa y más.</p>
+          <Link to="/productos" className="text-green-600 font-medium hover:underline">Ver ofertas</Link>
         </div>
 
-      {/* Categorías */}
-        <div className="mb-12">
-        <h2 className="text-3xl font-bold mb-4 text-purple-700">Categorías</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categorias.map((cat, index) => (
-            <CategoryCard key={index} nombre={cat.nombre} imagen={cat.imagen} ruta={cat.ruta} />
-            ))}
+        {/* Tarjeta 3 */}
+        <div className="bg-yellow-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
+          <h2 className="text-xl font-semibold mb-2">Atención personalizada</h2>
+          <p className="text-sm mb-4">¿Tienes dudas? Contáctanos y te ayudamos con gusto.</p>
+          <Link to="/contacto" className="text-yellow-700 font-medium hover:underline">Contáctanos</Link>
         </div>
-        </div>
-    </div>
-    );
+      </section>
+    </main>
+  );
 }
 
 export default Inicio;
