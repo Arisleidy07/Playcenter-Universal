@@ -1,9 +1,12 @@
 // src/pages/Inicio.jsx
 import React from "react";
+import SliderAnuncios from '../components/SliderAnuncios';
 import { Link } from "react-router-dom";
 
 function Inicio() {
-  return (
+  return ( 
+    <>
+    <SliderAnuncios />
     <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen">
       {/* Banner principal */}
       <section className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 sm:p-10 rounded-2xl shadow-lg mb-10">
@@ -42,6 +45,7 @@ function Inicio() {
         </div>
       </section>
     </main>
+    </>
   );
 }
 
