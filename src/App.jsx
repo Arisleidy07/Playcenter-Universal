@@ -43,7 +43,7 @@ function App() {
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/favoritos" element={<Favoritos />} />
         <Route path="/contacto" element={<Contacto />} />
-        <Route path="/producto/:id" element={<DetalleProducto />} /> {/* ✅ AÑADIDO */}
+        <Route path="/producto/:id" element={<DetalleProducto />} /> 
         <Route path="/categoria/audifonos" element={<Audifonos />} />
         <Route path="/categoria/consolas" element={<Consolas />} />
         <Route path="/categoria/discos-duros" element={<DiscosDuros />} />

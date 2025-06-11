@@ -1,51 +1,49 @@
 // src/pages/Categorias.jsx
-import React, { useState } from 'react';
-import ProductCard from '../components/ProductCard';
-import SidebarCategorias from '../components/SidebarCategorias';
-
-const productos = [
-    { nombre: 'Audífonos Bluetooth', precio: 999, imagen: 'https://via.placeholder.com/200x200', categoria: 'Audífonos' },
-    { nombre: 'Cargador rápido', precio: 499, imagen: 'https://via.placeholder.com/200x200', categoria: 'Cargadores' },
-    { nombre: 'Control Gamer', precio: 1199, imagen: 'https://via.placeholder.com/200x200', categoria: 'Gaming' },
-    { nombre: 'Lámpara LED', precio: 699, imagen: 'https://via.placeholder.com/200x200', categoria: 'Hogar inteligente' },
-    { nombre: 'Tablet Galaxy', precio: 799, imagen: 'https://via.placeholder.com/200x200', categoria: 'Tablets' },
-    { nombre: 'Smart TV LG', precio: 1599, imagen: 'https://via.placeholder.com/200x200', categoria: 'Smart TV' },
-];
+import React from "react";
+import { Link } from "react-router-dom";
 
 const categorias = [
-    'Todos', 'Accesorios', 'Videojuegos', 'Audífonos', 'Cables', 'Cámaras', 'Cargadores',
-    'Celulares', 'Consolas', 'Discos duros', 'Electrodomésticos', 'Gaming Chairs',
-    'Hogar inteligente', 'Impresoras', 'Laptops', 'Memoria USB', 'Monitores',
-    'Mouse', 'Nuevos lanzamientos', 'Ofertas especiales', 'Relojes inteligentes',
-    'Smart TV', 'Tablets', 'Teclados'
+    { nombre: "AccesoriosVideojuegos", ruta: "/categorias/accesoriosvideojuegos" },
+    { nombre: "Audifonos", ruta: "/categorias/audifonos" },
+    { nombre: "Cables", ruta: "/categorias/cables" },
+    { nombre: "Camaras", ruta: "/categorias/camaras" },
+    { nombre: "Cargadores", ruta: "/categorias/cargadores" },
+    { nombre: "Celulares", ruta: "/categorias/celulares" },
+    { nombre: "Consolas", ruta: "/categorias/consolas" },
+    { nombre: "Discos Duros", ruta: "/categorias/discosduros" },
+    { nombre: "Electrodomésticos", ruta: "/categorias/electrodomesticos" },
+    { nombre: "Gaming Chairs", ruta: "/categorias/gamingchairs" },
+    { nombre: "Hogar Inteligente", ruta: "/categorias/hogarinteligente" },
+    { nombre: "Impresoras", ruta: "/categorias/impresoras" },
+    { nombre: "Laptops", ruta: "/categorias/laptops" },
+    { nombre: "Memorias USB", ruta: "/categorias/memoriasusb" },
+    { nombre: "Monitores", ruta: "/categorias/monitores" },
+    { nombre: "Mouse", ruta: "/categorias/mouses" },
+    { nombre: "Nuevos Lanzamientos", ruta: "/categorias/nuevoslanzamientos" },
+    { nombre: "Ofertas Especiales", ruta: "/categorias/ofertasespeciales" },
+    { nombre: "Relojes Inteligentes", ruta: "/categorias/relojesinteligentes" },
+    { nombre: "Smart TV", ruta: "/categorias/smarttv" },
+    { nombre: "Tablets", ruta: "/categorias/tablets" },
+    { nombre: "Teclados", ruta: "/categorias/teclados" },
+    { nombre: "Videojuegos", ruta: "/categorias/videojuegos" },
 ];
 
 function Categorias() {
-    const [categoriaActiva, setCategoriaActiva] = useState('Todos');
-
-    const productosFiltrados = categoriaActiva === 'Todos'
-        ? productos
-        : productos.filter(p => p.categoria === categoriaActiva);
-
     return (
-        <div className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen flex flex-col lg:flex-row gap-6">
-            <SidebarCategorias
-                categoriaActiva={categoriaActiva}
-                setCategoriaActiva={setCategoriaActiva}
-                categorias={categorias}
-            />
-
-            <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 flex-1">
-                {productosFiltrados.map((prod, index) => (
-                    <ProductCard
-                        key={index}
-                        nombre={prod.nombre}
-                        precio={prod.precio}
-                        imagen={prod.imagen}
-                    />
-                ))}
-            </section>
+    <main className="pt-24 px-6 bg-white min-h-screen">
+        <h1 className="text-3xl font-bold text-center mb-10">Categorías</h1>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+        {categorias.map((cat, idx) => (
+            <Link
+            to={cat.ruta}
+            key={idx}
+            className="bg-gradient-to-br from-blue-200 to-white p-6 rounded-xl shadow hover:shadow-lg transition-all text-center font-semibold text-gray-800 hover:text-blue-700"
+            >
+            {cat.nombre}
+            </Link>
+        ))}
         </div>
+    </main>
     );
 }
 
