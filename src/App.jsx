@@ -16,7 +16,7 @@ import Celulares from "./pages/categories/Celulares";
 import Laptops from "./pages/categories/Laptops";
 import Tablets from "./pages/categories/Tablets";
 import Impresoras from "./pages/categories/Impresoras";
-import Accesorios from "./pages/categories/Accesorios";
+import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
 import Videojuegos from "./pages/categories/Videojuegos";
 import Relojes from "./pages/categories/Relojes";
 import SmartTV from "./pages/categories/SmartTV";
@@ -44,6 +44,7 @@ function App() {
         <Route path="/favoritos" element={<Favoritos />} />
         <Route path="/contacto" element={<Contacto />} />
         <Route path="/producto/:id" element={<DetalleProducto />} /> 
+        {/* Rutas de categorías */}
         <Route path="/categoria/audifonos" element={<Audifonos />} />
         <Route path="/categoria/consolas" element={<Consolas />} />
         <Route path="/categoria/discos-duros" element={<DiscosDuros />} />
@@ -52,7 +53,7 @@ function App() {
         <Route path="/categoria/laptops" element={<Laptops />} />
         <Route path="/categoria/tablets" element={<Tablets />} />
         <Route path="/categoria/impresoras" element={<Impresoras />} />
-        <Route path="/categoria/accesorios" element={<Accesorios />} />
+        <Route path="/categoria/accesorios" element={<AccesoriosVideojuegos />} />
         <Route path="/categoria/videojuegos" element={<Videojuegos />} />
         <Route path="/categoria/relojes-inteligentes" element={<Relojes />} />
         <Route path="/categoria/smart-tv" element={<SmartTV />} />
