@@ -30,7 +30,7 @@ function Inicio() {
           <div className="bg-blue-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
             <h2 className="text-xl font-semibold mb-2">Categorías variadas</h2>
             <p className="text-sm mb-4">Explora más de 20 categorías con productos increíbles.</p>
-            <Link to="/categorias" className="text-blue-600 font-medium hover:underline">Explorar</Link>
+            <Link to="/productos" className="text-blue-600 font-medium hover:underline">Explorar</Link>
           </div>
           <div className="bg-green-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
             <h2 className="text-xl font-semibold mb-2">Ofertas especiales</h2>
