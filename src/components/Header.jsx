@@ -9,7 +9,8 @@ function Header() {
 
   return (
     <>
-      <header className="header fixed top-0 left-0 w-full bg-white shadow-md z-50 px-6 py-3 flex items-center justify-between">
+      <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50 flex flex-col md:flex-row items-center justify-between px-6 py-3">
+
         {/* Logo */}
         <div className="logo text-2xl sm:text-3xl font-bold flex gap-[2px]">
           <span className="text-red-500">P</span>

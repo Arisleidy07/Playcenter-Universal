@@ -1,5 +1,6 @@
+// src/App.jsx
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Inicio from "./pages/Inicio";
 import Categorias from "./pages/Categorias";
@@ -10,7 +11,7 @@ import Contacto from "./pages/Contacto";
 
 function App() {
   return (
-    <>
+    <Router>
       <Header />
       <Routes>
         <Route path="/" element={<Inicio />} />
@@ -20,7 +21,7 @@ function App() {
         <Route path="/favoritos" element={<Favoritos />} />
         <Route path="/contacto" element={<Contacto />} />
       </Routes>
-    </>
+    </Router>
   );
 }
 
