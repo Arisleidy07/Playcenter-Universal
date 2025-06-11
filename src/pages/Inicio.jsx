@@ -44,32 +44,6 @@ function Inicio() {
           </div>
         </section>
 
-        {/* NUEVA SECCIÓN */}
-        <section className="mb-14">
-          <h2 className="text-2xl font-bold mb-6 text-center">🎉 Nuevas Colecciones</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-            {[
-              'Gaming',
-              'Oficina',
-              'Fitness',
-              'Electrodomésticos',
-              'Moda',
-              'Juguetes'
-            ].map((cat, idx) => (
-              <div
-                key={idx}
-                className="bg-white border rounded-xl shadow-md p-4 text-center hover:shadow-xl transition-all cursor-pointer"
-              >
-                <img
-                  src={`https://via.placeholder.com/100x100?text=${cat}`}
-                  alt={cat}
-                  className="mx-auto mb-2 rounded"
-                />
-                <p className="text-sm font-semibold">{cat}</p>
-              </div>
-            ))}
-          </div>
-        </section>
 
       </main>
     </>
