@@ -1,40 +1,51 @@
 // src/pages/Categorias.jsx
-import React from "react";
+import React, { useState } from 'react';
+import ProductCard from '../components/ProductCard';
+import SidebarCategorias from '../components/SidebarCategorias';
 
-// Simulación de categorías
+const productos = [
+    { nombre: 'Audífonos Bluetooth', precio: 999, imagen: 'https://via.placeholder.com/200x200', categoria: 'Audífonos' },
+    { nombre: 'Cargador rápido', precio: 499, imagen: 'https://via.placeholder.com/200x200', categoria: 'Cargadores' },
+    { nombre: 'Control Gamer', precio: 1199, imagen: 'https://via.placeholder.com/200x200', categoria: 'Gaming' },
+    { nombre: 'Lámpara LED', precio: 699, imagen: 'https://via.placeholder.com/200x200', categoria: 'Hogar inteligente' },
+    { nombre: 'Tablet Galaxy', precio: 799, imagen: 'https://via.placeholder.com/200x200', categoria: 'Tablets' },
+    { nombre: 'Smart TV LG', precio: 1599, imagen: 'https://via.placeholder.com/200x200', categoria: 'Smart TV' },
+];
+
 const categorias = [
-    { nombre: "Videojuegos", color: "from-pink-400 to-pink-600" },
-    { nombre: "Ropa", color: "from-blue-400 to-blue-600" },
-    { nombre: "Accesorios", color: "from-green-400 to-green-600" },
-    { nombre: "Tecnología", color: "from-purple-400 to-purple-600" },
-    { nombre: "Hogar", color: "from-yellow-400 to-yellow-600" },
-    { nombre: "Juguetes", color: "from-red-400 to-red-600" },
-    { nombre: "Belleza", color: "from-rose-400 to-rose-600" },
-    { nombre: "Zapatos", color: "from-teal-400 to-teal-600" },
-    { nombre: "Móviles", color: "from-indigo-400 to-indigo-600" },
-    { nombre: "Cargadores", color: "from-orange-400 to-orange-600" },
-    { nombre: "Audífonos", color: "from-cyan-400 to-cyan-600" },
-    { nombre: "Tablets", color: "from-emerald-400 to-emerald-600" },
+    'Todos', 'Accesorios', 'Videojuegos', 'Audífonos', 'Cables', 'Cámaras', 'Cargadores',
+    'Celulares', 'Consolas', 'Discos duros', 'Electrodomésticos', 'Gaming Chairs',
+    'Hogar inteligente', 'Impresoras', 'Laptops', 'Memoria USB', 'Monitores',
+    'Mouse', 'Nuevos lanzamientos', 'Ofertas especiales', 'Relojes inteligentes',
+    'Smart TV', 'Tablets', 'Teclados'
 ];
 
 function Categorias() {
-    return (
-    <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-10">
-        Explora nuestras Categorías
-        </h1>
+    const [categoriaActiva, setCategoriaActiva] = useState('Todos');
 
-        <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
-        {categorias.map((cat, idx) => (
-            <div
-            key={idx}
-            className={`rounded-xl p-6 text-white font-semibold text-center text-sm sm:text-base shadow-md bg-gradient-to-br ${cat.color} hover:scale-[1.03] transition-all cursor-pointer`}
-            >
-            {cat.nombre}
-            </div>
-        ))}
-        </section>
-    </main>
+    const productosFiltrados = categoriaActiva === 'Todos'
+        ? productos
+        : productos.filter(p => p.categoria === categoriaActiva);
+
+    return (
+        <div className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen flex flex-col lg:flex-row gap-6">
+            <SidebarCategorias
+                categoriaActiva={categoriaActiva}
+                setCategoriaActiva={setCategoriaActiva}
+                categorias={categorias}
+            />
+
+            <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 flex-1">
+                {productosFiltrados.map((prod, index) => (
+                    <ProductCard
+                        key={index}
+                        nombre={prod.nombre}
+                        precio={prod.precio}
+                        imagen={prod.imagen}
+                    />
+                ))}
+            </section>
+        </div>
     );
 }
 
