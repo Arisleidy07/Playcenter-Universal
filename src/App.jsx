@@ -22,7 +22,7 @@ import RelojesInteligentes from "./pages/categories/RelojesInteligentes";
 import SmartTV from "./pages/categories/SmartTV";
 import Monitores from "./pages/categories/Monitores";
 import Teclados from "./pages/categories/Teclados";
-import Mouse from "./pages/categories/Mouse";
+import Mouses from "./pages/categories/Mouses";
 import MemoriaUSB from "./pages/categories/MemoriaUSB";
 import GamingChairs from "./pages/categories/GamingChairs";
 import HogarInteligente from "./pages/categories/HogarInteligente";
@@ -59,7 +59,7 @@ function App() {
         <Route path="/categoria/smart-tv" element={<SmartTV />} />
         <Route path="/categoria/monitores" element={<Monitores />} />
         <Route path="/categoria/teclados" element={<Teclados />} />
-        <Route path="/categoria/mouse" element={<Mouse />} />
+        <Route path="/categoria/mouses" element={<Mouses />} />
         <Route path="/categoria/memoria-usb" element={<MemoriaUSB />} />
         <Route path="/categoria/gaming-chairs" element={<GamingChairs />} />
         <Route path="/categoria/hogar-inteligente" element={<HogarInteligente />} />
