@@ -1,51 +1,57 @@
+// src/categories/MemoriaUSB.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 
-function MemoriasUSB() {
+function MemoriaUSB() {
     const productos = [
-        {
-            id: 1,
-            nombre: "Memoria USB 64GB SanDisk",
-            imagen: "/products/usb-sandisk.png",
-            precio: "$14.99",
-        },
-        {
-            id: 2,
-            nombre: "Memoria USB 128GB Kingston",
-            imagen: "/products/usb-kingston.png",
-            precio: "$24.99",
-        },
-        {
-            id: 3,
-            nombre: "Memoria USB 256GB PNY",
-            imagen: "/products/usb-pny.png",
-            precio: "$39.99",
-        },
+    {
+        id: 401,
+        nombre: "Memoria USB 32GB Kingston",
+        imagen: "/products/usb-kingston-32gb.png",
+        precio: 9.99,
+    },
+    {
+        id: 402,
+        nombre: "Pendrive 64GB SanDisk",
+        imagen: "/products/usb-sandisk-64gb.png",
+        precio: 14.99,
+    },
+    {
+        id: 403,
+        nombre: "Memoria USB 128GB Ultra",
+        imagen: "/products/usb-ultra-128gb.png",
+        precio: 24.99,
+    },
     ];
 
     return (
-        <div className="p-6 pt-28">
-            <h1 className="text-3xl font-bold mb-6 text-purple-700">Memorias USB</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {productos.map((producto) => (
-                    <div
-                        key={producto.id}
-                        className="border rounded-lg p-4 shadow-lg hover:scale-105 transition-transform duration-300 bg-white"
-                    >
-                        <img
-                            src={producto.imagen}
-                            alt={producto.nombre}
-                            className="w-full h-48 object-contain"
-                        />
-                        <h2 className="mt-4 text-lg font-semibold">{producto.nombre}</h2>
-                        <p className="text-purple-600 font-bold">{producto.precio}</p>
-                        <button className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
-                            Agregar al carrito
-                        </button>
-                    </div>
-                ))}
-            </div>
+    <div className="p-6 pt-28 bg-white min-h-screen">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Memorias USB</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {productos.map((producto) => (
+            <Link
+            to={`/producto/${producto.id}`}
+            key={producto.id}
+            className="card transform transition-transform duration-300 hover:scale-105"
+            >
+            <div className="bg"></div>
+            <div className="blob"></div>
+            <img
+                src={producto.imagen}
+                alt={producto.nombre}
+                className="z-10 w-32 h-32 object-contain"
+            />
+            <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">
+                {producto.nombre}
+            </h2>
+            <p className="z-10 text-pink-600 font-bold text-center">
+                ${producto.precio}
+            </p>
+            </Link>
+        ))}
         </div>
+    </div>
     );
 }
 
-export default MemoriasUSB;
+export default MemoriaUSB;

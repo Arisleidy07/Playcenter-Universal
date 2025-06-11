@@ -1,47 +1,62 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-function Accesorios() {
+function AccesoriosVideojuegos() {
     const productos = [
     {
         id: 1,
-        nombre: "Auriculares Gamer RGB",
-        imagen: "/products/headset.png",
-        precio: "$59.99",
+        nombre: "Soporte de control PS5 doble carga",
+        imagen: "/products/soporte-controles.jpg",
+        precio: 25.99,
     },
     {
         id: 2,
-        nombre: "Mouse Inalámbrico",
-        imagen: "/products/mouse.png",
-        precio: "$29.99",
+        nombre: "Base refrigeradora para consola Xbox",
+        imagen: "/products/base-refrigeracion.jpg",
+        precio: 34.99,
     },
     {
         id: 3,
-        nombre: "Teclado Mecánico LED",
-        imagen: "/products/keyboard.png",
-        precio: "$69.99",
+        nombre: "Auriculares Gaming con micrófono",
+        imagen: "/products/auriculares-gamer.jpg",
+        precio: 44.99,
+    },
+    {
+        id: 4,
+        nombre: "Grip antideslizante para Nintendo Switch",
+        imagen: "/products/grip-switch.jpg",
+        precio: 14.99,
     },
     ];
 
     return (
-    <div className="p-6 pt-28">
-        <h1 className="text-3xl font-bold mb-6 text-purple-700">Accesorios</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="p-6 pt-28 bg-white min-h-screen">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Accesorios para Videojuegos</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productos.map((producto) => (
-            <div
+            <Link
+            to={`/producto/${producto.id}`}
             key={producto.id}
-            className="border rounded-lg p-4 shadow-lg hover:scale-105 transition-transform duration-300 bg-white"
+            className="card transform transition-transform duration-300 hover:scale-105"
             >
-            <img src={producto.imagen} alt={producto.nombre} className="w-full h-48 object-contain" />
-            <h2 className="mt-4 text-lg font-semibold">{producto.nombre}</h2>
-            <p className="text-purple-600 font-bold">{producto.precio}</p>
-            <button className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
-                Agregar al carrito
-            </button>
-            </div>
+            <div className="bg"></div>
+            <div className="blob"></div>
+            <img
+                src={producto.imagen}
+                alt={producto.nombre}
+                className="z-10 w-32 h-32 object-contain mx-auto"
+            />
+            <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">
+                {producto.nombre}
+            </h2>
+            <p className="z-10 text-pink-600 font-bold text-center">
+                ${producto.precio}
+            </p>
+            </Link>
         ))}
         </div>
     </div>
     );
 }
 
-export default Accesorios;
+export default AccesoriosVideojuegos;

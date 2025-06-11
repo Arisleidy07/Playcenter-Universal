@@ -1,51 +1,57 @@
+// src/categories/OfertaEspeciales.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 
-function OfertasEspeciales() {
+function OfertaEspeciales() {
     const productos = [
-        {
-            id: 1,
-            nombre: "Laptop Lenovo i5 8GB RAM (¡50% Dcto!)",
-            imagen: "/products/laptop-lenovo.png",
-            precio: "$399.99",
-        },
-        {
-            id: 2,
-            nombre: "Echo Dot 5ta Gen (2x1)",
-            imagen: "/products/echo-dot.png",
-            precio: "$49.99",
-        },
-        {
-            id: 3,
-            nombre: "Combo Gamer: Teclado + Mouse RGB (30% Dcto)",
-            imagen: "/products/combo-gamer.png",
-            precio: "$69.99",
-        },
+    {
+        id: 801,
+        nombre: "Combo Gamer: Mouse + Teclado + Audífonos",
+        imagen: "/products/combo-gamer.png",
+        precio: 79.99,
+    },
+    {
+        id: 802,
+        nombre: "Smart TV 43'' LG + Soporte",
+        imagen: "/products/smart-tv-oferta.png",
+        precio: 299.99,
+    },
+    {
+        id: 803,
+        nombre: "Impresora Multifuncional Epson + Tinta",
+        imagen: "/products/impresora-oferta.png",
+        precio: 129.0,
+    },
     ];
 
     return (
-        <div className="p-6 pt-28">
-            <h1 className="text-3xl font-bold mb-6 text-red-600">🔥 Ofertas Especiales 🔥</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {productos.map((producto) => (
-                    <div
-                        key={producto.id}
-                        className="border rounded-lg p-4 shadow-lg hover:scale-105 transition-transform duration-300 bg-white"
-                    >
-                        <img
-                            src={producto.imagen}
-                            alt={producto.nombre}
-                            className="w-full h-48 object-contain"
-                        />
-                        <h2 className="mt-4 text-lg font-semibold">{producto.nombre}</h2>
-                        <p className="text-red-500 font-bold">{producto.precio}</p>
-                        <button className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-                            Agregar al carrito
-                        </button>
-                    </div>
-                ))}
-            </div>
+    <div className="p-6 pt-28 bg-white min-h-screen">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Ofertas Especiales</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {productos.map((producto) => (
+            <Link
+            to={`/producto/${producto.id}`}
+            key={producto.id}
+            className="card transform transition-transform duration-300 hover:scale-105"
+            >
+            <div className="bg"></div>
+            <div className="blob"></div>
+            <img
+                src={producto.imagen}
+                alt={producto.nombre}
+                className="z-10 w-32 h-32 object-contain"
+            />
+            <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">
+                {producto.nombre}
+            </h2>
+            <p className="z-10 text-pink-600 font-bold text-center">
+                ${producto.precio}
+            </p>
+            </Link>
+        ))}
         </div>
-    );
+    </div>
+   );
 }
 
-export default OfertasEspeciales;
+export default OfertaEspeciales;

@@ -7,6 +7,7 @@ import Productos from "./pages/Productos";
 import Carrito from "./pages/Carrito";
 import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
+import DetalleProducto from "./pages/DetalleProducto"; // ✅ AÑADIDO
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/favoritos" element={<Favoritos />} />
         <Route path="/contacto" element={<Contacto />} />
+        <Route path="/producto/:id" element={<DetalleProducto />} /> {/* ✅ AÑADIDO */}
       </Routes>
     </>
   );

@@ -23,24 +23,25 @@ function DiscosDuros() {
     ];
 
     return (
-        <div className="p-6 pt-28">
+        <div className="p-6 pt-28 bg-white min-h-screen">
             <h1 className="text-3xl font-bold mb-6 text-purple-700">Discos Duros</h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {productos.map((producto) => (
                     <div
                         key={producto.id}
-                        className="border rounded-lg p-4 shadow-lg hover:scale-105 transition-transform duration-300 bg-white"
+                        className="card relative cursor-pointer"
                     >
-                        <img
-                            src={producto.imagen}
-                            alt={producto.nombre}
-                            className="w-full h-48 object-contain"
-                        />
-                        <h2 className="mt-4 text-lg font-semibold">{producto.nombre}</h2>
-                        <p className="text-purple-600 font-bold">{producto.precio}</p>
-                        <button className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
-                            Agregar al carrito
-                        </button>
+                        <div className="bg"></div>
+                        <div className="blob"></div>
+                        <div className="z-10 text-center p-4">
+                            <img
+                                src={producto.imagen}
+                                alt={producto.nombre}
+                                className="w-full h-40 object-contain mx-auto mb-3"
+                            />
+                            <h2 className="text-lg font-semibold">{producto.nombre}</h2>
+                            <p className="text-pink-600 font-bold">{producto.precio}</p>
+                        </div>
                     </div>
                 ))}
             </div>

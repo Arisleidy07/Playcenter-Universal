@@ -1,47 +1,58 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function Consolas() {
     const productos = [
     {
         id: 1,
         nombre: "PlayStation 5",
-        imagen: "/products/ps5.png",
-        precio: "$499.99",
+        imagen: "/products/ps5.jpg",
+        precio: 499.99,
     },
     {
         id: 2,
         nombre: "Xbox Series X",
-        imagen: "/products/xbox-series-x.png",
-        precio: "$499.99",
+        imagen: "/products/xbox-series-x.jpg",
+        precio: 499.99,
     },
     {
         id: 3,
         nombre: "Nintendo Switch OLED",
-        imagen: "/products/switch-oled.png",
-        precio: "$349.99",
+        imagen: "/products/nintendo-switch-oled.jpg",
+        precio: 349.99,
+    },
+    {
+        id: 4,
+        nombre: "Steam Deck 512GB",
+        imagen: "/products/steamdeck.jpg",
+        precio: 649.99,
     },
     ];
 
     return (
-    <div className="p-6 pt-28">
-        <h1 className="text-3xl font-bold mb-6 text-purple-700">Consolas</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="p-6 pt-28 bg-white min-h-screen">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Consolas</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productos.map((producto) => (
-            <div
+            <Link
+            to={`/producto/${producto.id}`}
             key={producto.id}
-            className="border rounded-lg p-4 shadow-lg hover:scale-105 transition-transform duration-300 bg-white"
+            className="card transform transition-transform duration-300 hover:scale-105"
             >
+            <div className="bg"></div>
+            <div className="blob"></div>
             <img
                 src={producto.imagen}
                 alt={producto.nombre}
-                className="w-full h-48 object-contain"
+                className="z-10 w-32 h-32 object-contain mx-auto"
             />
-            <h2 className="mt-4 text-lg font-semibold">{producto.nombre}</h2>
-            <p className="text-purple-600 font-bold">{producto.precio}</p>
-            <button className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
-                Agregar al carrito
-            </button>
-            </div>
+            <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">
+                {producto.nombre}
+            </h2>
+            <p className="z-10 text-pink-600 font-bold text-center">
+                ${producto.precio}
+            </p>
+            </Link>
         ))}
         </div>
     </div>

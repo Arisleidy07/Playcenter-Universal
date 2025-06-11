@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function Electrodomesticos() {
     const productos = [
@@ -23,25 +24,24 @@ function Electrodomesticos() {
     ];
 
     return (
-        <div className="p-6 pt-28">
-            <h1 className="text-3xl font-bold mb-6 text-purple-700">Electrodomésticos</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-6 pt-28 bg-white min-h-screen">
+            <h1 className="text-3xl font-bold mb-6 text-gray-800">Electrodomésticos</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                 {productos.map((producto) => (
-                    <div
-                        key={producto.id}
-                        className="border rounded-lg p-4 shadow-lg hover:scale-105 transition-transform duration-300 bg-white"
-                    >
-                        <img
-                            src={producto.imagen}
-                            alt={producto.nombre}
-                            className="w-full h-48 object-contain"
-                        />
-                        <h2 className="mt-4 text-lg font-semibold">{producto.nombre}</h2>
-                        <p className="text-purple-600 font-bold">{producto.precio}</p>
-                        <button className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
-                            Agregar al carrito
-                        </button>
-                    </div>
+                    <Link to={`/producto/${producto.id}`} key={producto.id}>
+                        <div className="card transform transition-transform hover:scale-[1.02]">
+                            <div className="bg flex flex-col items-center justify-center text-center p-4">
+                                <img
+                                    src={producto.imagen}
+                                    alt={producto.nombre}
+                                    className="w-24 h-24 object-contain mb-3"
+                                />
+                                <h2 className="font-semibold text-gray-700">{producto.nombre}</h2>
+                                <p className="text-pink-600 font-bold">{producto.precio}</p>
+                            </div>
+                            <div className="blob"></div>
+                        </div>
+                    </Link>
                 ))}
             </div>
         </div>
