@@ -38,8 +38,9 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Inicio />} />
-        <Route path="/categorias" element={<Categorias />} />
+        <Route path="/categorias" element={<Productos />} />
         <Route path="/productos" element={<Productos />} />
+
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/favoritos" element={<Favoritos />} />
         <Route path="/contacto" element={<Contacto />} />
