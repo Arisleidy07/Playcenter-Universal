@@ -18,7 +18,7 @@ import Tablets from "./pages/categories/Tablets";
 import Impresoras from "./pages/categories/Impresoras";
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
 import Videojuegos from "./pages/categories/Videojuegos";
-import Relojes from "./pages/categories/Relojes";
+import RelojesInteligentes from "./pages/categories/RelojesInteligentes";
 import SmartTV from "./pages/categories/SmartTV";
 import Monitores from "./pages/categories/Monitores";
 import Teclados from "./pages/categories/Teclados";
@@ -55,7 +55,7 @@ function App() {
         <Route path="/categoria/impresoras" element={<Impresoras />} />
         <Route path="/categoria/accesorios" element={<AccesoriosVideojuegos />} />
         <Route path="/categoria/videojuegos" element={<Videojuegos />} />
-        <Route path="/categoria/relojes-inteligentes" element={<Relojes />} />
+        <Route path="/categoria/relojes-inteligentes" element={<RelojesInteligentes />} />
         <Route path="/categoria/smart-tv" element={<SmartTV />} />
         <Route path="/categoria/monitores" element={<Monitores />} />
         <Route path="/categoria/teclados" element={<Teclados />} />
