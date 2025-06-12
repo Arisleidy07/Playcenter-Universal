@@ -6,10 +6,10 @@ import SidebarCategorias from '../components/SidebarCategorias';
 const productos = [
     { nombre: 'Audífonos Bluetooth', precio: 999, imagen: 'https://via.placeholder.com/200x200', categoria: 'Audífonos' },
     { nombre: 'Cargador rápido', precio: 499, imagen: 'https://via.placeholder.com/200x200', categoria: 'Cargadores' },
-    { nombre: 'Control Gamer', precio: 1199, imagen: 'https://via.placeholder.com/200x200', categoria: 'Gaming' },
-    { nombre: 'Lámpara LED', precio: 699, imagen: 'https://via.placeholder.com/200x200', categoria: 'Hogar inteligente' },
-    { nombre: 'Tablet Galaxy', precio: 799, imagen: 'https://via.placeholder.com/200x200', categoria: 'Tablets' },
-    { nombre: 'Smart TV LG', precio: 1599, imagen: 'https://via.placeholder.com/200x200', categoria: 'Smart TV' },
+    { nombre: 'Teclado Mecánico', precio: 799, imagen: 'https://via.placeholder.com/200x200', categoria: 'Teclados' },
+    { nombre: 'Tablet Galaxy', precio: 1299, imagen: 'https://via.placeholder.com/200x200', categoria: 'Tablets' },
+    { nombre: 'Smart TV LG', precio: 1999, imagen: 'https://via.placeholder.com/200x200', categoria: 'Smart TV' },
+    { nombre: 'Mouse Gaming', precio: 599, imagen: 'https://via.placeholder.com/200x200', categoria: 'Mouses' },
 ];
 
 const categorias = [
