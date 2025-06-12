@@ -1,13 +1,15 @@
+// src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Inicio from "./pages/Inicio";
-import Categorias from "./pages/Categorias";
-import Productos from "./pages/Productos";
+import Productos from "./pages/Productos"; // ✅ Categorías y productos estarán en este
 import Carrito from "./pages/Carrito";
 import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
-import DetalleProducto from "./pages/DetalleProducto"; // ✅ AÑADIDO
+import DetalleProducto from "./pages/DetalleProducto";
+
+// Categorías individuales
 import Audifonos from "./pages/categories/Audifonos";
 import Consolas from "./pages/categories/Consolas";
 import DiscosDuros from "./pages/categories/DiscosDuros";
@@ -31,21 +33,25 @@ import Cables from "./pages/categories/Cables";
 import NuevosLanzamientos from "./pages/categories/NuevosLanzamientos";
 import OfertasEspeciales from "./pages/categories/OfertasEspeciales";
 
-
 function App() {
   return (
     <>
       <Header />
       <Routes>
+        {/* Página principal */}
         <Route path="/" element={<Inicio />} />
+
+        {/* Categorías y Productos */}
         <Route path="/categorias" element={<Productos />} />
         <Route path="/productos" element={<Productos />} />
 
+        {/* Funcionalidades */}
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/favoritos" element={<Favoritos />} />
         <Route path="/contacto" element={<Contacto />} />
-        <Route path="/producto/:id" element={<DetalleProducto />} /> 
-        {/* Rutas de categorías */}
+        <Route path="/producto/:id" element={<DetalleProducto />} />
+
+        {/* Categorías individuales */}
         <Route path="/categoria/audifonos" element={<Audifonos />} />
         <Route path="/categoria/consolas" element={<Consolas />} />
         <Route path="/categoria/discos-duros" element={<DiscosDuros />} />
@@ -68,7 +74,6 @@ function App() {
         <Route path="/categoria/cables" element={<Cables />} />
         <Route path="/categoria/nuevos-lanzamientos" element={<NuevosLanzamientos />} />
         <Route path="/categoria/ofertas-especiales" element={<OfertasEspeciales />} />
-
       </Routes>
     </>
   );
