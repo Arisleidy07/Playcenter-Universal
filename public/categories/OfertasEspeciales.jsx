@@ -50,8 +50,8 @@ function OfertaEspeciales() {
             </Link>
         ))}
         </div>
-    </div>
-   );
+    </div>  
+    );
 }
 
 export default OfertaEspeciales;
