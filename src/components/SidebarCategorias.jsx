@@ -1,8 +1,8 @@
+// src/components/SidebarCategorias.jsx
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const categorias = [
-    { nombre: "Todos", ruta: "" },
     { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
     { nombre: "Audífonos", ruta: "audifonos" },
     { nombre: "Cables", ruta: "cables" },
@@ -29,6 +29,7 @@ const categorias = [
 ];
 
 function SidebarCategorias() {
+    const navigate = useNavigate();
     const location = useLocation();
 
     return (
@@ -36,20 +37,17 @@ function SidebarCategorias() {
         <h2 className="text-lg font-bold text-blue-700 mb-4">Categorías</h2>
         <ul className="space-y-2">
         {categorias.map((cat, idx) => {
-            const activa = location.pathname === "/productos" && cat.ruta === ""
-            ? true
-            : location.pathname.includes(cat.ruta);
-
+            const activa = location.pathname.includes(cat.ruta);
             return (
             <li key={idx}>
-                <Link
-                to={`/productos/${cat.ruta}`}
-                className={`block px-3 py-2 rounded-lg border border-blue-300 hover:bg-blue-200 transition-all duration-200 ${
+                <button
+                onClick={() => navigate(`/productos/${cat.ruta}`)}
+                className={`w-full text-left block px-3 py-2 rounded-lg border border-blue-300 hover:bg-blue-200 transition-all duration-200 ${
                     activa ? "bg-blue-600 text-white" : "text-gray-700"
                 }`}
                 >
                 {cat.nombre}
-                </Link>
+                </button>
             </li>
             );
         })}

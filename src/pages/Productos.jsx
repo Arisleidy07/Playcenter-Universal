@@ -1,8 +1,11 @@
+// src/pages/Productos.jsx
 import React from "react";
+import { Outlet } from "react-router-dom";
 import SidebarCategorias from "../components/SidebarCategorias";
 import productosAll from "../data/productosAll";
 
 function Productos() {
+  // Mostrar todos los productos cuando no hay subcategoría activa
   const productos = productosAll.flatMap((cat) =>
     cat.productos.map((prod) => ({
       ...prod,
@@ -14,7 +17,7 @@ function Productos() {
     <div className="flex pt-20 min-h-screen bg-white">
       <SidebarCategorias />
       <main className="flex-1 p-4">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Todos los productos</h1>
+        <Outlet />
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {productos.map((producto) => (
             <div
