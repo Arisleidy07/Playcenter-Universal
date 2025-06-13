@@ -1,52 +1,18 @@
 // src/pages/Productos.jsx
-import React, { useState } from 'react';
-import ProductCard from '../components/ProductCard';
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 import SidebarCategorias from '../components/SidebarCategorias';
 
-const productos = [
-    { nombre: 'Audífonos Bluetooth', precio: 999, imagen: 'https://via.placeholder.com/200x200', categoria: 'Audífonos' },
-    { nombre: 'Cargador rápido', precio: 499, imagen: 'https://via.placeholder.com/200x200', categoria: 'Cargadores' },
-    { nombre: 'Teclado Mecánico', precio: 799, imagen: 'https://via.placeholder.com/200x200', categoria: 'Teclados' },
-    { nombre: 'Tablet Galaxy', precio: 1299, imagen: 'https://via.placeholder.com/200x200', categoria: 'Tablets' },
-    { nombre: 'Smart TV LG', precio: 1999, imagen: 'https://via.placeholder.com/200x200', categoria: 'Smart TV' },
-    { nombre: 'Mouse Gaming', precio: 599, imagen: 'https://via.placeholder.com/200x200', categoria: 'Mouses' },
-];
-
-const categorias = [
-    'Todos', 'Accesorios', 'Videojuegos', 'Audífonos', 'Cables', 'Cámaras', 'Cargadores',
-    'Celulares', 'Consolas', 'Discos duros', 'Electrodomésticos', 'Gaming Chairs',
-    'Hogar inteligente', 'Impresoras', 'Laptops', 'Memoria USB', 'Monitores',
-    'Mouse', 'Nuevos lanzamientos', 'Ofertas especiales', 'Relojes inteligentes',
-    'Smart TV', 'Tablets', 'Teclados'
-];
-
 function Productos() {
-    const [categoriaActiva, setCategoriaActiva] = useState('Todos');
-
-    const productosFiltrados = categoriaActiva === 'Todos'
-    ? productos
-    : productos.filter(p => p.categoria === categoriaActiva);
-
     return (
-    <div className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen flex flex-col lg:flex-row gap-6">
-      {/* Barra lateral de categorías */}
-        <SidebarCategorias
-        categoriaActiva={categoriaActiva}
-        setCategoriaActiva={setCategoriaActiva}
-        categorias={categorias}
-        />
+    <div className="flex pt-20 min-h-screen bg-white">
+      {/* Barra lateral fija */}
+        <SidebarCategorias />
 
-      {/* Tarjetas de productos */}
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 flex-1">
-        {productosFiltrados.map((prod, index) => (
-            <ProductCard
-            key={index}
-            nombre={prod.nombre}
-            precio={prod.precio}
-            imagen={prod.imagen}
-            />
-        ))}
-        </section>
+      {/* Aquí se renderiza la categoría activa */}
+        <main className="flex-1 p-4">
+        <Outlet />
+        </main>
     </div>
     );
 }
