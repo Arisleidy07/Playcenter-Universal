@@ -7,44 +7,44 @@ function Inicio() {
     <>
       <SliderAnuncios />
 
-      <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen">
+      <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-neutral-900 min-h-screen text-white">
 
-        {/* Banner principal */}
-        <section className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 sm:p-10 rounded-2xl shadow-lg mb-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 animate-fade-in">
-            Bienvenido a Playcenter Universal
+        {/* Hero principal */}
+        <section className="bg-gradient-to-r from-neutral-800 to-black text-white p-10 rounded-3xl shadow-xl mb-16 border border-gray-700">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight tracking-wide">
+            Bienvenido a <span className="text-amber-400">Playcenter Universal</span>
           </h1>
-          <p className="text-lg sm:text-xl mb-6 max-w-2xl animate-fade-in">
-            Descubre miles de productos, promociones exclusivas y mucho más.
+          <p className="text-lg sm:text-xl mb-6 max-w-3xl text-gray-300">
+            Tecnología, estilo y potencia en una sola tienda. Explora lo último en innovación y diseño.
           </p>
           <Link
             to="/productos"
-            className="inline-block bg-white text-purple-600 font-bold px-6 py-3 rounded-xl shadow hover:bg-purple-100 transition-all"
+            className="inline-block bg-amber-400 hover:bg-amber-500 text-black font-bold px-8 py-4 rounded-full shadow-lg transition-transform transform hover:scale-105"
           >
             Ver productos
           </Link>
         </section>
 
-        {/* Sección destacada */}
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-14">
-          <div className="bg-blue-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
-            <h2 className="text-xl font-semibold mb-2">Categorías variadas</h2>
-            <p className="text-sm mb-4">Explora más de 20 categorías con productos increíbles.</p>
-            <Link to="/productos" className="text-blue-600 font-medium hover:underline">Explorar</Link>
+        {/* Secciones destacadas */}
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+          <div className="bg-neutral-800 rounded-2xl p-8 border border-gray-700 hover:shadow-xl transition-all hover:scale-105">
+            <h2 className="text-2xl font-semibold mb-3 text-amber-400">Categorías premium</h2>
+            <p className="text-gray-400 mb-4">Más de 20 categorías organizadas al estilo Amazon. Encuentra justo lo que buscas.</p>
+            <Link to="/productos" className="text-amber-400 font-semibold hover:underline">Explorar</Link>
           </div>
-          <div className="bg-green-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
-            <h2 className="text-xl font-semibold mb-2">Ofertas especiales</h2>
-            <p className="text-sm mb-4">Descuentos únicos en tecnología, accesorios, ropa y más.</p>
-            <Link to="/productos" className="text-green-600 font-medium hover:underline">Ver ofertas</Link>
+
+          <div className="bg-neutral-800 rounded-2xl p-8 border border-gray-700 hover:shadow-xl transition-all hover:scale-105">
+            <h2 className="text-2xl font-semibold mb-3 text-emerald-400">Ofertas exclusivas</h2>
+            <p className="text-gray-400 mb-4">Accede a promociones, descuentos por temporada y precios bajos todos los días.</p>
+            <Link to="/productos" className="text-emerald-400 font-semibold hover:underline">Ver ofertas</Link>
           </div>
-          <div className="bg-yellow-100 rounded-xl p-6 shadow hover:scale-[1.02] transition-all">
-            <h2 className="text-xl font-semibold mb-2">Atención personalizada</h2>
-            <p className="text-sm mb-4">¿Tienes dudas? Contáctanos y te ayudamos con gusto.</p>
-            <Link to="/contacto" className="text-yellow-700 font-medium hover:underline">Contáctanos</Link>
+
+          <div className="bg-neutral-800 rounded-2xl p-8 border border-gray-700 hover:shadow-xl transition-all hover:scale-105">
+            <h2 className="text-2xl font-semibold mb-3 text-sky-400">Soporte personalizado</h2>
+            <p className="text-gray-400 mb-4">¿Tienes dudas? Nuestro equipo está listo para ayudarte por WhatsApp o correo.</p>
+            <Link to="/contacto" className="text-sky-400 font-semibold hover:underline">Contáctanos</Link>
           </div>
         </section>
-
-
       </main>
     </>
   );
