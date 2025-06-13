@@ -3,7 +3,7 @@ import SidebarCategorias from "../components/SidebarCategorias";
 import productosAll from "../data/productosAll";
 
 function Productos() {
-  // Unir todos los productos de todas las categorías
+  // Unimos todos los productos con su categoría
   const productos = productosAll.flatMap((cat) =>
     cat.productos.map((prod) => ({
       ...prod,
@@ -13,12 +13,9 @@ function Productos() {
 
   return (
     <div className="flex pt-20 min-h-screen bg-white">
-      {/* Sidebar de categorías fijo a la izquierda */}
       <SidebarCategorias />
-
-      {/* Productos mostrados */}
       <main className="flex-1 p-4">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Todos los productos</h1>
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">Todos los productos</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {productos.map((producto) => (
             <div
@@ -32,6 +29,7 @@ function Productos() {
               />
               <h2 className="text-lg font-semibold text-gray-900 mb-1">{producto.nombre}</h2>
               <p className="text-pink-600 font-bold">${producto.precio}</p>
+              <p className="text-xs text-gray-500 mt-1">{producto.categoria}</p>
             </div>
           ))}
         </div>
