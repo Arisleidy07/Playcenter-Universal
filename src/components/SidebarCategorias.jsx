@@ -1,8 +1,8 @@
-// src/components/SidebarCategorias.jsx
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const categorias = [
+    { nombre: "Todos", ruta: "" },
     { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
     { nombre: "Audífonos", ruta: "audifonos" },
     { nombre: "Cables", ruta: "cables" },
@@ -36,7 +36,10 @@ function SidebarCategorias() {
         <h2 className="text-lg font-bold text-blue-700 mb-4">Categorías</h2>
         <ul className="space-y-2">
         {categorias.map((cat, idx) => {
-            const activa = location.pathname.includes(cat.ruta);
+            const activa = location.pathname === "/productos" && cat.ruta === ""
+            ? true
+            : location.pathname.includes(cat.ruta);
+
             return (
             <li key={idx}>
                 <Link

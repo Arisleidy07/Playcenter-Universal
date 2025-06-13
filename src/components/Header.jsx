@@ -50,7 +50,7 @@ function Header() {
         {/* 🧭 Menú normal para pantallas grandes */}
         <nav className="hidden md:flex gap-4 items-center">
           <Link to="/" className="nav-link">Inicio</Link>
-          <Link to="/categorias" className="nav-link">Categorías</Link>
+          <Link to="/productos" className="nav-link">Categorías</Link>
           <Link to="/nosotros" className="nav-link">Nosotros</Link>
           <Link to="/contacto" className="nav-link">Contáctanos</Link>
           <Link to="/favoritos" className="link hover-animate">❤️ Favoritos</Link>
