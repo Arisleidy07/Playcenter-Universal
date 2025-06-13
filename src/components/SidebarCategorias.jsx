@@ -1,6 +1,5 @@
-// src/components/SidebarCategorias.jsx
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const categorias = [
     { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
@@ -29,7 +28,6 @@ const categorias = [
 ];
 
 function SidebarCategorias() {
-    const navigate = useNavigate();
     const location = useLocation();
 
     return (
@@ -40,14 +38,14 @@ function SidebarCategorias() {
             const activa = location.pathname.includes(cat.ruta);
             return (
             <li key={idx}>
-                <button
-                onClick={() => navigate(`/productos/${cat.ruta}`)}
-                className={`w-full text-left block px-3 py-2 rounded-lg border border-blue-300 hover:bg-blue-200 transition-all duration-200 ${
+                <Link
+                to={`/productos/${cat.ruta}`}
+                className={`block px-3 py-2 rounded-lg border border-blue-300 hover:bg-blue-200 transition-all duration-200 ${
                     activa ? "bg-blue-600 text-white" : "text-gray-700"
                 }`}
                 >
                 {cat.nombre}
-                </button>
+                </Link>
             </li>
             );
         })}
