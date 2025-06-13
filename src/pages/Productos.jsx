@@ -1,6 +1,4 @@
-// src/pages/Productos.jsx
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
 import SidebarCategorias from '../components/SidebarCategorias';
 import productos from '../data/productosAll';
 
@@ -16,6 +14,7 @@ function Productos() {
     <div className="flex pt-20 min-h-screen bg-white">
       <SidebarCategorias setCategoriaActiva={setCategoriaActiva} />
       <main className="flex-1 p-4">
+        <h1 className="text-2xl font-bold mb-4">Productos</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {productosFiltrados.map((producto) => (
             <div key={producto.id} className="p-4 bg-white shadow rounded">
@@ -25,7 +24,6 @@ function Productos() {
             </div>
           ))}
         </div>
-        <Outlet />
       </main>
     </div>
   );
