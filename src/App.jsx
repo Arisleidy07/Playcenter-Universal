@@ -8,6 +8,7 @@ import Carrito from "./pages/Carrito";
 import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
 import DetalleProducto from "./pages/DetalleProducto";
+import Nosotros from "./pages/Nosotros";
 
 
 
@@ -74,6 +75,7 @@ function App() {
           </Route>
 
           <Route path="/carrito" element={<Carrito />} />
+          <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/favoritos" element={<Favoritos />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/producto/:id" element={<DetalleProducto />} />
