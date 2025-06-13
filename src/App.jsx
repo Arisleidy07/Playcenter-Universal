@@ -60,7 +60,7 @@ function App() {
             <Route path="memorias-usb" element={<MemoriasUSB />} />
             <Route path="monitores" element={<Monitores />} />
             <Route path="mouses" element={<Mouses />} />
-            <Route path="nuevos-lanzamientos" element={<NuevosLanzamiento />} />
+            <Route path="nuevos-lanzamientos" element={<NuevosLanzamientos />} />
             <Route path="ofertas-especiales" element={<OfertasEspeciales />} />
             <Route path="relojes-inteligentes" element={<RelojesInteligentes />} />
             <Route path="smart-tv" element={<SmartTV />} />
