@@ -1,9 +1,9 @@
-// src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Inicio from "./pages/Inicio";
 import Productos from "./pages/Productos";
+import ProductosTodos from "./pages/ProductosTodos"; // <- NUEVO
 import Carrito from "./pages/Carrito";
 import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
@@ -42,8 +42,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Inicio />} />
 
-          {/* Ruta principal con layout y subrutas */}
+          {/* Ruta principal de productos + subrutas */}
           <Route path="/productos" element={<Productos />}>
+            <Route index element={<ProductosTodos />} /> {/* <- Vista general de productos */}
             <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
             <Route path="audifonos" element={<Audifonos />} />
             <Route path="cables" element={<Cables />} />

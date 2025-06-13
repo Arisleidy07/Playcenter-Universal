@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const categorias = [
+  { nombre: "Todos los productos", ruta: "" }, // <- NUEVO
     { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
     { nombre: "Audífonos", ruta: "audifonos" },
     { nombre: "Cables", ruta: "cables" },
@@ -31,17 +32,21 @@ function SidebarCategorias() {
     const location = useLocation();
 
     return (
-    <aside className="w-48 bg-gradient-to-br from-blue-100 to-white shadow-lg p-4 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto hidden lg:block">
-        <h2 className="text-lg font-bold text-blue-700 mb-4">Categorías</h2>
+    <aside className="w-52 bg-white border-r border-gray-200 shadow-md p-4 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto hidden lg:block">
+        <h2 className="text-xl font-bold text-blue-800 mb-5">Categorías</h2>
         <ul className="space-y-2">
         {categorias.map((cat, idx) => {
-            const activa = location.pathname.includes(cat.ruta);
+            const rutaCompleta = `/productos/${cat.ruta}`;
+            const activa = location.pathname === rutaCompleta || (cat.ruta === "" && location.pathname === "/productos");
+
             return (
             <li key={idx}>
                 <Link
-                to={`/productos/${cat.ruta}`}
-                className={`block px-3 py-2 rounded-lg border border-blue-300 hover:bg-blue-200 transition-all duration-200 ${
-                    activa ? "bg-blue-600 text-white" : "text-gray-700"
+                to={rutaCompleta}
+                className={`block px-4 py-2 rounded-md font-medium transition-all duration-200 ${
+                    activa
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
                 }`}
                 >
                 {cat.nombre}
