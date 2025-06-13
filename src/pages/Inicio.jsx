@@ -1,72 +1,40 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 function Inicio() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white font-sans overflow-x-hidden">
-      <header className="fixed top-0 left-0 w-full z-50 bg-black/50 backdrop-blur-md shadow-lg border-b border-purple-500">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-400 via-pink-500 to-yellow-500 bg-clip-text text-transparent animate-pulse">
-            Playcenter Universal 🚀
-          </h1>
-          <nav className="space-x-6 text-lg font-semibold">
-            <Link to="/" className="hover:text-yellow-300 transition">Inicio</Link>
-            <Link to="/productos" className="hover:text-yellow-300 transition">Categorías</Link>
-            <Link to="/carrito" className="hover:text-yellow-300 transition">Carrito</Link>
-            <Link to="/nosotros" className="hover:text-yellow-300 transition">Nosotros</Link>
-            <Link to="/contacto" className="hover:text-yellow-300 transition">Contáctanos</Link>
-          </nav>
-        </div>
-      </header>
-
-      <section className="pt-28 text-center px-4">
-        <h2 className="text-6xl md:text-7xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-fuchsia-500 via-indigo-400 to-cyan-400 bg-clip-text text-transparent animate-bounce">
-          ¡Bienvenidos a la tienda del futuro!
-        </h2>
-        <p className="mt-6 text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
-          Donde la tecnología, el diseño y la experiencia se unen para sorprenderte 
+    <div className="min-h-screen pt-24 bg-gradient-to-r from-black via-gray-900 to-black text-white font-sans">
+      <section className="text-center px-4 md:px-12">
+        <h1 className="text-5xl md:text-6xl font-extrabold mb-4 animate-pulse bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+          Bienvenidos a Playcenter Universal
+        </h1>
+        <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto text-gray-300">
+          Tu universo de tecnología, innovación y estilo. Donde cada clic es una aventura.
         </p>
-        <div className="mt-10 flex justify-center gap-6">
-          <Link to="/productos">
-            <Button className="bg-gradient-to-r from-emerald-400 to-cyan-500 text-black text-lg px-6 py-3 shadow-lg hover:scale-105 transition rounded-2xl">
-              Ver Productos
-            </Button>
+        <div className="flex justify-center gap-6 flex-wrap">
+          <Link to="/productos" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-2xl shadow-lg hover:scale-105 hover:from-pink-500 hover:to-yellow-500 transition-transform duration-300">
+            Explorar Productos
           </Link>
-          <Link to="/nosotros">
-            <Button variant="outline" className="border-white text-white text-lg px-6 py-3 hover:bg-white hover:text-black transition rounded-2xl">
-              Conócenos
-            </Button>
+          <Link to="/ofertas" className="bg-white text-black px-8 py-3 rounded-2xl border border-white shadow hover:bg-yellow-300 hover:text-black transition duration-300">
+            Ver Ofertas
           </Link>
         </div>
       </section>
 
-      <section className="mt-32 px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto">
-          <div className="bg-black/20 border border-purple-400 p-6 rounded-2xl shadow-xl hover:scale-105 transition backdrop-blur-md">
-            <h3 className="text-2xl font-bold mb-4 text-purple-300">Tecnología de punta</h3>
-            <p className="text-gray-300">
-              Equipos de última generación, gadgets futuristas y más para mantenerte un paso adelante.
-            </p>
-          </div>
-          <div className="bg-black/20 border border-pink-400 p-6 rounded-2xl shadow-xl hover:scale-105 transition backdrop-blur-md">
-            <h3 className="text-2xl font-bold mb-4 text-pink-300"> Diseño deslumbrante</h3>
-            <p className="text-gray-300">
-              Visuales únicos, efectos animados y estética de otro mundo. Tu experiencia importa.
-            </p>
-          </div>
-          <div className="bg-black/20 border border-yellow-400 p-6 rounded-2xl shadow-xl hover:scale-105 transition backdrop-blur-md">
-            <h3 className="text-2xl font-bold mb-4 text-yellow-300">🛒 Compra inteligente</h3>
-            <p className="text-gray-300">
-              Sistema intuitivo, favoritos, carrito personalizado y descuentos irresistibles.
-            </p>
-          </div>
+      <section className="mt-20 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 px-6 md:px-20">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition duration-300">
+          <h2 className="text-2xl font-bold text-purple-400 mb-4">🚀 Tecnología Avanzada</h2>
+          <p className="text-gray-300">Productos de última generación con diseño impactante y rendimiento de otro mundo.</p>
+        </div>
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition duration-300">
+          <h2 className="text-2xl font-bold text-pink-400 mb-4">🎨 Estilo Inigualable</h2>
+          <p className="text-gray-300">Cada producto tiene un diseño cuidadosamente seleccionado para destacar.</p>
+        </div>
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition duration-300">
+          <h2 className="text-2xl font-bold text-yellow-400 mb-4">💎 Calidad Garantizada</h2>
+          <p className="text-gray-300">Nos aseguramos de ofrecer productos originales, potentes y listos para impresionar.</p>
         </div>
       </section>
-
-      <footer className="mt-32 py-12 bg-black/80 border-t border-purple-500 text-center">
-        <p className="text-gray-400">© 2025 Playcenter Universal. Todos los derechos reservados.</p>
-      </footer>
     </div>
   );
 }
