@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function NuevoLanzamiento() {
+function NuevosLanzamiento() {
     const productos = [
     {
         id: 1401,
@@ -39,4 +39,4 @@ function NuevoLanzamiento() {
     );
 }
 
-export default NuevoLanzamiento;
+export default NuevosLanzamiento;
