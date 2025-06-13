@@ -8,7 +8,6 @@ import Carrito from "./pages/Carrito";
 import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
 import DetalleProducto from "./pages/DetalleProducto";
-import ParticulasBackground from "./components/ParticulasBackground"; // o ajusta el path
 
 
 
@@ -42,7 +41,6 @@ function App() {
     <>
     
       <Header />
-      <ParticulasBackground />
       <div className="pt-20">
         <Routes>
           <Route path="/" element={<Inicio />} />
