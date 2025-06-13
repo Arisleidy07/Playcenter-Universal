@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/blobCard.css";
+import "../../styles/blobCard.css";
 import { Link } from "react-router-dom";
 
 function AccesoriosVideojuegos() {
