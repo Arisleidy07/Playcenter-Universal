@@ -3,14 +3,12 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Inicio from "./pages/Inicio";
 import Productos from "./pages/Productos";
-import ProductosTodos from "./pages/ProductosTodos"; // <- NUEVO
+import ProductosTodos from "./pages/ProductosTodos";
 import Carrito from "./pages/Carrito";
 import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
 import DetalleProducto from "./pages/DetalleProducto";
 import Nosotros from "./pages/Nosotros";
-
-
 
 // Categorías
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
@@ -40,15 +38,14 @@ import Videojuegos from "./pages/categories/Videojuegos";
 function App() {
   return (
     <>
-    
       <Header />
       <div className="pt-20">
         <Routes>
           <Route path="/" element={<Inicio />} />
 
-          {/* Ruta principal de productos + subrutas */}
+          {/* Ruta de productos y subrutas por categoría */}
           <Route path="/productos" element={<Productos />}>
-            <Route index element={<ProductosTodos />} /> {/* <- Vista general de productos */}
+            <Route index element={<ProductosTodos />} />
             <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
             <Route path="audifonos" element={<Audifonos />} />
             <Route path="cables" element={<Cables />} />
@@ -75,9 +72,9 @@ function App() {
           </Route>
 
           <Route path="/carrito" element={<Carrito />} />
-          <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/favoritos" element={<Favoritos />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/producto/:id" element={<DetalleProducto />} />
         </Routes>
       </div>
