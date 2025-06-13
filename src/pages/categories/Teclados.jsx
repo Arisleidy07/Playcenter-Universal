@@ -1,19 +1,20 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import "../../styles/blobCard.css";
 
 function Teclados() {
     const productos = [
     {
-        id: 2101,
-        nombre: "Teclado mecánico Redragon RGB",
-        imagen: "/products/teclado-redragon.jpg",
-        precio: 49.99,
+        id: 280,
+        nombre: "Teclado Mecánico RGB",
+        imagen: "/products/teclado-rgb.jpg",
+        precio: 89.99,
     },
     {
-        id: 2102,
-        nombre: "Teclado inalámbrico Logitech",
-        imagen: "/products/teclado-logitech.jpg",
-        precio: 39.99,
+        id: 281,
+        nombre: "Teclado Inalámbrico",
+        imagen: "/products/teclado-wireless.jpg",
+        precio: 49.99,
     },
     ];
 
@@ -22,16 +23,24 @@ function Teclados() {
         <h1 className="text-3xl font-bold mb-8 text-gray-800">Teclados</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productos.map((producto) => (
-            <Link to={`/producto/${producto.id}`} key={producto.id}>
-            <div className="bg-white p-4 shadow hover:shadow-lg rounded transition duration-300">
-                <img
+            <Link
+            to={`/producto/${producto.id}`}
+            key={producto.id}
+            className="card transform transition-transform duration-300 hover:scale-105"
+            >
+            <div className="bg"></div>
+            <div className="blob"></div>
+            <img
                 src={producto.imagen}
                 alt={producto.nombre}
-                className="w-full h-40 object-contain mb-2"
-                />
-                <h2 className="font-semibold">{producto.nombre}</h2>
-                <p className="text-pink-600 font-bold">${producto.precio}</p>
-            </div>
+                className="z-10 w-32 h-32 object-contain mx-auto"
+            />
+            <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">
+                {producto.nombre}
+            </h2>
+            <p className="z-10 text-pink-600 font-bold text-center">
+                ${producto.precio}
+            </p>
             </Link>
         ))}
         </div>

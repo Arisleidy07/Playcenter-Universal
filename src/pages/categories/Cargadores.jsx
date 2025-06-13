@@ -1,19 +1,20 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import "../../styles/blobCard.css";
 
 function Cargadores() {
     const productos = [
     {
-        id: 201,
-        nombre: "Cargador rápido USB-C",
-        imagen: "/products/cargador-rapido.jpg",
-        precio: 499,
+        id: 401,
+        nombre: "Cargador Rápido USB-C",
+        imagen: "/products/cargador-usbc.jpg",
+        precio: 24.99,
     },
     {
-        id: 202,
-        nombre: "Cargador inalámbrico",
+        id: 402,
+        nombre: "Cargador Inalámbrico Qi",
         imagen: "/products/cargador-inalambrico.jpg",
-        precio: 599,
+        precio: 29.99,
     },
     ];
 
@@ -23,14 +24,12 @@ function Cargadores() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productos.map((producto) => (
             <Link to={`/producto/${producto.id}`} key={producto.id}>
-            <div className="bg-white p-4 shadow hover:shadow-lg rounded transition duration-300">
-                <img
-                src={producto.imagen}
-                alt={producto.nombre}
-                className="w-full h-40 object-contain mb-2"
-                />
-                <h2 className="font-semibold">{producto.nombre}</h2>
-                <p className="text-pink-600 font-bold">${producto.precio}</p>
+            <div className="card transform transition-transform duration-300 hover:scale-105">
+                <div className="bg"></div>
+                <div className="blob"></div>
+                <img src={producto.imagen} alt={producto.nombre} className="z-10 w-32 h-32 object-contain mx-auto" />
+                <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">{producto.nombre}</h2>
+                <p className="z-10 text-pink-600 font-bold text-center">${producto.precio}</p>
             </div>
             </Link>
         ))}

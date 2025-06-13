@@ -1,19 +1,20 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import "../../styles/blobCard.css";
 
 function Camaras() {
     const productos = [
     {
-        id: 401,
-        nombre: "Cámara Canon EOS 2000D",
-        imagen: "/products/canon-eos.jpg",
+        id: 301,
+        nombre: "Cámara DSLR Canon EOS",
+        imagen: "/products/camara-canon.jpg",
         precio: 499.99,
     },
     {
-        id: 402,
-        nombre: "Cámara GoPro Hero 10",
-        imagen: "/products/gopro-hero10.jpg",
-        precio: 399.99,
+        id: 302,
+        nombre: "Cámara de Seguridad Wifi",
+        imagen: "/products/camara-seguridad.jpg",
+        precio: 89.99,
     },
     ];
 
@@ -23,14 +24,12 @@ function Camaras() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productos.map((producto) => (
             <Link to={`/producto/${producto.id}`} key={producto.id}>
-            <div className="bg-white p-4 shadow hover:shadow-lg rounded transition duration-300">
-                <img
-                src={producto.imagen}
-                alt={producto.nombre}
-                className="w-full h-40 object-contain mb-2"
-                />
-                <h2 className="font-semibold">{producto.nombre}</h2>
-                <p className="text-pink-600 font-bold">${producto.precio}</p>
+            <div className="card transform transition-transform duration-300 hover:scale-105">
+                <div className="bg"></div>
+                <div className="blob"></div>
+                <img src={producto.imagen} alt={producto.nombre} className="z-10 w-32 h-32 object-contain mx-auto" />
+                <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">{producto.nombre}</h2>
+                <p className="z-10 text-pink-600 font-bold text-center">${producto.precio}</p>
             </div>
             </Link>
         ))}
