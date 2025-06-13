@@ -26,7 +26,7 @@ import Laptops from "./pages/categories/Laptops";
 import MemoriasUSB from "./pages/categories/MemoriasUSB";
 import Monitores from "./pages/categories/Monitores";
 import Mouses from "./pages/categories/Mouses";
-import NuevosLanzamiento from "./pages/categories/NuevosLanzamiento";
+import NuevosLanzamientos from "./pages/categories/NuevosLanzamientos";
 import OfertasEspeciales from "./pages/categories/OfertasEspeciales";
 import RelojesInteligentes from "./pages/categories/RelojesInteligentes";
 import SmartTV from "./pages/categories/SmartTV";
