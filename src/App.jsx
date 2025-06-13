@@ -43,8 +43,8 @@ function App() {
           <Route path="/" element={<Inicio />} />
 
           {/* Layout de Productos con rutas anidadas */}
-          <Route path="/productos" element={<ProductosAll />} />
-          <Route path="/productos" element={<Productos />}>
+            <Route path="/productos" element={<productosAll />} />
+            <Route path="/productos" element={<Productos />}>
             <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
             <Route path="audifonos" element={<Audifonos />} />
             <Route path="cables" element={<Cables />} />
