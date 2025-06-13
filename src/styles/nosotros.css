@@ -1,0 +1,31 @@
+.nosotros-container {
+  position: relative;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  overflow: hidden;
+}
+
+.animated-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(circle at 20% 30%, #9333ea40, transparent),
+              radial-gradient(circle at 70% 80%, #3b82f640, transparent),
+              radial-gradient(circle at 50% 50%, #ec489940, transparent);
+  animation: float 20s infinite ease-in-out;
+}
+
+@keyframes float {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+.contacto-btn {
+  background: linear-gradient(to right, #4f46e5, #9333ea);
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  font-size: 1.125rem;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
