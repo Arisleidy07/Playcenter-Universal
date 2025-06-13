@@ -27,7 +27,7 @@ import MemoriasUSB from "./pages/categories/MemoriasUSB";
 import Monitores from "./pages/categories/Monitores";
 import Mouses from "./pages/categories/Mouses";
 import NuevosLanzamiento from "./pages/categories/NuevosLanzamiento";
-import OfertaEspeciales from "./pages/categories/OfertaEspeciales";
+import OfertasEspeciales from "./pages/categories/OfertasEspeciales";
 import RelojesInteligentes from "./pages/categories/RelojesInteligentes";
 import SmartTV from "./pages/categories/SmartTV";
 import Tablets from "./pages/categories/Tablets";
@@ -61,7 +61,7 @@ function App() {
             <Route path="monitores" element={<Monitores />} />
             <Route path="mouses" element={<Mouses />} />
             <Route path="nuevos-lanzamientos" element={<NuevosLanzamiento />} />
-            <Route path="ofertas-especiales" element={<OfertaEspeciales />} />
+            <Route path="ofertas-especiales" element={<OfertasEspeciales />} />
             <Route path="relojes-inteligentes" element={<RelojesInteligentes />} />
             <Route path="smart-tv" element={<SmartTV />} />
             <Route path="tablets" element={<Tablets />} />

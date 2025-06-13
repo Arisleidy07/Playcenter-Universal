@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function OfertaEspeciales() {
+function OfertasEspeciales() {
     const productos = [
     {
         id: 1501,
@@ -39,4 +39,4 @@ function OfertaEspeciales() {
     );
 }
 
-export default OfertaEspeciales;
+export default OfertasEspeciales;
