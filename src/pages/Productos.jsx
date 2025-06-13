@@ -1,8 +1,6 @@
-// src/pages/Productos.jsx
 import React from "react";
 import SidebarCategorias from "../components/SidebarCategorias";
 import productosAll from "../data/productosAll";
-
 
 function Productos() {
   const productos = productosAll.flatMap((cat) =>
@@ -15,7 +13,6 @@ function Productos() {
   return (
     <div className="flex pt-20 min-h-screen bg-white">
       <SidebarCategorias />
-
       <main className="flex-1 p-4">
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Todos los productos</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

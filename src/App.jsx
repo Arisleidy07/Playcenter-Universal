@@ -9,7 +9,7 @@ import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
 import DetalleProducto from "./pages/DetalleProducto";
 
-// Importar todas las categorías
+// Categorías
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
 import Audifonos from "./pages/categories/Audifonos";
 import Cables from "./pages/categories/Cables";
@@ -42,9 +42,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Inicio />} />
 
-          {/* Layout de Productos con rutas anidadas */}
-            <Route path="/productos" element={<productosAll />} />
-            <Route path="/productos" element={<Productos />}>
+          {/* Ruta principal con layout y subrutas */}
+          <Route path="/productos" element={<Productos />}>
             <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
             <Route path="audifonos" element={<Audifonos />} />
             <Route path="cables" element={<Cables />} />
