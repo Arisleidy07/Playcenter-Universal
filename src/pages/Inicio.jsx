@@ -23,7 +23,7 @@ function Inicio() {
 
       <section className="mt-20 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 px-6 md:px-20">
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition duration-300">
-          <h2 className="text-2xl font-bold text-purple-400 mb-4">🚀 Tecnología Avanzada</h2>
+          <h2 className="text-2xl font-bold text-purple-400 mb-4"> Tecnología Avanzada</h2>
           <p className="text-gray-300">Productos de última generación con diseño impactante y rendimiento de otro mundo.</p>
         </div>
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition duration-300">
@@ -31,7 +31,7 @@ function Inicio() {
           <p className="text-gray-300">Cada producto tiene un diseño cuidadosamente seleccionado para destacar.</p>
         </div>
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition duration-300">
-          <h2 className="text-2xl font-bold text-yellow-400 mb-4">💎 Calidad Garantizada</h2>
+          <h2 className="text-2xl font-bold text-yellow-400 mb-4"> Calidad Garantizada</h2>
           <p className="text-gray-300">Nos aseguramos de ofrecer productos originales, potentes y listos para impresionar.</p>
         </div>
       </section>
