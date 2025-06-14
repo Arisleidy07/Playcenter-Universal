@@ -1,46 +1,49 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaInstagram, FaFacebookF, FaWhatsapp, FaTiktok, FaYoutube } from "react-icons/fa";
-import "../styles/inicio.css";
 
 function Inicio() {
   return (
-    <div className="bg-white min-h-screen pt-24 font-sans">
-      <section className="text-center px-6">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-indigo-500 to-sky-600 animate-pulse mb-4">
+    <div className="min-h-screen pt-24 bg-gradient-to-br from-white to-slate-100 text-gray-800 font-sans">
+      
+      {/* Sección principal de bienvenida */}
+      <section className="text-center px-4 md:px-12">
+        <h1 className="text-5xl md:text-6xl font-extrabold mb-4 bg-gradient-to-r from-indigo-600 to-blue-400 text-transparent bg-clip-text animate-pulse">
           Bienvenidos a Playcenter Universal
         </h1>
-        <p className="text-lg text-gray-700 mb-8 max-w-3xl mx-auto">
-          Tu universo de tecnología, innovación y estilo. Donde cada clic es una aventura visual y moderna.
+        <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto">
+          Tu universo de tecnología, innovación y estilo. Donde cada clic es una aventura.
         </p>
-        <div className="flex justify-center gap-6 flex-wrap mb-10">
-          <Link to="/productos" className="bg-gradient-to-r from-indigo-600 to-cyan-600 text-white px-8 py-3 rounded-xl shadow-md hover:scale-105 transition duration-300">
+        <div className="flex justify-center gap-6 flex-wrap">
+          <Link
+            to="/productos"
+            className="bg-blue-600 hover:bg-blue-800 text-white px-8 py-3 rounded-full shadow-md transition duration-300"
+          >
             Explorar Productos
           </Link>
-          <Link to="/productos/ofertas-especiales" className="bg-yellow-400 text-black px-8 py-3 rounded-xl shadow-md hover:scale-105 transition duration-300">
+          <Link
+            to="/productos/ofertas-especiales"
+            className="bg-white text-blue-700 px-8 py-3 rounded-full border border-blue-600 hover:bg-blue-100 transition duration-300"
+          >
             Ver Ofertas
           </Link>
         </div>
       </section>
 
-      {/* Productos más vendidos */}
-      <section className="px-6 mt-12">
-        <h2 className="text-3xl font-bold text-center text-indigo-800 mb-6">Productos Más Vendidos</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((id) => (
-            <div key={id} className="card transform hover:scale-105 transition-all duration-300">
-              <div className="bg"></div>
-              <div className="blob"></div>
-              <img
-                src={`/products/producto${id}.jpg`}
-                alt={`Producto ${id}`}
-                className="z-10 w-32 h-32 object-contain mx-auto"
-              />
-              <h3 className="z-10 mt-3 text-center font-semibold text-gray-800">Producto {id}</h3>
-              <p className="z-10 text-center font-bold text-indigo-700">$99.99</p>
-            </div>
-          ))}
+      {/* Sección de características */}
+      <section className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 px-6 md:px-20">
+        <div className="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition duration-300">
+          <h2 className="text-2xl font-bold text-blue-600 mb-4">🚀 Tecnología Avanzada</h2>
+          <p>Productos de última generación con diseño impactante y rendimiento de otro mundo.</p>
         </div>
+        <div className="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition duration-300">
+          <h2 className="text-2xl font-bold text-green-600 mb-4">🎨 Estilo Inigualable</h2>
+          <p>Cada producto tiene un diseño cuidadosamente seleccionado para destacar.</p>
+        </div>
+        <div className="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition duration-300">
+          <h2 className="text-2xl font-bold text-purple-600 mb-4">✅ Calidad Garantizada</h2>
+          <p>Ofrecemos productos originales, potentes y listos para impresionar.</p>
+        </div>
+      </section>
     </div>
   );
 }
