@@ -96,30 +96,39 @@ body {
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    background-color: #ff0000;
-    opacity: 1;
-    filter: blur(12px);
-    animation: blob-bounce 5s infinite ease;
+    background: linear-gradient(135deg, #3b82f6, #06b6d4, #60a5fa);
+    background-size: 200% 200%;
+    opacity: 0.8;
+    filter: blur(14px);
+    animation: blob-bounce 5s infinite ease, blob-colors 6s infinite ease;
 }
 
 @keyframes blob-bounce {
     0% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
+    transform: translate(-100%, -100%) translate3d(0, 0, 0);
     }
     25% {
-        transform: translate(-100%, -100%) translate3d(100%, 0, 0);
+    transform: translate(-100%, -100%) translate3d(100%, 0, 0);
     }
     50% {
-        transform: translate(-100%, -100%) translate3d(100%, 100%, 0);
+    transform: translate(-100%, -100%) translate3d(100%, 100%, 0);
     }
     75% {
-        transform: translate(-100%, -100%) translate3d(0, 100%, 0);
+    transform: translate(-100%, -100%) translate3d(0, 100%, 0);
     }
     100% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
+    transform: translate(-100%, -100%) translate3d(0, 0, 0);
     }
 }
 
-.main-btn {
-    @apply text-white px-8 py-3 rounded-full shadow transition duration-300 font-semibold;
+@keyframes blob-colors {
+    0% {
+    background-position: 0% 50%;
+    }
+    50% {
+    background-position: 100% 50%;
+    }
+    100% {
+    background-position: 0% 50%;
+    }
 }
