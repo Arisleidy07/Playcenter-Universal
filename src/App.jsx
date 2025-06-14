@@ -9,6 +9,8 @@ import Favoritos from "./pages/Favoritos";
 import Contacto from "./pages/Contacto";
 import DetalleProducto from "./pages/DetalleProducto";
 import Nosotros from "./pages/Nosotros";
+import Footer from "./components/Footer";
+
 
 // Categorías
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
@@ -77,6 +79,8 @@ function App() {
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/producto/:id" element={<DetalleProducto />} />
         </Routes>
+        <Footer />
+
       </div>
     </>
   );
