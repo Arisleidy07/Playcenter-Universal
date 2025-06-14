@@ -120,6 +120,6 @@ body {
     }
 }
 
-/* 🔥 Botones principales animados (inicio) */
 .main-btn {
-    @apply text-white px-8 py-3 rounded-full shadow transition du
+    @apply text-white px-8 py-3 rounded-full shadow transition duration-300 font-semibold;
+}
