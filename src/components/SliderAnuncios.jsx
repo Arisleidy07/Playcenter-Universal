@@ -5,45 +5,32 @@ import { Link } from "react-router-dom";
 const anuncios = [
   {
     id: 1,
-    img: "/ads/nuestrasconsolas.png",
+    img: "/ads/consolas.png",
     link: "/consolas",
     isExternal: false,
   },
   {
     id: 2,
-    img: "/ads/nuestraubicacion.png",
-    // Link directo a Google Maps
+    img: "/ads/ubicacion.png",
     link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
     isExternal: true,
   },
   {
     id: 3,
-    img: "/ads/nuestrosvideojuegos.png",
+    img: "/ads/videojuegos.png",
     link: "/videojuegos",
     isExternal: false,
   },
   {
     id: 4,
-    img: "/ads/nuevoslanzamientos.png",
-    link: "/nuevos-lanzamientos",
-    isExternal: false,
-  },
-  {
-    id: 5,
-    img: "/ads/ofertasespeciales.png",
+    img: "/ads/verofertas.png",
     link: "/ofertas-especiales",
     isExternal: false,
   },
   {
-    id: 6,
-    img: "/ads/relojesinteligentes.png",
-    link: "/relojes-inteligentes",
-    isExternal: false,
-  },
-  {
-    id: 7,
-    img: "/ads/smarttv.png",
-    link: "/smart-tv",
+    id: 5,
+    img: "/ads/productos.png",
+    link: "/nuevos-lanzamientos",
     isExternal: false,
   },
 ];
@@ -70,7 +57,6 @@ function SliderAnuncios() {
       >
         {anuncios.map((item) =>
           item.isExternal ? (
-            // Link externo abre en pestaña nueva
             <a
               key={item.id}
               href={item.link}
@@ -85,7 +71,6 @@ function SliderAnuncios() {
               />
             </a>
           ) : (
-            // Link interno usa react-router Link
             <Link key={item.id} to={item.link} className="w-full flex-shrink-0">
               <img
                 src={item.img}
