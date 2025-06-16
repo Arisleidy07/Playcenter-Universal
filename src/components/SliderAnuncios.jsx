@@ -66,7 +66,7 @@ function SliderAnuncios() {
 
   return (
     <div
-      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg"
+      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg bg-white"
       style={{ aspectRatio: "16 / 9", maxHeight: "720px" }}
       onMouseEnter={resetTimeout}
       onMouseLeave={() => {
@@ -95,7 +95,7 @@ function SliderAnuncios() {
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain rounded-xl bg-black"
+                className="w-full h-full object-contain rounded-xl bg-transparent"
                 loading="lazy"
               />
             </a>
@@ -109,7 +109,7 @@ function SliderAnuncios() {
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain rounded-xl bg-black"
+                className="w-full h-full object-contain rounded-xl bg-transparent"
                 loading="lazy"
               />
             </Link>
