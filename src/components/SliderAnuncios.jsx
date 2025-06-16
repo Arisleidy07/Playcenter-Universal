@@ -3,36 +3,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const anuncios = [
-  {
-    id: 1,
-    img: "/ads/consolas.png",
-    link: "/consolas",
-    isExternal: false,
-  },
-  {
-    id: 2,
-    img: "/ads/ubicacion.png",
-    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
-    isExternal: true,
-  },
-  {
-    id: 3,
-    img: "/ads/videojuegos.png",
-    link: "/videojuegos",
-    isExternal: false,
-  },
-  {
-    id: 4,
-    img: "/ads/verofertas.png",
-    link: "/ofertas-especiales",
-    isExternal: false,
-  },
-  {
-    id: 5,
-    img: "/ads/productos.png",
-    link: "/nuevos-lanzamientos",
-    isExternal: false,
-  },
+  { id: 1, img: "/ads/consolas.png", link: "/consolas", isExternal: false },
+  { id: 2, img: "/ads/ubicacion.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
+  { id: 3, img: "/ads/videojuegos.png", link: "/videojuegos", isExternal: false },
+  { id: 4, img: "/ads/verofertas.png", link: "/ofertas-especiales", isExternal: false },
+  { id: 5, img: "/ads/productos.png", link: "/nuevos-lanzamientos", isExternal: false },
 ];
 
 function SliderAnuncios() {
@@ -49,6 +24,7 @@ function SliderAnuncios() {
     timeoutRef.current = setTimeout(() => {
       setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
     }, delay);
+
     return () => resetTimeout();
   }, [index]);
 
@@ -64,7 +40,8 @@ function SliderAnuncios() {
 
   return (
     <div
-      className="relative w-full max-w-[1280px] mx-auto my-6 aspect-video overflow-hidden rounded-xl shadow-lg bg-black"
+      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg"
+      style={{ aspectRatio: "16 / 9", maxHeight: "720px" }}
       onMouseEnter={resetTimeout}
       onMouseLeave={() => {
         timeoutRef.current = setTimeout(() => {
@@ -79,57 +56,65 @@ function SliderAnuncios() {
           width: `${anuncios.length * 100}%`,
         }}
       >
-        {anuncios.map((item) => {
-          const Wrapper = item.isExternal ? "a" : Link;
-          const props = item.isExternal
-            ? {
-                href: item.link,
-                target: "_blank",
-                rel: "noopener noreferrer",
-              }
-            : {
-                to: item.link,
-              };
-
-          return (
-            <Wrapper
+        {anuncios.map((item) =>
+          item.isExternal ? (
+            <a
               key={item.id}
-              {...props}
-              className="flex-shrink-0 w-full h-full flex items-center justify-center bg-black"
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 w-full h-full"
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-xl bg-black"
                 loading="lazy"
               />
-            </Wrapper>
-          );
-        })}
+            </a>
+          ) : (
+            <Link
+              key={item.id}
+              to={item.link}
+              className="flex-shrink-0 w-full h-full"
+            >
+              <img
+                src={item.img}
+                alt={`Anuncio ${item.id}`}
+                className="w-full h-full object-contain rounded-xl bg-black"
+                loading="lazy"
+              />
+            </Link>
+          )
+        )}
       </div>
 
       {/* Flechas */}
       <button
         onClick={handlePrev}
-        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow z-10"
+        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        aria-label="Anterior"
       >
-        <ChevronLeft className="text-gray-800 w-6 h-6" />
+        <ChevronLeft className="text-gray-700 w-8 h-8" />
       </button>
+
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow z-10"
+        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        aria-label="Siguiente"
       >
-        <ChevronRight className="text-gray-800 w-6 h-6" />
+        <ChevronRight className="text-gray-700 w-8 h-8" />
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
         {anuncios.map((_, idx) => (
           <button
             key={idx}
-            className={`w-3 h-3 rounded-full transition-all ${
-              idx === index ? "bg-white" : "bg-gray-500"
+            className={`w-3 h-3 rounded-full ${
+              idx === index ? "bg-gray-800" : "bg-gray-400"
             }`}
+            aria-label={`Ir al slide ${idx + 1}`}
             onClick={() => {
               resetTimeout();
               setIndex(idx);
