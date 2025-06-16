@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -37,23 +37,50 @@ const anuncios = [
 
 function SliderAnuncios() {
   const [index, setIndex] = useState(0);
+  const timeoutRef = useRef(null);
+  const delay = 4000; // 4 segundos entre slides
+
+  const resetTimeout = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  };
+
+  useEffect(() => {
+    resetTimeout();
+    timeoutRef.current = setTimeout(() => {
+      setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
+    }, delay);
+
+    return () => {
+      resetTimeout();
+    };
+  }, [index]);
 
   const handlePrev = () => {
+    resetTimeout();
     setIndex((prev) => (prev === 0 ? anuncios.length - 1 : prev - 1));
   };
 
   const handleNext = () => {
+    resetTimeout();
     setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl shadow-xl my-4">
+    <div
+      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg"
+      style={{ aspectRatio: "16 / 9", maxHeight: "720px" }}
+      onMouseEnter={resetTimeout}
+      onMouseLeave={() => {
+        timeoutRef.current = setTimeout(() => {
+          setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
+        }, delay);
+      }}
+    >
       <div
-        className="flex transition-transform duration-700 ease-in-out"
+        className="flex transition-transform duration-700 ease-in-out h-full"
         style={{
           transform: `translateX(-${index * 100}%)`,
           width: `${anuncios.length * 100}%`,
-          height: "450px", // fijo para que el slider tenga altura estable
         }}
       >
         {anuncios.map((item) =>
@@ -63,47 +90,67 @@ function SliderAnuncios() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex-shrink-0"
-              style={{ height: "450px" }}
+              className="flex-shrink-0"
+              style={{ width: "100%", height: "100%" }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover rounded-2xl"
+                className="w-full h-full object-cover rounded-xl"
+                loading="lazy"
               />
             </a>
           ) : (
             <Link
               key={item.id}
               to={item.link}
-              className="w-full flex-shrink-0"
-              style={{ height: "450px" }}
+              className="flex-shrink-0"
+              style={{ width: "100%", height: "100%" }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover rounded-2xl"
+                className="w-full h-full object-cover rounded-xl"
+                loading="lazy"
               />
             </Link>
           )
         )}
       </div>
 
-      {/* Flecha izquierda */}
+      {/* Flechas */}
       <button
         onClick={handlePrev}
-        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg z-10"
+        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        aria-label="Anterior"
       >
-        <ChevronLeft className="text-gray-700 w-6 h-6" />
+        <ChevronLeft className="text-gray-700 w-8 h-8" />
       </button>
 
-      {/* Flecha derecha */}
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg z-10"
+        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        aria-label="Siguiente"
       >
-        <ChevronRight className="text-gray-700 w-6 h-6" />
+        <ChevronRight className="text-gray-700 w-8 h-8" />
       </button>
+
+      {/* Dots */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
+        {anuncios.map((_, idx) => (
+          <button
+            key={idx}
+            className={`w-3 h-3 rounded-full ${
+              idx === index ? "bg-gray-800" : "bg-gray-400"
+            }`}
+            aria-label={`Ir al slide ${idx + 1}`}
+            onClick={() => {
+              resetTimeout();
+              setIndex(idx);
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
