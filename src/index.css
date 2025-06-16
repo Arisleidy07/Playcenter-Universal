@@ -147,8 +147,3 @@ body {
     border-radius: 16px;
 }
 
-img {
-    width: 100%;
-    height: 250px;       /* Altura fija */
-    object-fit: cover;   /* Corta bordes sobrantes, sin deformar */
-}
