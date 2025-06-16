@@ -9,3 +9,4 @@ function CategoryCard({ nombre }) {
 }
 
 export default CategoryCard;
+
