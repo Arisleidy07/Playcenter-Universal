@@ -2,16 +2,16 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       animation: {
-        'blob-bounce': 'blob-bounce 5s infinite ease',
+        'blob-bounce': 'blobBounce 5s infinite ease',
         'slide-in-left': 'slideInLeft 0.5s ease-out',
       },
       keyframes: {
-        'blob-bounce': {
+        blobBounce: {
           '0%': { transform: 'translate(-100%, -100%) translate3d(0, 0, 0)' },
           '25%': { transform: 'translate(-100%, -100%) translate3d(100%, 0, 0)' },
           '50%': { transform: 'translate(-100%, -100%) translate3d(100%, 100%, 0)' },
@@ -28,9 +28,9 @@ export default {
         secondary: '#FBBF24',
         accent: '#EF4444',
         neutral: '#d1d5db',
-        'base-100': '#111827'
-      }
-    }
+        'base-100': '#111827',
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 }
