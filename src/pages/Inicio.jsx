@@ -53,7 +53,6 @@ const ofertasEspeciales = [
 function Inicio() {
   return (
     <div className="min-h-screen pt-24 bg-white text-gray-800 font-sans px-4">
-      <SliderAnuncios />
 
       {/* Bienvenida */}
       <section className="text-center max-w-4xl mx-auto mb-12 animate-fade-in">
@@ -78,6 +77,8 @@ function Inicio() {
           </Link>
         </div>
       </section>
+      <SliderAnuncios />
+
 
       {/* Slider: Todos los productos */}
       <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up">
