@@ -49,9 +49,7 @@ function SliderAnuncios() {
     timeoutRef.current = setTimeout(() => {
       setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
     }, delay);
-    return () => {
-      resetTimeout();
-    };
+    return () => resetTimeout();
   }, [index]);
 
   const handlePrev = () => {
@@ -66,7 +64,7 @@ function SliderAnuncios() {
 
   return (
     <div
-      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg bg-white"
+      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg bg-neutral"
       style={{ aspectRatio: "16 / 9", maxHeight: "720px" }}
       onMouseEnter={resetTimeout}
       onMouseLeave={() => {
@@ -82,39 +80,31 @@ function SliderAnuncios() {
           width: `${anuncios.length * 100}%`,
         }}
       >
-        {anuncios.map((item) =>
-          item.isExternal ? (
-            <a
+        {anuncios.map((item) => {
+          const SlideTag = item.isExternal ? "a" : Link;
+          const props = item.isExternal
+            ? {
+                href: item.link,
+                target: "_blank",
+                rel: "noopener noreferrer",
+              }
+            : { to: item.link };
+
+          return (
+            <SlideTag
               key={item.id}
-              href={item.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-shrink-0"
-              style={{ width: "100%", height: "100%" }}
+              {...props}
+              className="min-w-full h-full flex-shrink-0"
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain rounded-xl bg-transparent"
+                className="w-full h-full object-cover transition-opacity duration-500 bg-neutral-100"
                 loading="lazy"
               />
-            </a>
-          ) : (
-            <Link
-              key={item.id}
-              to={item.link}
-              className="flex-shrink-0"
-              style={{ width: "100%", height: "100%" }}
-            >
-              <img
-                src={item.img}
-                alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain rounded-xl bg-transparent"
-                loading="lazy"
-              />
-            </Link>
-          )
-        )}
+            </SlideTag>
+          );
+        })}
       </div>
 
       {/* Flechas */}
@@ -155,3 +145,4 @@ function SliderAnuncios() {
 }
 
 export default SliderAnuncios;
+
