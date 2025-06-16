@@ -38,7 +38,7 @@ const anuncios = [
 function SliderAnuncios() {
   const [index, setIndex] = useState(0);
   const timeoutRef = useRef(null);
-  const delay = 4000; // 4 segundos entre slides
+  const delay = 4000;
 
   const resetTimeout = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -67,8 +67,8 @@ function SliderAnuncios() {
 
   return (
     <div
-      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg"
-      style={{ aspectRatio: "16 / 9", maxHeight: "720px" }}
+      className="relative mx-auto my-6 max-w-[640px] w-full overflow-hidden rounded-lg shadow-md"
+      style={{ aspectRatio: "16 / 9", maxHeight: "360px" }}
       onMouseEnter={resetTimeout}
       onMouseLeave={() => {
         timeoutRef.current = setTimeout(() => {
@@ -96,7 +96,7 @@ function SliderAnuncios() {
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover rounded-xl"
+                className="w-full h-full object-cover rounded-lg"
                 loading="lazy"
               />
             </a>
@@ -110,7 +110,7 @@ function SliderAnuncios() {
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover rounded-xl"
+                className="w-full h-full object-cover rounded-lg"
                 loading="lazy"
               />
             </Link>
@@ -121,26 +121,26 @@ function SliderAnuncios() {
       {/* Flechas */}
       <button
         onClick={handlePrev}
-        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow z-10"
         aria-label="Anterior"
       >
-        <ChevronLeft className="text-gray-700 w-8 h-8" />
+        <ChevronLeft className="text-gray-700 w-5 h-5" />
       </button>
 
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow z-10"
         aria-label="Siguiente"
       >
-        <ChevronRight className="text-gray-700 w-8 h-8" />
+        <ChevronRight className="text-gray-700 w-5 h-5" />
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
+      <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
         {anuncios.map((_, idx) => (
           <button
             key={idx}
-            className={`w-3 h-3 rounded-full ${
+            className={`w-2 h-2 rounded-full ${
               idx === index ? "bg-gray-800" : "bg-gray-400"
             }`}
             aria-label={`Ir al slide ${idx + 1}`}
