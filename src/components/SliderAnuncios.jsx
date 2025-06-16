@@ -47,6 +47,13 @@ function SliderAnuncios() {
   };
 
   return (
+    <>
+    <img
+        src="/ads/consolas.png"
+        alt="Prueba imagen"
+        style={{ width: 200, border: "2px solid red", marginBottom: 20 }}
+      />
+      
     <div className="relative w-full overflow-hidden rounded-2xl shadow-xl my-4">
       <div
         className="flex transition-transform duration-700 ease-in-out"
@@ -98,6 +105,7 @@ function SliderAnuncios() {
         <ChevronRight className="text-gray-700 w-6 h-6" />
       </button>
     </div>
+    </>
   );
 }
 
