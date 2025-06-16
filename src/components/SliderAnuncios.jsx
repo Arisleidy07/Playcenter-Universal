@@ -3,42 +3,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const anuncios = [
-  {
-    id: 1,
-    img: "/ads/consolas.png",
-    link: "/consolas",
-    isExternal: false,
-  },
-  {
-    id: 2,
-    img: "/ads/ubicacion.png",
-    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
-    isExternal: true,
-  },
-  {
-    id: 3,
-    img: "/ads/videojuegos.png",
-    link: "/videojuegos",
-    isExternal: false,
-  },
-  {
-    id: 4,
-    img: "/ads/verofertas.png",
-    link: "/ofertas-especiales",
-    isExternal: false,
-  },
-  {
-    id: 5,
-    img: "/ads/productos.png",
-    link: "/nuevos-lanzamientos",
-    isExternal: false,
-  },
+  { id: 1, img: "/ads/consolas.png", link: "/consolas", isExternal: false },
+  { id: 2, img: "/ads/ubicacion.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
+  { id: 3, img: "/ads/videojuegos.png", link: "/videojuegos", isExternal: false },
+  { id: 4, img: "/ads/verofertas.png", link: "/ofertas-especiales", isExternal: false },
+  { id: 5, img: "/ads/productos.png", link: "/nuevos-lanzamientos", isExternal: false },
 ];
 
 function SliderAnuncios() {
   const [index, setIndex] = useState(0);
   const timeoutRef = useRef(null);
-  const delay = 4000; // 4 segundos entre slides
+  const delay = 4000;
 
   const resetTimeout = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -50,9 +25,7 @@ function SliderAnuncios() {
       setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
     }, delay);
 
-    return () => {
-      resetTimeout();
-    };
+    return () => resetTimeout();
   }, [index]);
 
   const handlePrev = () => {
@@ -67,8 +40,8 @@ function SliderAnuncios() {
 
   return (
     <div
-      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg"
-      style={{ aspectRatio: "16 / 9", maxHeight: "720px" }}
+      className="relative mx-auto my-6 w-full max-w-[1280px] rounded-xl shadow-lg overflow-hidden"
+      style={{ aspectRatio: "16 / 9", maxHeight: "720px", minHeight: "300px" }}
       onMouseEnter={resetTimeout}
       onMouseLeave={() => {
         timeoutRef.current = setTimeout(() => {
@@ -77,10 +50,10 @@ function SliderAnuncios() {
       }}
     >
       <div
-        className="flex transition-transform duration-700 ease-in-out h-full"
+        className="flex h-full transition-transform duration-700 ease-in-out"
         style={{
-          transform: `translateX(-${index * 100}%)`,
           width: `${anuncios.length * 100}%`,
+          transform: `translateX(-${index * (100 / anuncios.length)}%)`,
         }}
       >
         {anuncios.map((item) =>
@@ -90,28 +63,28 @@ function SliderAnuncios() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0"
-              style={{ width: "100%", height: "100%" }}
+              className="flex-shrink-0 w-full h-full"
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
                 className="w-full h-full object-cover rounded-xl"
                 loading="lazy"
+                draggable={false}
               />
             </a>
           ) : (
             <Link
               key={item.id}
               to={item.link}
-              className="flex-shrink-0"
-              style={{ width: "100%", height: "100%" }}
+              className="flex-shrink-0 w-full h-full"
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
                 className="w-full h-full object-cover rounded-xl"
                 loading="lazy"
+                draggable={false}
               />
             </Link>
           )
@@ -121,26 +94,25 @@ function SliderAnuncios() {
       {/* Flechas */}
       <button
         onClick={handlePrev}
-        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/90 p-3 shadow-lg hover:bg-white transition z-20"
         aria-label="Anterior"
       >
-        <ChevronLeft className="text-gray-700 w-8 h-8" />
+        <ChevronLeft className="w-7 h-7 text-gray-700" />
       </button>
-
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg z-10"
+        className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/90 p-3 shadow-lg hover:bg-white transition z-20"
         aria-label="Siguiente"
       >
-        <ChevronRight className="text-gray-700 w-8 h-8" />
+        <ChevronRight className="w-7 h-7 text-gray-700" />
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 space-x-3">
         {anuncios.map((_, idx) => (
           <button
             key={idx}
-            className={`w-3 h-3 rounded-full ${
+            className={`h-3 w-3 rounded-full transition-colors ${
               idx === index ? "bg-gray-800" : "bg-gray-400"
             }`}
             aria-label={`Ir al slide ${idx + 1}`}
