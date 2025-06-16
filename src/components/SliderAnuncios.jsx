@@ -3,11 +3,36 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const anuncios = [
-  { id: 1, img: "/ads/consolas.png", link: "/consolas", isExternal: false },
-  { id: 2, img: "/ads/ubicacion.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
-  { id: 3, img: "/ads/videojuegos.png", link: "/videojuegos", isExternal: false },
-  { id: 4, img: "/ads/verofertas.png", link: "/ofertas-especiales", isExternal: false },
-  { id: 5, img: "/ads/productos.png", link: "/nuevos-lanzamientos", isExternal: false },
+  {
+    id: 1,
+    img: "/ads/consolas.png",
+    link: "/consolas",
+    isExternal: false,
+  },
+  {
+    id: 2,
+    img: "/ads/ubicacion.png",
+    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
+    isExternal: true,
+  },
+  {
+    id: 3,
+    img: "/ads/videojuegos.png",
+    link: "/videojuegos",
+    isExternal: false,
+  },
+  {
+    id: 4,
+    img: "/ads/verofertas.png",
+    link: "/ofertas-especiales",
+    isExternal: false,
+  },
+  {
+    id: 5,
+    img: "/ads/productos.png",
+    link: "/nuevos-lanzamientos",
+    isExternal: false,
+  },
 ];
 
 function SliderAnuncios() {
@@ -40,7 +65,7 @@ function SliderAnuncios() {
 
   return (
     <div
-      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg"
+      className="relative mx-auto my-6 max-w-[1280px] w-full overflow-hidden rounded-xl shadow-lg bg-white"
       style={{ aspectRatio: "16 / 9", maxHeight: "720px" }}
       onMouseEnter={resetTimeout}
       onMouseLeave={() => {
@@ -63,26 +88,30 @@ function SliderAnuncios() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 w-full h-full"
+              className="flex-shrink-0"
+              style={{ width: "100%", height: "100%" }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain rounded-xl bg-black"
+                className="w-full h-full object-contain rounded-xl"
                 loading="lazy"
+                draggable={false}
               />
             </a>
           ) : (
             <Link
               key={item.id}
               to={item.link}
-              className="flex-shrink-0 w-full h-full"
+              className="flex-shrink-0"
+              style={{ width: "100%", height: "100%" }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain rounded-xl bg-black"
+                className="w-full h-full object-contain rounded-xl"
                 loading="lazy"
+                draggable={false}
               />
             </Link>
           )
