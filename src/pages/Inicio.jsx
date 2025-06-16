@@ -2,8 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderProductos from "../components/SliderProductos";
-import { productosTodos } from "../data/productosAll";
-import { productosConsolas } from "../pages/categories/Consolas";
+import productosAll from "../data/productosAll";
+
+// Aplanar todos los productos de todas las categorías para tener un arreglo plano
+const productosTodos = productosAll.flatMap(categoria => categoria.productos);
+
+// Filtrar sólo productos de la categoría Consolas
+const consolaCategoria = productosAll.find(c => c.categoria === "Consolas");
+const productosConsolas = consolaCategoria ? consolaCategoria.productos : [];
 
 const ofertasEspeciales = [
   {
