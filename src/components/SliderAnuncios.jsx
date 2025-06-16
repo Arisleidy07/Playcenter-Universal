@@ -1,28 +1,51 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
-// Usamos las rutas correctas desde /public/ads/
 const anuncios = [
   {
     id: 1,
     img: "/ads/nuestrasconsolas.png",
-    link: "/categorias/consolas",
+    link: "/consolas",
+    isExternal: false,
   },
   {
     id: 2,
     img: "/ads/nuestraubicacion.png",
-    link: "/ubicacion",
+    // Link directo a Google Maps
+    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
+    isExternal: true,
   },
   {
     id: 3,
     img: "/ads/nuestrosvideojuegos.png",
-    link: "/categorias/videojuegos",
+    link: "/videojuegos",
+    isExternal: false,
   },
-
-  { id: 4, img: "https://via.placeholder.com/1200x400?text=Anuncio+4" },
-  { id: 5, img: "https://via.placeholder.com/1200x400?text=Anuncio+5" },
-  { id: 6, img: "https://via.placeholder.com/1200x400?text=Anuncio+6" },
-  { id: 7, img: "https://via.placeholder.com/1200x400?text=Anuncio+7" },
+  {
+    id: 4,
+    img: "/ads/nuevoslanzamientos.png",
+    link: "/nuevos-lanzamientos",
+    isExternal: false,
+  },
+  {
+    id: 5,
+    img: "/ads/ofertasespeciales.png",
+    link: "/ofertas-especiales",
+    isExternal: false,
+  },
+  {
+    id: 6,
+    img: "/ads/relojesinteligentes.png",
+    link: "/relojes-inteligentes",
+    isExternal: false,
+  },
+  {
+    id: 7,
+    img: "/ads/smarttv.png",
+    link: "/smart-tv",
+    isExternal: false,
+  },
 ];
 
 function SliderAnuncios() {
@@ -45,19 +68,33 @@ function SliderAnuncios() {
           width: `${anuncios.length * 100}%`,
         }}
       >
-        {anuncios.map((item) => (
-          <a
-            key={item.id}
-            href={item.link}
-            className="w-full flex-shrink-0"
-          >
-            <img
-              src={item.img}
-              alt={`Anuncio ${item.id}`}
-              className="w-full object-cover h-[250px] sm:h-[350px] md:h-[450px]"
-            />
-          </a>
-        ))}
+        {anuncios.map((item) =>
+          item.isExternal ? (
+            // Link externo abre en pestaña nueva
+            <a
+              key={item.id}
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex-shrink-0"
+            >
+              <img
+                src={item.img}
+                alt={`Anuncio ${item.id}`}
+                className="w-full object-cover h-[250px] sm:h-[350px] md:h-[450px]"
+              />
+            </a>
+          ) : (
+            // Link interno usa react-router Link
+            <Link key={item.id} to={item.link} className="w-full flex-shrink-0">
+              <img
+                src={item.img}
+                alt={`Anuncio ${item.id}`}
+                className="w-full object-cover h-[250px] sm:h-[350px] md:h-[450px]"
+              />
+            </Link>
+          )
+        )}
       </div>
 
       {/* Flecha izquierda */}
