@@ -132,3 +132,17 @@ body {
     background-position: 0% 50%;
     }
 }
+
+.slider-container {
+    width: 100%;
+  height: 450px; /* fijo en desktop */
+    overflow: hidden;
+    border-radius: 16px;
+}
+
+.slider-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+}

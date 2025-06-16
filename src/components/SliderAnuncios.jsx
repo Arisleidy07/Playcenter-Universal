@@ -47,14 +47,13 @@ function SliderAnuncios() {
   };
 
   return (
-    <>
-
     <div className="relative w-full overflow-hidden rounded-2xl shadow-xl my-4">
       <div
         className="flex transition-transform duration-700 ease-in-out"
         style={{
           transform: `translateX(-${index * 100}%)`,
           width: `${anuncios.length * 100}%`,
+          height: "450px", // fijo para que el slider tenga altura estable
         }}
       >
         {anuncios.map((item) =>
@@ -65,19 +64,25 @@ function SliderAnuncios() {
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex-shrink-0"
+              style={{ height: "450px" }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full object-cover h-[250px] sm:h-[350px] md:h-[450px]"
+                className="w-full h-full object-cover rounded-2xl"
               />
             </a>
           ) : (
-            <Link key={item.id} to={item.link} className="w-full flex-shrink-0">
+            <Link
+              key={item.id}
+              to={item.link}
+              className="w-full flex-shrink-0"
+              style={{ height: "450px" }}
+            >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full object-cover h-[250px] sm:h-[350px] md:h-[450px]"
+                className="w-full h-full object-cover rounded-2xl"
               />
             </Link>
           )
@@ -100,7 +105,6 @@ function SliderAnuncios() {
         <ChevronRight className="text-gray-700 w-6 h-6" />
       </button>
     </div>
-    </>
   );
 }
 
