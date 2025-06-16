@@ -11,8 +11,7 @@ import DetalleProducto from "./pages/DetalleProducto";
 import Nosotros from "./pages/Nosotros";
 import Footer from "./components/Footer";
 
-
-// Categorías
+// Importación de categorías
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
 import Audifonos from "./pages/categories/Audifonos";
 import Cables from "./pages/categories/Cables";
@@ -41,46 +40,56 @@ function App() {
   return (
     <>
       <Header />
-      <div className="pt-20">
-        <Routes>
-          <Route path="/" element={<Inicio />} />
+      <div className="pt-20 min-h-screen flex flex-col">
+        <main className="flex-grow">
+          <Routes>
+            {/* Página de inicio */}
+            <Route path="/" element={<Inicio />} />
 
-          {/* Ruta de productos y subrutas por categoría */}
-          <Route path="/productos" element={<Productos />}>
-            <Route index element={<ProductosTodos />} />
-            <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
-            <Route path="audifonos" element={<Audifonos />} />
-            <Route path="cables" element={<Cables />} />
-            <Route path="camaras" element={<Camaras />} />
-            <Route path="cargadores" element={<Cargadores />} />
-            <Route path="celulares" element={<Celulares />} />
-            <Route path="consolas" element={<Consolas />} />
-            <Route path="discos-duros" element={<DiscosDuros />} />
-            <Route path="electrodomesticos" element={<Electrodomesticos />} />
-            <Route path="gaming-chairs" element={<GamingChairs />} />
-            <Route path="hogar-inteligente" element={<HogarInteligente />} />
-            <Route path="impresoras" element={<Impresoras />} />
-            <Route path="laptops" element={<Laptops />} />
-            <Route path="memorias-usb" element={<MemoriasUSB />} />
-            <Route path="monitores" element={<Monitores />} />
-            <Route path="mouses" element={<Mouses />} />
-            <Route path="nuevos-lanzamientos" element={<NuevosLanzamientos />} />
-            <Route path="ofertas-especiales" element={<OfertasEspeciales />} />
-            <Route path="relojes-inteligentes" element={<RelojesInteligentes />} />
-            <Route path="smart-tv" element={<SmartTV />} />
-            <Route path="tablets" element={<Tablets />} />
-            <Route path="teclados" element={<Teclados />} />
-            <Route path="videojuegos" element={<Videojuegos />} />
-          </Route>
+            {/* Ruta principal productos con subrutas para categorías */}
+            <Route path="/productos" element={<Productos />}>
+              {/* Ruta por defecto: todos los productos */}
+              <Route index element={<ProductosTodos />} />
 
-          <Route path="/carrito" element={<Carrito />} />
-          <Route path="/favoritos" element={<Favoritos />} />
-          <Route path="/contacto" element={<Contacto />} />
-          <Route path="/nosotros" element={<Nosotros />} />
-          <Route path="/producto/:id" element={<DetalleProducto />} />
-        </Routes>
+              {/* Subrutas para cada categoría */}
+              <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
+              <Route path="audifonos" element={<Audifonos />} />
+              <Route path="cables" element={<Cables />} />
+              <Route path="camaras" element={<Camaras />} />
+              <Route path="cargadores" element={<Cargadores />} />
+              <Route path="celulares" element={<Celulares />} />
+              <Route path="consolas" element={<Consolas />} />
+              <Route path="discos-duros" element={<DiscosDuros />} />
+              <Route path="electrodomesticos" element={<Electrodomesticos />} />
+              <Route path="gaming-chairs" element={<GamingChairs />} />
+              <Route path="hogar-inteligente" element={<HogarInteligente />} />
+              <Route path="impresoras" element={<Impresoras />} />
+              <Route path="laptops" element={<Laptops />} />
+              <Route path="memorias-usb" element={<MemoriasUSB />} />
+              <Route path="monitores" element={<Monitores />} />
+              <Route path="mouses" element={<Mouses />} />
+              <Route path="nuevos-lanzamientos" element={<NuevosLanzamientos />} />
+              <Route path="ofertas-especiales" element={<OfertasEspeciales />} />
+              <Route path="relojes-inteligentes" element={<RelojesInteligentes />} />
+              <Route path="smart-tv" element={<SmartTV />} />
+              <Route path="tablets" element={<Tablets />} />
+              <Route path="teclados" element={<Teclados />} />
+              <Route path="videojuegos" element={<Videojuegos />} />
+            </Route>
+
+            {/* Otras páginas independientes */}
+            <Route path="/carrito" element={<Carrito />} />
+            <Route path="/favoritos" element={<Favoritos />} />
+            <Route path="/contacto" element={<Contacto />} />
+            <Route path="/nosotros" element={<Nosotros />} />
+
+            {/* Detalle individual del producto */}
+            <Route path="/producto/:id" element={<DetalleProducto />} />
+          </Routes>
+        </main>
+
+        {/* Footer fijo al final */}
         <Footer />
-
       </div>
     </>
   );

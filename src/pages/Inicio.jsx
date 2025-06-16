@@ -77,8 +77,9 @@ function Inicio() {
           </Link>
         </div>
       </section>
-      <SliderAnuncios />
 
+      {/* Slider de anuncios */}
+      <SliderAnuncios />
 
       {/* Slider: Todos los productos */}
       <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up">
