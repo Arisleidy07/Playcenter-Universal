@@ -23,15 +23,8 @@ function Header() {
           <span className="text-red-500">t</span>
           <span className="text-blue-500">e</span>
           <span className="text-yellow-400">r</span>
-          <span className="text-green-500">&nbsp;U</span>
-          <span className="text-purple-500">n</span>
-          <span className="text-pink-500">i</span>
-          <span className="text-amber-500">v</span>
-          <span className="text-teal-500">e</span>
-          <span className="text-blue-600">r</span>
-          <span className="text-rose-500">s</span>
-          <span className="text-indigo-500">a</span>
-          <span className="text-fuchsia-600">l</span>
+          <span className="text-green-500">Universal</span>
+
         </div>
 
         {/* 🔍 Buscador: justo después del logo */}
