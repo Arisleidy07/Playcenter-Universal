@@ -1,5 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import SliderAnuncios from "../components/SliderAnuncios";
+import SliderProductos from "../components/SliderProductos";
+import { productosTodos } from "../data/productosAll";
+import { productosConsolas } from "../pages/categories/Consolas";
 
 const ofertasEspeciales = [
   {
@@ -43,6 +47,8 @@ const ofertasEspeciales = [
 function Inicio() {
   return (
     <div className="min-h-screen pt-24 bg-white text-gray-800 font-sans px-4">
+      <SliderAnuncios />
+
       {/* Bienvenida */}
       <section className="text-center max-w-4xl mx-auto mb-12 animate-fade-in">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-500 text-transparent bg-clip-text animate-pulse">
@@ -67,33 +73,35 @@ function Inicio() {
         </div>
       </section>
 
-      {/* Ofertas Especiales */}
-      <section className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8 animate-slide-in-bottom">
-          Ofertas Especiales
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5 animate-fade-in-up">
-          {ofertasEspeciales.map((producto) => (
-            <div key={producto.id} className="card">
-              <div className="blob"></div>
-              <div className="bg flex flex-col items-center justify-center text-center p-4 z-10">
-                <img
-                  src={producto.imagen}
-                  alt={producto.nombre}
-                  className="w-24 h-24 object-contain mb-2"
-                />
-                <h3 className="font-bold text-gray-800 text-sm">{producto.nombre}</h3>
-                <p className="text-gray-600 text-sm">${producto.precio}</p>
-              </div>
-            </div>
-          ))}
+      {/* Slider: Todos los productos */}
+      <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up">
+        <h2 className="text-2xl font-bold mb-4">Recomendaciones para ti</h2>
+        <SliderProductos productos={productosTodos.slice(0, 10)} />
+        <div className="text-right mt-2">
+          <Link to="/productos" className="text-blue-600 hover:underline font-semibold">
+            Ver todos los productos →
+          </Link>
         </div>
-        <div className="text-center mt-10 animate-fade-in-up">
-          <Link
-            to="/productos/ofertas-especiales"
-            className="inline-block bg-gradient-to-r from-blue-600 to-indigo-500 text-white px-6 py-2 rounded-full shadow hover:scale-105 transition duration-300"
-          >
-            Seguir viendo ofertas
+      </section>
+
+      {/* Slider: Consolas */}
+      <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up">
+        <h2 className="text-2xl font-bold mb-4">Consolas populares</h2>
+        <SliderProductos productos={productosConsolas.slice(0, 10)} />
+        <div className="text-right mt-2">
+          <Link to="/categorias/consolas" className="text-blue-600 hover:underline font-semibold">
+            Ver todas las consolas →
+          </Link>
+        </div>
+      </section>
+
+      {/* Slider: Ofertas Especiales */}
+      <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up">
+        <h2 className="text-2xl font-bold mb-4">Ofertas Especiales</h2>
+        <SliderProductos productos={ofertasEspeciales.slice(0, 10)} />
+        <div className="text-right mt-2">
+          <Link to="/productos/ofertas-especiales" className="text-blue-600 hover:underline font-semibold">
+            Seguir viendo ofertas →
           </Link>
         </div>
       </section>
