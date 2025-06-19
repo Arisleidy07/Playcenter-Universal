@@ -23,6 +23,7 @@ function Header() {
           <span className="text-red-500">t</span>
           <span className="text-blue-500">e</span>
           <span className="text-yellow-400">r</span>
+          
           <span className="text-green-500">Universal</span>
 
         </div>
