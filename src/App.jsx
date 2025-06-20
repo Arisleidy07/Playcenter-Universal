@@ -40,7 +40,7 @@ function App() {
   return (
     <>
       <Header />
-      <div className="pt-[80px] min-h-screen flex flex-col">
+      <div className="pt-[90px] min-h-screen flex flex-col">
         <main className="flex-grow">
           <Routes>
             {/* Página de inicio */}

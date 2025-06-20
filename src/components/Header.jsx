@@ -9,7 +9,8 @@ function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50 flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4 md:gap-8">
+      <header className="fixed top-0 left-0 w-full bg-white shadow-md z-[100] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8">
+
         {/* 🔴 Logo animado multicolor */}
         <div className="logo text-2xl sm:text-3xl font-bold flex flex-wrap gap-[2px] leading-none">
           <span className="text-red-500">P</span>
