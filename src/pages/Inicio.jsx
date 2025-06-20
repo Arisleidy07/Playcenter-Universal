@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderProductos from "../components/SliderProductos";
 import productosAll from "../data/productosAll";
+import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa";
 
 // Aplanar todos los productos de todas las categorías para tener un arreglo plano
 const productosTodos = productosAll.flatMap(categoria => categoria.productos);
@@ -111,6 +112,42 @@ function Inicio() {
           <Link to="/productos/ofertas-especiales" className="text-blue-600 hover:underline font-semibold">
             Seguir viendo ofertas →
           </Link>
+        </div>
+      </section>
+
+      {/* Contacto directo */}
+      <section className="pt-16 px-4 sm:px-8 lg:px-24 pb-24 bg-white text-gray-800 animate-fade-in-up">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-10 text-red-600">
+          Contáctanos
+        </h2>
+
+        <div className="max-w-3xl mx-auto bg-red-50 p-6 rounded-2xl shadow-md">
+          <h3 className="text-2xl font-semibold mb-4 text-red-700">Playcenter Universal</h3>
+
+          <p className="flex items-center mb-3 text-gray-700">
+            <FaMapMarkerAlt className="mr-2 text-red-600" />
+            Av. Estrella Sadhalá, Santiago, República Dominicana
+          </p>
+
+          <p className="flex items-center mb-3 text-gray-700">
+            <FaPhone className="mr-2 text-red-600" />
+            +1 (809) 582-1212
+          </p>
+
+          <p className="flex items-center mb-3 text-gray-700">
+            <FaEnvelope className="mr-2 text-red-600" />
+            playcenter121@gmail.com
+          </p>
+
+          <a
+            href="https://wa.me/18095821212"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center mt-5 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition"
+          >
+            <FaWhatsapp className="mr-2" />
+            Escríbenos por WhatsApp
+          </a>
         </div>
       </section>
     </div>
