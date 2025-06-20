@@ -13,11 +13,16 @@ function BotonFavorito({ producto }) {
   return (
     <button
       onClick={toggle}
-      className="text-2xl transition-transform hover:scale-110"
+      className={`px-3 py-1 rounded-full text-sm border transition-all ${
+        esFavorito
+          ? "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
+          : "border-rose-500 text-rose-500 hover:bg-rose-100"
+      }`}
       title={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
     >
       {esFavorito ? "❤️" : "🤍"}
     </button>
+
   );
 }
 

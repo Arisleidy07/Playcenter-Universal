@@ -40,9 +40,12 @@ const ProductCard = ({ id, nombre, precio, imagen }) => {
             }}
             className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm hover:bg-pink-600"
         >
-            🛒
+            🛒 Agregar
         </button>
+
+        <BotonFavorito producto={producto} />
         </div>
+
     </div>
     );
 };
