@@ -3,10 +3,16 @@
 @tailwind utilities;
 
 body {
+    margin: 0;
+    padding: 0;
+
     background-color: #f9f9f9;
     font-family: 'Segoe UI', sans-serif;
 }
 
+.flex-col.pt-20 {
+    padding-top: 0 !important;
+}
 /* Estilo enlaces del header */
 .nav-link {
     font-weight: 500;
