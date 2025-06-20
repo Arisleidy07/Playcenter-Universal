@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../../styles/blobCard.css";
+import BotonFavorito from "../../components/BotonFavorito";
+
 
 function Celulares() {
     const productos = [
@@ -27,6 +29,10 @@ function Celulares() {
             <div className="card transform transition-transform duration-300 hover:scale-105">
                 <div className="bg"></div>
                 <div className="blob"></div>
+                <div className="absolute top-2 right-2 z-20">
+                    <BotonFavorito producto={producto} />
+                </div>
+
                 <img src={producto.imagen} alt={producto.nombre} className="z-10 w-32 h-32 object-contain mx-auto" />
                 <h2 className="z-10 mt-4 font-semibold text-gray-800 text-center">{producto.nombre}</h2>
                 <p className="z-10 text-pink-600 font-bold text-center">${producto.precio}</p>

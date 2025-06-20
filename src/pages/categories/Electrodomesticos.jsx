@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../../styles/blobCard.css";
+import BotonFavorito from "../../components/BotonFavorito";
+
 
 function Electrodomesticos() {
     const productos = [
@@ -30,6 +32,10 @@ function Electrodomesticos() {
             >
             <div className="bg"></div>
             <div className="blob"></div>
+            <div className="absolute top-2 right-2 z-20">
+                <BotonFavorito producto={producto} />
+            </div>
+
             <img
                 src={producto.imagen}
                 alt={producto.nombre}

@@ -1,26 +1,13 @@
 // src/pages/Favoritos.jsx
 import React from "react";
-
-// Simulación de productos favoritos
-const favoritos = [
-    {
-    id: 1,
-    nombre: "Mouse gamer RGB",
-    precio: "$18.00",
-    imagen: "/img/mouse.jpg",
-    },
-    {
-    id: 2,
-    nombre: "Control PS5",
-    precio: "$59.00",
-    imagen: "/img/control.jpg",
-    },
-];
+import { useCarrito } from "../context/CarritoContext";
 
 function Favoritos() {
+    const { favoritos, eliminarDeFavoritos } = useCarrito();
+
     return (
     <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-10">Favoritos</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-10 text-rose-600">Favoritos</h1>
 
         {favoritos.length === 0 ? (
         <p className="text-center text-gray-500 text-lg">No tienes productos favoritos.</p>
@@ -37,9 +24,12 @@ function Favoritos() {
                 className="w-full h-40 object-cover rounded-md mb-3"
                 />
                 <h2 className="text-sm sm:text-base font-semibold truncate">{item.nombre}</h2>
-                <p className="text-pink-600 font-bold">{item.precio}</p>
-                <button className="mt-2 w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 rounded-lg transition-all">
-                    Quitar de favoritos
+                <p className="text-pink-600 font-bold">${item.precio}</p>
+                <button
+                onClick={() => eliminarDeFavoritos(item.id)}
+                className="mt-2 w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 rounded-lg transition-all"
+                >
+                Quitar de favoritos
                 </button>
             </div>
             ))}
