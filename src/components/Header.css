@@ -1,17 +1,5 @@
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 15px 30px;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 1000;
-}
 
+/* Estilos del formulario de búsqueda */
 .search-form {
   display: flex;
   align-items: center;
@@ -36,6 +24,7 @@
   color: #5c059b;
 }
 
+/* Enlaces de navegación */
 .nav-link {
   color: black;
   font-weight: 500;
@@ -46,6 +35,7 @@
   color: #5c059b;
 }
 
+/* Íconos con animación al hacer hover */
 .link-icon {
   font-size: 20px;
   transition: transform 0.3s ease;
