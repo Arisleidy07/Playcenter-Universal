@@ -40,7 +40,7 @@ function App() {
   return (
     <>
       <Header />
-      <div className="pt-28 min-h-screen flex flex-col">
+      <div className="pt-[80px] min-h-screen flex flex-col">
         <main className="flex-grow">
           <Routes>
             {/* Página de inicio */}
@@ -48,10 +48,7 @@ function App() {
 
             {/* Ruta principal productos con subrutas para categorías */}
             <Route path="/productos" element={<Productos />}>
-              {/* Ruta por defecto: todos los productos */}
               <Route index element={<ProductosTodos />} />
-
-              {/* Subrutas para cada categoría */}
               <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
               <Route path="audifonos" element={<Audifonos />} />
               <Route path="cables" element={<Cables />} />
@@ -82,13 +79,9 @@ function App() {
             <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/contacto" element={<Contacto />} />
             <Route path="/nosotros" element={<Nosotros />} />
-
-            {/* Detalle individual del producto */}
             <Route path="/producto/:id" element={<DetalleProducto />} />
           </Routes>
         </main>
-
-        {/* Footer fijo al final */}
         <Footer />
       </div>
     </>
