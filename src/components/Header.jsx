@@ -8,8 +8,7 @@ function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full bg-white shadow-md z-[1000] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8">
-        {/* 🔴 Logo animado multicolor */}
+      <header className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8">
         <div className="logo text-2xl sm:text-3xl font-bold flex flex-wrap gap-[2px] leading-none">
           <span className="text-red-500">P</span>
           <span className="text-blue-500">l</span>
@@ -24,17 +23,14 @@ function Header() {
           <span className="text-green-500">Universal</span>
         </div>
 
-        {/* 🔍 Buscador */}
         <div className="w-full md:w-auto flex-1 max-w-md">
           <SearchBar />
         </div>
 
-        {/* 🍔 Menú móvil */}
         <button className="md:hidden text-3xl" onClick={() => setMenuAbierto(true)}>
           ☰
         </button>
 
-        {/* 🧭 Menú de navegación en desktop */}
         <nav className="hidden md:flex gap-4 items-center">
           <Link to="/" className="nav-link">Inicio</Link>
           <Link to="/productos" className="nav-link">Categorías</Link>
@@ -45,7 +41,6 @@ function Header() {
         </nav>
       </header>
 
-      {/* 📱 Menú lateral tipo Amazon */}
       <SidebarMenu isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
     </>
   );

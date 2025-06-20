@@ -12,11 +12,7 @@ function ProductosTodos() {
   );
 
   return (
-    <div className="p-6 pt-28 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">
-        Todos los Productos
-      </h1>
-
+    <div className="p-6 bg-white min-h-screen">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productos.map((producto) => (
           <Link
