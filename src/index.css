@@ -2,182 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
+/* === GLOBAL === */
 body {
-    margin: 0;
-    padding: 0;
-
-    background-color: #f9f9f9;
-    font-family: 'Segoe UI', sans-serif;
+    @apply m-0 p-0 bg-[#f9fafb] font-sans text-[#1e293b]; /* fondo clarito, texto azul muy oscuro */
 }
 
-.flex-col.pt-20 {
-    padding-top: 0 !important;
+/* === HEADER === */
+.header-container {
+    @apply bg-[#e0e7ff] p-4 flex items-center gap-6; /* fondo clarito celeste pastel */
 }
-/* Estilo enlaces del header */
+
 .nav-link {
-    font-weight: 500;
-    transition: color 0.3s ease;
+    @apply font-semibold text-[#1e293b] relative cursor-pointer transition-colors duration-300;
 }
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0%;
+    height: 2px;
+    bottom: -3px;
+    left: 0;
+    background: #3b82f6; /* azul brillante */
+    transition: width 0.4s ease;
+}
+
 .nav-link:hover {
-    color: #7c3aed;
+    @apply text-[#3b82f6];
 }
 
-/* Íconos del header */
-.link-icon {
-    font-size: 1.25rem;
-    transition: transform 0.3s ease;
-}
-.link-icon:hover {
-    transform: scale(1.2);
+.nav-link:hover::after {
+    width: 100%;
 }
 
-/* Animación hover para texto */
-.hover-animate:hover span {
-    animation: pulse 0.5s ease-in-out;
+/* glitch animation */
+@keyframes glitch {
+    0% {
+        clip: rect(44px, 9999px, 56px, 0);
+        transform: translate(-2px, -2px);
+    }
+    20% {
+        clip: rect(85px, 9999px, 100px, 0);
+        transform: translate(2px, 2px);
+    }
+    40% {
+        clip: rect(22px, 9999px, 44px, 0);
+        transform: translate(-2px, 2px);
+    }
+    60% {
+        clip: rect(10px, 9999px, 30px, 0);
+        transform: translate(2px, -2px);
+    }
+    80% {
+        clip: rect(50px, 9999px, 70px, 0);
+        transform: translate(-2px, 0);
+    }
+    100% {
+        clip: rect(44px, 9999px, 56px, 0);
+        transform: translate(0);
+    }
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+.nav-link.glitch:hover {
+    animation: glitch 1s infinite;
+    color: #2563eb; /* azul más tech */
 }
 
-/* Estilo del buscador */
+/* === BUSCADOR === */
 .search-form {
-    display: flex;
-    align-items: center;
-    padding-inline: 0.8em;
-    background: white;
-    border: 2px solid #5c059b;
-    border-radius: 9999px;
-    height: 40px;
+    @apply flex items-center px-4 bg-white border-2 border-[#3b82f6] rounded-full h-10;
 }
 .search-form input {
-    border: none;
-    outline: none;
-    padding: 0 8px;
-    background: transparent;
-    width: 120px;
+    @apply border-none outline-none bg-transparent text-[#1e293b] w-36;
 }
 .search-form button {
-    background: none;
-    border: none;
-    color: #5c059b;
+    @apply bg-transparent border-none text-[#2563eb];
 }
 
-/* Estilo tarjeta blob (productos) */
+/* === TARJETAS PRODUCTO === */
 .card {
-    position: relative;
-    width: 200px;
-    height: 250px;
-    border-radius: 14px;
-    z-index: 1111;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
-}
-
-.bg {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    width: 190px;
-    height: 240px;
-    z-index: 2;
-    background: rgba(255, 255, 255, .95);
-    backdrop-filter: blur(24px);
-    border-radius: 10px;
-    overflow: hidden;
-    outline: 2px solid white;
-}
-
-.blob {
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    left: 50%;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #06b6d4, #60a5fa);
-    background-size: 200% 200%;
-    opacity: 0.8;
-    filter: blur(14px);
-    animation: blob-bounce 5s infinite ease, blob-colors 6s infinite ease;
-}
-
-@keyframes blob-bounce {
-    0% {
-    transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-    25% {
-    transform: translate(-100%, -100%) translate3d(100%, 0, 0);
-    }
-    50% {
-    transform: translate(-100%, -100%) translate3d(100%, 100%, 0);
-    }
-    75% {
-    transform: translate(-100%, -100%) translate3d(0, 100%, 0);
-    }
-    100% {
-    transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-}
-
-@keyframes blob-colors {
-    0% {
-    background-position: 0% 50%;
-    }
-    50% {
-    background-position: 100% 50%;
-    }
-    100% {
-    background-position: 0% 50%;
-    }
-}
-
-/* Aquí el cambio importante para slider */
-.slider-container {
-    width: 100%;
-    height: 450px; /* fijo en desktop */
-    overflow: hidden;
-    border-radius: 16px;
-    background-color: #000; /* evita flash blanco/negro cuando carga la imagen */
-    position: relative; /* para posicionar imágenes dentro */
-}
-
-.slider-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* cambia cover por contain para que no se corte la imagen */
-    border-radius: 16px;
-    position: absolute; /* para poder poner varias imágenes encima y controlar visibilidad */
-    top: 0;
-    left: 0;
-    transition: opacity 0.5s ease-in-out; /* transición suave */
-    opacity: 1; /* default visible */
-}
-
-/* Clases para controlar visibilidad */
-.slider-image.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.slider-image.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Si usas CSS tradicional, podrías agregar esto en tu blobCard.css */
-.card {
-    border-radius: 1rem;
-    overflow: hidden;
-    transition: all 0.3s ease;
+    @apply relative rounded-lg
+        bg-white shadow-md
+        flex flex-col items-center justify-between p-4
+        cursor-pointer
+        transition-transform transition-shadow duration-300;
+    width: 220px;
+    height: 300px;
 }
 .card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    @apply -translate-y-1 shadow-lg;
+}
+.card img {
+    @apply w-36 h-36 object-contain rounded-md shadow-sm p-1;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.4);
+}
+.card h2 {
+    @apply font-semibold text-lg mt-2 mb-1 text-[#1e293b] text-center truncate;
+    max-width: 90%;
+}
+.card p {
+    @apply font-medium text-base text-[#2563eb] mb-2 truncate;
+    max-width: 90%;
+}
+.card .actions {
+    @apply w-full flex justify-between pt-2 border-t border-[#3b82f6];
+}
+
+/* === SLIDER === */
+.slider-container {
+    @apply w-full h-[450px] overflow-hidden rounded-2xl bg-white relative;
+}
+.slider-image {
+    @apply w-full h-full object-contain rounded-2xl absolute top-0 left-0 transition-opacity duration-500 ease-in-out;
+    opacity: 1;
+}
+.slider-image.hidden {
+    @apply opacity-0 pointer-events-none;
+}
+.slider-image.visible {
+    @apply opacity-100 pointer-events-auto;
+}
+
+/* === SCROLLBAR === */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* === BOTONES FAVORITOS Y CARRITO === */
+.button-glitch {
+    color: #52688a;
+    font-weight: 700;
+    background: transparent;
+    border: 2px solid #3b82f6;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.button-glitch:hover {
+    color: #2563eb;
+    box-shadow: 0 0 8px #3b82f6, 0 0 15px #2563eb;
+    animation: glitch 1.2s infinite;
 }

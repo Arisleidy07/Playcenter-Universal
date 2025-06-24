@@ -3,10 +3,14 @@ import TarjetaProducto from "./TarjetaProducto";
 
 function SliderProductos({ productos }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      {productos.map((producto, index) => (
-        <TarjetaProducto key={index} producto={producto} />
-      ))}
+    <div className="overflow-x-auto scrollbar-hide">
+      <div className="flex gap-6 px-6 pb-6">
+        {productos.map((producto, index) => (
+          <div key={index} className="min-w-[220px] flex-shrink-0">
+            <TarjetaProducto producto={producto} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

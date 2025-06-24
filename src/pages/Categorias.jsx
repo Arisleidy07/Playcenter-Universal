@@ -45,20 +45,37 @@ function Categorias() {
         : productos.filter((p) => p.categoria === categoriaActiva);
 
     return (
-    <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen flex flex-col lg:flex-row gap-6">
+    <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen flex flex-col lg:flex-row gap-8">
+      {/* Sidebar */}
         <SidebarCategorias
         categoriaActiva={categoriaActiva}
         setCategoriaActiva={setCategoriaActiva}
         categorias={categorias}
         />
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 flex-1">
+      {/* Productos */}
+        <section
+        className="
+            grid
+            grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-3
+            lg:grid-cols-4
+            xl:grid-cols-5
+            gap-8
+            flex-1
+        "
+        >
         {productosFiltrados.map((prod, idx) => (
-            <TarjetaProducto key={idx} producto={prod} />
+            <TarjetaProducto
+            key={idx}
+            producto={prod}
+            className="max-w-[280px]" // agrega ancho máximo para no achicar demasiado
+            />
         ))}
-
         </section>
     </main>
     );
 }
+
 
 export default Categorias;

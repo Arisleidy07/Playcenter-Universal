@@ -24,11 +24,15 @@ export default {
         },
       },
       colors: {
-        primary: '#5c059b',
-        secondary: '#FBBF24',
-        accent: '#EF4444',
-        neutral: '#d1d5db',
-        'base-100': '#111827',
+        primary: '#0f172a',        // Azul noche, fondo header y secciones
+        secondary: '#22d3ee',      // Cyan neón para iconos, hover y detalles
+        accent: '#7c3aed',         // Violeta neón para links hover y botones
+        highlight: '#38bdf8',      // Azul celeste vibrante para textos importantes
+        warning: '#fbbf24',        // Amarillo para alertas o toques warm
+        danger: '#ef4444',         // Rojo para errores o botones de cancelar
+        neutral: '#ffffff',        // Blanco puro para texto y fondo claro
+        base100: '#111827',        // Gris oscuro para fondos secundarios
+        cardBg: 'linear-gradient(145deg, #1e1b4b, #111827)', // Fondo gradiente tarjetas
       },
     },
   },
