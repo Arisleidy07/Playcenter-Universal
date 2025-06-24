@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderProductos from "../components/SliderProductos";
+import TarjetaProducto from "../components/TarjetaProducto";
 import productosAll from "../data/productosAll";
 import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa";
 

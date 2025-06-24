@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ProductCard from '../components/ProductCard';
+import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from '../components/SidebarCategorias';
 
 const categorias = [
@@ -53,13 +53,9 @@ function Categorias() {
         />
         <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 flex-1">
         {productosFiltrados.map((prod, idx) => (
-            <ProductCard
-            key={idx}
-            nombre={prod.nombre}
-            precio={prod.precio}
-            imagen={prod.imagen}
-            />
+            <TarjetaProducto key={idx} producto={prod} />
         ))}
+
         </section>
     </main>
     );

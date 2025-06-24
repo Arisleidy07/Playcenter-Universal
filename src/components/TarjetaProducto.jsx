@@ -1,6 +1,8 @@
-import React, { useContext } from "react";
+import React from "react";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
+import "../../styles/blobCard.css";
 
 function TarjetaProducto({ producto }) {
   const {
@@ -10,52 +12,72 @@ function TarjetaProducto({ producto }) {
     eliminarDeFavoritos,
   } = useCarrito();
 
+  const navigate = useNavigate();
   const esFavorito = favoritos.some((p) => p.id === producto.id);
 
-  const toggleFavorito = () => {
+  const toggleFavorito = (e) => {
+    e.stopPropagation();
     esFavorito
       ? eliminarDeFavoritos(producto.id)
       : agregarAFavoritos(producto);
   };
 
+  const handleAgregarAlCarrito = (e) => {
+    e.stopPropagation();
+    agregarAlCarrito(producto);
+  };
+
+  const handleIrADetalle = () => {
+    navigate(`/producto/${producto.id}`, { state: { producto } });
+  };
+
   return (
-    <div className="relative bg-white rounded-2xl shadow group overflow-hidden transition-all hover:shadow-xl hover:scale-[1.015] duration-300 border border-gray-200">
-      {/* Íconos animados arriba a la derecha */}
-      <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
-        <button
-          onClick={toggleFavorito}
-          className="p-2 rounded-full bg-white shadow hover:scale-110 transform transition"
-        >
-          <FaHeart
-            className={`text-xl transition-colors duration-300 ${
-              esFavorito
-                ? "text-red-500 animate-pulse"
-                : "text-gray-400 group-hover:text-red-400"
-            }`}
-          />
-        </button>
+    <div onClick={handleIrADetalle} className="card cursor-pointer">
+      {/* BLOBS Y FONDO */}
+      <div className="blob"></div>
+      <div className="bg"></div>
 
-        <button
-          onClick={() => agregarAlCarrito(producto)}
-          className="p-2 rounded-full bg-white shadow hover:scale-110 transform transition"
-        >
-          <FaShoppingCart className="text-xl text-gray-400 group-hover:text-pink-500 transition-colors duration-300" />
-        </button>
-      </div>
-
-      {/* Imagen */}
-      <div className="flex justify-center items-center h-40 bg-gray-50 group-hover:bg-pink-50 transition">
+      {/* CONTENIDO PRINCIPAL */}
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-3">
+        {/* Imagen */}
         <img
           src={producto.imagen}
           alt={producto.nombre}
-          className="h-28 w-28 object-contain transition-transform duration-300 group-hover:scale-105"
+          className="h-24 w-24 object-contain mb-2"
         />
-      </div>
 
-      {/* Info del producto */}
-      <div className="p-4 text-center">
-        <h3 className="text-base font-semibold text-gray-800 truncate">{producto.nombre}</h3>
-        <p className="text-pink-600 font-bold text-lg">${producto.precio.toFixed(2)}</p>
+        {/* Nombre y precio */}
+        <h3 className="text-center text-gray-800 font-semibold text-sm truncate w-full">
+          {producto.nombre}
+        </h3>
+        <p className="text-pink-600 font-bold text-base mt-1">
+          ${producto.precio.toFixed(2)}
+        </p>
+
+        {/* BOTONES */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+          <button
+            onClick={toggleFavorito}
+            className="p-2 rounded-full bg-white shadow hover:scale-110 transition"
+            title={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
+          >
+            <FaHeart
+              className={`text-lg ${
+                esFavorito
+                  ? "text-red-500 animate-pulse"
+                  : "text-gray-400 hover:text-red-400"
+              }`}
+            />
+          </button>
+
+          <button
+            onClick={handleAgregarAlCarrito}
+            className="p-2 rounded-full bg-white shadow hover:scale-110 transition"
+            title="Agregar al carrito"
+          >
+            <FaShoppingCart className="text-lg text-gray-400 hover:text-pink-500" />
+          </button>
+        </div>
       </div>
     </div>
   );
