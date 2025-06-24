@@ -1,5 +1,4 @@
 import React from "react";
-import "../../styles/blobCard.css";
 import productosAll from "../data/productosAll";
 import TarjetaProducto from "../components/TarjetaProducto";
 
