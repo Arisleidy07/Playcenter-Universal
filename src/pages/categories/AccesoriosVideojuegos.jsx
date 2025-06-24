@@ -1,5 +1,4 @@
 import React from "react";
-import "../../styles/blobCard.css";
 import TarjetaProducto from "../../components/TarjetaProducto";
 
 function AccesoriosVideojuegos() {
