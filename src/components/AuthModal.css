@@ -1,0 +1,164 @@
+/* Overlay más suave y centrado perfecto */
+.modal-overlay {
+  position: fixed;
+  inset: 0; /* top:0; left:0; right:0; bottom:0; más elegante */
+  background-color: rgba(0, 0, 0, 0.6); /* un poquito más oscuro para foco */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050; /* más arriba que otros modales */
+  backdrop-filter: blur(4px); /* efecto glassy sutil */
+}
+
+/* Contenedor con sombra más sutil y moderno */
+.form-container {
+  width: 360px;
+  background-color: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 25px 35px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalFadeIn 0.25s ease forwards;
+}
+
+/* Animación suave al abrir modal */
+@keyframes modalFadeIn {
+  from {opacity: 0; transform: translateY(-15px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+.title {
+  text-align: center;
+  font-family: "Lucida Sans", "Lucida Grande", Verdana, sans-serif;
+  margin: 0 0 30px 0;
+  font-size: 30px;
+  font-weight: 900;
+  color: #111;
+}
+
+.sub-title {
+  margin: 0 0 15px 0;
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.input {
+  border-radius: 25px;
+  border: 1.5px solid #ddd;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-family: "Lucida Sans", Verdana, sans-serif;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: teal;
+  box-shadow: 0 0 8px rgba(0, 128, 128, 0.3);
+}
+
+.page-link {
+  font-size: 10px;
+  color: #888;
+  text-align: right;
+  cursor: pointer;
+  user-select: none;
+}
+
+.page-link-label:hover {
+  color: teal;
+  text-decoration: underline;
+}
+
+.form-btn {
+  padding: 12px 0;
+  border-radius: 25px;
+  background-color: teal;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+  box-shadow: 0 5px 15px rgba(0, 128, 128, 0.4);
+}
+
+.form-btn:hover {
+  background-color: #005050;
+}
+
+.form-btn:active {
+  box-shadow: none;
+  transform: scale(0.97);
+}
+
+.sign-up-label {
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+}
+
+.sign-up-link {
+  margin-left: 5px;
+  font-weight: 900;
+  color: teal;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 12px;
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.apple-login-button,
+.google-login-button {
+  border-radius: 25px;
+  padding: 12px 0;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+.apple-login-button:hover,
+.google-login-button:hover {
+  transform: scale(1.05);
+}
+
+.apple-login-button {
+  background-color: #000;
+  color: white;
+  border: 2px solid #000;
+}
+
+.google-login-button {
+  background-color: white;
+  border: 2px solid #bbb;
+  color: #444;
+}
+
+.apple-icon,
+.google-icon {
+  font-size: 20px;
+  margin-bottom: 0;
+}

@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import SearchBar from './SearchBar';
-import SidebarMenu from './SidebarMenu';
+// src/components/Header.jsx
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import SearchBar from "./SearchBar";
+import SidebarMenu from "./SidebarMenu";
+import { useAuth } from "../context/AuthContext";
+import AuthModal from "./AuthModal"; // Asegúrate de tener este componente
 
 function Header() {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const { usuario, logout } = useAuth();
+
+  const manejarLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error cerrando sesión", error);
+    }
+  };
 
   return (
     <>
@@ -38,10 +51,28 @@ function Header() {
           <Link to="/contacto" className="nav-link">Contáctanos</Link>
           <Link to="/favoritos" className="link hover-animate">❤️ Favoritos</Link>
           <Link to="/carrito" className="link hover-animate">🛒 Mi carrito</Link>
+
+          {!usuario ? (
+            <button
+              onClick={() => setModalAbierto(true)}
+              className="ml-4 px-4 py-2 bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white font-semibold rounded-lg transition"
+            >
+              Iniciar sesión
+            </button>
+          ) : (
+            <button
+              onClick={manejarLogout}
+              className="ml-4 px-4 py-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold rounded-lg transition"
+            >
+              Cerrar sesión
+            </button>
+          )}
         </nav>
       </header>
 
       <SidebarMenu isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
+
+      {modalAbierto && <AuthModal onClose={() => setModalAbierto(false)} />}
     </>
   );
 }

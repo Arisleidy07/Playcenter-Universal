@@ -1,5 +1,4 @@
 import React from "react";
-import "../styles/blobCard.css";
 import { Outlet } from "react-router-dom";
 import SidebarCategorias from "../components/SidebarCategorias";
 
