@@ -16,9 +16,7 @@ function TarjetaProducto({ producto }) {
 
   const toggleFavorito = (e) => {
     e.stopPropagation();
-    esFavorito
-      ? eliminarDeFavoritos(producto.id)
-      : agregarAFavoritos(producto);
+    esFavorito ? eliminarDeFavoritos(producto.id) : agregarAFavoritos(producto);
   };
 
   const handleAgregarAlCarrito = (e) => {
