@@ -1,3 +1,4 @@
+// src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
@@ -10,6 +11,7 @@ import Contacto from "./pages/Contacto";
 import DetalleProducto from "./pages/DetalleProducto";
 import Nosotros from "./pages/Nosotros";
 import Footer from "./components/Footer";
+import { AuthProvider } from "./context/AuthContext"; // ESTA LÍNEA FALTABA 👈
 
 // Importación de categorías
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
@@ -38,7 +40,7 @@ import Videojuegos from "./pages/categories/Videojuegos";
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Header />
       <div className="min-h-screen flex flex-col">
         <main className="flex-grow">
@@ -84,7 +86,7 @@ function App() {
         </main>
         <Footer />
       </div>
-    </>
+    </AuthProvider>
   );
 }
 

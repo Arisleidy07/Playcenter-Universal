@@ -10,8 +10,28 @@
   backdrop-filter: blur(4px); /* efecto glassy sutil */
 }
 
+.close-button {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #111;
+}
+
+
+
 /* Contenedor con sombra más sutil y moderno */
+
 .form-container {
+  position: relative; /* 👈 Esto es clave para que el botón absoluto funcione */
   width: 360px;
   background-color: #fff;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
@@ -21,6 +41,7 @@
   overflow-y: auto;
   animation: modalFadeIn 0.25s ease forwards;
 }
+
 
 /* Animación suave al abrir modal */
 @keyframes modalFadeIn {

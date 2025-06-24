@@ -4,18 +4,38 @@ import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import SidebarMenu from "./SidebarMenu";
 import { useAuth } from "../context/AuthContext";
-import AuthModal from "./AuthModal"; // Asegúrate de tener este componente
+import AuthModal from "./AuthModal";
 
 function Header() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, login, signup } = useAuth();
 
   const manejarLogout = async () => {
     try {
       await logout();
     } catch (error) {
       console.error("Error cerrando sesión", error);
+    }
+  };
+
+  const handleLogin = async (email, password) => {
+    try {
+      await login(email, password);
+      setModalAbierto(false); // Cierra el modal después del login
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+      alert("Correo o contraseña incorrectos.");
+    }
+  };
+
+  const handleSignup = async (email, password) => {
+    try {
+      await signup(email, password);
+      setModalAbierto(false); // Cierra el modal después del signup
+    } catch (error) {
+      console.error("Error al registrarse:", error);
+      alert("Error al crear la cuenta.");
     }
   };
 
@@ -72,7 +92,14 @@ function Header() {
 
       <SidebarMenu isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
 
-      {modalAbierto && <AuthModal onClose={() => setModalAbierto(false)} />}
+      {/* Mostrar el modal solo si modalAbierto === true */}
+      {modalAbierto && (
+        <AuthModal
+          onClose={() => setModalAbierto(false)}
+          onLogin={handleLogin}
+          onSignup={handleSignup}
+        />
+      )}
     </>
   );
 }
