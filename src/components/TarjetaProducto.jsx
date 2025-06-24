@@ -2,7 +2,6 @@ import React from "react";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
-import "../../styles/blobCard.css";
 
 function TarjetaProducto({ producto }) {
   const {
