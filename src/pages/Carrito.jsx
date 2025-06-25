@@ -8,9 +8,11 @@ function Carrito() {
     return (
     <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 min-h-screen bg-white text-[#1E2A47]">
 
+      {/* TÍTULO ANIMADO */}
         <h1
         className="text-3xl sm:text-4xl font-bold text-center mb-10
-                    animate-pulse hover:text-[#3B82F6] transition-colors duration-500"
+                    bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-500 
+                    bg-clip-text text-transparent animate-text-glow"
         >
         Mi Carrito
         </h1>
@@ -35,7 +37,9 @@ function Carrito() {
                     {item.nombre}
                 </h2>
                 <p className="text-[#2563EB]">Cantidad: {item.cantidad}</p>
-                <p className="text-[#2563EB] font-bold">${(item.precio * item.cantidad).toFixed(2)}</p>
+                <p className="text-[#2563EB] font-bold">
+                  ${(item.precio * item.cantidad).toFixed(2)}
+                </p>
                 <button
                     onClick={() => eliminarDelCarrito(item)}
                     className="text-sm text-[#EF4444] mt-2 hover:underline"

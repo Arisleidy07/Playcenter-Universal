@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@layer utilities {
+    .animate-text-glow {
+    @apply animate-pulse bg-clip-text text-transparent;
+    }
+}
+
 /* === GLOBAL === */
 body {
     @apply m-0 p-0 bg-[#f9fafb] font-sans text-[#1e293b]; /* fondo clarito, texto azul muy oscuro */

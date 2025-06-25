@@ -7,8 +7,12 @@ function Favoritos() {
     return (
     <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 min-h-screen bg-white text-[#1E2A47]">
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-10
-                        animate-pulse hover:text-[#3B82F6] transition-colors duration-500">
+      {/* TÍTULO CON EFECTO */}
+        <h1
+        className="text-3xl sm:text-4xl font-bold text-center mb-10
+                    bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-500 
+                    bg-clip-text text-transparent animate-text-glow"
+        >
         Favoritos
         </h1>
 
@@ -20,7 +24,7 @@ function Favoritos() {
             <div
                 key={item.id}
                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all hover:scale-[1.03] p-3 border border-[#3B82F6]"
-            >
+                >
                 <img
                 src={item.imagen}
                 alt={item.nombre}
