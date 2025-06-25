@@ -42,26 +42,21 @@ function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8">
-        <div className="logo text-2xl sm:text-3xl font-bold flex flex-wrap gap-[2px] leading-none">
-          <span className="text-red-500">P</span>
-          <span className="text-blue-500">l</span>
-          <span className="text-yellow-400">a</span>
-          <span className="text-green-500">y</span>
-          <span className="text-cyan-500">c</span>
-          <span className="text-orange-400">e</span>
-          <span className="text-lime-500">n</span>
-          <span className="text-red-500">t</span>
-          <span className="text-blue-500">e</span>
-          <span className="text-yellow-400">r</span>
-          <span className="text-green-500">Universal</span>
-        </div>
+        {/* Logo imagen clickeable */}
+      <Link to="/" className="flex items-center">
+          <img
+            src="/playcenter.jpeg"
+            alt="Playcenter Universal"
+            className="h-14 sm:h-16 object-contain cursor-pointer"
+          />
+      </Link>
 
-        <div className="w-full md:w-auto flex-1 max-w-md">
-          <SearchBar />
-        </div>
+      <div className="w-full md:w-auto flex-1 max-w-md">
+        <SearchBar />
+      </div>
 
-        <button className="md:hidden text-3xl" onClick={() => setMenuAbierto(true)}>
-          ☰
+      <button className="md:hidden text-3xl" onClick={() => setMenuAbierto(true)}>
+        ☰
         </button>
 
         <nav className="hidden md:flex gap-4 items-center">
@@ -92,7 +87,6 @@ function Header() {
 
       <SidebarMenu isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
 
-      {/* Mostrar el modal solo si modalAbierto === true */}
       {modalAbierto && (
         <AuthModal
           onClose={() => setModalAbierto(false)}

@@ -77,6 +77,7 @@ function App() {
             </Route>
 
             {/* Otras páginas independientes */}
+            <Route path="/" element={<Inicio />} />
             <Route path="/carrito" element={<Carrito />} />
             <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/contacto" element={<Contacto />} />
