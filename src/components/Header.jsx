@@ -1,4 +1,4 @@
-// src/components/Header.jsx
+// Header.jsx completo listo para Shein Style
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
@@ -22,17 +22,17 @@ function Header() {
   const handleLogin = async (email, password) => {
     try {
       await login(email, password);
-      setModalAbierto(false); // Cierra el modal después del login
+      setModalAbierto(false);
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       alert("Correo o contraseña incorrectos.");
     }
   };
 
-  const handleSignup = async (email, password) => {
+  const handleSignup = async (email, password, name) => {
     try {
-      await signup(email, password);
-      setModalAbierto(false); // Cierra el modal después del signup
+      await signup(email, password, name);
+      setModalAbierto(false);
     } catch (error) {
       console.error("Error al registrarse:", error);
       alert("Error al crear la cuenta.");
@@ -42,21 +42,20 @@ function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8">
-        {/* Logo imagen clickeable */}
-      <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center">
           <img
             src="/playcenter.jpeg"
             alt="Playcenter Universal"
             className="h-14 sm:h-16 object-contain cursor-pointer"
           />
-      </Link>
+        </Link>
 
-      <div className="w-full md:w-auto flex-1 max-w-md">
-        <SearchBar />
-      </div>
+        <div className="w-full md:w-auto flex-1 max-w-md">
+          <SearchBar />
+        </div>
 
-      <button className="md:hidden text-3xl" onClick={() => setMenuAbierto(true)}>
-        ☰
+        <button className="md:hidden text-3xl" onClick={() => setMenuAbierto(true)}>
+          ☰
         </button>
 
         <nav className="hidden md:flex gap-4 items-center">
@@ -75,12 +74,19 @@ function Header() {
               Iniciar sesión
             </button>
           ) : (
-            <button
-              onClick={manejarLogout}
-              className="ml-4 px-4 py-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold rounded-lg transition"
-            >
-              Cerrar sesión
-            </button>
+            <div className="relative group">
+              <div className="w-10 h-10 rounded-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-lg">
+                {usuario.displayName ? usuario.displayName[0].toUpperCase() : usuario.email[0].toUpperCase()}
+              </div>
+              <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-md mt-2 rounded-md overflow-hidden z-50">
+                <button
+                  onClick={manejarLogout}
+                  className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
           )}
         </nav>
       </header>

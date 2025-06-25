@@ -10,6 +10,12 @@ export default function AuthModal({ onClose, onLogin }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (isLogin) {
+      onLogin(email, password);
+    } else {
+      onSignup(email, password, name);
+    }
+
     if (!email || !password || (!isLogin && !name)) {
       alert("Completa todos los campos");
       return;

@@ -1,4 +1,5 @@
 // src/context/AuthContext.jsx
+import { updateProfile } from "firebase/auth";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { 
   getAuth, 
@@ -48,9 +49,13 @@ export function AuthProvider({ children }) {
   }
 
   // Función para crear usuario
-  function signup(email, password) {
-    return createUserWithEmailAndPassword(auth, email, password);
-  }
+function signup(email, password, name) {
+  return createUserWithEmailAndPassword(auth, email, password).then((userCredential) => {
+    return updateProfile(userCredential.user, {
+      displayName: name,
+    });
+  });
+}
 
   // Función para cerrar sesión
   function logout() {
