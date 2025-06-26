@@ -1,6 +1,7 @@
 // src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+import Profile from "./pages/Profile";
 import Header from "./components/Header";
 import Inicio from "./pages/Inicio";
 import Productos from "./pages/Productos";
@@ -47,6 +48,7 @@ function App() {
           <Routes>
             {/* Página de inicio */}
             <Route path="/" element={<Inicio />} />
+            <Route path="/profile" element={<Profile />} />
 
             {/* Ruta principal productos con subrutas para categorías */}
             <Route path="/productos" element={<Productos />}>

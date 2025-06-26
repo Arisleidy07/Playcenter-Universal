@@ -1,39 +1,37 @@
 import React, { useState } from "react";
 import "./AuthModal.css";
 
-export default function AuthModal({ onClose, onLogin }) {
+export default function AuthModal({ onClose, onLogin, onSignup }) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState(""); // Solo para registro
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (isLogin) {
-      onLogin(email, password);
-    } else {
-      onSignup(email, password, name);
-    }
 
     if (!email || !password || (!isLogin && !name)) {
       alert("Completa todos los campos");
       return;
     }
 
-    onLogin(email, password, isLogin);
-    onClose();
+    try {
+      if (isLogin) {
+        await onLogin(email, password);
+      } else {
+        await onSignup(email, password, name);
+      }
+      onClose();
+    } catch (error) {
+      console.error("🔥 Firebase error:", error);
+      alert(error.message || "Ocurrió un error");
+    }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="form-container" onClick={(e) => e.stopPropagation()}>
-        {/* Botón para cerrar */}
-        <button
-          className="close-button"
-          onClick={onClose}
-          aria-label="Cerrar modal"
-        >
+        <button className="close-button" onClick={onClose} aria-label="Cerrar modal">
           &times;
         </button>
 
