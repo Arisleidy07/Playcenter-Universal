@@ -62,10 +62,11 @@ function Header() {
   return (
     <>
       <motion.header
-        initial={{ y: -100, opacity: 0 }}
+        initial={{ y: -120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8"
+        style={{ backdropFilter: "saturate(180%) blur(15px)" }}
       >
         <Link to="/" className="flex items-center">
           <motion.img
@@ -95,24 +96,34 @@ function Header() {
           ☰
         </motion.button>
 
-        <nav className="hidden md:flex gap-4 items-center">
-          <Link to="/" className="nav-link hover:text-[#4FC3F7] transition-colors">Inicio</Link>
-          <Link to="/productos" className="nav-link hover:text-[#4FC3F7] transition-colors">Categorías</Link>
-          <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] transition-colors">Nosotros</Link>
-          <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition-colors">Contáctanos</Link>
-          <Link to="/favoritos" className="link hover:scale-105 transition-transform">❤️ Favoritos</Link>
-          <Link to="/carrito" className="link hover:scale-105 transition-transform">🛒 Mi carrito</Link>
+        <nav className="hidden md:flex gap-6 items-center">
+          <Link to="/" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+            Inicio
+          </Link>
+          <Link to="/productos" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+            Categorías
+          </Link>
+          <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+            Nosotros
+          </Link>
+          <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+            Contáctanos
+          </Link>
+          <Link to="/favoritos" className="link hover:scale-110 transition-transform text-xl">
+            ❤️
+          </Link>
+          <Link to="/carrito" className="link hover:scale-110 transition-transform text-xl">
+            🛒
+          </Link>
 
           {usuario ? (
             <motion.div
-              className="relative ml-4"
+              className="relative ml-6 cursor-pointer"
               ref={dropdownRef}
+              onClick={() => setDropdownAbierto(!dropdownAbierto)}
               whileTap={{ scale: 0.95 }}
             >
-              <Link
-                to="/profile"
-                className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7]"
-              >
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow-lg hover:shadow-xl transition-shadow duration-300">
                 {usuario.photoURL ? (
                   <img
                     src={usuario.photoURL}
@@ -120,16 +131,42 @@ function Header() {
                     className="w-full h-full object-cover rounded-full"
                   />
                 ) : (
-                  <div className="w-full h-full bg-[#4FC3F7] text-white font-bold flex items-center justify-center text-lg">
+                  <div className="w-full h-full bg-[#4FC3F7] text-white font-bold flex items-center justify-center text-xl select-none">
                     {usuario.displayName?.charAt(0).toUpperCase() || "U"}
                   </div>
                 )}
-              </Link>
+              </div>
+
+              <AnimatePresence>
+                {dropdownAbierto && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
+                  >
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md transition"
+                      onClick={() => setDropdownAbierto(false)}
+                    >
+                      Mi Perfil
+                    </Link>
+                    <button
+                      onClick={manejarLogout}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md transition"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           ) : (
             <motion.button
               onClick={() => setModalAbierto(true)}
-              className="ml-4 px-4 py-2 bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white font-semibold rounded-lg transition"
+              className="ml-4 px-6 py-2 bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white font-semibold rounded-lg transition shadow-md"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -150,6 +187,9 @@ function Header() {
           />
         )}
       </AnimatePresence>
+
+      {/* Aquí agrego un div para empujar el contenido y que no quede tapado por el header */}
+      <div className="h-[72px] md:h-[72px]" />
     </>
   );
 }

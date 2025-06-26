@@ -35,33 +35,33 @@ function TarjetaProducto({ producto }) {
   return (
     <div
       onClick={handleIrADetalle}
-      className="card"
+      className="card bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
       title={producto.nombre}
     >
       {/* Imagen */}
-      <div className="flex justify-center items-center h-40 bg-gray-900 rounded-xl mb-4">
+      <div className="flex justify-center items-center h-40 bg-gray-100 rounded-xl mb-4">
         <img
           src={producto.imagen}
           alt={producto.nombre}
-          className="w-40 h-40 object-contain rounded-lg shadow-lg"
+          className="w-40 h-40 object-contain rounded-lg shadow"
         />
       </div>
 
       {/* Info */}
-      <h2>{producto.nombre}</h2>
-      <p>${producto.precio.toFixed(2)}</p>
+      <h2 className="text-gray-800 font-bold text-base">{producto.nombre}</h2>
+      <p className="text-gray-600 font-semibold mb-3">${producto.precio.toFixed(2)}</p>
 
       {/* Botones */}
-      <div className="actions">
+      <div className="actions flex justify-between items-center">
         {/* Botón Favorito */}
         <button
           onClick={toggleFavorito}
-          className="p-2 rounded-full bg-gray-800 shadow hover:scale-110 transition"
+          className="p-2 rounded-full bg-gray-200 shadow hover:scale-110 transition"
           aria-label={esFavorito ? "Eliminar de favoritos" : "Agregar a favoritos"}
         >
           <FaHeart
             className={`text-xl ${
-              esFavorito ? "text-red-500 animate-pulse" : "text-gray-400 hover:text-red-400"
+              esFavorito ? "text-red-500 animate-pulse" : "text-gray-500 hover:text-red-400"
             }`}
           />
         </button>
@@ -71,8 +71,8 @@ function TarjetaProducto({ producto }) {
           onClick={handleAgregarAlCarrito}
           className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors duration-300 shadow ${
             enCarrito
-              ? "bg-green-600 text-white hover:bg-green-700"
-              : "bg-pink-600 text-white hover:bg-pink-700"
+              ? "bg-green-500 text-white hover:bg-green-600"
+              : "bg-pink-500 text-white hover:bg-pink-600"
           }`}
         >
           🛒 {enCarrito ? "Agregado" : "Agregar"}

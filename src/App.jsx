@@ -13,6 +13,7 @@ import DetalleProducto from "./pages/DetalleProducto";
 import Nosotros from "./pages/Nosotros";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext"; // ESTA LÍNEA FALTABA 👈
+import VistaProducto from "./pages/VistaProducto";
 
 // Importación de categorías
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
@@ -49,6 +50,8 @@ function App() {
             {/* Página de inicio */}
             <Route path="/" element={<Inicio />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/producto/:id" element={<VistaProducto />} />
+
 
             {/* Ruta principal productos con subrutas para categorías */}
             <Route path="/productos" element={<Productos />}>
