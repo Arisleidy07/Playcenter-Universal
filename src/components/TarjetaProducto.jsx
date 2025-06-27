@@ -10,6 +10,7 @@ function TarjetaProducto({ producto }) {
     carrito,
     agregarAFavoritos,
     eliminarDeFavoritos,
+    eliminarDelCarrito,
   } = useCarrito();
 
   const navigate = useNavigate();
@@ -23,9 +24,13 @@ function TarjetaProducto({ producto }) {
       : agregarAFavoritos(producto);
   };
 
-  const handleAgregarAlCarrito = (e) => {
+  const handleToggleCarrito = (e) => {
     e.stopPropagation();
-    agregarAlCarrito(producto);
+    if (enCarrito) {
+      eliminarDelCarrito(producto.id);
+    } else {
+      agregarAlCarrito(producto);
+    }
   };
 
   const handleIrADetalle = () => {
@@ -68,14 +73,14 @@ function TarjetaProducto({ producto }) {
 
         {/* Botón Carrito */}
         <button
-          onClick={handleAgregarAlCarrito}
+          onClick={handleToggleCarrito}
           className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors duration-300 shadow ${
             enCarrito
               ? "bg-green-500 text-white hover:bg-green-600"
               : "bg-pink-500 text-white hover:bg-pink-600"
           }`}
         >
-          🛒 {enCarrito ? "Agregado" : "Agregar"}
+          🛒 {enCarrito ? "Quitar" : "Agregar"}
         </button>
       </div>
     </div>

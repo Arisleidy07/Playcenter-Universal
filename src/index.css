@@ -1,74 +1,60 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
 
-
-@layer utilities {
+    @layer utilities {
     .animate-text-glow {
-    @apply animate-pulse bg-clip-text text-transparent;
+        @apply animate-pulse bg-clip-text text-transparent;
     }
-}
+    }
 
-@keyframes fadeIn {
-    from {opacity:0; transform: translateY(15px);}
-    to {opacity:1; transform: translateY(0);}
-}
+    @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(15px);}
+    to {opacity: 1; transform: translateY(0);}
+    }
 
-.animate-fadeIn {
+    .animate-fadeIn {
     animation: fadeIn 0.5s ease forwards;
-}
-
-
-@keyframes fadeIn {
-    from {
-    opacity: 0;
-    transform: translateY(15px);
     }
-    to {
-    opacity: 1;
-    transform: translateY(0);
+
+    /* === GLOBAL === */
+    body {
+    @apply m-0 p-0 bg-[#f9fafb] font-sans text-[#1e293b]; /* Fondo blanco suave, texto azul muy oscuro */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     }
-}
 
-.animate-fadeIn {
-    animation: fadeIn 0.5s ease forwards;
-}
+    /* === HEADER === */
+    .header-container {
+    @apply bg-[#e0e7ff] p-4 flex items-center gap-6; /* Fondo celeste pastel */
+    }
 
-/* === GLOBAL === */
-body {
-    @apply m-0 p-0 bg-[#f9fafb] font-sans text-[#1e293b]; /* fondo clarito, texto azul muy oscuro */
-}
-
-/* === HEADER === */
-.header-container {
-    @apply bg-[#e0e7ff] p-4 flex items-center gap-6; /* fondo clarito celeste pastel */
-}
-
-.nav-link {
+    .nav-link {
     @apply font-semibold text-[#1e293b] relative cursor-pointer transition-colors duration-300;
-}
+    }
 
-.nav-link::after {
+    .nav-link::after {
     content: '';
     position: absolute;
     width: 0%;
     height: 2px;
     bottom: -3px;
     left: 0;
-    background: #3b82f6; /* azul brillante */
+    background: #3b82f6; /* azul profesional */
     transition: width 0.4s ease;
-}
+    }
 
-.nav-link:hover {
+    .nav-link:hover {
     @apply text-[#3b82f6];
-}
+    }
 
-.nav-link:hover::after {
+    .nav-link:hover::after {
     width: 100%;
-}
+    }
 
-/* glitch animation */
-@keyframes glitch {
+    /* glitch animation */
+    @keyframes glitch {
     0% {
         clip: rect(44px, 9999px, 56px, 0);
         transform: translate(-2px, -2px);
@@ -93,80 +79,76 @@ body {
         clip: rect(44px, 9999px, 56px, 0);
         transform: translate(0);
     }
-}
+    }
 
-.nav-link.glitch:hover {
+    .nav-link.glitch:hover {
     animation: glitch 1s infinite;
-    color: #2563eb; /* azul más tech */
-}
+    color: #2563eb; /* azul tech */
+    }
 
-/* === BUSCADOR === */
-.search-form {
+    /* === BUSCADOR === */
+    .search-form {
     @apply flex items-center px-4 bg-white border-2 border-[#3b82f6] rounded-full h-10;
-}
-.search-form input {
+    }
+    .search-form input {
     @apply border-none outline-none bg-transparent text-[#1e293b] w-36;
-}
-.search-form button {
+    }
+    .search-form button {
     @apply bg-transparent border-none text-[#2563eb];
-}
+    }
 
-/* === TARJETAS PRODUCTO === */
-.card {
-    @apply relative rounded-lg
-        bg-white shadow-md
-        flex flex-col items-center justify-between p-4
-        cursor-pointer
-        transition-transform transition-shadow duration-300;
+    /* === TARJETAS PRODUCTO === */
+    .card {
+    @apply relative rounded-lg bg-white shadow-md flex flex-col items-center justify-between p-4 cursor-pointer transition-transform transition-shadow duration-300;
     width: 220px;
     height: 300px;
-}
-.card:hover {
+    }
+    .card:hover {
     @apply -translate-y-1 shadow-lg;
-}
-.card img {
+    }
+    .card img {
     @apply w-36 h-36 object-contain rounded-md shadow-sm p-1 bg-white;
     box-shadow: 0 3px 10px rgba(59, 130, 246, 0.4);
-}
+    }
 
-.card h2 {
+    .card h2 {
     @apply font-semibold text-lg mt-2 mb-1 text-[#1e293b] text-center truncate;
     max-width: 90%;
-}
-.card p {
+    }
+    .card p {
     @apply font-medium text-base text-[#2563eb] mb-2 truncate;
     max-width: 90%;
-}
-.card .actions {
+    }
+    .card .actions {
     @apply w-full flex justify-between pt-2 border-t border-[#3b82f6];
-}
+    }
 
-/* === SLIDER === */
-.slider-container {
+    /* === SLIDER === */
+    .slider-container {
     @apply w-full h-[450px] overflow-hidden rounded-2xl bg-white relative;
-}
-.slider-image {
+    }
+    .slider-image {
     @apply w-full h-full object-contain rounded-2xl absolute top-0 left-0 transition-opacity duration-500 ease-in-out;
     opacity: 1;
-}
-.slider-image.hidden {
+    }
+    .slider-image.hidden {
     @apply opacity-0 pointer-events-none;
-}
-.slider-image.visible {
+    }
+    .slider-image.visible {
     @apply opacity-100 pointer-events-auto;
-}
+    }
 
-/* === SCROLLBAR === */
-.scrollbar-hide::-webkit-scrollbar {
+    /* === SCROLLBAR === */
+    .scrollbar-hide::-webkit-scrollbar {
     display: none;
-}
-.scrollbar-hide {
+    }
+    .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
-}
+    }
 
-/* === BOTONES FAVORITOS Y CARRITO === */
-.button-glitch {
+    /* === BOTONES FAVORITOS Y CARRITO === */
+    .button-glitch {
     color: #52688a;
     font-weight: 700;
     background: transparent;
@@ -177,9 +159,276 @@ body {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-}
-.button-glitch:hover {
+    }
+    .button-glitch:hover {
     color: #2563eb;
     box-shadow: 0 0 8px #3b82f6, 0 0 15px #2563eb;
     animation: glitch 1.2s infinite;
+    }
+
+    /* Fondo animado degradado */
+    @keyframes backgroundGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+    }
+    .bg-gradient-anim {
+    background: linear-gradient(270deg, #6366f1, #22d3ee, #8b5cf6, #3b82f6);
+    background-size: 600% 600%;
+    animation: backgroundGradient 25s ease infinite;
+    }
+
+    /* Slider anuncios container con animación glow lateral */
+    @keyframes slideGlowSide {
+    0%, 100% { box-shadow: 0 0 20px #22d3ee, inset 0 0 30px #8b5cf6; }
+    50% { box-shadow: 0 0 40px #3b82f6, inset 0 0 60px #6366f1; }
+    }
+    .slider-anuncios-container {
+    max-width: 90rem;
+    margin: 0 auto 3rem auto;
+    padding: 2rem 3rem;
+    border-radius: 1.5rem;
+    background: #f8fafc; /* blanco frío */
+    border: 1.5px solid #cbd5e1; /* gris claro */
+    box-shadow: 0 6px 20px rgb(31 41 55 / 0.07);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    will-change: transform;
+    cursor: grab;
+    }
+    .slider-anuncios-container:active {
+    cursor: grabbing;
+    }
+    .slider-anuncios-container:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 40px rgb(31 41 55 / 0.15);
+    }
+
+/* Botones futuristas con degradado y glow */
+.btn-container {
+    max-width: 80rem;
+    margin: 0 auto 5rem auto;
+    padding: 3rem 4rem;
+    border-radius: 1.8rem;
+    background: #f9fafb; /* blanco suave */
+    border: 1.8px solid #e2e8f0; /* gris claro */
+    box-shadow:
+        0 2px 12px rgba(31, 41, 55, 0.08),
+        inset 0 0 25px rgba(255, 255, 255, 0.95);
+    text-align: center;
+}
+
+/* Título botones */
+    .btn-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #374151; /* gris oscuro */
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.04em;
+    font-family: 'Segoe UI Semibold', sans-serif;
+    user-select: none;
+}
+
+/* Wrapper botones */
+.btn-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+/* Botones base */
+.btn {
+    position: relative;
+    padding: 1.15rem 3.5rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 1.18rem;
+    cursor: pointer;
+    user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition:
+        transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+        filter 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    z-index: 0;
+    border: 2.8px solid transparent;
+    background-color: #fff;
+    color: #334155; /* azul grisáceo oscuro */
+    box-shadow:
+        0 2px 12px rgba(51, 65, 85, 0.18);
+    filter: drop-shadow(0 1px 2px rgba(51, 65, 85, 0.12));
+    font-family: 'Segoe UI Semibold', sans-serif;
+}
+
+/* Primary - botón azul ejecutivo */
+.btn-primary {
+    background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%);
+    color: #f9fafb;
+    border-color: #1e40af;
+    box-shadow:
+        0 4px 14px rgba(37, 99, 235, 0.55);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+    transform: translateY(-3px) scale(1.07);
+    box-shadow:
+        0 8px 24px rgba(37, 99, 235, 0.7),
+        0 0 18px rgba(37, 99, 235, 0.5);
+    filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.6));
+    outline: none;
+    color: #f9fafb;
+}
+
+/* Secondary - botón gris azul elegante */
+.btn-secondary {
+    background: linear-gradient(90deg, #64748b 0%, #475569 100%);
+    color: #e2e8f0;
+    border-color: #475569;
+    box-shadow:
+        0 3px 14px rgba(71, 85, 105, 0.35);
+}
+.btn-secondary:hover,
+.btn-secondary:focus {
+    transform: translateY(-3px) scale(1.07);
+    box-shadow:
+        0 7px 22px rgba(71, 85, 105, 0.55),
+        0 0 15px rgba(71, 85, 105, 0.5);
+    filter: drop-shadow(0 0 10px rgba(71, 85, 105, 0.55));
+    outline: none;
+    color: #f1f5f9;
+}
+
+/* Glow sutil debajo del botón */
+.btn-glow {
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    width: 5rem;
+    height: 0.28rem;
+    background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+    border-radius: 9999px;
+    transform: translateX(-50%);
+    animation: glowPulse 3.2s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.4));
+    z-index: -1;
+}
+
+/* Glow animación */
+@keyframes glowPulse {
+    0% {
+        opacity: 0.55;
+        filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.3));
+    }
+    100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 14px rgba(37, 99, 235, 0.5));
+    }
+}
+
+/* Secciones */
+.section-title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 1.7rem;
+    border-bottom: 3px solid #cbd5e1;
+    padding-bottom: 0.4rem;
+    font-family: 'Segoe UI Semibold', sans-serif;
+}
+
+.link-primary {
+    color: #2563eb;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.link-primary:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+/* Contacto */
+
+.contact-section {
+    padding: 5rem 1.5rem 7rem;
+    background: #f8fafc;
+    color: #334155;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.contact-title {
+    font-size: 3rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 3.5rem;
+    color: #1e40af;
+    font-family: 'Segoe UI Semibold', sans-serif;
+}
+
+.contact-card {
+    max-width: 50rem;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 3.5rem 3rem;
+    border-radius: 1.8rem;
+    box-shadow: 0 0 25px rgb(30 64 175 / 0.15);
+    color: #1e293b;
+    text-align: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.contact-subtitle {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 1.7rem;
+    color: #1e3a8a;
+}
+
+.contact-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.3rem;
+    font-size: 1.15rem;
+    color: #475569;
+}
+
+.contact-icon {
+    color: #94a3b8;
+    font-size: 1.7rem;
+}
+
+.contact-whatsapp {
+    margin-top: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e40af;
+    color: white;
+    padding: 1.1rem 3.5rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+    border-radius: 9999px;
+    box-shadow: 0 0 18px #1e40af;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI Semibold', sans-serif;
+}
+
+.contact-whatsapp:hover,
+.contact-whatsapp:focus {
+    filter: brightness(1.18);
+    transform: scale(1.07);
+    outline: none;
+}
+
+.whatsapp-icon {
+    margin-right: 1.3rem;
+    font-size: 1.8rem;
+    filter: drop-shadow(0 0 8px #94a3b8);
 }

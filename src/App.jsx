@@ -15,6 +15,7 @@ import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext"; // ESTA LÍNEA FALTABA 👈
 import VistaProducto from "./pages/VistaProducto";
 
+
 // Importación de categorías
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
 import Audifonos from "./pages/categories/Audifonos";

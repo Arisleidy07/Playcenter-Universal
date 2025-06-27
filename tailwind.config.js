@@ -5,6 +5,10 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+        animation: {
+      bounce: "bounce 2s infinite",
+      pulse: "pulse 2s infinite",
+    },
     extend: {
       animation: {
         'blob-bounce': 'blobBounce 5s infinite ease',

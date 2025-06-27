@@ -10,8 +10,9 @@ function Footer() {
         <div>
           <h3 className="text-white text-xl font-bold mb-4">Playcenter Universal</h3>
           <p>Tu universo de tecnología, estilo e innovación en Santiago, R.D.</p>
-          <p className="mt-2 flex items-center gap-2"><FaPhoneAlt /> +1 (809) 582-1212</p>
-          <p className="flex items-center gap-2"><FaEnvelope /> info@playcenteruniversal.com</p>
+          <p className="mt-2 flex items-center gap-2"><FaPhoneAlt /> +1 (809) 582-1212  (Internet)</p>
+          <p className="mt-2 flex items-center gap-2"><FaPhoneAlt /> +1 (849) 635-7000 (Tienda)</p>
+          <p className="flex items-center gap-2"><FaEnvelope /> playcenter121@gmail.com</p>
         </div>
 
         {/* Enlaces rápidos */}

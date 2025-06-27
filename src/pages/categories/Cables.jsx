@@ -1,32 +1,22 @@
-import React from "react";
-import TarjetaProducto from "../../components/TarjetaProducto";
+    import React from "react";
+    import TarjetaProducto from "../../components/TarjetaProducto";
+    import productosAll from "../../data/productosAll";
 
-function Cables() {
-    const productos = [
-    {
-        id: 201,
-        nombre: "Cable USB-C 1m",
-        imagen: "/products/cable-usbc.jpg",
-        precio: 299,
-    },
-    {
-        id: 202,
-        nombre: "Cable HDMI 2.0",
-        imagen: "/products/cable-hdmi.jpg",
-        precio: 499,
-    },
-    ];
+    function Cables() {
+    const categoria = "Cables";
+
+    const productos = productosAll.find(cat => cat.categoria === categoria)?.productos || [];
 
     return (
-    <div className="p-6 pt-28 bg-white min-h-screen">
+        <div className="p-6 pt-28 bg-white min-h-screen">
         <h1 className="text-3xl font-bold mb-8 text-gray-800">Cables</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {productos.map((producto) => (
+            {productos.map(producto => (
             <TarjetaProducto key={producto.id} producto={producto} />
-        ))}
+            ))}
         </div>
-    </div>
+        </div>
     );
-}
+    }
 
-export default Cables;
+    export default Cables;

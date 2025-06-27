@@ -1,32 +1,21 @@
-import React from "react";
-import TarjetaProducto from "../../components/TarjetaProducto";
+    import React from "react";
+    import TarjetaProducto from "../../components/TarjetaProducto";
+    import productosAll from "../../data/productosAll";
 
-function NuevosLanzamientos() {
-    const productos = [
-    {
-        id: 230,
-        nombre: "Tablet Galaxy S9 Ultra",
-        imagen: "/products/galaxy-s9-ultra.jpg",
-        precio: 999.99,
-    },
-    {
-        id: 231,
-        nombre: "PlayStation 6 - Próximamente",
-        imagen: "/products/ps6.jpg",
-        precio: 799.99,
-    },
-    ];
+    function NuevosLanzamientos() {
+    const categoria = "NuevosLanzamiento";
+    const productos = productosAll.find(cat => cat.categoria === categoria)?.productos || [];
 
     return (
-    <div className="p-6 pt-28 bg-white min-h-screen">
+        <div className="p-6 pt-28 bg-white min-h-screen">
         <h1 className="text-3xl font-bold mb-8 text-gray-800">Nuevos Lanzamientos</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {productos.map(producto => (
+            {productos.map(producto => (
             <TarjetaProducto key={producto.id} producto={producto} />
-        ))}
+            ))}
         </div>
-    </div>
+        </div>
     );
-}
+    }
 
-export default NuevosLanzamientos;
+    export default NuevosLanzamientos;

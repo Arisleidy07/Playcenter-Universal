@@ -2,128 +2,162 @@ import React from "react";
 import { Link } from "react-router-dom";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderProductos from "../components/SliderProductos";
-import TarjetaProducto from "../components/TarjetaProducto";
 import productosAll from "../data/productosAll";
 import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa";
+import { motion } from "framer-motion";
 
-// Aplanar todos los productos
 const productosTodos = productosAll.flatMap(categoria => categoria.productos);
 const consolaCategoria = productosAll.find(c => c.categoria === "Consolas");
 const productosConsolas = consolaCategoria ? consolaCategoria.productos : [];
 
-const ofertasEspeciales = [
-  { id: 1, nombre: "PlayStation 5", imagen: "/products/ps5.jpg", precio: 499.99 },
-  { id: 2, nombre: "Nintendo Switch", imagen: "/products/nintendo_switch.png", precio: 299.99 },
-  { id: 3, nombre: "Xbox Series X", imagen: "/products/xbox_series_x.png", precio: 499.99 },
-  { id: 4, nombre: "Tablet Samsung Galaxy", imagen: "/products/tablet.jpg", precio: 179.99 },
-  { id: 5, nombre: "Audífonos Bluetooth Sony", imagen: "/products/audifonos-sony.jpg", precio: 89.99 },
-  { id: 6, nombre: "Control PS5 Edición Especial", imagen: "/products/control-ps5.jpg", precio: 64.99 },
-];
+const ofertasEspeciales = productosTodos.filter(p => p.oferta);
 
 function Inicio() {
   return (
-    <div className="pt-[80px]">
-      {/* VIDEO HERO CON LOOP */}
-      <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-xl shadow-lg mb-8">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="w-full h-full object-cover"
-      >
-        <source src="/videos/playcenter_intro.mp4" type="video/mp4" />
-        Tu navegador no soporta video HTML5.
-      </video>
-
-
-      </div>
-
-      {/* BOTONES INICIO */}
-      <div className="flex justify-center gap-6 flex-wrap mb-10 animate-fade-in-up">
-        <Link
-          to="/productos"
-          className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white px-8 py-3 rounded-full shadow hover:scale-105 hover:brightness-110 transition duration-300"
+    <div className="pt-[80px] bg-white min-h-screen">
+      {/* VIDEO HERO */}
+      <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden rounded-3xl shadow-md mb-12 border border-gray-300">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover rounded-3xl"
         >
-          Explorar Productos
-        </Link>
-        <Link
-          to="/productos/ofertas-especiales"
-          className="bg-gradient-to-r from-cyan-500 to-teal-400 text-white px-8 py-3 rounded-full shadow hover:scale-105 hover:brightness-110 transition duration-300"
-        >
-          Ver Ofertas
-        </Link>
+          <source src="/videos/playcenter_intro.mp4" type="video/mp4" />
+          Tu navegador no soporta video HTML5.
+        </video>
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-t from-gray-200/40 to-transparent rounded-3xl pointer-events-none"
+          animate={{ opacity: [0, 0.15, 0] }}
+          transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
+        />
       </div>
 
       {/* SLIDER DE ANUNCIOS */}
-      <SliderAnuncios />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="slider-anuncios-container"
+      >
+        <SliderAnuncios />
+      </motion.div>
+
+      {/* BOTONES */}
+      <motion.section
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="btn-container"
+      >
+        <h2 className="btn-title">Mira nuestras mejores ofertas</h2>
+        <div className="btn-wrapper">
+          <Link to="/productos" className="btn btn-primary">
+            Explorar Productos
+            <span className="btn-glow" />
+          </Link>
+
+          <Link to="/productos/ofertas-especiales" className="btn btn-secondary">
+            Ver Ofertas
+            <span className="btn-glow" />
+          </Link>
+        </div>
+      </motion.section>
 
       {/* RECOMENDADOS */}
-      <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up px-4">
-        <h2 className="text-2xl font-bold mb-4">Recomendaciones para ti</h2>
-        <SliderProductos productos={productosTodos.slice(0, 10)} />
-        <div className="text-right mt-2">
-          <Link to="/productos" className="text-blue-600 hover:underline font-semibold">
+      <section className="max-w-7xl mx-auto mb-12 px-4">
+        <h2 className="section-title">Recomendaciones para ti</h2>
+        <SliderProductos productos={productosTodos.slice(0, 10)} tipo="recomendados" />
+        <div className="text-right mt-4">
+          <Link to="/productos" className="link-primary">
             Ver todos los productos →
           </Link>
         </div>
       </section>
 
-      {/* CONSOLAS */}
-      <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up px-4">
-        <h2 className="text-2xl font-bold mb-4">Consolas populares</h2>
-        <SliderProductos productos={productosConsolas.slice(0, 10)} />
-        <div className="text-right mt-2">
-          <Link to="/categorias/consolas" className="text-blue-600 hover:underline font-semibold">
+      {/* CONSOLAS POPULARES */}
+      <section className="max-w-7xl mx-auto mb-12 px-4">
+        <h2 className="section-title">Consolas populares</h2>
+        <SliderProductos productos={productosConsolas.slice(0, 10)} tipo="consolas" />
+        <div className="text-right mt-4">
+          <Link to="/categorias/consolas" className="link-primary">
             Ver todas las consolas →
           </Link>
         </div>
       </section>
 
       {/* OFERTAS ESPECIALES */}
-      <section className="max-w-7xl mx-auto mb-12 animate-fade-in-up px-4">
-        <h2 className="text-2xl font-bold mb-4">Ofertas Especiales</h2>
-        <SliderProductos productos={ofertasEspeciales.slice(0, 10)} />
-        <div className="text-right mt-2">
-          <Link to="/productos/ofertas-especiales" className="text-blue-600 hover:underline font-semibold">
+      <section className="max-w-7xl mx-auto mb-12 px-4">
+        <h2 className="section-title">Ofertas Especiales</h2>
+        <SliderProductos productos={ofertasEspeciales.slice(0, 10)} tipo="ofertas" />
+        <div className="text-right mt-4">
+          <Link to="/productos/ofertas-especiales" className="link-primary">
             Seguir viendo ofertas →
           </Link>
         </div>
       </section>
 
       {/* CONTACTO */}
-      <section className="pt-16 px-4 sm:px-8 lg:px-24 pb-24 bg-white text-gray-800 animate-fade-in-up">
-        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-10 text-red-600">
-          Contáctanos
-        </h2>
+      <section className="contact-section">
+        <h2 className="contact-title">Contáctanos</h2>
 
-        <div className="max-w-3xl mx-auto bg-red-50 p-6 rounded-2xl shadow-md">
-          <h3 className="text-2xl font-semibold mb-4 text-red-700">Playcenter Universal</h3>
+        <div className="contact-card">
+          <h2 className="text-2xl font-bold mb-4 flex flex-wrap items-center gap-1">
+            <span className="text-red-600">P</span>
+            <span className="text-orange-500">l</span>
+            <span className="text-yellow-500">a</span>
+            <span className="text-green-600">y</span>
+            <span className="text-blue-600">c</span>
+            <span className="text-indigo-600">e</span>
+            <span className="text-purple-600">n</span>
+            <span className="text-pink-600">t</span>
+            <span className="text-teal-600">e</span>
+            <span className="text-emerald-600">r</span>
+            <span className="ml-2 text-green-800">Universal</span>
+          </h2>
 
           <p className="flex items-center mb-3 text-gray-700">
             <FaMapMarkerAlt className="mr-2 text-red-600" />
             Av. Estrella Sadhalá, Santiago, República Dominicana
           </p>
 
-          <p className="flex items-center mb-3 text-gray-700">
-            <FaPhone className="mr-2 text-red-600" />
-            +1 (809) 582-1212
+          <p className="flex items-center mb-3 text-blue-700 font-medium">
+            <FaPhone className="mr-2 text-blue-600" />
+            +1 (849)-635-7000 (Tienda)
           </p>
 
-          <p className="flex items-center mb-3 text-gray-700">
-            <FaEnvelope className="mr-2 text-red-600" />
+          <p className="flex items-center mb-3 text-red-700 font-medium">
+            <FaPhone className="mr-2 text-red-600" />
+            +1 (809)-582-1212 (Internet)
+          </p>
+
+          <p className="flex items-center mb-3">
+            <FaEnvelope className="mr-2 text-green-600" />
             playcenter121@gmail.com
           </p>
 
-          <a
-            href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center mt-5 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition"
-          >
-            <FaWhatsapp className="mr-2" />
-            Escríbenos por WhatsApp
-          </a>
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <a
+              href="https://wa.me/18496357000?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 px-5 py-3 text-white bg-indigo-600 hover:bg-indigo-700 transition rounded-xl shadow-md w-full sm:w-auto"
+            >
+              <FaWhatsapp className="text-xl" />
+              WhatsApp Tienda
+            </a>
+
+            <a
+              href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 px-5 py-3 text-white bg-rose-500 hover:bg-rose-600 transition rounded-xl shadow-md w-full sm:w-auto"
+            >
+              <FaWhatsapp className="text-xl" />
+              WhatsApp Internet
+            </a>
+          </div>
         </div>
       </section>
     </div>
