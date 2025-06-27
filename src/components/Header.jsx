@@ -5,6 +5,8 @@ import SidebarMenu from "./SidebarMenu";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "./AuthModal";
 import { motion, AnimatePresence } from "framer-motion";
+import MarioCoinBlock from "./MarioCoinBlock";
+
 
 function Header() {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -97,6 +99,7 @@ function Header() {
         </motion.button>
 
         <nav className="hidden md:flex gap-6 items-center">
+          <MarioCoinBlock />
           <Link to="/" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
             Inicio
           </Link>
