@@ -5,6 +5,8 @@ import SliderProductos from "../components/SliderProductos";
 import productosAll from "../data/productosAll";
 import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa";
 import { motion } from "framer-motion";
+import ArcadeCallToAction from "../components/ArcadeCallToAction";
+
 
 const productosTodos = productosAll.flatMap(categoria => categoria.productos);
 const consolaCategoria = productosAll.find(c => c.categoria === "Consolas");
@@ -43,6 +45,7 @@ function Inicio() {
       >
         <SliderAnuncios />
       </motion.div>
+      
 
       {/* BOTONES */}
       <motion.section
@@ -97,6 +100,7 @@ function Inicio() {
           </Link>
         </div>
       </section>
+      <ArcadeCallToAction />
 
       {/* CONTACTO */}
       <section className="contact-section">

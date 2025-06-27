@@ -14,6 +14,8 @@ import Nosotros from "./pages/Nosotros";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext"; // ESTA LÍNEA FALTABA 👈
 import VistaProducto from "./pages/VistaProducto";
+import Arcade from "./pages/Arcade";
+
 
 
 // Importación de categorías
@@ -50,6 +52,7 @@ function App() {
           <Routes>
             {/* Página de inicio */}
             <Route path="/" element={<Inicio />} />
+            <Route path="/arcade" element={<Arcade />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/producto/:id" element={<VistaProducto />} />
 

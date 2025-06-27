@@ -103,6 +103,10 @@ function Header() {
           <Link to="/productos" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
             Categorías
           </Link>
+          <Link to="/arcade" className="nav-link">
+            Arcade
+          </Link>
+
           <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
             Nosotros
           </Link>
