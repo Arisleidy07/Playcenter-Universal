@@ -116,9 +116,6 @@ function Header() {
           <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
             Contáctanos
           </Link>
-          <Link to="/favoritos" className="link hover:scale-110 transition-transform text-xl">
-            ❤️
-          </Link>
           <Link to="/carrito" className="link hover:scale-110 transition-transform text-xl">
             🛒
           </Link>

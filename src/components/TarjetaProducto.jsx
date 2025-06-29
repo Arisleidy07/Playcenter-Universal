@@ -1,28 +1,17 @@
 import React from "react";
-import { FaHeart } from "react-icons/fa";
+import { FaShoppingCart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 
 function TarjetaProducto({ producto }) {
   const {
     agregarAlCarrito,
-    favoritos,
     carrito,
-    agregarAFavoritos,
-    eliminarDeFavoritos,
     eliminarDelCarrito,
   } = useCarrito();
 
   const navigate = useNavigate();
-  const esFavorito = favoritos.some((p) => p.id === producto.id);
   const enCarrito = carrito.some((p) => p.id === producto.id);
-
-  const toggleFavorito = (e) => {
-    e.stopPropagation();
-    esFavorito
-      ? eliminarDeFavoritos(producto.id)
-      : agregarAFavoritos(producto);
-  };
 
   const handleToggleCarrito = (e) => {
     e.stopPropagation();
@@ -40,47 +29,34 @@ function TarjetaProducto({ producto }) {
   return (
     <div
       onClick={handleIrADetalle}
-      className="card bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
+      className="flex bg-white rounded-lg shadow-md hover:shadow-lg transition cursor-pointer p-4"
       title={producto.nombre}
+      style={{ minHeight: '140px' }}
     >
-      {/* Imagen */}
-      <div className="flex justify-center items-center h-40 bg-gray-100 rounded-xl mb-4">
+      {/* Imagen izquierda */}
+      <div className="flex-shrink-0 w-40 h-40 bg-gray-100 rounded-lg overflow-hidden mr-6 flex items-center justify-center">
         <img
           src={producto.imagen}
           alt={producto.nombre}
-          className="w-40 h-40 object-contain rounded-lg shadow"
+          className="w-full h-full object-contain"
         />
       </div>
 
-      {/* Info */}
-      <h2 className="text-gray-800 font-bold text-base">{producto.nombre}</h2>
-      <p className="text-gray-600 font-semibold mb-3">${producto.precio.toFixed(2)}</p>
+      {/* Info derecha */}
+      <div className="flex flex-col flex-grow">
+        <h2 className="text-lg font-semibold text-gray-800 mb-1">{producto.nombre}</h2>
+        <p className="text-gray-600 mb-2 line-clamp-3">
+          {producto.descripcion || "Descripción breve del producto."}
+        </p>
+        <p className="text-2xl font-bold text-gray-900 mb-3">${producto.precio.toFixed(2)}</p>
 
-      {/* Botones */}
-      <div className="actions flex justify-between items-center">
-        {/* Botón Favorito */}
-        <button
-          onClick={toggleFavorito}
-          className="p-2 rounded-full bg-gray-200 shadow hover:scale-110 transition"
-          aria-label={esFavorito ? "Eliminar de favoritos" : "Agregar a favoritos"}
-        >
-          <FaHeart
-            className={`text-xl ${
-              esFavorito ? "text-red-500 animate-pulse" : "text-gray-500 hover:text-red-400"
-            }`}
-          />
-        </button>
-
-        {/* Botón Carrito */}
         <button
           onClick={handleToggleCarrito}
-          className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors duration-300 shadow ${
-            enCarrito
-              ? "bg-green-500 text-white hover:bg-green-600"
-              : "bg-pink-500 text-white hover:bg-pink-600"
-          }`}
+          className="mt-auto flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-full transition"
+          onMouseDown={(e) => e.stopPropagation()} // para que no dispare el click del div padre
         >
-          🛒 {enCarrito ? "Quitar" : "Agregar"}
+          <FaShoppingCart />
+          {enCarrito ? "Quitar" : "Agregar al carrito"}
         </button>
       </div>
     </div>

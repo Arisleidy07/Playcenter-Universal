@@ -8,7 +8,6 @@ const categorias = [
     'Impresoras', 'Laptops', 'Memorias USB', 'Monitores', 'Mouse', 'Nuevos lanzamientos',
     'Ofertas especiales', 'Relojes inteligentes', 'Smart TV', 'Tablets', 'Teclados', 'Videojuegos'
 ];
-
 const productos = [
     { nombre: 'Soporte de control PS5', precio: 25.99, imagen: '/products/soporte-controles.jpg', categoria: 'Accesorios' },
     { nombre: 'Base refrigeradora Xbox', precio: 34.99, imagen: '/products/base-refrigeracion.jpg', categoria: 'Accesorios' },
@@ -36,46 +35,34 @@ const productos = [
     { nombre: 'GTA V PS5', precio: 49.99, imagen: '/products/gta.jpg', categoria: 'Videojuegos' },
 ];
 
-function Categorias() {
-    const [categoriaActiva, setCategoriaActiva] = useState('Todos');
 
-    const productosFiltrados =
-    categoriaActiva === 'Todos'
-        ? productos
-        : productos.filter((p) => p.categoria === categoriaActiva);
+    function Categorias() {
+        const [categoriaActiva, setCategoriaActiva] = useState('Todos');
 
-    return (
-    <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen flex flex-col lg:flex-row gap-8">
-      {/* Sidebar */}
-        <SidebarCategorias
-        categoriaActiva={categoriaActiva}
-        setCategoriaActiva={setCategoriaActiva}
-        categorias={categorias}
-        />
-      {/* Productos */}
-        <section
-        className="
-            grid
-            grid-cols-1
-            sm:grid-cols-2
-            md:grid-cols-3
-            lg:grid-cols-4
-            xl:grid-cols-5
-            gap-8
-            flex-1
-        "
-        >
-        {productosFiltrados.map((prod, idx) => (
-            <TarjetaProducto
-            key={idx}
-            producto={prod}
-            className="max-w-[280px]" // agrega ancho máximo para no achicar demasiado
+        const productosFiltrados =
+        categoriaActiva === 'Todos'
+            ? productos
+            : productos.filter((p) => p.categoria === categoriaActiva);
+
+        return (
+        <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen flex flex-col lg:flex-row gap-8">
+            {/* Sidebar */}
+            <SidebarCategorias
+            categoriaActiva={categoriaActiva}
+            setCategoriaActiva={setCategoriaActiva}
+            categorias={categorias}
             />
-        ))}
-        </section>
-    </main>
-    );
-}
 
+            {/* Productos */}
+            <section className="flex flex-wrap gap-6 flex-1 justify-center">
+            {productosFiltrados.map((prod) => (
+                <div key={prod.id} className="w-full md:w-[48%]">
+                <TarjetaProducto producto={prod} />
+                </div>
+            ))}
+            </section>
+        </main>
+        );
+    }
 
-export default Categorias;
+    export default Categorias;
