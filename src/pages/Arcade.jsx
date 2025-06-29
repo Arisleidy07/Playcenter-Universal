@@ -17,31 +17,50 @@ function Arcade() {
           Arcade
         </h1>
         <p className="mt-2 text-lg text-gray-600">
-          Disfruta de un juego clásico directamente aquí 🎮
+          Disfruta de juegos clásicos directamente aquí 🎮
         </p>
       </motion.div>
 
-      {/* Iframe del juego */}
+      {/* Juego 1 */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg border border-gray-300"
+        className="rounded-xl overflow-hidden shadow-lg border border-gray-300 mb-10 max-w-4xl mx-auto"
       >
-        <div className="aspect-w-16 aspect-h-9">
-          <iframe
-            title="Super Mario Game"
-            width="100%"
-            height="100%"
-            allow="fullscreen; autoplay; encrypted-media"
-            src="https://games.construct.net/769/latest"
-            frameBorder="0"
-            allowFullScreen={true}
-            sandbox="allow-same-origin allow-forms allow-scripts allow-pointer-lock allow-orientation-lock allow-popups"
-            scrolling="no"
-            className="w-full h-[500px] sm:h-[600px] bg-black"
-          />
-        </div>
+        <iframe
+          title="Super Mario Game"
+          width="100%"
+          height="700px"
+          allow="fullscreen; autoplay; encrypted-media"
+          src="https://games.construct.net/769/latest"
+          frameBorder="0"
+          allowFullScreen={true}
+          sandbox="allow-same-origin allow-forms allow-scripts allow-pointer-lock allow-orientation-lock allow-popups"
+          scrolling="no"
+          className="w-full bg-black"
+        />
+      </motion.div>
+
+      {/* Juego 2 */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="rounded-xl overflow-hidden shadow-lg border border-gray-300 max-w-4xl mx-auto"
+      >
+        <iframe
+          title="Nuevo Juego Arcade"
+          width="100%"
+          height="700px"
+          allow="fullscreen; autoplay; encrypted-media"
+          src="https://games.construct.net/353/latest"
+          frameBorder="0"
+          allowFullScreen={true}
+          sandbox="allow-same-origin allow-forms allow-scripts allow-pointer-lock allow-orientation-lock allow-popups"
+          scrolling="no"
+          className="w-full bg-black"
+        />
       </motion.div>
 
       <div className="text-center mt-6">
