@@ -22,8 +22,7 @@ function SidebarMenu({ isOpen, onClose }) {
         <Link to="/categorias" onClick={onClose} className="hover:text-pink-600">Categorías</Link>
         <Link to="/nosotros" onClick={onClose} className="hover:text-pink-600">Nosotros</Link>
         <Link to="/contacto" onClick={onClose} className="hover:text-pink-600">Contáctanos</Link>
-        <Link to="/favoritos" onClick={onClose} className="hover:text-pink-600">❤️ Favoritos</Link>
-        <Link to="/carrito" onClick={onClose} className="hover:text-pink-600">🛒 Mi carrito</Link>
+        <Link to="/carrito" onClick={onClose} className="hover:text-pink-600">🛒 </Link>
         </nav>
     </div>
     );

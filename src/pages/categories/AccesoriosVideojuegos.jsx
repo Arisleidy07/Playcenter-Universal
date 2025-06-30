@@ -1,6 +1,8 @@
     import React from "react";
     import TarjetaProducto from "../../components/TarjetaProducto";
     import productosAll from "../../data/productosAll";
+    import { normalizar } from "../../utils/normalizarCategoria";
+
 
     function AccesoriosVideojuegos() {
     const categoria = productosAll.find(
@@ -10,7 +12,7 @@
 
     return (
         <div className="p-6 pt-28 bg-white min-h-screen">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">
+        <h1 className="titulo-categoria">
             Accesorios para Videojuegos
         </h1>
 

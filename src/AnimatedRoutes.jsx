@@ -15,6 +15,8 @@ import Productos from "./pages/Productos";
 import ProductosTodos from "./pages/ProductosTodos";
 
 // Categorías
+import RetroJuegos from "./pages/categories/RetroJuegos";
+import RetroConsolas from "./pages/categories/RetroConsolas";
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
 import Audifonos from "./pages/categories/Audifonos";
 import Cables from "./pages/categories/Cables";
@@ -56,6 +58,8 @@ export default function AnimatedRoutes() {
         <Route path="/productos" element={<PageTransition><Productos /></PageTransition>}>
           <Route index element={<ProductosTodos />} />
           <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
+          <Route path="retro-consolas" element={<RetroConsolas />} />
+          <Route path="retro-juegos" element={<RetroJuegos />} />
           <Route path="audifonos" element={<Audifonos />} />
           <Route path="cables" element={<Cables />} />
           <Route path="camaras" element={<Camaras />} />

@@ -42,6 +42,7 @@ function Arcade() {
         />
       </motion.div>
 
+
       {/* Juego 2 */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

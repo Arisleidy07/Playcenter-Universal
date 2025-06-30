@@ -1,4 +1,3 @@
-    // src/context/CarritoContext.jsx
     import React, { createContext, useContext, useEffect, useState } from "react";
 
     export const CarritoContext = createContext();
@@ -26,19 +25,18 @@
         setCarrito((prev) => {
         const existe = prev.find((item) => item.id === producto.id);
         if (existe) {
-            // Si ya existe, solo sube cantidad en 1
             return prev.map((item) =>
             item.id === producto.id
                 ? { ...item, cantidad: item.cantidad + 1 }
                 : item
             );
         }
-        // Si no existe, lo agrega con cantidad 1
         return [...prev, { ...producto, cantidad: 1 }];
         });
     };
 
-    const eliminarDelCarrito = (productoId) => {
+    // Resta una unidad, y elimina si cantidad queda 0
+    const eliminarUnidadDelCarrito = (productoId) => {
         setCarrito((prev) =>
         prev
             .map((item) =>
@@ -50,15 +48,17 @@
         );
     };
 
-    // Toggle carrito: si está, lo quita completo; si no, lo agrega con cantidad 1
+    // Quita el producto completo del carrito
+    const quitarDelCarrito = (productoId) => {
+        setCarrito((prev) => prev.filter((item) => item.id !== productoId));
+    };
+
     const toggleCarrito = (producto) => {
         setCarrito((prev) => {
         const existe = prev.find((item) => item.id === producto.id);
         if (existe) {
-            // Lo elimina completamente del carrito
             return prev.filter((item) => item.id !== producto.id);
         }
-        // Lo agrega con cantidad 1
         return [...prev, { ...producto, cantidad: 1 }];
         });
     };
@@ -79,7 +79,8 @@
             carrito,
             favoritos,
             agregarAlCarrito,
-            eliminarDelCarrito,
+            eliminarUnidadDelCarrito,
+            quitarDelCarrito,
             toggleCarrito,
             agregarAFavoritos,
             eliminarDeFavoritos,

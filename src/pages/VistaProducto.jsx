@@ -1,20 +1,23 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaWhatsapp, FaShoppingCart } from "react-icons/fa";
 import GaleriaImagenes from "../components/GaleriaImagenes";
+import productosAll from "../data/productosAll"; 
+
 
 function VistaProducto() {
-  const location = useLocation();
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const { producto } = location.state || {};
+  const todos = productosAll.flatMap(categoria => categoria.productos);
+  const producto = todos.find(p => p.id === id);
 
   if (!producto) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
         <p className="text-center text-xl font-semibold">
-          Producto no encontrado.{" "}
+          Producto no encontrado.
           <button
             onClick={() => navigate(-1)}
             className="text-blue-500 underline ml-2"
@@ -69,23 +72,16 @@ function VistaProducto() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            {producto.descripcion ||
-              "Contáctanos para más detalles o para coordinar una compra en nuestra tienda física."}
+            {producto.descripcion || "Contáctanos para más detalles o para coordinar una compra en nuestra tienda física."}
           </motion.p>
 
-          {/* Botón de agregar al carrito */}
-          <button
-            className="inline-flex items-center gap-3 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded shadow transition-transform hover:scale-105"
-          >
+          <button className="inline-flex items-center gap-3 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded shadow transition-transform hover:scale-105">
             <FaShoppingCart className="text-xl" />
             Agregar al carrito
           </button>
 
-          {/* Texto y botón de WhatsApp */}
           <div className="mt-6 flex flex-col gap-3">
-            <p className="text-gray-700">
-              Si te interesa este producto, puedes escribirnos directamente por WhatsApp:
-            </p>
+            <p className="text-gray-700">Si te interesa este producto, puedes escribirnos directamente por WhatsApp:</p>
             <a
               href={mensajeWhatsApp}
               target="_blank"
@@ -97,7 +93,6 @@ function VistaProducto() {
             </a>
           </div>
 
-          {/* Preguntas frecuentes */}
           <div className="mt-4">
             <h3 className="font-bold text-gray-700 mb-2">Preguntas comunes:</h3>
             <ul className="list-disc list-inside text-sm text-gray-600">

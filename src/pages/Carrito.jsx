@@ -1,7 +1,8 @@
+    // src/pages/Carrito.jsx
     import React from "react";
     import { useCarrito } from "../context/CarritoContext";
     import { FaPhone, FaEnvelope, FaWhatsapp } from "react-icons/fa";
-    import TarjetaProducto from "../components/TarjetaProducto"; // usa tu tarjeta pro
+    import TarjetaProducto from "../components/TarjetaProducto";
 
     function WhatsAppCTA() {
     return (
@@ -56,11 +57,10 @@
 
     return (
         <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 min-h-screen bg-white text-[#1E2A47]">
-        {/* Título */}
         <h1
             className="text-3xl sm:text-4xl font-bold text-center mb-10
-                    bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-500 
-                    bg-clip-text text-transparent animate-text-glow"
+            bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-500 
+            bg-clip-text text-transparent animate-text-glow"
         >
             Mi Carrito
         </h1>
@@ -71,7 +71,11 @@
             <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
                 {carrito.map((item) => (
-                <TarjetaProducto key={item.id} producto={item} />
+                <TarjetaProducto
+                    key={item.id}
+                    producto={item}
+                    enCarrito // esta prop le dice al componente que muestre el botón rojo
+                />
                 ))}
             </div>
 
@@ -79,9 +83,7 @@
                 <p className="text-lg font-semibold mb-3 text-[#2563EB]">
                 Total: ${total.toFixed(2)}
                 </p>
-                <button className="mt-4 bg-[#2563EB] hover:bg-[#1E40AF] text-white font-medium px-6 py-3 rounded-lg transition-all">
-                Finalizar compra
-                </button>
+
             </div>
             </>
         )}

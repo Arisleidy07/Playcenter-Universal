@@ -34,8 +34,8 @@ function SliderAnuncios() {
 
   return (
     <div
-      className="relative w-full max-w-[1600px] mx-auto overflow-hidden rounded-b-2xl select-none"
-      style={{ height: "300px" }}
+      className="relative w-full max-w-[1600px] mx-auto overflow-hidden rounded-xl select-none shadow-xl"
+      style={{ height: "500px" }}
       onMouseEnter={() => clearTimeout(timeoutRef.current)}
       onMouseLeave={() => {
         timeoutRef.current = setTimeout(() => {
@@ -57,13 +57,13 @@ function SliderAnuncios() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 w-full"
+              className="flex-shrink-0 w-full h-full"
               style={{ width: `${100 / anuncios.length}%` }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.015]"
                 loading="lazy"
               />
             </a>
@@ -71,13 +71,13 @@ function SliderAnuncios() {
             <Link
               key={item.id}
               to={item.link}
-              className="flex-shrink-0 w-full"
+              className="flex-shrink-0 w-full h-full"
               style={{ width: `${100 / anuncios.length}%` }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.015]"
                 loading="lazy"
               />
             </Link>
@@ -85,24 +85,24 @@ function SliderAnuncios() {
         )}
       </div>
 
-      {/* Flechas */}
+      {/* Flechas de navegación */}
       <button
         onClick={handlePrev}
-        className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/40 hover:bg-black/70 rounded-full p-3 z-20 transition"
+        className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-3 z-20 transition"
         aria-label="Anterior"
       >
         <ChevronLeft className="text-white w-7 h-7" />
       </button>
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/40 hover:bg-black/70 rounded-full p-3 z-20 transition"
+        className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-3 z-20 transition"
         aria-label="Siguiente"
       >
         <ChevronRight className="text-white w-7 h-7" />
       </button>
 
-      {/* Dots */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
+      {/* Puntos indicadores */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
         {anuncios.map((_, idx) => (
           <button
             key={idx}

@@ -3,7 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 
 const categorias = [
     { nombre: "Todos los productos", ruta: "" },
-    { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
+    { nombre: "Retro Consolas", ruta: "retro-consolas" },
+    { nombre: "Retro Juegos", ruta: "retro-juegos" },
     { nombre: "Audífonos", ruta: "audifonos" },
     { nombre: "Cables", ruta: "cables" },
     { nombre: "Cámaras", ruta: "camaras" },
@@ -27,7 +28,6 @@ const categorias = [
     { nombre: "Teclados", ruta: "teclados" },
     { nombre: "Videojuegos", ruta: "videojuegos" },
 ];
-
 function SidebarCategorias() {
     const location = useLocation();
 
