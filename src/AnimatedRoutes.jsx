@@ -1,4 +1,3 @@
-// src/AnimatedRoutes.jsx
 import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,7 +14,6 @@ import Productos from "./pages/Productos";
 import ProductosTodos from "./pages/ProductosTodos";
 import Categorias from "./pages/Categorias";
 import ResultadosBusqueda from "./pages/ResultadosBusqueda";
-
 
 // Categorías
 import RetroJuegos from "./pages/categories/RetroJuegos";
@@ -60,8 +58,11 @@ export default function AnimatedRoutes() {
         <Route path="/categorias" element={<PageTransition><Categorias /></PageTransition>} />
         <Route path="/nosotros" element={<PageTransition><Nosotros /></PageTransition>} />
         <Route path="/producto/:id/detalle" element={<PageTransition><DetalleProducto /></PageTransition>} />
+
+        {/* RUTA /buscar --> corregida y movida afuera de /productos */}
+        <Route path="/buscar" element={<PageTransition><ResultadosBusqueda /></PageTransition>} />
+
         <Route path="/productos" element={<PageTransition><Productos /></PageTransition>}>
-        <Route path="/buscar" element={<ResultadosBusqueda />} />
           <Route index element={<ProductosTodos />} />
           <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
           <Route path="retro-consolas" element={<RetroConsolas />} />
@@ -73,7 +74,6 @@ export default function AnimatedRoutes() {
           <Route path="celulares" element={<Celulares />} />
           <Route path="consolas" element={<Consolas />} />
           <Route path="controles" element={<Controles />} />
-
           <Route path="discos-duros" element={<DiscosDuros />} />
           <Route path="electrodomesticos" element={<Electrodomesticos />} />
           <Route path="gaming-chairs" element={<GamingChairs />} />
@@ -93,7 +93,6 @@ export default function AnimatedRoutes() {
         </Route>
       </Routes>
     </AnimatePresence>
-    
   );
 }
 
