@@ -25,7 +25,7 @@ function TarjetaProducto({ producto }) {
   return (
     <div
       onClick={irADetalle}
-      className="flex items-start gap-3 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer w-full max-w-full p-3"
+      className="flex items-start gap-3 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer w-full p-3"
     >
       <img
         src={producto.imagen}
