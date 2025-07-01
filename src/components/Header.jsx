@@ -66,9 +66,10 @@ function Header() {
         initial={{ y: -120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-wrap md:flex-nowrap items-center justify-between px-4 sm:px-6 md:px-8 py-3 gap-4 sm:gap-6 md:gap-8"
+        className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-wrap md:flex-nowrap items-center justify-between px-4 sm:px-6 md:px-8 py-3 gap-3 sm:gap-6 md:gap-8"
         style={{ backdropFilter: "saturate(180%) blur(15px)" }}
       >
+        {/* Logo y ubicación */}
         <Link to="/" className="flex items-center gap-3 sm:gap-4">
           <motion.img
             src="/playcenter.jpeg"
@@ -88,6 +89,12 @@ function Header() {
           </div>
         </Link>
 
+        {/* SearchBar en móvil (100% ancho debajo del logo) */}
+        <div className="block sm:hidden w-full">
+          <SearchBar />
+        </div>
+
+        {/* SearchBar en desktop */}
         <motion.div
           className="hidden sm:block flex-1 max-w-md"
           initial={{ opacity: 0 }}
@@ -97,6 +104,7 @@ function Header() {
           <SearchBar />
         </motion.div>
 
+        {/* Botón del menú móvil */}
         <motion.button
           className="md:hidden text-3xl ml-auto"
           onClick={() => setMenuAbierto(true)}
@@ -106,26 +114,15 @@ function Header() {
           ☰
         </motion.button>
 
+        {/* Navegación en desktop */}
         <nav className="hidden md:flex gap-4 lg:gap-6 xl:gap-8 items-center">
           <MarioCoinBlock />
-          <Link to="/" className="nav-link hover:text-[#4FC3F7] font-semibold">
-            Inicio
-          </Link>
-          <Link to="/productos" className="nav-link hover:text-[#4FC3F7] font-semibold">
-            Categorías
-          </Link>
-          <Link to="/arcade" className="nav-link">
-            Arcade
-          </Link>
-          <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] font-semibold">
-            Nosotros
-          </Link>
-          <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] font-semibold">
-            Contáctanos
-          </Link>
-          <Link to="/carrito" className="link hover:scale-110 text-xl">
-            🛒
-          </Link>
+          <Link to="/" className="nav-link hover:text-[#4FC3F7] font-semibold">Inicio</Link>
+          <Link to="/productos" className="nav-link hover:text-[#4FC3F7] font-semibold">Categorías</Link>
+          <Link to="/arcade" className="nav-link">Arcade</Link>
+          <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] font-semibold">Nosotros</Link>
+          <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] font-semibold">Contáctanos</Link>
+          <Link to="/carrito" className="link hover:scale-110 text-xl">🛒</Link>
 
           {usuario ? (
             <motion.div
@@ -198,6 +195,7 @@ function Header() {
         )}
       </AnimatePresence>
 
+      {/* Espacio para compensar el header fijo */}
       <div className="h-[80px] sm:h-[90px]" />
     </>
   );
