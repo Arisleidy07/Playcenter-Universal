@@ -15,11 +15,10 @@
         ? productosTodos
         : productosTodos.filter((p) => p.categoria === categoriaActiva);
 
-    const handleSeleccion = (nueva) => {
-        setCategoriaActiva(nueva);
+    const handleSeleccion = (nuevaCategoria) => {
+        setCategoriaActiva(nuevaCategoria);
         setMostrarCategorias(false);
 
-        // Previene el “espacio vacío” desplazando arriba
         setTimeout(() => {
         document.getElementById("productos-seccion")?.scrollIntoView({ behavior: "smooth" });
         }, 100);
@@ -27,7 +26,7 @@
 
     return (
         <main className="pt-24 px-3 sm:px-6 lg:px-12 pb-16 bg-white min-h-screen">
-        {/* Botón de categorías solo visible en móviles */}
+        {/* Botón de Categorías en móvil */}
         <div className="sm:hidden mb-4 flex justify-center">
             <button
             onClick={() => setMostrarCategorias(!mostrarCategorias)}
@@ -39,7 +38,7 @@
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6">
-            {/* Sidebar o panel de categorías */}
+            {/* Sidebar / Panel de Categorías */}
             <SidebarCategorias
             categoriaActiva={categoriaActiva}
             setCategoriaActiva={handleSeleccion}
@@ -47,7 +46,10 @@
             />
 
             {/* Productos */}
-            <section className="flex flex-col gap-4 flex-1" id="productos-seccion">
+            <section
+            id="productos-seccion"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 max-w-6xl mx-auto px-1 sm:px-4"
+            >
             {productosFiltrados.map((prod) => (
                 <div key={prod.id} className="w-full">
                 <TarjetaProducto producto={prod} />
