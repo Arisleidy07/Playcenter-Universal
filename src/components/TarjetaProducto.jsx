@@ -25,38 +25,45 @@ function TarjetaProducto({ producto }) {
   return (
     <div
       onClick={irADetalle}
-      className="flex items-start gap-4 bg-white shadow-md hover:shadow-xl rounded-xl p-4 cursor-pointer transition duration-300 w-full"
+      className="flex items-start gap-3 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer w-full max-w-full p-3"
     >
       <img
         src={producto.imagen}
         alt={producto.nombre}
-        className="w-32 h-32 sm:w-36 sm:h-36 object-contain rounded-xl bg-white"
+        className="w-20 h-20 object-contain rounded-md bg-white flex-shrink-0"
       />
 
-      <div className="flex flex-col justify-between flex-1">
+      <div className="flex flex-col justify-between flex-1 overflow-hidden">
         <div>
-          <h2 className="font-bold text-base sm:text-lg text-[#1e293b] mb-1 line-clamp-2">
+          <h2 className="font-semibold text-sm text-gray-800 leading-tight truncate">
             {producto.nombre}
           </h2>
-          <p className="text-sm text-gray-600 mb-2 line-clamp-3">
+          <p className="text-xs text-gray-500 line-clamp-2">
             {producto.descripcion || "Descripción del producto."}
           </p>
         </div>
 
-        <div className="flex items-center justify-between flex-wrap gap-4 mt-2">
-          <p className="text-xl font-extrabold text-gray-900">
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-sm sm:text-base font-bold text-gray-900">
             ${producto.precio.toFixed(2)}
           </p>
           <button
             onClick={handleBoton}
-            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition ${
+            className={`text-xs sm:text-sm px-3 py-1.5 rounded-full font-semibold transition ${
               estaEnCarrito
                 ? "bg-red-500 hover:bg-red-600 text-white"
                 : "bg-yellow-400 hover:bg-yellow-500 text-black"
             }`}
           >
-            {estaEnCarrito ? <FaTrash /> : <FaShoppingCart />}
-            {estaEnCarrito ? "Quitar" : "Agregar"}
+            {estaEnCarrito ? (
+              <span className="flex items-center gap-1">
+                <FaTrash /> Quitar
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <FaShoppingCart /> Agregar
+              </span>
+            )}
           </button>
         </div>
       </div>
