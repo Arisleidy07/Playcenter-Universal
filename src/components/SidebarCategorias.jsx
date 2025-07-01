@@ -35,11 +35,11 @@
     const location = useLocation();
 
     return (
-        <aside className="w-full sm:w-44 md:w-52 bg-white border-r border-gray-200 shadow-md px-3 py-4 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto z-30">
-        <h2 className="text-lg sm:text-xl font-bold text-blue-800 mb-4 text-center sm:text-left">
+        <aside className="w-[150px] sm:w-44 md:w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow-md px-2 py-4 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto z-30">
+        <h2 className="text-base sm:text-lg font-bold text-blue-800 mb-4 text-center sm:text-left">
             Categorías
         </h2>
-        <ul className="space-y-1 text-sm sm:text-base">
+        <ul className="space-y-1 text-xs sm:text-sm md:text-base">
             {categorias.map((cat, idx) => {
             const rutaCompleta = `/productos/${cat.ruta}`;
             const activa =
@@ -50,7 +50,7 @@
                 <li key={idx}>
                 <Link
                     to={rutaCompleta}
-                    className={`block w-full px-3 py-2 rounded-md font-medium transition-colors duration-200 ${
+                    className={`block w-full px-2 py-2 rounded-md font-medium transition-colors duration-200 break-words ${
                     activa
                         ? "bg-blue-600 text-white shadow"
                         : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
@@ -67,3 +67,4 @@
     }
 
     export default SidebarCategorias;
+    // This component renders a sidebar with a list of product categories.

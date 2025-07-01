@@ -13,6 +13,9 @@ import Nosotros from "./pages/Nosotros";
 import DetalleProducto from "./pages/DetalleProducto";
 import Productos from "./pages/Productos";
 import ProductosTodos from "./pages/ProductosTodos";
+import Categorias from "./pages/Categorias";
+import ResultadosBusqueda from "./pages/ResultadosBusqueda";
+
 
 // Categorías
 import RetroJuegos from "./pages/categories/RetroJuegos";
@@ -54,9 +57,11 @@ export default function AnimatedRoutes() {
         <Route path="/producto/:id" element={<PageTransition><VistaProducto /></PageTransition>} />
         <Route path="/carrito" element={<PageTransition><Carrito /></PageTransition>} />
         <Route path="/contacto" element={<PageTransition><Contacto /></PageTransition>} />
+        <Route path="/categorias" element={<PageTransition><Categorias /></PageTransition>} />
         <Route path="/nosotros" element={<PageTransition><Nosotros /></PageTransition>} />
         <Route path="/producto/:id/detalle" element={<PageTransition><DetalleProducto /></PageTransition>} />
         <Route path="/productos" element={<PageTransition><Productos /></PageTransition>}>
+        <Route path="/buscar" element={<ResultadosBusqueda />} />
           <Route index element={<ProductosTodos />} />
           <Route path="accesorios-videojuegos" element={<AccesoriosVideojuegos />} />
           <Route path="retro-consolas" element={<RetroConsolas />} />
@@ -88,6 +93,7 @@ export default function AnimatedRoutes() {
         </Route>
       </Routes>
     </AnimatePresence>
+    
   );
 }
 

@@ -25,33 +25,38 @@ function TarjetaProducto({ producto }) {
   return (
     <div
       onClick={irADetalle}
-      className="card cursor-pointer flex flex-col sm:flex-row items-center sm:items-start bg-white shadow-md hover:shadow-xl rounded-xl p-4 transition duration-300"
-      title={producto.nombre}
+      className="flex items-start gap-4 bg-white shadow-md hover:shadow-xl rounded-xl p-4 cursor-pointer transition duration-300 w-full"
     >
       <img
         src={producto.imagen}
         alt={producto.nombre}
-        className="w-32 h-32 sm:w-40 sm:h-40 object-contain rounded-lg shadow-sm bg-white mb-4 sm:mb-0"
+        className="w-32 h-32 sm:w-36 sm:h-36 object-contain rounded-xl bg-white"
       />
-      <div className="flex flex-col flex-grow sm:ml-6 text-center sm:text-left w-full">
-        <h2 className="font-semibold text-lg mb-1 text-[#1e293b] leading-tight">
-          {producto.nombre}
-        </h2>
-        <p className="font-medium text-base text-[#2563eb] mb-2 line-clamp-3">
-          {producto.descripcion || "Descripción breve del producto."}
-        </p>
-        <p className="text-2xl font-bold text-gray-900 mb-3">${producto.precio.toFixed(2)}</p>
-        <div className="mt-auto">
+
+      <div className="flex flex-col justify-between flex-1">
+        <div>
+          <h2 className="font-bold text-base sm:text-lg text-[#1e293b] mb-1 line-clamp-2">
+            {producto.nombre}
+          </h2>
+          <p className="text-sm text-gray-600 mb-2 line-clamp-3">
+            {producto.descripcion || "Descripción del producto."}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between flex-wrap gap-4 mt-2">
+          <p className="text-xl font-extrabold text-gray-900">
+            ${producto.precio.toFixed(2)}
+          </p>
           <button
             onClick={handleBoton}
-            className={`w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 rounded-full font-semibold transition ${
+            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition ${
               estaEnCarrito
                 ? "bg-red-500 hover:bg-red-600 text-white"
                 : "bg-yellow-400 hover:bg-yellow-500 text-black"
             }`}
           >
             {estaEnCarrito ? <FaTrash /> : <FaShoppingCart />}
-            {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
+            {estaEnCarrito ? "Quitar" : "Agregar"}
           </button>
         </div>
       </div>

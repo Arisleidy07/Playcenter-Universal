@@ -1,9 +1,24 @@
-    import React from 'react';
-    import './SearchBar.css';
+    import React, { useState } from "react";
+    import { useNavigate } from "react-router-dom";
+    import "./SearchBar.css";
 
     function SearchBar() {
+    const [busqueda, setBusqueda] = useState("");
+    const navigate = useNavigate();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (busqueda.trim()) {
+        navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
+        setBusqueda("");
+        }
+    };
+
     return (
-        <form className="search-form flex items-center bg-white border border-gray-300 rounded-full overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-[#4FC3F7] transition-all">
+        <form
+        onSubmit={handleSubmit}
+        className="search-form w-full max-w-xl mx-auto flex items-center bg-white border border-gray-300 rounded-full overflow-hidden shadow-sm px-3 sm:px-5 py-2 sm:py-3 focus-within:ring-2 focus-within:ring-[#4FC3F7] transition-all"
+        >
         <button
             type="submit"
             className="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-[#4FC3F7] transition-colors"
@@ -25,10 +40,12 @@
             </svg>
         </button>
         <input
-            className="input w-full px-4 py-2 outline-none text-sm text-gray-800 placeholder-gray-400"
+            className="w-full bg-transparent px-3 py-1 outline-none text-sm sm:text-base text-gray-800 placeholder-gray-400"
             placeholder="Buscar productos, categorías..."
             required
             type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
         />
         </form>
     );

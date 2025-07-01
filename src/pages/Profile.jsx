@@ -88,9 +88,16 @@ export default function Profile() {
 
   if (!usuario) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#121212] text-white text-xl font-semibold">
-        Por favor inicia sesión para ver tu perfil.
-      </div>
+      <main className="min-h-screen bg-[#0F1117] text-white flex flex-col items-center justify-center px-6 py-10 text-center">
+        <h1 className="text-2xl font-bold mb-4 text-[#4FC3F7]">¡Hola!</h1>
+        <p className="text-gray-300 mb-6">Para acceder a tu perfil, por favor inicia sesión.</p>
+        <a
+          href="/login"
+          className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-black font-semibold px-8 py-3 rounded-full shadow transition transform hover:scale-105"
+        >
+          Iniciar sesión
+        </a>
+      </main>
     );
   }
 
@@ -113,8 +120,7 @@ export default function Profile() {
         <h1 className="text-5xl font-extrabold text-[#4FC3F7] mb-10 tracking-wide select-none text-center">
           Mi Cuenta
         </h1>
-
-        {!modoEdicion ? (
+                {!modoEdicion ? (
           <>
             <div className="flex flex-col sm:flex-row gap-12 mb-10 items-center">
               <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#4FC3F7] shadow-lg shadow-[#4FC3F7]/40 transition-transform duration-300 hover:scale-105 cursor-pointer select-none">
@@ -266,3 +272,4 @@ export default function Profile() {
     </main>
   );
 }
+
