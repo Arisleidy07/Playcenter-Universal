@@ -1,5 +1,4 @@
     import React from "react";
-    import { Link, useLocation } from "react-router-dom";
     import { motion, AnimatePresence } from "framer-motion";
 
     const categorias = [
@@ -32,58 +31,81 @@
     { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
     ];
 
-    function SidebarCategorias({ categoriaActiva, setCategoriaActiva, mostrarEnMovil }) {
-    const location = useLocation();
+    function SidebarCategorias({ categoriaActiva, setCategoriaActiva, mostrarEnMovil, setMostrarEnMovil }) {
+    const isActiva = (nombre) => nombre === categoriaActiva;
 
-    const isActiva = (nombre, ruta) =>
-        categoriaActiva === nombre ||
-        location.pathname === `/productos/${ruta}` ||
-        (ruta === "" && location.pathname === "/productos");
-
-    const listaCategorias = (
-        <ul className="space-y-1 text-sm">
-        {categorias.map((cat, idx) => (
-            <li key={idx}>
-            <button
-                onClick={() => setCategoriaActiva(cat.nombre)}
-                className={`w-full text-left px-3 py-2 rounded-md font-medium transition-colors duration-200 break-words ${
-                isActiva(cat.nombre, cat.ruta)
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
-                }`}
-            >
-                {cat.nombre}
-            </button>
-            </li>
-        ))}
-        </ul>
-    );
+    const handleClick = (nombre) => {
+        setCategoriaActiva(nombre);
+        if (setMostrarEnMovil) setMostrarEnMovil(false);
+    };
 
     return (
         <>
-        {/* Sidebar en escritorio */}
+        {/* Sidebar escritorio */}
         <aside className="hidden sm:block w-44 md:w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-4 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto z-30">
             <h2 className="text-sm font-bold text-blue-800 mb-4 text-center uppercase tracking-wide select-none">
             Categorías
             </h2>
-            {listaCategorias}
+            <ul className="space-y-1 text-sm">
+            {categorias.map((cat, idx) => (
+                <li key={idx}>
+                <button
+                    onClick={() => handleClick(cat.nombre)}
+                    className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 ${
+                    isActiva(cat.nombre)
+                        ? "bg-blue-600 text-white shadow"
+                        : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
+                    }`}
+                >
+                    {cat.nombre}
+                </button>
+                </li>
+            ))}
+            </ul>
         </aside>
 
-        {/* Modal móvil */}
+        {/* Panel móvil animado tipo Bravobar */}
         <AnimatePresence>
             {mostrarEnMovil && (
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.2 }}
-                className="fixed top-20 left-0 right-0 mx-auto max-w-xs bg-white border border-gray-200 shadow-lg rounded-lg z-[9998] px-4 py-4"
-            >
-                <h2 className="text-base font-bold text-blue-800 mb-3 text-center uppercase">
-                Categorías
+            <>
+                {/* Overlay oscuro con blur */}
+                <motion.div
+                className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-md z-[9998]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMostrarEnMovil(false)}
+                />
+
+                {/* Slide in panel */}
+                <motion.div
+                initial={{ x: -300 }}
+                animate={{ x: 0 }}
+                exit={{ x: -300 }}
+                transition={{ type: "spring", stiffness: 280, damping: 25 }}
+                className="fixed top-0 left-0 bottom-0 w-72 bg-white shadow-lg z-[9999] overflow-y-auto px-4 py-6"
+                >
+                <h2 className="text-base font-bold text-blue-800 mb-4 uppercase tracking-wide">
+                    Categorías
                 </h2>
-                {listaCategorias}
-            </motion.div>
+                <ul className="space-y-2 text-sm">
+                    {categorias.map((cat, idx) => (
+                    <li key={idx}>
+                        <button
+                        onClick={() => handleClick(cat.nombre)}
+                        className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 ${
+                            isActiva(cat.nombre)
+                            ? "bg-blue-600 text-white shadow"
+                            : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
+                        }`}
+                        >
+                        {cat.nombre}
+                        </button>
+                    </li>
+                    ))}
+                </ul>
+                </motion.div>
+            </>
             )}
         </AnimatePresence>
         </>
