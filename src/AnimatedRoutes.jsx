@@ -24,6 +24,7 @@ import Camaras from "./pages/categories/Camaras";
 import Cargadores from "./pages/categories/Cargadores";
 import Celulares from "./pages/categories/Celulares";
 import Consolas from "./pages/categories/Consolas";
+import Controles from "./pages/categories/controles";
 import DiscosDuros from "./pages/categories/DiscosDuros";
 import Electrodomesticos from "./pages/categories/Electrodomesticos";
 import GamingChairs from "./pages/categories/GamingChairs";
@@ -66,6 +67,8 @@ export default function AnimatedRoutes() {
           <Route path="cargadores" element={<Cargadores />} />
           <Route path="celulares" element={<Celulares />} />
           <Route path="consolas" element={<Consolas />} />
+          <Route path="controles" element={<Controles />} />
+
           <Route path="discos-duros" element={<DiscosDuros />} />
           <Route path="electrodomesticos" element={<Electrodomesticos />} />
           <Route path="gaming-chairs" element={<GamingChairs />} />

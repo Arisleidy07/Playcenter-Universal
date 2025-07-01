@@ -5,9 +5,9 @@
 
 
     function AccesoriosVideojuegos() {
-    const categoria = productosAll.find(
-        (cat) => cat.categoria === "AccesoriosVideojuegos"
-    );
+const categoria = productosAll.find(
+    (cat) => normalizar(cat.categoria) === normalizar("AccesoriosVideojuegos")
+);
     const productos = categoria ? categoria.productos : [];
 
     return (

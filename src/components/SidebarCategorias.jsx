@@ -11,6 +11,7 @@ const categorias = [
     { nombre: "Cargadores", ruta: "cargadores" },
     { nombre: "Celulares", ruta: "celulares" },
     { nombre: "Consolas", ruta: "consolas" },
+    { nombre: "Controles", ruta: "controles" },
     { nombre: "Discos Duros", ruta: "discos-duros" },
     { nombre: "Electrodomésticos", ruta: "electrodomesticos" },
     { nombre: "Gaming Chairs", ruta: "gaming-chairs" },
@@ -27,6 +28,7 @@ const categorias = [
     { nombre: "Tablets", ruta: "tablets" },
     { nombre: "Teclados", ruta: "teclados" },
     { nombre: "Videojuegos", ruta: "videojuegos" },
+    { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
 ];
 function SidebarCategorias() {
     const location = useLocation();

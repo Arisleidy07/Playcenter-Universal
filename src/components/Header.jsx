@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import AuthModal from "./AuthModal";
 import { motion, AnimatePresence } from "framer-motion";
 import MarioCoinBlock from "./MarioCoinBlock";
+import { FaMapMarkerAlt } from "react-icons/fa"; 
+
 
 
 function Header() {
@@ -70,15 +72,31 @@ function Header() {
         className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8"
         style={{ backdropFilter: "saturate(180%) blur(15px)" }}
       >
-        <Link to="/" className="flex items-center">
-          <motion.img
-            src="/playcenter.jpeg"
-            alt="Playcenter Universal"
-            className="h-14 sm:h-16 object-contain cursor-pointer"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          />
-        </Link>
+
+
+<Link to="/" className="flex items-center gap-4">
+  {/* Logo */}
+  <motion.img
+    src="/playcenter.jpeg"
+    alt="Playcenter Universal"
+    className="h-14 sm:h-16 object-contain cursor-pointer"
+    whileHover={{ scale: 1.05 }}
+    transition={{ type: "spring", stiffness: 300 }}
+  />
+
+{/* Texto estilo Amazon mejorado */}
+<div className="hidden sm:flex flex-col leading-snug text-sm text-gray-800 font-medium">
+  <span className="flex items-center gap-1 text-[13px] text-gray-600 font-normal">
+    <FaMapMarkerAlt className="text-[#4FC3F7] text-base" />
+    Envios 
+  </span>
+  <strong className="text-[15px] font-semibold text-gray-800 uppercase tracking-wide">
+    EN TODO RD
+  </strong>
+</div>
+</Link>
+
+
 
         <motion.div
           className="w-full md:w-auto flex-1 max-w-md"

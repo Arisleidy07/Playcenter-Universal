@@ -65,8 +65,8 @@ function Footer() {
         {/* Horario */}
         <div>
           <h3 className="text-white text-lg font-semibold mb-4">Horario</h3>
-          <p>Lunes a Viernes: 9:00am - 6:00pm</p>
-          <p>Sábados: 10:00am - 2:00pm</p>
+          <p>Lunes a Viernes: 8:30am - 5:30pm</p>
+          <p>Sábados: 8:30am - 12:30pm</p>
           <p>Domingo: Cerrado</p>
         </div>
 
