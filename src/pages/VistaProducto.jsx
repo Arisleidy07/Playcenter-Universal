@@ -44,8 +44,8 @@ function VistaProducto() {
 
   return (
     <main className="min-h-screen bg-white px-4 py-10 text-gray-800 flex justify-center">
-      <section className="max-w-6xl w-full grid md:grid-cols-2 gap-10">
-        {/* Galería de imágenes */}
+      <section className="max-w-6xl w-full flex flex-col-reverse md:grid md:grid-cols-2 gap-10">
+        {/* Galería */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -55,21 +55,23 @@ function VistaProducto() {
           <GaleriaImagenes imagenes={producto.imagenes || [producto.imagen]} />
         </motion.div>
 
-        {/* Información del producto */}
+        {/* Info */}
         <motion.div
           className="flex flex-col gap-6"
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl font-extrabold text-[#333]">{producto.nombre}</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#333] text-center md:text-left">
+            {producto.nombre}
+          </h1>
 
-          <p className="text-2xl font-semibold text-[#FF9900]">
+          <p className="text-xl sm:text-2xl font-semibold text-[#FF9900] text-center md:text-left">
             ${producto.precio.toFixed(2)}
           </p>
 
           <motion.p
-            className="text-gray-700 text-lg leading-relaxed"
+            className="text-gray-700 text-base sm:text-lg leading-relaxed text-center md:text-left"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
@@ -78,32 +80,33 @@ function VistaProducto() {
               "Contáctanos para más detalles o para coordinar una compra en nuestra tienda física."}
           </motion.p>
 
-          {/* Botón dinámico */}
-          <button
-            onClick={() =>
-              estaEnCarrito
-                ? quitarDelCarrito(producto.id)
-                : agregarAlCarrito({ ...producto, cantidad: 1 })
-            }
-            className={`inline-flex items-center gap-3 px-6 py-3 rounded shadow transition-transform hover:scale-105 font-semibold ${
-              estaEnCarrito
-                ? "bg-red-500 hover:bg-red-600 text-white"
-                : "bg-yellow-400 hover:bg-yellow-500 text-black"
-            }`}
-          >
-            <FaShoppingCart className="text-xl" />
-            {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
-          </button>
+          <div className="flex justify-center md:justify-start">
+            <button
+              onClick={() =>
+                estaEnCarrito
+                  ? quitarDelCarrito(producto.id)
+                  : agregarAlCarrito({ ...producto, cantidad: 1 })
+              }
+              className={`w-full sm:w-auto inline-flex justify-center items-center gap-3 px-6 py-3 rounded shadow transition-transform hover:scale-105 font-semibold ${
+                estaEnCarrito
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-yellow-400 hover:bg-yellow-500 text-black"
+              }`}
+            >
+              <FaShoppingCart className="text-xl" />
+              {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
+            </button>
+          </div>
 
-          <div className="mt-6 flex flex-col gap-3">
-            <p className="text-gray-700">
+          <div className="mt-6 flex flex-col items-center md:items-start gap-3">
+            <p className="text-gray-700 text-center md:text-left">
               Si te interesa este producto, puedes escribirnos directamente por WhatsApp:
             </p>
             <a
               href={mensajeWhatsApp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow transition-transform hover:scale-105"
+              className="inline-flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow transition-transform hover:scale-105 w-full sm:w-auto"
             >
               <FaWhatsapp className="text-2xl" />
               Escribir por WhatsApp

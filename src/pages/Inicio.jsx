@@ -22,13 +22,13 @@ function Inicio() {
       </div>
 
       {/* BANNERS GRANDES */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-12">
+      <section className="grid grid-cols-2 gap-4 sm:gap-6 max-w-[1600px] mx-auto px-4 mt-12">
         <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
           <Link to="/productos/retro-consolas">
             <img
               src="/ads/retro.png"
               alt="Retro Consolas"
-              className="w-full h-[320px] object-cover hover:scale-105 transition-transform duration-300"
+              className="w-full h-[160px] sm:h-[220px] md:h-[320px] object-cover hover:scale-105 transition-transform duration-300"
             />
           </Link>
         </div>
@@ -37,7 +37,7 @@ function Inicio() {
             <img
               src="/ads/camaras.png"
               alt="Cámaras"
-              className="w-full h-[320px] object-cover hover:scale-105 transition-transform duration-300"
+              className="w-full h-[160px] sm:h-[220px] md:h-[320px] object-cover hover:scale-105 transition-transform duration-300"
             />
           </Link>
         </div>
@@ -135,11 +135,10 @@ function Inicio() {
       </section>
 
 {/* CATEGORÍAS DESTACADAS */}
-<section className="max-w-[1600px] mx-auto mt-16 px-4">
-  <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-2xl font-semibold mb-4">Explora nuestras categorías</h2>
-
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+      <section className="max-w-[1600px] mx-auto mt-16 px-4">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-2xl font-semibold mb-4">Explora nuestras categorías</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
       <Link to="/productos/audifonos">
         <img src="/ads/audifonoscate.png" alt="Audífonos" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
       </Link>
@@ -166,16 +165,16 @@ function Inicio() {
 </section>
 
 
+
       {/* GALERÍA DESTACADA DE PRODUCTOS */}
       <section className="max-w-[1600px] mx-auto mt-16 px-4">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-2xl font-semibold mb-4">Descubre nuestros productos</h2>
-
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {productosAll
-              .flatMap(cat => cat.productos)
+              .flatMap((cat) => cat.productos)
               .slice(0, 6)
-              .map(producto => (
+              .map((producto) => (
                 <Link to={`/producto/${producto.id}`} key={producto.id}>
                   <div className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition">
                     <img
@@ -187,7 +186,6 @@ function Inicio() {
                 </Link>
               ))}
           </div>
-
           <div className="text-right mt-4">
             <Link to="/productos" className="text-blue-600 hover:underline text-sm">
               Ver todos los productos →
@@ -196,11 +194,11 @@ function Inicio() {
         </div>
       </section>
 
-{/* SLIDER HOGAR INTELIGENTE */}
-<section className="max-w-[1600px] mx-auto mt-16 px-4">
-  <div className="bg-white rounded-lg shadow p-6">
-    <h2 className="text-2xl font-semibold mb-4">Hogar Inteligente en Oferta</h2>
-    <div className="flex space-x-10 overflow-x-auto pb-4 scrollbar-hide">
+      {/* SLIDER HOGAR INTELIGENTE */}
+      <section className="max-w-[1600px] mx-auto mt-16 px-4">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-2xl font-semibold mb-4">Hogar Inteligente en Oferta</h2>
+          <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
       {/* Foco inteligente */}
       <Link to="/producto/hi1" className="min-w-[180px] px-2">
         <img
@@ -249,42 +247,39 @@ function Inicio() {
           className="rounded-lg hover:scale-105 transition object-cover w-full h-[180px]"
         />
       </Link>
-    </div>
-    <div className="text-right mt-4">
-      <Link
-        to="/productos/hogar-inteligente"
-        className="text-blue-600 hover:underline text-sm"
-      >
-        Descubre cómo transformar tu casa en un hogar inteligente →
-      </Link>
-    </div>
-  </div>
-</section>
+          </div>
+          <div className="text-right mt-4">
+            <Link
+              to="/productos/hogar-inteligente"
+              className="text-blue-600 hover:underline text-sm"
+            >
+              Descubre cómo transformar tu casa en un hogar inteligente →
+            </Link>
+          </div>
+        </div>
+      </section>
 
-
-
-{/* BANNERS GRANDES (ajustados sin bordes blancos) */}
-<section className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-12">
-  <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
-    <Link to="/productos/consolas" className="block w-full h-[400px]">
-      <img
-        src="/ads/nintendoswtitchads.png"
-        alt="Consolas"
-        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-      />
-    </Link>
-  </div>
-  <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
-    <Link to="/productos/controles" className="block w-full h-[400px]">
-      <img
-        src="/ads/controlads.png"
-        alt="Controles"
-        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-      />
-    </Link>
-  </div>
-</section>
-
+      {/* BANNERS GRANDES - RESPONSIVE */}
+      <section className="grid grid-cols-2 gap-4 sm:gap-6 max-w-[1600px] mx-auto px-4 mt-12">
+        <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
+          <Link to="/productos/consolas" className="block w-full h-[160px] sm:h-[260px] md:h-[400px]">
+            <img
+              src="/ads/nintendoswtitchads.png"
+              alt="Consolas"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </Link>
+        </div>
+        <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
+          <Link to="/productos/controles" className="block w-full h-[160px] sm:h-[260px] md:h-[400px]">
+            <img
+              src="/ads/controlads.png"
+              alt="Controles"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </Link>
+        </div>
+      </section>
 
 
 
@@ -394,27 +389,27 @@ function Inicio() {
 
 
 
-{/* BANNERS EXTRAS ANTES DEL ARCADE - tamaño igual a BANNERS GRANDES */}
-<section className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-12">
-  <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
-    <Link to="/productos/hogar-inteligente" className="block w-full h-[400px]">
-      <img
-        src="/ads/smart.png"
-        alt="Hogar Inteligente"
-        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-      />
-    </Link>
-  </div>
-  <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
-    <Link to="/productos" className="block w-full h-[400px]">
-      <img
-        src="/ads/subedenivel.png"
-        alt="Sube de Nivel"
-        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-      />
-    </Link>
-  </div>
-</section>
+      {/* BANNERS EXTRAS */}
+      <section className="grid grid-cols-2 gap-4 sm:gap-6 max-w-[1600px] mx-auto px-4 mt-12">
+        <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
+          <Link to="/productos/hogar-inteligente" className="block w-full h-[160px] sm:h-[260px] md:h-[400px]">
+            <img
+              src="/ads/smart.png"
+              alt="Hogar Inteligente"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </Link>
+        </div>
+        <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
+          <Link to="/productos" className="block w-full h-[160px] sm:h-[260px] md:h-[400px]">
+            <img
+              src="/ads/subedenivel.png"
+              alt="Sube de Nivel"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </Link>
+        </div>
+      </section>
 
 
 

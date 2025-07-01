@@ -6,16 +6,13 @@ import { useAuth } from "../context/AuthContext";
 import AuthModal from "./AuthModal";
 import { motion, AnimatePresence } from "framer-motion";
 import MarioCoinBlock from "./MarioCoinBlock";
-import { FaMapMarkerAlt } from "react-icons/fa"; 
-
-
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 function Header() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
   const { usuario, logout, login, signup } = useAuth();
-
   const dropdownRef = useRef(null);
 
   const manejarLogout = async () => {
@@ -69,37 +66,30 @@ function Header() {
         initial={{ y: -120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-col md:flex-row items-center justify-between px-6 py-3 gap-4 md:gap-8"
+        className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] flex flex-wrap md:flex-nowrap items-center justify-between px-4 sm:px-6 md:px-8 py-3 gap-4 sm:gap-6 md:gap-8"
         style={{ backdropFilter: "saturate(180%) blur(15px)" }}
       >
-
-
-<Link to="/" className="flex items-center gap-4">
-  {/* Logo */}
-  <motion.img
-    src="/playcenter.jpeg"
-    alt="Playcenter Universal"
-    className="h-14 sm:h-16 object-contain cursor-pointer"
-    whileHover={{ scale: 1.05 }}
-    transition={{ type: "spring", stiffness: 300 }}
-  />
-
-{/* Texto estilo Amazon mejorado */}
-<div className="hidden sm:flex flex-col leading-snug text-sm text-gray-800 font-medium">
-  <span className="flex items-center gap-1 text-[13px] text-gray-600 font-normal">
-    <FaMapMarkerAlt className="text-[#4FC3F7] text-base" />
-    Envios 
-  </span>
-  <strong className="text-[15px] font-semibold text-gray-800 uppercase tracking-wide">
-    EN TODO RD
-  </strong>
-</div>
-</Link>
-
-
+        <Link to="/" className="flex items-center gap-3 sm:gap-4">
+          <motion.img
+            src="/playcenter.jpeg"
+            alt="Playcenter Universal"
+            className="h-10 sm:h-12 md:h-14 object-contain cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          />
+          <div className="hidden sm:flex flex-col leading-snug text-sm text-gray-800 font-medium">
+            <span className="flex items-center gap-1 text-[13px] text-gray-600 font-normal">
+              <FaMapMarkerAlt className="text-[#4FC3F7] text-base" />
+              Envios
+            </span>
+            <strong className="text-[15px] font-semibold text-gray-800 uppercase tracking-wide">
+              EN TODO RD
+            </strong>
+          </div>
+        </Link>
 
         <motion.div
-          className="w-full md:w-auto flex-1 max-w-md"
+          className="hidden sm:block flex-1 max-w-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -108,7 +98,7 @@ function Header() {
         </motion.div>
 
         <motion.button
-          className="md:hidden text-3xl"
+          className="md:hidden text-3xl ml-auto"
           onClick={() => setMenuAbierto(true)}
           aria-label="Abrir menú"
           whileTap={{ scale: 0.9 }}
@@ -116,36 +106,35 @@ function Header() {
           ☰
         </motion.button>
 
-        <nav className="hidden md:flex gap-6 items-center">
+        <nav className="hidden md:flex gap-4 lg:gap-6 xl:gap-8 items-center">
           <MarioCoinBlock />
-          <Link to="/" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+          <Link to="/" className="nav-link hover:text-[#4FC3F7] font-semibold">
             Inicio
           </Link>
-          <Link to="/productos" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+          <Link to="/productos" className="nav-link hover:text-[#4FC3F7] font-semibold">
             Categorías
           </Link>
           <Link to="/arcade" className="nav-link">
             Arcade
           </Link>
-
-          <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+          <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] font-semibold">
             Nosotros
           </Link>
-          <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition-colors font-semibold">
+          <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] font-semibold">
             Contáctanos
           </Link>
-          <Link to="/carrito" className="link hover:scale-110 transition-transform text-xl">
+          <Link to="/carrito" className="link hover:scale-110 text-xl">
             🛒
           </Link>
 
           {usuario ? (
             <motion.div
-              className="relative ml-6 cursor-pointer"
+              className="relative ml-4 cursor-pointer"
               ref={dropdownRef}
               onClick={() => setDropdownAbierto(!dropdownAbierto)}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow-lg hover:shadow-xl transition">
                 {usuario.photoURL ? (
                   <img
                     src={usuario.photoURL}
@@ -153,12 +142,11 @@ function Header() {
                     className="w-full h-full object-cover rounded-full"
                   />
                 ) : (
-                  <div className="w-full h-full bg-[#4FC3F7] text-white font-bold flex items-center justify-center text-xl select-none">
+                  <div className="w-full h-full bg-[#4FC3F7] text-white font-bold flex items-center justify-center text-xl">
                     {usuario.displayName?.charAt(0).toUpperCase() || "U"}
                   </div>
                 )}
               </div>
-
               <AnimatePresence>
                 {dropdownAbierto && (
                   <motion.div
@@ -170,14 +158,14 @@ function Header() {
                   >
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md transition"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
                       onClick={() => setDropdownAbierto(false)}
                     >
                       Mi Perfil
                     </Link>
                     <button
                       onClick={manejarLogout}
-                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md transition"
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
                     >
                       Cerrar sesión
                     </button>
@@ -188,7 +176,7 @@ function Header() {
           ) : (
             <motion.button
               onClick={() => setModalAbierto(true)}
-              className="ml-4 px-6 py-2 bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white font-semibold rounded-lg transition shadow-md"
+              className="ml-4 px-4 py-2 bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white font-semibold rounded-lg transition shadow-md"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -210,8 +198,7 @@ function Header() {
         )}
       </AnimatePresence>
 
-      {/* Aquí agrego un div para empujar el contenido y que no quede tapado por el header */}
-      <div className="h-[72px] md:h-[72px]" />
+      <div className="h-[80px] sm:h-[90px]" />
     </>
   );
 }

@@ -1,11 +1,12 @@
+/* FOOTER */
 .footer {
   background-color: #0c0f16;
   color: white;
   padding: 40px 20px;
   text-align: center;
   position: relative;
-  z-index: 1; /* menor que astronauta */
-  overflow: hidden; /* Para que no se salga nada raro */
+  z-index: 1;
+  overflow: hidden;
 }
 
 .footer-content {
@@ -14,7 +15,7 @@
   gap: 30px;
   align-items: center;
   position: relative;
-  z-index: 20; /* Encima de estrellas */
+  z-index: 20;
 }
 
 .footer-info h2 {
@@ -78,87 +79,7 @@
   z-index: 20;
 }
 
-/* ASTRONAUTA Y ESTRELLAS */
-
-.box-of-star1,
-.box-of-star2,
-.box-of-star3,
-.box-of-star4 {
-  width: 100%;
-  position: absolute;
-  z-index: 5; /* debajo del contenido pero encima del fondo */
-  left: 0;
-  top: 0;
-  transform: translateY(0px);
-  height: 700px;
-}
-
-.box-of-star1 {
-  animation: snow 5s linear infinite;
-}
-.box-of-star2 {
-  animation: snow 5s -1.64s linear infinite;
-}
-.box-of-star3 {
-  animation: snow 5s -2.30s linear infinite;
-}
-.box-of-star4 {
-  animation: snow 5s -3.30s linear infinite;
-}
-
-.star {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background-color: #fff;
-  position: absolute;
-  opacity: 0.7;
-}
-.star:before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #fff;
-  position: absolute;
-  top: 80px;
-  left: 70px;
-  opacity: 0.7;
-}
-.star:after {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #fff;
-  position: absolute;
-  top: 8px;
-  left: 170px;
-  opacity: 0.9;
-}
-.star-position1 { top: 30px; left: 20px; }
-.star-position2 { top: 110px; left: 250px; }
-.star-position3 { top: 60px; left: 570px; }
-.star-position4 { top: 120px; left: 900px; }
-.star-position5 { top: 20px; left: 1120px; }
-.star-position6 { top: 90px; left: 1280px; }
-.star-position7 { top: 30px; left: 1480px; }
-
-@keyframes snow {
-  0% {
-    opacity: 0;
-    transform: translateY(0px);
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(650px);
-  }
-}
-
-/* Estrellas */
+/* ESTRELLAS */
 .box-of-star1,
 .box-of-star2,
 .box-of-star3,
@@ -180,9 +101,33 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background-color: white;
+  background-color: #fff;
   position: absolute;
   opacity: 0.7;
+}
+
+.star:before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #fff;
+  position: absolute;
+  top: 80px;
+  left: 70px;
+  opacity: 0.7;
+}
+
+.star:after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #fff;
+  position: absolute;
+  top: 8px;
+  left: 170px;
+  opacity: 0.9;
 }
 
 .star-position1 { top: 30px; left: 20px; }
@@ -198,8 +143,7 @@
   20% { opacity: 1; }
   100% { opacity: 1; transform: translateY(650px); }
 }
-
-/* Astronauta */
+/* ASTRONAUTA */
 .astronaut {
   position: absolute;
   bottom: 20px;
@@ -208,177 +152,9 @@
   height: 300px;
   z-index: 15;
   animation: astronaut 5s linear infinite;
-  pointer-events: none; /* para que no moleste con clicks */
+  pointer-events: none;
 }
 
-/* Partes del astronauta con colores visibles */
-.head {
-  width: 97px;
-  height: 80px;
-  background: linear-gradient(to right, #e3e8eb 50%, #fbfdfa 50%);
-  border-radius: 50%;
-  position: absolute;
-  top: 34px;
-  left: calc(50% - 47.5px);
-  border: 2px solid #ccc;
-}
-
-.head:before {
-  content: "";
-  width: 12px;
-  height: 25px;
-  background-color: #618095;
-  border-radius: 5px;
-  position: absolute;
-  top: calc(50% - 12.5px);
-  left: -4px;
-  box-shadow: 92px 0 0 #618095;
-}
-
-.head:after {
-  content: "";
-  width: 60px;
-  height: 50px;
-  background: linear-gradient(to bottom, #15aece 50%, #0391bf 50%);
-  border-radius: 15px;
-  position: absolute;
-  top: calc(50% - 25px);
-  left: calc(50% - 30px);
-}
-
-.body {
-  width: 85px;
-  height: 100px;
-  background: linear-gradient(to right, #e3e8eb 50%, #fbfdfa 50%);
-  border-radius: 40px / 20px;
-  position: absolute;
-  top: 105px;
-  left: calc(50% - 42.5px);
-  border: 2px solid #ccc;
-}
-
-.panel {
-  width: 60px;
-  height: 40px;
-  background-color: #b7cceb;
-  position: absolute;
-  top: 20px;
-  left: calc(50% - 30px);
-  border-radius: 6px;
-  box-shadow:
-    7px 9px 0 #fbfdfa,
-    7px 18px 0 #fbfdfa,
-    -8px 14px 0 2px #fbfdfa;
-}
-
-.arm {
-  width: 80px;
-  height: 30px;
-  position: absolute;
-  top: 121px;
-  z-index: 10;
-}
-
-.arm-left {
-  left: 30px;
-  background-color: #e3e8eb;
-  border-radius: 0 0 0 39px;
-}
-
-.arm-left:before {
-  content: "";
-  width: 30px;
-  height: 70px;
-  background-color: #e3e8eb;
-  border-radius: 50px 50px 0 120px / 50px 50px 0 110px;
-  position: absolute;
-  top: -40px;
-  left: 0;
-}
-
-.arm-right {
-  right: 30px;
-  background-color: #fbfdfa;
-  border-radius: 0 0 39px 0;
-}
-
-.arm-right:before {
-  content: "";
-  width: 30px;
-  height: 70px;
-  background-color: #fbfdfa;
-  border-radius: 50px 50px 120px 0 / 50px 50px 110px 0;
-  position: absolute;
-  top: -40px;
-  right: 0;
-}
-
-.leg {
-  width: 30px;
-  height: 40px;
-  position: absolute;
-  bottom: 70px;
-  z-index: 10;
-  border: 2px solid #ccc;
-}
-
-.leg-left {
-  left: 76px;
-  background-color: #e3e8eb;
-  transform: rotate(20deg);
-  border-radius: 6px;
-}
-
-.leg-left:before {
-  content: "";
-  width: 50px;
-  height: 25px;
-  background-color: #e3e8eb;
-  border-radius: 30px 0 0 0;
-  border-bottom: 10px solid #6d96ac;
-  position: absolute;
-  bottom: -26px;
-  left: -20px;
-}
-
-.leg-right {
-  right: 73px;
-  background-color: #fbfdfa;
-  transform: rotate(-20deg);
-  border-radius: 6px;
-}
-
-.leg-right:before {
-  content: "";
-  width: 50px;
-  height: 25px;
-  background-color: #fbfdfa;
-  border-radius: 0 30px 0 0;
-  border-bottom: 10px solid #b0cfe4;
-  position: absolute;
-  bottom: -26px;
-  right: -20px;
-}
-
-.schoolbag {
-  width: 100px;
-  height: 150px;
-  background-color: #94b7ca;
-  border-radius: 50px 50px 0 0 / 30px 30px 0 0;
-  position: absolute;
-  top: calc(50% - 75px);
-  left: calc(50% - 50px);
-  border: 2px solid #699;
-}
-
-/* Animaciones */
-@keyframes astronaut {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-
-/* Si tienes más estilos de astronauta (head, body, etc), agrégalos igual que antes */
 /* Cabeza */
 .head {
   width: 97px;
@@ -429,7 +205,7 @@
   z-index: 15;
 }
 
-/* Panel del pecho (la “ventana” del astronauta) */
+/* Panel del pecho */
 .panel {
   width: 60px;
   height: 40px;
@@ -577,7 +353,7 @@
   z-index: 13;
 }
 
-/* Animación */
+/* Animación de rotación */
 @keyframes astronaut {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

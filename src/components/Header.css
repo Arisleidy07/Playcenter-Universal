@@ -7,6 +7,19 @@
   position: relative;
   transition: all 0.3s ease;
 }
+@media (max-width: 360px) {
+  .nav-link {
+    font-size: 0.875rem; /* 14px */
+    letter-spacing: 0.3px;
+  }
+}
+@media (max-width: 480px) {
+  .nav-link:hover {
+    animation: none;
+    transform: scale(1.02);
+  }
+}
+
 
 .nav-link::after {
   content: '';

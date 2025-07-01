@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -12,15 +12,23 @@ const anuncios = [
 
 function SliderAnuncios() {
   const [index, setIndex] = useState(0);
+  const sliderRef = useRef(null);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
   const timeoutRef = useRef(null);
-  const delay = 5000;
+  const delay = 6000;
+
+  const resetAutoplay = useCallback(() => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setIndex((prev) => (prev + 1) % anuncios.length);
+    }, delay);
+  }, []);
 
   useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
-      setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
-    }, delay);
+    resetAutoplay();
     return () => clearTimeout(timeoutRef.current);
-  }, [index]);
+  }, [index, resetAutoplay]);
 
   const handlePrev = () => {
     clearTimeout(timeoutRef.current);
@@ -29,19 +37,32 @@ function SliderAnuncios() {
 
   const handleNext = () => {
     clearTimeout(timeoutRef.current);
-    setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
+    setIndex((prev) => (prev + 1) % anuncios.length);
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const deltaX = touchEndX.current - touchStartX.current;
+    if (Math.abs(deltaX) > 50) {
+      if (deltaX > 0) handlePrev();
+      else handleNext();
+    }
   };
 
   return (
     <div
-      className="relative w-full max-w-[1600px] mx-auto overflow-hidden rounded-xl select-none shadow-xl"
-      style={{ height: "500px" }}
-      onMouseEnter={() => clearTimeout(timeoutRef.current)}
-      onMouseLeave={() => {
-        timeoutRef.current = setTimeout(() => {
-          setIndex((prev) => (prev === anuncios.length - 1 ? 0 : prev + 1));
-        }, delay);
-      }}
+      ref={sliderRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="relative w-full max-w-[1600px] mx-auto overflow-hidden rounded-xl shadow-xl h-[200px] sm:h-[260px] md:h-[320px] lg:h-[500px]"
     >
       <div
         className="flex transition-transform duration-700 ease-in-out h-full"
@@ -57,13 +78,13 @@ function SliderAnuncios() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 w-full h-full"
+              className="w-full h-full flex-shrink-0"
               style={{ width: `${100 / anuncios.length}%` }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.015]"
+                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.02]"
                 loading="lazy"
               />
             </a>
@@ -71,13 +92,13 @@ function SliderAnuncios() {
             <Link
               key={item.id}
               to={item.link}
-              className="flex-shrink-0 w-full h-full"
+              className="w-full h-full flex-shrink-0"
               style={{ width: `${100 / anuncios.length}%` }}
             >
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.015]"
+                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.02]"
                 loading="lazy"
               />
             </Link>
@@ -85,35 +106,35 @@ function SliderAnuncios() {
         )}
       </div>
 
-      {/* Flechas de navegación */}
+      {/* Botones de navegación */}
       <button
         onClick={handlePrev}
-        className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-3 z-20 transition"
+        className="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 sm:p-3 z-20 transition"
         aria-label="Anterior"
       >
-        <ChevronLeft className="text-white w-7 h-7" />
+        <ChevronLeft className="text-white w-5 h-5 sm:w-6 sm:h-6" />
       </button>
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-3 z-20 transition"
+        className="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 sm:p-3 z-20 transition"
         aria-label="Siguiente"
       >
-        <ChevronRight className="text-white w-7 h-7" />
+        <ChevronRight className="text-white w-5 h-5 sm:w-6 sm:h-6" />
       </button>
 
-      {/* Puntos indicadores */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
+      {/* Indicadores */}
+      <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {anuncios.map((_, idx) => (
           <button
             key={idx}
-            className={`w-3 h-3 rounded-full ${
-              idx === index ? "bg-white opacity-90" : "bg-white opacity-40"
-            }`}
             onClick={() => {
               clearTimeout(timeoutRef.current);
               setIndex(idx);
             }}
             aria-label={`Ir al slide ${idx + 1}`}
+            className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${
+              idx === index ? "bg-white opacity-90 scale-110" : "bg-white opacity-40"
+            } transition`}
           />
         ))}
       </div>
