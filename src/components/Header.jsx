@@ -103,9 +103,10 @@ function Header() {
                   transition={{ duration: 0.2 }}
                   className="absolute top-12 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-xs bg-white rounded shadow-lg p-2 z-50"
                 >
+                  {/* Aquí está el cambio */}
                   <SearchBar
                     onClose={() => setBuscadorVisible(false)}
-                    inputRef={buscarInputRef}
+                    ref={buscarInputRef}
                   />
                 </motion.div>
               )}
@@ -186,8 +187,6 @@ function Header() {
           </div>
         </div>
       </motion.header>
-
-
 
       <div className="h-[70px] sm:h-[110px]" />
     </>
