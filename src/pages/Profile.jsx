@@ -3,9 +3,11 @@ import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "firebase/auth";
 import { subirImagenCloudinary } from "../utils/subirImagenCloudinary";
 import { motion } from "framer-motion";
+import { useUI } from "../context/UIContext";
 
 export default function Profile() {
   const { usuario, usuarioInfo, actualizarUsuarioInfo } = useAuth();
+  const { modalAbierto, setModalAbierto } = useUI();
 
   const [modoEdicion, setModoEdicion] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -88,15 +90,17 @@ export default function Profile() {
 
   if (!usuario) {
     return (
-      <main className="min-h-screen bg-[#0F1117] text-white flex flex-col items-center justify-center px-6 py-10 text-center">
+      <main className="min-h-screen bg-white text-white flex flex-col items-center justify-center px-6 py-10 text-center">
         <h1 className="text-2xl font-bold mb-4 text-[#4FC3F7]">¡Hola!</h1>
         <p className="text-gray-300 mb-6">Para acceder a tu perfil, por favor inicia sesión.</p>
-        <a
-          href="/login"
-          className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-black font-semibold px-8 py-3 rounded-full shadow transition transform hover:scale-105"
-        >
-          Iniciar sesión
-        </a>
+<button
+  onClick={() => setModalAbierto(true)}
+  className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-black font-semibold px-8 py-3 rounded-full shadow transition transform hover:scale-105"
+>
+  Iniciar sesión
+</button>
+
+
       </main>
     );
   }
