@@ -120,7 +120,11 @@ function Header() {
           {/* Navegación y login/perfil desktop */}
           <div className="hidden sm:flex items-center gap-6">
             <div className="flex-grow max-w-[240px]">
-              <SearchBar />
+            <SearchBar
+              onClose={() => setBuscadorVisible(false)}
+              ref={buscarInputRef}
+            />
+
             </div>
             <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
               <MarioCoinBlock />
