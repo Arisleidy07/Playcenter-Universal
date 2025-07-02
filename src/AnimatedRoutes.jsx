@@ -25,7 +25,7 @@ import Camaras from "./pages/categories/Camaras";
 import Cargadores from "./pages/categories/Cargadores";
 import Celulares from "./pages/categories/Celulares";
 import Consolas from "./pages/categories/Consolas";
-import Controles from "./pages/categories/Controles";
+import Controles from "./pages/categories/controles";
 import DiscosDuros from "./pages/categories/DiscosDuros";
 import Electrodomesticos from "./pages/categories/Electrodomesticos";
 import GamingChairs from "./pages/categories/GamingChairs";
