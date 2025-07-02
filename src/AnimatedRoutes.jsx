@@ -58,8 +58,6 @@ export default function AnimatedRoutes() {
         <Route path="/categorias" element={<PageTransition><Categorias /></PageTransition>} />
         <Route path="/nosotros" element={<PageTransition><Nosotros /></PageTransition>} />
         <Route path="/producto/:id/detalle" element={<PageTransition><DetalleProducto /></PageTransition>} />
-
-        {/* RUTA /buscar --> corregida y movida afuera de /productos */}
         <Route path="/buscar" element={<PageTransition><ResultadosBusqueda /></PageTransition>} />
 
         <Route path="/productos" element={<PageTransition><Productos /></PageTransition>}>

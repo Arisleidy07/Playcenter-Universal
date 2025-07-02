@@ -7,7 +7,7 @@ import { useUI } from "../context/UIContext";
 
 export default function Profile() {
   const { usuario, usuarioInfo, actualizarUsuarioInfo } = useAuth();
-  const { modalAbierto, setModalAbierto } = useUI();
+  const { setModalAbierto } = useState(false);
 
   const [modoEdicion, setModoEdicion] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -90,24 +90,25 @@ export default function Profile() {
 
   if (!usuario) {
     return (
-      <main className="min-h-screen bg-white text-white flex flex-col items-center justify-center px-6 py-10 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-[#4FC3F7]">¡Hola!</h1>
-        <p className="text-gray-300 mb-6">Para acceder a tu perfil, por favor inicia sesión.</p>
-<button
-  onClick={() => setModalAbierto(true)}
-  className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-black font-semibold px-8 py-3 rounded-full shadow transition transform hover:scale-105"
->
-  Iniciar sesión
-</button>
-
-
-      </main>
+      <>
+        <section className="block sm:hidden pt-[72px] px-4 pb-10 text-center text-gray-700">
+          <h1 className="text-2xl font-bold text-[#4FC3F7] mb-2">¡Hola!</h1>
+          <p className="mb-6">Para acceder a tu perfil, inicia sesión.</p>
+          <button
+            onClick={() => setModalAbierto(true)}
+            className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-black font-semibold px-6 py-2 rounded-full shadow transition hover:scale-105"
+          >
+            Iniciar sesión
+          </button>
+        </section>
+        <div className="hidden sm:block h-[1px]" />
+      </>
     );
   }
 
   if (!usuarioInfo) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0F1117] text-white text-xl font-medium">
+      <div className="flex items-center justify-center min-h-screen text-gray-600 text-lg font-medium px-6">
         Cargando perfil...
       </div>
     );
@@ -127,7 +128,7 @@ export default function Profile() {
                 {!modoEdicion ? (
           <>
             <div className="flex flex-col sm:flex-row gap-12 mb-10 items-center">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#4FC3F7] shadow-lg shadow-[#4FC3F7]/40 transition-transform duration-300 hover:scale-105 cursor-pointer select-none">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#4FC3F7] shadow-lg transition-transform duration-300 hover:scale-105 cursor-pointer select-none">
                 {previewImg ? (
                   <motion.img
                     src={previewImg}
@@ -276,4 +277,5 @@ export default function Profile() {
     </main>
   );
 }
+
 
