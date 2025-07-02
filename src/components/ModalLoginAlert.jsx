@@ -46,7 +46,7 @@ export default function ModalLoginAlert({ isOpen, onClose, onIniciarSesion }) {
         </h2>
 
         <p className="mb-6 text-center text-gray-300">
-          Necesitas iniciar sesión para agregar productos al carrito.
+          Necesitas iniciar sesión para acceder a esta función
         </p>
 
         <div className="flex justify-center gap-4">
