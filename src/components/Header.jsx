@@ -104,14 +104,12 @@ function Header() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="fixed top-[70px] left-0 w-full px-4 z-50"
+                  className="fixed top-[70px] left-0 w-full z-50 bg-white px-4 py-3 shadow-md"
                 >
-                  <div className="bg-white rounded shadow-lg p-2 max-w-md mx-auto">
-                    <SearchBar
-                      onClose={() => setBuscadorVisible(false)}
-                      ref={buscarInputRef}
-                    />
-                  </div>
+                  <SearchBar
+                    onClose={() => setBuscadorVisible(false)}
+                    ref={buscarInputRef}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -120,11 +118,7 @@ function Header() {
           {/* Navegación y login/perfil desktop */}
           <div className="hidden sm:flex items-center gap-6">
             <div className="flex-grow max-w-[240px]">
-            <SearchBar
-              onClose={() => setBuscadorVisible(false)}
-              ref={buscarInputRef}
-            />
-
+              <SearchBar />
             </div>
             <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
               <MarioCoinBlock />
