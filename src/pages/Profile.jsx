@@ -5,7 +5,7 @@ import { subirImagenCloudinary } from "../utils/subirImagenCloudinary";
 import { motion } from "framer-motion";
 
 export default function Profile() {
-  const { usuario, usuarioInfo, actualizarUsuarioInfo } = useAuth();
+  const { usuario, usuarioInfo, actualizarUsuarioInfo, logout } = useAuth();
 
   const [modoEdicion, setModoEdicion] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -94,9 +94,9 @@ export default function Profile() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-10 ring-4 ring-[#3dd9c4]"
+        className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-10 ring-4 ring-[#3dd9c4] relative"
       >
-        <h1 className="text-5xl font-extrabold mb-10 tracking-tight text-center text-[#0f172a] select-none">
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-10 tracking-tight text-center text-[#0f172a] select-none">
           Mi Cuenta
         </h1>
 
@@ -137,14 +137,22 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
               <motion.button
                 onClick={() => setModoEdicion(true)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-[#3dd9c4] text-[#0f172a] rounded-full px-12 py-4 font-semibold shadow-md hover:shadow-xl transition"
+                className="bg-[#3dd9c4] text-[#0f172a] rounded-full px-10 py-3 font-semibold shadow-md hover:shadow-xl transition"
               >
                 Editar Perfil
+              </motion.button>
+              <motion.button
+                onClick={logout}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-[#f87171] text-white rounded-full px-10 py-3 font-semibold shadow-md hover:bg-[#ef4444] transition"
+              >
+                Cerrar Sesión
               </motion.button>
             </div>
           </>
@@ -211,7 +219,7 @@ export default function Profile() {
               </p>
             )}
 
-            <div className="flex justify-center gap-8 max-w-lg mx-auto">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-lg mx-auto mt-6">
               <motion.button
                 type="submit"
                 disabled={guardando}
@@ -221,7 +229,6 @@ export default function Profile() {
               >
                 {guardando ? "Guardando..." : "Guardar Cambios"}
               </motion.button>
-
               <motion.button
                 type="button"
                 disabled={guardando}
