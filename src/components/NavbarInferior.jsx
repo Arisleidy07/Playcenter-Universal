@@ -1,14 +1,15 @@
-// src/components/NavbarInferior.jsx
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaHome, FaThList, FaShoppingCart, FaUser } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "./ModalLoginAlert";
+import { useAuthModal } from "../context/AuthModalContext"; // <-- asegurate que tienes este contexto
 
 function NavbarInferior() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { usuario } = useAuth();
+  const { abrirModal } = useAuthModal(); // <-- hook para abrir modal de login/register
   const [modalAbierto, setModalAbierto] = useState(false);
 
   const isActive = (path) => pathname === path;
@@ -53,6 +54,10 @@ function NavbarInferior() {
       <ModalLoginAlert
         isOpen={modalAbierto}
         onClose={() => setModalAbierto(false)}
+        onIniciarSesion={() => {
+          setModalAbierto(false);
+          abrirModal(); // abre el modal real de login/register
+        }}
       />
     </>
   );
