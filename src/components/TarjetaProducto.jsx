@@ -82,7 +82,10 @@ function TarjetaProducto({ producto }) {
       <ModalLoginAlert
         isOpen={modalAlertaAbierto}
         onClose={() => setModalAlertaAbierto(false)}
-        onIniciarSesion={() => abrirModal()}
+        onIniciarSesion={() => {
+          setModalAlertaAbierto(false);
+          abrirModal();
+        }}
       />
     </>
   );
