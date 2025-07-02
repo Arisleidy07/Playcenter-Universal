@@ -89,7 +89,7 @@ export default function Profile() {
   if (!usuario || !usuarioInfo) return null;
 
   return (
-    <main className="min-h-screen bg-[#0F1117] text-gray-300 flex flex-col items-center py-24 px-6">
+    <main className="min-h-screen bg-white text-gray-300 flex flex-col items-center py-24 px-6">
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
