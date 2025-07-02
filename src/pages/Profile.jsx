@@ -94,7 +94,7 @@ export default function Profile() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-3xl w-full bg-[#1E222A] rounded-3xl shadow-xl p-10 ring-2 ring-[#4FC3F7]"
+        className="max-w-3xl w-full bg-white rounded-3xl shadow-xl p-10 ring-2 ring-[#4FC3F7]"
       >
         <h1 className="text-5xl font-extrabold text-[#4FC3F7] mb-10 tracking-wide text-center">
           Mi Cuenta
