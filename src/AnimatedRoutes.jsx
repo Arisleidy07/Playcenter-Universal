@@ -3,7 +3,6 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import Inicio from "./pages/Inicio";
-import Arcade from "./pages/Arcade";
 import Profile from "./pages/Profile";
 import VistaProducto from "./pages/VistaProducto";
 import Carrito from "./pages/Carrito";
@@ -15,7 +14,7 @@ import ProductosTodos from "./pages/ProductosTodos";
 import Categorias from "./pages/Categorias";
 import ResultadosBusqueda from "./pages/ResultadosBusqueda";
 
-// Categorías
+// Categorías importadas
 import RetroJuegos from "./pages/categories/RetroJuegos";
 import RetroConsolas from "./pages/categories/RetroConsolas";
 import AccesoriosVideojuegos from "./pages/categories/AccesoriosVideojuegos";
@@ -43,6 +42,9 @@ import Tablets from "./pages/categories/Tablets";
 import Teclados from "./pages/categories/Teclados";
 import Videojuegos from "./pages/categories/Videojuegos";
 
+// Importa tu nueva categoría
+import TuRinconVariado from "./pages/categories/tu-rincon-variado";
+
 import PrivateRoute from "./components/PrivateRoute";
 
 export default function AnimatedRoutes() {
@@ -52,7 +54,6 @@ export default function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Inicio /></PageTransition>} />
-        <Route path="/arcade" element={<PageTransition><Arcade /></PageTransition>} />
         <Route
           path="/profile"
           element={
@@ -96,6 +97,7 @@ export default function AnimatedRoutes() {
           <Route path="smart-tv" element={<SmartTV />} />
           <Route path="tablets" element={<Tablets />} />
           <Route path="teclados" element={<Teclados />} />
+          <Route path="tu-rincon-variado" element={<TuRinconVariado />} />
           <Route path="videojuegos" element={<Videojuegos />} />
         </Route>
       </Routes>

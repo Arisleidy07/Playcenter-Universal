@@ -4,6 +4,7 @@
 
     const categorias = [
     { nombre: "Todos", ruta: "" },
+    { nombre: "Tu Rincón Variado", ruta: "tu-rincon-variado" },
     { nombre: "Retro Consolas", ruta: "retro-consolas" },
     { nombre: "Retro Juegos", ruta: "retro-juegos" },
     { nombre: "Audífonos", ruta: "audifonos" },

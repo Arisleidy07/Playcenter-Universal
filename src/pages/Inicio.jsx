@@ -8,7 +8,6 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import SliderAnuncios from "../components/SliderAnuncios";
-import ArcadeCallToAction from "../components/ArcadeCallToAction";
 import productosAll from "../data/productosAll";
 
 function Inicio() {
@@ -134,34 +133,38 @@ function Inicio() {
         </div>
       </section>
 
-      {/* CATEGORÍAS DESTACADAS */}
-      <section className="max-w-[1600px] mx-auto mt-16 px-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-semibold mb-4">Explora nuestras categorías</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            <Link to="/productos/audifonos">
-              <img src="/ads/audifonoscate.png" alt="Audífonos" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
-            </Link>
-            <Link to="/productos/mouses">
-              <img src="/ads/mousecate.png" alt="Mouses" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
-            </Link>
-            <Link to="/productos/teclados">
-              <img src="/ads/tecladocate.png" alt="Teclados" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
-            </Link>
-            <Link to="/productos/camaras">
-              <img src="/ads/camaracate.png" alt="Cámaras" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
-            </Link>
-            <Link to="/productos/discos-duros">
-              <img src="/ads/discodurocate.png" alt="Discos Duros" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
-            </Link>
-          </div>
-          <div className="text-right mt-4">
-            <Link to="/productos" className="text-blue-600 hover:underline text-sm">
-              Ver todas las categorías →
-            </Link>
-          </div>
-        </div>
-      </section>
+{/* CATEGORÍAS DESTACADAS */}
+<section className="max-w-[1600px] mx-auto mt-16 px-4">
+  <div className="bg-white rounded-lg shadow p-6">
+    <h2 className="text-2xl font-semibold mb-4">Explora nuestras categorías</h2>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+      <Link to="/productos/audifonos">
+        <img src="/ads/audifonoscate.png" alt="Audífonos" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
+      </Link>
+      <Link to="/productos/mouses">
+        <img src="/ads/mousecate.png" alt="Mouses" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
+      </Link>
+      <Link to="/productos/teclados">
+        <img src="/ads/tecladocate.png" alt="Teclados" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
+      </Link>
+      <Link to="/productos/camaras">
+        <img src="/ads/camaracate.png" alt="Cámaras" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
+      </Link>
+      <Link to="/productos/discos-duros">
+        <img src="/ads/discodurocate.png" alt="Discos Duros" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
+      </Link>
+      <Link to="/productos/controles">
+        <img src="/ads/controlcate.png" alt="Controles" className="rounded-lg hover:scale-105 transition object-cover w-full h-[200px]" />
+      </Link>
+    </div>
+    <div className="text-right mt-4">
+      <Link to="/productos" className="text-blue-600 hover:underline text-sm">
+        Ver todas las categorías →
+      </Link>
+    </div>
+  </div>
+</section>
+
 
       {/* GALERÍA DESTACADA DE PRODUCTOS */}
       <section className="max-w-[1600px] mx-auto mt-16 px-4">
@@ -184,9 +187,12 @@ function Inicio() {
               ))}
           </div>
           <div className="text-right mt-4">
-            <Link to="/productos" className="text-blue-600 hover:underline text-sm">
-              Ver todos los productos →
-            </Link>
+          <Link
+            to="/productos/tu-rincon-variado"
+            className="text-blue-600 hover:underline text-sm"
+          >
+            Explora nuestro Rincón Variado →
+          </Link>
           </div>
         </div>
       </section>
@@ -255,6 +261,50 @@ function Inicio() {
           </div>
         </div>
       </section>
+
+{/* TU RINCÓN VARIADO */}
+<section className="max-w-[1600px] mx-auto mt-16 px-4">
+  <div className="bg-white rounded-lg shadow p-6">
+    <h2 className="text-2xl font-semibold mb-4 ">Tu Rincón Variado</h2>
+    <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+      {[
+        { id: "rv1", nombre: "Bicicleta Urbana MTB 26'' Mongoose", img: "/Productos/mongose.jpg" },
+        { id: "rv2", nombre: "Patineta Eléctrica Plegable", img: "/Productos/patinetaelectrica.jpg" },
+        { id: "rv3", nombre: "Hoverboard Autoequilibrado 10\"", img: "/Productos/hoverboard.jpg" },
+        { id: "rv4", nombre: "Patines en línea 4 ruedas", img: "/Productos/patines4ruedaasenlinea.jpeg" },
+        { id: "rv5", nombre: "Patines clásicos 4 ruedas", img: "/Productos/patinesclasicos.webp" },
+        { id: "rv6", nombre: "Ruedas de repuesto para patineta", img: "/Productos/ruedapatineta.webp" },
+        { id: "rv7", nombre: "Casco Protector Urbano", img: "/Productos/casco.jpg" },
+        { id: "rv8", nombre: "Botella Térmica 1L Acero Inoxidable", img: "/Productos/botella.jpg" },
+        { id: "rv9", nombre: "Luz LED Recargable para Bicicleta", img: "/Productos/lucesbici.webp" },
+      ].map((prod) => (
+        <Link
+          to={`/producto/${prod.id}`}
+          key={prod.id}
+          className="min-w-[180px] px-2"
+          title={prod.nombre}
+        >
+          <img
+            src={prod.img}
+            alt={prod.nombre}
+            className="rounded-lg hover:scale-105 transition-transform duration-300 object-contain w-full h-[180px]"
+          />
+        </Link>
+      ))}
+    </div>
+    <div className="text-right mt-4">
+      <Link
+        to="/productos/tu-rincon-variado"
+        className="text-blue-600 hover:underline text-sm"
+      >
+        Explora nuestro Rincón Variado →
+      </Link>
+    </div>
+  </div>
+</section>
+
+
+
 
       {/* BANNERS GRANDES - RESPONSIVE */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-[1600px] mx-auto px-4 mt-12">
@@ -329,108 +379,113 @@ function Inicio() {
           </Link>
         </div>
 
-        {/* Memorias USB */}
-        <div className="bg-white rounded-lg shadow hover:shadow-xl transition h-[440px] flex flex-col justify-between p-4">
-          <h3 className="text-xl font-semibold mb-2">Memorias USB</h3>
-          <div className="grid grid-cols-2 gap-2 flex-grow">
-            {[
-              { id: "usb1", nombre: "SanDisk 32GB", img: "/Productos/sandisk32gb.webp" },
-              { id: "usb2", nombre: "Kingston 64GB", img: "/Productos/kingston64gb.jpg" },
-              { id: "usb3", nombre: "PNY 128GB", img: "/Productos/pny128gb.webp" },
-              { id: "usb4", nombre: "Lexar 16GB", img: "/Productos/lexar16gb.jpg" },
-            ].map((prod) => (
-              <Link to={`/producto/${prod.id}`} key={prod.id}>
-                <img
-                  src={prod.img}
-                  alt={prod.nombre}
-                  className="w-full aspect-[4/3] object-cover rounded"
-                />
-              </Link>
-            ))}
-          </div>
-          <Link to="/categoria/memorias-usb" className="text-blue-600 text-sm mt-3 hover:underline">
-            Explora nuestras Memorias USB →
-          </Link>
-        </div>
+{/* Memorias USB */}
+<div className="bg-white rounded-lg shadow hover:shadow-xl transition h-[440px] flex flex-col justify-between p-4">
+  <h3 className="text-xl font-semibold mb-2">Memorias USB</h3>
+  <div className="grid grid-cols-2 gap-2 flex-grow">
+    {[
+      { id: "usb1", nombre: "USB SanDisk 64GB", img: "/Productos/sandisk.jpeg" },
+      { id: "usb2", nombre: "Kingston 128GB USB 3.1", img: "/Productos/kingston.webp" },
+      { id: "usb3", nombre: "HP v150w 32GB", img: "/Productos/hp.jpeg" },
+      { id: "usb4", nombre: "Corsair Flash Voyager 256GB", img: "/Productos/corsair.avif" },
+    ].map((prod) => (
+      <Link to={`/producto/${prod.id}`} key={prod.id}>
+        <img
+          src={prod.img}
+          alt={prod.nombre}
+          className="w-full aspect-[4/3] object-contain rounded"
+        />
+      </Link>
+    ))}
+  </div>
+  <Link to="/categoria/memorias-usb" className="text-blue-600 text-sm mt-3 hover:underline">
+    Explora nuestras Memorias USB →
+  </Link>
+</div>
 
-        {/* Audífonos */}
-        <div className="bg-white rounded-lg shadow hover:shadow-xl transition h-[440px] flex flex-col justify-between p-4">
-          <h3 className="text-xl font-semibold mb-2">Audífonos</h3>
-          <div className="grid grid-cols-2 gap-2 flex-grow">
-            {[
-              { id: "aud1", nombre: "Sony WH-1000XM4", img: "/Productos/sonywh1000xm4.jpg" },
-              { id: "aud2", nombre: "AirPods Pro", img: "/Productos/airpodspro.jpg" },
-              { id: "aud3", nombre: "Bose QC35", img: "/Productos/boseqc35.webp" },
-              { id: "aud4", nombre: "JBL Tune", img: "/Productos/jbltune.jpg" },
-            ].map((prod) => (
-              <Link to={`/producto/${prod.id}`} key={prod.id}>
-                <img
-                  src={prod.img}
-                  alt={prod.nombre}
-                  className="w-full aspect-[4/3] object-cover rounded"
-                />
-              </Link>
-            ))}
-          </div>
-          <Link to="/categoria/audifonos" className="text-blue-600 text-sm mt-3 hover:underline">
-            Explora nuestros Audífonos →
-          </Link>
-        </div>
+{/* Cables */}
+<div className="bg-white rounded-lg shadow hover:shadow-xl transition h-[440px] flex flex-col justify-between p-4">
+  <h3 className="text-xl font-semibold mb-2">Cables</h3>
+  <div className="grid grid-cols-2 gap-2 flex-grow">
+    {[
+      { id: "cb1", img: "/Productos/usb-c.jpg" },
+      { id: "cb2", img: "/Productos/hdmi4k.jpeg" },
+      { id: "cb3", img: "/Productos/micro.jpg" },
+      { id: "cb4", img: "/Productos/ethernet.jpeg" },
+    ].map((prod) => (
+      <Link to={`/producto/${prod.id}`} key={prod.id}>
+        <img
+          src={prod.img}
+          alt="Cable"
+          className="w-full aspect-[4/3] object-contain rounded"
+        />
+      </Link>
+    ))}
+  </div>
+  <Link to="/categoria/cables" className="text-blue-600 text-sm mt-3 hover:underline">
+    Explora nuestros Cables →
+  </Link>
+</div>
+
+
       </section>
 
-      {/* CALL TO ACTION / CONTACTO */}
-      <section className="max-w-[1600px] mx-auto mt-16 px-4 pb-16">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg p-8 text-white shadow-lg flex flex-col md:flex-row items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">¿Tienes dudas? ¡Contáctanos!</h2>
-            <p className="mb-4 max-w-md">
-              Estamos disponibles para ayudarte por WhatsApp, teléfono o correo. ¡Escríbenos y te respondemos rápido!
-            </p>
-            <div className="flex space-x-6 text-xl">
-              <a
-                href="https://wa.me/18001234567"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp"
-                className="hover:text-green-400 transition"
-              >
-                <FaWhatsapp />
-              </a>
-              <a
-                href="tel:+18001234567"
-                aria-label="Teléfono"
-                className="hover:text-yellow-400 transition"
-              >
-                <FaPhone />
-              </a>
-              <a
-                href="mailto:contacto@tuempresa.com"
-                aria-label="Correo"
-                className="hover:text-red-400 transition"
-              >
-                <FaEnvelope />
-              </a>
-              <a
-                href="https://goo.gl/maps/tuempresa"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Ubicación"
-                className="hover:text-blue-400 transition"
-              >
-                <FaMapMarkerAlt />
-              </a>
-            </div>
-          </div>
-          <div className="mt-6 md:mt-0">
-            <Link
-              to="/contacto"
-              className="bg-white text-indigo-700 px-6 py-3 rounded-lg font-semibold shadow hover:bg-indigo-100 transition"
-            >
-              Contáctanos
-            </Link>
-          </div>
-        </div>
-      </section>
+<section className="max-w-5xl mx-auto px-6 py-16 text-center">
+  <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-gray-800">
+    ¿Tienes dudas? Contáctanos ahora
+  </h2>
+
+  <p className="text-gray-600 mb-10 max-w-xl mx-auto">
+    Nuestro equipo está listo para ayudarte por WhatsApp, teléfono o correo. Atención rápida y profesional.
+  </p>
+
+  <div className="bg-white shadow-lg rounded-xl p-10 max-w-3xl mx-auto flex flex-col gap-6">
+    <p className="flex items-center justify-center text-gray-700 space-x-3">
+      <FaMapMarkerAlt className="text-indigo-700" />
+      <span>Av. Estrella Sadhalá, Santiago, República Dominicana</span>
+    </p>
+
+    <p className="flex items-center justify-center text-gray-700 space-x-3">
+      <FaPhone className="text-indigo-700" />
+      <span>+1 (849)-635-7000 (Tienda)</span>
+    </p>
+
+    <p className="flex items-center justify-center text-gray-700 space-x-3">
+      <FaPhone className="text-indigo-700" />
+      <span>+1 (809)-582-1212 (Internet)</span>
+    </p>
+
+    <p className="flex items-center justify-center text-gray-700 space-x-3">
+      <FaEnvelope className="text-indigo-700" />
+      <span>playcenter121@gmail.com</span>
+    </p>
+
+    <div className="flex flex-col sm:flex-row gap-5 justify-center mt-4">
+      <a
+        href="https://wa.me/18496357000?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-700 text-white rounded-lg shadow-md hover:bg-indigo-800 transition w-full sm:w-auto"
+      >
+        <FaWhatsapp className="text-xl" />
+        WhatsApp Tienda
+      </a>
+
+      <a
+        href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 text-white rounded-lg shadow-md hover:bg-gray-800 transition w-full sm:w-auto"
+      >
+        <FaWhatsapp className="text-xl" />
+        WhatsApp Internet
+      </a>
+    </div>
+  </div>
+</section>
+
+
+
     </div>
   );
 }

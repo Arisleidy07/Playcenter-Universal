@@ -23,14 +23,18 @@
     animation: fadeIn 0.5s ease forwards;
     }
 
-    /* === GLOBAL === */
-    body {
-    @apply m-0 p-0 font-sans text-[#1e293b];
-    background-color: #ffffff; /* Fondo blanco puro como respaldo */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    }
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Sin scroll horizontal */
+  touch-action: pan-y; /* Solo scroll vertical */
+  -webkit-text-size-adjust: 100%; /* Evita zoom raro en móviles */
+  overscroll-behavior-x: none; /* Evita rebotes horizontales */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fff;
+  color: #1e293b;
+}
+
 
     /* === HEADER === */
     .header-container {
@@ -414,22 +418,30 @@
     }
     }
 
-    .titulo-categoria {
-    font-family: 'Poppins', sans-serif;
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: #f5f5f5;
-    text-align: center;
-    text-transform: uppercase;
-    animation: tituloVibrante 3s ease-in-out infinite;
-    /* Sombra 3D suave pero con presencia */
-    text-shadow:
-        2px 2px 0 #999,
-        4px 4px 0 #777,
-        6px 6px 0 #555;
-    letter-spacing: 2px;
-    transition: transform 0.3s ease;
-    }
+.titulo-categoria {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  color: #f5f5f5;
+  text-align: center;
+  text-transform: uppercase;
+  animation: tituloVibrante 3s ease-in-out infinite;
+  /* Sombra 3D suave pero con presencia */
+  text-shadow:
+    2px 2px 0 #999,
+    4px 4px 0 #777,
+    6px 6px 0 #555;
+  letter-spacing: 2px;
+  transition: transform 0.3s ease;
+
+  /* Lo importante para que no se salga */
+  font-size: clamp(2rem, 5vw, 3.5rem); /* tamaño responsivo */
+  max-width: 100%;           /* no se pase del ancho padre */
+  word-wrap: break-word;     /* corta palabras largas si hace falta */
+  overflow-wrap: break-word; /* soporte extra */
+  padding: 0 1rem;           /* un poco de espacio a los lados */
+  box-sizing: border-box;    /* para que el padding no estire */
+}
+
 
     .form-container {
     max-width: 380px;

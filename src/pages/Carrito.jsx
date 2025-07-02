@@ -8,7 +8,7 @@
     return (
         <section className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded-xl shadow-lg text-center">
         <p className="text-lg font-semibold text-[#1E40AF] mb-4">
-            Si te interesa algún producto o quieres más información, ¡contáctanos directamente por WhatsApp!
+            Si te interesa algún producto o quieres más información, contáctanos directamente por WhatsApp 
         </p>
 
         <p className="flex items-center mb-3 text-blue-700 font-medium justify-center">
