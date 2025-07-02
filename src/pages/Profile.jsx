@@ -89,7 +89,7 @@ export default function Profile() {
   if (!usuario || !usuarioInfo) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#f0f4f8] to-[#d9e2ec] text-[#1f2937] flex flex-col items-center py-24 px-6 font-sans">
+    <main className="min-h-screen bg-gradient-to-b from-[#e6f7ff] to-[#f0faff] text-[#0f172a] flex flex-col items-center py-24 px-6 font-sans">
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -103,33 +103,37 @@ export default function Profile() {
         {!modoEdicion ? (
           <>
             <div className="flex flex-col sm:flex-row gap-12 mb-10 items-center">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#3dd9c4] shadow-lg transition-transform hover:scale-105 cursor-pointer select-none">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#3dd9c4] shadow-lg">
                 {previewImg ? (
                   <img
                     src={previewImg}
                     alt="Foto de perfil"
                     className="object-cover w-full h-full rounded-full"
-                    draggable={false}
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-full h-full bg-[#c5f0e8] text-[#0f172a] font-extrabold text-6xl rounded-full select-none">
+                  <div className="flex items-center justify-center w-full h-full bg-[#c5f0e8] text-[#0f172a] font-extrabold text-6xl rounded-full">
                     {formData.nombre[0]?.toUpperCase() || "U"}
                   </div>
                 )}
               </div>
 
               <div className="flex flex-col flex-1 gap-6 text-lg">
-                {["Nombre", "Correo", "Teléfono", "Dirección"].map((label, idx) => {
-                  const key = label.toLowerCase();
-                  return (
-                    <div key={idx}>
-                      <h3 className="text-[#3dd9c4] font-semibold mb-1 select-none">{label}</h3>
-                      <p className="text-[#475569]">
-                        {formData[key] || (key === "telefono" || key === "dirección" ? "No definido" : "")}
-                      </p>
-                    </div>
-                  );
-                })}
+                <div>
+                  <h3 className="text-[#3dd9c4] font-semibold mb-1">Nombre</h3>
+                  <p className="text-[#0f172a]">{formData.nombre}</p>
+                </div>
+                <div>
+                  <h3 className="text-[#3dd9c4] font-semibold mb-1">Correo</h3>
+                  <p className="text-[#0f172a]">{formData.email}</p>
+                </div>
+                <div>
+                  <h3 className="text-[#3dd9c4] font-semibold mb-1">Teléfono</h3>
+                  <p className="text-[#0f172a]">{formData.telefono || "No definido"}</p>
+                </div>
+                <div>
+                  <h3 className="text-[#3dd9c4] font-semibold mb-1">Dirección</h3>
+                  <p className="text-[#0f172a]">{formData.direccion || "No definida"}</p>
+                </div>
               </div>
             </div>
 
@@ -153,16 +157,15 @@ export default function Profile() {
             className="space-y-8"
           >
             <div className="flex flex-col items-center gap-6 mb-8">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#3dd9c4] relative cursor-pointer hover:brightness-110 transition-transform select-none">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#3dd9c4] relative cursor-pointer hover:brightness-110 transition">
                 {previewImg ? (
                   <img
                     src={previewImg}
                     alt="Preview"
                     className="object-cover w-full h-full rounded-full"
-                    draggable={false}
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-full h-full bg-[#0f172a] text-[#3dd9c4] font-extrabold text-6xl rounded-full select-none">
+                  <div className="flex items-center justify-center w-full h-full bg-[#0f172a] text-[#3dd9c4] font-extrabold text-6xl rounded-full">
                     {formData.nombre[0]?.toUpperCase() || "U"}
                   </div>
                 )}
@@ -180,7 +183,7 @@ export default function Profile() {
               <div key={campo} className="max-w-lg mx-auto">
                 <label
                   htmlFor={campo}
-                  className="block text-[#3dd9c4] font-semibold mb-2 select-none"
+                  className="block text-[#3dd9c4] font-semibold mb-2"
                 >
                   {campo.charAt(0).toUpperCase() + campo.slice(1)}
                 </label>
@@ -191,7 +194,7 @@ export default function Profile() {
                   value={formData[campo]}
                   onChange={handleChange}
                   placeholder={campo === "telefono" ? "+1 809 000 0000" : ""}
-                  className="w-full bg-[#f0f4f8] border border-[#3dd9c4] rounded-lg px-5 py-3 text-[#1f2937] focus:outline-none focus:ring-4 focus:ring-[#3dd9c4] transition"
+                  className="w-full bg-white border border-[#3dd9c4] rounded-lg px-5 py-3 text-[#0f172a] focus:outline-none focus:ring-4 focus:ring-[#3dd9c4] transition"
                   required
                   autoComplete="off"
                 />
@@ -230,7 +233,7 @@ export default function Profile() {
                 }}
                 whileHover={{ scale: guardando ? 1 : 1.05 }}
                 whileTap={{ scale: guardando ? 1 : 0.95 }}
-                className="bg-[#475569] hover:bg-[#334155] text-white rounded-full px-10 py-3 font-semibold transition disabled:opacity-60"
+                className="bg-[#0f172a] text-white rounded-full px-10 py-3 font-semibold hover:bg-[#1e293b] transition disabled:opacity-60"
               >
                 Cancelar
               </motion.button>
