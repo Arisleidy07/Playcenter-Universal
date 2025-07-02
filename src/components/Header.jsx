@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
-import SidebarMenu from "./SidebarMenu";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { motion, AnimatePresence } from "framer-motion";
 import MarioCoinBlock from "./MarioCoinBlock";
-import { FaMapMarkerAlt, FaSearch } from "react-icons/fa";
+import { FaMapMarkerAlt, FaSearch, FaTimes } from "react-icons/fa";
 
 function Header() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
   const [buscadorVisible, setBuscadorVisible] = useState(false);
   const { usuario, logout } = useAuth();
-  const { modalAbierto, setModalAbierto } = useAuthModal();
+  const { setModalAbierto } = useAuthModal();
   const dropdownRef = useRef(null);
+  const buscarInputRef = useRef(null);
   const navigate = useNavigate();
 
   const manejarLogout = async () => {
@@ -30,7 +30,7 @@ function Header() {
   useEffect(() => {
     function handleClickFuera(event) {
       if (
-        dropdownRef.current && 
+        dropdownRef.current &&
         !dropdownRef.current.contains(event.target) &&
         buscadorVisible &&
         !event.target.closest("#search-bar-container")
@@ -48,6 +48,12 @@ function Header() {
     };
   }, [dropdownAbierto, buscadorVisible]);
 
+  useEffect(() => {
+    if (buscadorVisible && buscarInputRef.current) {
+      buscarInputRef.current.focus();
+    }
+  }, [buscadorVisible]);
+
   return (
     <>
       <motion.header
@@ -58,7 +64,6 @@ function Header() {
         style={{ backdropFilter: "saturate(180%) blur(15px)", maxWidth: "100vw", overflowX: "hidden" }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-4 sm:gap-6">
-
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 flex-shrink-0">
             <motion.img
@@ -79,17 +84,15 @@ function Header() {
             </div>
           </Link>
 
-          {/* BUSCADOR MOBILE: Solo lupa que abre SearchBar */}
+          {/* BUSCADOR MOBILE */}
           <div className="sm:hidden relative" id="search-bar-container">
-            {!buscadorVisible && (
-              <button
-                onClick={() => setBuscadorVisible(true)}
-                aria-label="Abrir búsqueda"
-                className="text-gray-600 hover:text-[#4FC3F7] transition text-xl"
-              >
-                <FaSearch />
-              </button>
-            )}
+            <button
+              onClick={() => setBuscadorVisible((v) => !v)}
+              aria-label={buscadorVisible ? "Cerrar búsqueda" : "Abrir búsqueda"}
+              className="text-gray-600 hover:text-[#4FC3F7] transition text-xl flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-md"
+            >
+              {buscadorVisible ? <FaTimes /> : <FaSearch />}
+            </button>
 
             <AnimatePresence>
               {buscadorVisible && (
@@ -98,9 +101,12 @@ function Header() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute top-10 left-0 w-screen max-w-xs bg-white rounded shadow-lg p-2 z-50"
+                  className="absolute top-12 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-xs bg-white rounded shadow-lg p-2 z-50"
                 >
-                  <SearchBar onClose={() => setBuscadorVisible(false)} />
+                  <SearchBar
+                    onClose={() => setBuscadorVisible(false)}
+                    inputRef={buscarInputRef}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -108,32 +114,17 @@ function Header() {
 
           {/* Navegación y login/perfil desktop */}
           <div className="hidden sm:flex items-center gap-6">
-
-            {/* SearchBar desktop */}
             <div className="flex-grow max-w-[240px]">
               <SearchBar />
             </div>
-
             <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
               <MarioCoinBlock />
-              <Link to="/" className="nav-link">
-                Inicio
-              </Link>
-              <Link to="/productos" className="nav-link">
-                Categorías
-              </Link>
-              <Link to="/arcade" className="nav-link">
-                Arcade
-              </Link>
-              <Link to="/nosotros" className="nav-link">
-                Nosotros
-              </Link>
-              <Link to="/contacto" className="nav-link">
-                Contáctanos
-              </Link>
-              <Link to="/carrito" className="nav-link text-xl hover:scale-110">
-                🛒
-              </Link>
+              <Link to="/" className="nav-link">Inicio</Link>
+              <Link to="/productos" className="nav-link">Categorías</Link>
+              <Link to="/arcade" className="nav-link">Arcade</Link>
+              <Link to="/nosotros" className="nav-link">Nosotros</Link>
+              <Link to="/contacto" className="nav-link">Contáctanos</Link>
+              <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
             </nav>
 
             {usuario ? (
@@ -196,9 +187,8 @@ function Header() {
         </div>
       </motion.header>
 
-      <SidebarMenu isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
 
-      {/* Espacio para que el contenido no quede debajo del header */}
+
       <div className="h-[70px] sm:h-[110px]" />
     </>
   );

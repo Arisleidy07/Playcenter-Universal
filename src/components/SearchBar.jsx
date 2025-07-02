@@ -1,8 +1,9 @@
-    import React, { useState } from "react";
+    // src/components/SearchBar.js
+    import React, { useState, useEffect, forwardRef } from "react";
     import { useNavigate } from "react-router-dom";
     import "./SearchBar.css";
 
-    function SearchBar() {
+    const SearchBar = forwardRef(({ onClose }, ref) => {
     const [busqueda, setBusqueda] = useState("");
     const navigate = useNavigate();
 
@@ -11,8 +12,15 @@
         if (busqueda.trim()) {
         navigate(`/buscar?q=${encodeURIComponent(busqueda.trim())}`);
         setBusqueda("");
+        if (onClose) onClose();
         }
     };
+
+    useEffect(() => {
+        if (ref && ref.current) {
+        ref.current.focus();
+        }
+    }, [ref]);
 
     return (
         <form
@@ -40,6 +48,7 @@
             </svg>
         </button>
         <input
+            ref={ref}
             className="w-full bg-transparent px-3 py-1 outline-none text-sm sm:text-base text-gray-800 placeholder-gray-400"
             placeholder="Buscar productos"
             required
@@ -49,6 +58,6 @@
         />
         </form>
     );
-    }
+    });
 
     export default SearchBar;

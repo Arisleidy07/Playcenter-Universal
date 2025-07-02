@@ -25,7 +25,7 @@ import Camaras from "./pages/categories/Camaras";
 import Cargadores from "./pages/categories/Cargadores";
 import Celulares from "./pages/categories/Celulares";
 import Consolas from "./pages/categories/Consolas";
-import Controles from "./pages/categories/controles";
+import Controles from "./pages/categories/Controles";
 import DiscosDuros from "./pages/categories/DiscosDuros";
 import Electrodomesticos from "./pages/categories/Electrodomesticos";
 import GamingChairs from "./pages/categories/GamingChairs";
@@ -62,14 +62,12 @@ export default function AnimatedRoutes() {
           }
         />
         <Route path="/producto/:id" element={<PageTransition><VistaProducto /></PageTransition>} />
+        <Route path="/producto/:id/detalle" element={<PageTransition><DetalleProducto /></PageTransition>} />
         <Route path="/carrito" element={<PageTransition><Carrito /></PageTransition>} />
         <Route path="/contacto" element={<PageTransition><Contacto /></PageTransition>} />
-        <Route path="/categorias" element={<PageTransition><Categorias /></PageTransition>} />
-        
         <Route path="/nosotros" element={<PageTransition><Nosotros /></PageTransition>} />
-        <Route path="/producto/:id/detalle" element={<PageTransition><DetalleProducto /></PageTransition>} />
         <Route path="/buscar" element={<PageTransition><ResultadosBusqueda /></PageTransition>} />
-
+        <Route path="/categorias" element={<PageTransition><Categorias /></PageTransition>} />
 
         <Route path="/productos" element={<PageTransition><Productos /></PageTransition>}>
           <Route index element={<ProductosTodos />} />
