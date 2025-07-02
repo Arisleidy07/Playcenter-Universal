@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import SidebarMenu from "./SidebarMenu";
 import { useAuth } from "../context/AuthContext";
-import { useAuthModal } from "../context/AuthModalContext";  // <--- Importa el contexto
+import { useAuthModal } from "../context/AuthModalContext";
 import { motion, AnimatePresence } from "framer-motion";
 import MarioCoinBlock from "./MarioCoinBlock";
 import { FaMapMarkerAlt } from "react-icons/fa";
@@ -12,7 +12,7 @@ function Header() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
   const { usuario, logout } = useAuth();
-  const { modalAbierto, setModalAbierto } = useAuthModal(); // <--- Usa el contexto
+  const { modalAbierto, setModalAbierto } = useAuthModal();
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -50,8 +50,9 @@ function Header() {
         className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] px-6 py-3"
         style={{ backdropFilter: "saturate(180%) blur(15px)" }}
       >
-        <div className="hidden sm:flex items-center justify-between max-w-7xl mx-auto w-full gap-6">
-          {/* Logo + ubicación */}
+        <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-4 sm:gap-6">
+
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-3 flex-shrink-0">
             <motion.img
               src="/playcenter.jpeg"
@@ -60,7 +61,7 @@ function Header() {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
-            <div className="flex flex-col leading-tight text-xs text-gray-700 font-medium">
+            <div className="flex flex-col leading-tight text-xs text-gray-700 font-medium hidden sm:flex">
               <span className="flex items-center gap-1 text-[11px] text-gray-500">
                 <FaMapMarkerAlt className="text-[#4FC3F7]" />
                 Envios
@@ -71,13 +72,13 @@ function Header() {
             </div>
           </Link>
 
-          {/* SearchBar reducido */}
-          <div className="flex-grow max-w-[240px]">
+          {/* SearchBar visible en móvil y escritorio */}
+          <div className="flex-grow max-w-full sm:max-w-[240px]">
             <SearchBar />
           </div>
 
-          {/* Navegación completa + login/perfil */}
-          <div className="flex items-center gap-6">
+          {/* Navegación y Login/Perfil en desktop */}
+          <div className="hidden sm:flex items-center gap-6">
             <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
               <MarioCoinBlock />
               <Link to="/" className="nav-link">
@@ -148,7 +149,7 @@ function Header() {
               </motion.div>
             ) : (
               <motion.button
-                onClick={() => setModalAbierto(true)} // Aquí usamos el contexto global para abrir modal
+                onClick={() => setModalAbierto(true)}
                 className="px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -161,8 +162,6 @@ function Header() {
       </motion.header>
 
       <SidebarMenu isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
-
-      {/* No necesitas aquí el AuthModal porque lo renderizas en el AuthModalProvider global */}
 
       <div className="h-[100px] sm:h-[110px]" />
     </>
