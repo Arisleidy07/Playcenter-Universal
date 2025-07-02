@@ -5,14 +5,10 @@ import Footer from "./components/Footer";
 import AnimatedRoutes from "./AnimatedRoutes";import NavbarInferior from "./components/NavbarInferior";
 
 
-
-
-
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col">
       <Header />
-      
       <main className="flex-grow">
         <AnimatedRoutes />
         <NavbarInferior />

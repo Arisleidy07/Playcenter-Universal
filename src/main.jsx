@@ -6,13 +6,16 @@ import App from "./App";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext"; // Asegúrate de tener la ruta correcta
 import { CarritoProvider } from "./context/CarritoContext"; // Este ya lo usabas
+import { UIProvider } from "./context/UIContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <CarritoProvider>
-          <App />
+          <UIProvider>
+            <App />
+          </UIProvider>
         </CarritoProvider>
       </AuthProvider>
     </BrowserRouter>

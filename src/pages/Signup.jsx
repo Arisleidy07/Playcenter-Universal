@@ -7,7 +7,7 @@ export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
+  const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,13 +16,13 @@ export default function Signup() {
     e.preventDefault();
     setError("");
 
-    if (name.trim().length === 0) {
+    if (nombre.trim().length === 0) {
       setError("El nombre es obligatorio");
       return;
     }
 
     try {
-      await signup(email, password, name);
+      await signup(email, password, nombre);
       navigate("/"); // Redirige al inicio o donde quieras
     } catch {
       setError("Error al crear la cuenta");
@@ -31,8 +31,7 @@ export default function Signup() {
 
   return (
     <div className="form-container" style={{ height: "550px" }}>
-      <p className="title">Create account</p>
-      <p className="sub-title">Let's get started with your 30 days free trial</p>
+      <p className="title">Crear cuenta</p>
       {error && (
         <p className="text-red-500 text-center mb-3 font-semibold">{error}</p>
       )}
@@ -40,15 +39,15 @@ export default function Signup() {
         <input
           type="text"
           className="input"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder="Nombre"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
           required
         />
         <input
           type="email"
           className="input"
-          placeholder="Email"
+          placeholder="Correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -56,30 +55,31 @@ export default function Signup() {
         <input
           type="password"
           className="input"
-          placeholder="Password"
+          placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
         <button type="submit" className="form-btn">
-          Create account
+          Crear cuenta
         </button>
       </form>
       <p className="sign-up-label">
-        Already have an account?{" "}
+        ¿Ya tienes una cuenta?{" "}
         <span
           className="sign-up-link"
           onClick={() => navigate("/login")}
           style={{ cursor: "pointer" }}
         >
-          Log in
+          Iniciar sesión
         </span>
       </p>
 
       <div className="buttons-container">
         <div
           className="apple-login-button"
-          onClick={() => alert("Signup con Apple no implementado")}
+          onClick={() => alert("Registro con Apple no implementado")}
+          style={{ cursor: "pointer" }}
         >
           <svg
             stroke="currentColor"
@@ -93,11 +93,12 @@ export default function Signup() {
           >
             <path d="M747.4 535.7c-.4-68.2 30.5-119.6 92.9-157.5-34.9-50-87.7-77.5-157.3-82.8-65.9-5.2-138 38.4-164.4 38.4-27.9 0-91.7-36.6-141.9-36.6C273.1 298.8 163 379.8 163 544.6c0 48.7 8.9 99 26.7 150.8 23.8 68.2 109.6 235.3 199.1 232.6 46.8-1.1 79.9-33.2 140.8-33.2 59.1 0 89.7 33.2 141.9 33.2 90.3-1.3 167.9-153.2 190.5-221.6-121.1-57.1-114.6-167.2-114.6-170.7zm-105.1-305c50.7-60.2 46.1-115 44.6-134.7-44.8 2.6-96.6 30.5-126.1 64.8-32.5 36.8-51.6 82.3-47.5 133.6 48.4 3.7 92.6-21.2 129-63.7z"></path>
           </svg>
-          <span>Sign up with Apple</span>
+          <span>Registrarse con Apple</span>
         </div>
         <div
           className="google-login-button"
-          onClick={() => alert("Signup con Google no implementado")}
+          onClick={() => alert("Registro con Google no implementado")}
+          style={{ cursor: "pointer" }}
         >
           <svg
             stroke="currentColor"
@@ -134,7 +135,7 @@ export default function Signup() {
           c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
             ></path>
           </svg>
-          <span>Sign up with Google</span>
+          <span>Registrarse con Google</span>
         </div>
       </div>
     </div>

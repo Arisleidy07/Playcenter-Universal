@@ -12,7 +12,7 @@ function ProductosTodos() {
 
   return (
     <div className="p-6 bg-white min-h-screen max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">Todos los Productos</h1>
+      <h1 className="titulo-categoria">Todos los Productos</h1>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {productos.map((producto) => (

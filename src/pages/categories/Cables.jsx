@@ -12,7 +12,7 @@ const categoria = productosAll.find(
     const productos = categoria ? categoria.productos : [];
 
     return (
-        <div className="p-6 pt-28 bg-white min-h-screen">
+        <div className="pt-[66px] sm:pt-[80px] px-4 pb-10 bg-white min-h-screen">
         <h1 className="titulo-categoria">
             Cables
         </h1>

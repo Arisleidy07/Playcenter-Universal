@@ -41,7 +41,7 @@
         </button>
         <input
             className="w-full bg-transparent px-3 py-1 outline-none text-sm sm:text-base text-gray-800 placeholder-gray-400"
-            placeholder="Buscar productos, categorías..."
+            placeholder="Buscar productos"
             required
             type="text"
             value={busqueda}

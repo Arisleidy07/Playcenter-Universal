@@ -10,8 +10,8 @@ function RetroConsolas() {
   const productos = categoria ? categoria.productos : [];
 
   return (
-    <div className="p-6 pt-28 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Retro Consolas</h1>
+    <div className="pt-[66px] sm:pt-[80px] px-4 pb-10 bg-white min-h-screen">
+      <h1 className="titulo-categoria">Retro Consolas</h1>
       <div className="flex flex-wrap gap-6 justify-between">
         {productos.map((producto) => (
           <div key={producto.id} className="w-full sm:w-[48%]">

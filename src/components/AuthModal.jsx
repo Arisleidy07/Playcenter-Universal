@@ -11,7 +11,7 @@ export default function AuthModal({ onClose, onLogin, onSignup }) {
     e.preventDefault();
 
     if (!email || !password || (!isLogin && !name)) {
-      alert("Completa todos los campos");
+      alert("Por favor, completa todos los campos");
       return;
     }
 
@@ -23,7 +23,7 @@ export default function AuthModal({ onClose, onLogin, onSignup }) {
       }
       onClose();
     } catch (error) {
-      console.error("🔥 Firebase error:", error);
+      console.error("🔥 Error Firebase:", error);
       alert(error.message || "Ocurrió un error");
     }
   };
@@ -37,12 +37,12 @@ export default function AuthModal({ onClose, onLogin, onSignup }) {
 
         {isLogin ? (
           <>
-            <p className="title">Welcome back</p>
+            <p className="title">Bienvenido de nuevo</p>
             <form className="form" onSubmit={handleSubmit}>
               <input
                 type="email"
                 className="input"
-                placeholder="Email"
+                placeholder="Correo electrónico"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -50,32 +50,32 @@ export default function AuthModal({ onClose, onLogin, onSignup }) {
               <input
                 type="password"
                 className="input"
-                placeholder="Password"
+                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
               <p className="page-link">
-                <span className="page-link-label">Forgot Password?</span>
+                <span className="page-link-label">¿Olvidaste la contraseña?</span>
               </p>
-              <button type="submit" className="form-btn">Log in</button>
+              <button type="submit" className="form-btn">Iniciar sesión</button>
             </form>
             <p className="sign-up-label">
-              Don't have an account?{" "}
+              ¿No tienes cuenta?{" "}
               <span className="sign-up-link" onClick={() => setIsLogin(false)}>
-                Sign up
+                Regístrate
               </span>
             </p>
           </>
         ) : (
           <>
-            <p className="title">Create account</p>
-            <p className="sub-title">Let's get started with your 30 days free trial</p>
+            <p className="title">Crear cuenta</p>
+            <p className="sub-title">Comienza con tu prueba gratuita de 30 días</p>
             <form className="form" onSubmit={handleSubmit}>
               <input
                 type="text"
                 className="input"
-                placeholder="Name"
+                placeholder="Nombre"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -83,7 +83,7 @@ export default function AuthModal({ onClose, onLogin, onSignup }) {
               <input
                 type="email"
                 className="input"
-                placeholder="Email"
+                placeholder="Correo electrónico"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -91,17 +91,17 @@ export default function AuthModal({ onClose, onLogin, onSignup }) {
               <input
                 type="password"
                 className="input"
-                placeholder="Password"
+                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <button type="submit" className="form-btn">Create account</button>
+              <button type="submit" className="form-btn">Crear cuenta</button>
             </form>
             <p className="sign-up-label">
-              Already have an account?{" "}
+              ¿Ya tienes cuenta?{" "}
               <span className="sign-up-link" onClick={() => setIsLogin(true)}>
-                Log in
+                Inicia sesión
               </span>
             </p>
           </>
