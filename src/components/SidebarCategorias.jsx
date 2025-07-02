@@ -45,7 +45,10 @@
     return (
         <>
         {/* Sidebar escritorio */}
-        <aside className="hidden sm:block w-44 md:w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 sticky top-[76px] h-[calc(100vh-4.75rem)] overflow-y-auto z-30">
+        <aside
+            className="hidden sm:block w-44 md:w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 sticky top-[76px] h-[calc(100vh-4.75rem)] overflow-y-auto z-30"
+            aria-label="Categorías de productos"
+        >
             <h2 className="text-sm font-bold text-blue-800 mb-3 text-center uppercase tracking-wide select-none">
             Categorías
             </h2>
@@ -54,7 +57,7 @@
                 <li key={idx}>
                 <button
                     onClick={() => handleClick(cat)}
-                    className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 ${
+                    className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     isActiva(cat.nombre)
                         ? "bg-blue-600 text-white shadow"
                         : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
@@ -71,22 +74,26 @@
         <AnimatePresence>
             {mostrarEnMovil && (
             <>
+                {/* Overlay móvil sidebar */}
                 <motion.div
-                className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-md z-[9998]"
+                className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm z-[1000]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMostrarEnMovil(false)}
+                aria-hidden="true"
                 />
 
-                <motion.div
-                initial={{ x: -300 }}
+                <motion.nav
+                role="navigation"
+                aria-label="Categorías"
+                initial={{ x: -320 }}
                 animate={{ x: 0 }}
-                exit={{ x: -300 }}
+                exit={{ x: -320 }}
                 transition={{ type: "spring", stiffness: 280, damping: 25 }}
-                className="fixed top-0 left-0 bottom-0 w-72 bg-white shadow-lg z-[9999] overflow-y-auto px-4 py-4"
+                className="fixed top-0 left-0 bottom-0 w-72 bg-white shadow-lg z-[1001] overflow-y-auto px-4 py-4"
                 >
-                <h2 className="text-base font-bold text-blue-800 mb-3 uppercase tracking-wide">
+                <h2 className="text-base font-bold text-blue-800 mb-3 uppercase tracking-wide select-none">
                     Categorías
                 </h2>
                 <ul className="space-y-2 text-sm">
@@ -94,7 +101,7 @@
                     <li key={idx}>
                         <button
                         onClick={() => handleClick(cat)}
-                        className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 ${
+                        className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                             isActiva(cat.nombre)
                             ? "bg-blue-600 text-white shadow"
                             : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
@@ -105,7 +112,7 @@
                     </li>
                     ))}
                 </ul>
-                </motion.div>
+                </motion.nav>
             </>
             )}
         </AnimatePresence>

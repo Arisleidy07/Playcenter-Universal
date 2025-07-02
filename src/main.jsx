@@ -1,23 +1,22 @@
-// src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { CarritoProvider } from "./context/CarritoContext";
+import { AuthModalProvider } from "./context/AuthModalContext";
 import "./index.css";
-import { AuthProvider } from "./context/AuthContext"; // Asegúrate de tener la ruta correcta
-import { CarritoProvider } from "./context/CarritoContext"; // Este ya lo usabas
-import { UIProvider } from "./context/UIContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <CarritoProvider>
-          <UIProvider>
+    <AuthProvider>
+      <CarritoProvider>
+        <AuthModalProvider>
+          <BrowserRouter>
             <App />
-          </UIProvider>
-        </CarritoProvider>
-      </AuthProvider>
-    </BrowserRouter>
+          </BrowserRouter>
+        </AuthModalProvider>
+      </CarritoProvider>
+    </AuthProvider>
   </React.StrictMode>
 );

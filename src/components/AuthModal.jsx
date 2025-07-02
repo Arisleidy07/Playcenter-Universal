@@ -1,112 +1,138 @@
-import React, { useState } from "react";
-import "./AuthModal.css";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useAuthModal } from "../context/AuthModalContext";
+import { motion } from "framer-motion";
+import { FaUser, FaLock, FaUserPlus } from "react-icons/fa";
 
-export default function AuthModal({ onClose, onLogin, onSignup }) {
-  const [isLogin, setIsLogin] = useState(true);
+export default function AuthModal() {
+  const { modalAbierto, setModalAbierto, modo: modoGlobal, setModo } = useAuthModal();
+  const { login, signup } = useAuth();
+
+  const [modo, setModoLocal] = useState(modoGlobal);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState(""); // Solo para registro
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    setModoLocal(modoGlobal);
+    setError("");
+    setEmail("");
+    setPassword("");
+    setName("");
+  }, [modalAbierto, modoGlobal]);
+
+  async function handleSubmit(e) {
     e.preventDefault();
-
-    if (!email || !password || (!isLogin && !name)) {
-      alert("Por favor, completa todos los campos");
-      return;
-    }
-
+    setError("");
     try {
-      if (isLogin) {
-        await onLogin(email, password);
+      if (modo === "login") {
+        await login(email, password);
       } else {
-        await onSignup(email, password, name);
+        await signup(email, password, name);
       }
-      onClose();
-    } catch (error) {
-      console.error("🔥 Error Firebase:", error);
-      alert(error.message || "Ocurrió un error");
+      setModalAbierto(false);
+    } catch (e) {
+      setError("Error: " + e.message);
     }
-  };
+  }
+
+  if (!modalAbierto) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="form-container" onClick={(e) => e.stopPropagation()}>
-        <button className="close-button" onClick={onClose} aria-label="Cerrar modal">
+    <div
+      onClick={() => setModalAbierto(false)}
+      className="fixed inset-0 bg-gradient-to-br from-black/90 to-gray-900/90 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+    >
+      <motion.div
+        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.3 }}
+        className="relative bg-[#0f172a] text-white rounded-xl shadow-2xl w-full max-w-md p-6 border border-[#3b82f6]/40"
+      >
+        <button
+          onClick={() => setModalAbierto(false)}
+          className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold"
+        >
           &times;
         </button>
 
-        {isLogin ? (
-          <>
-            <p className="title">Bienvenido de nuevo</p>
-            <form className="form" onSubmit={handleSubmit}>
-              <input
-                type="email"
-                className="input"
-                placeholder="Correo electrónico"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                className="input"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <p className="page-link">
-                <span className="page-link-label">¿Olvidaste la contraseña?</span>
-              </p>
-              <button type="submit" className="form-btn">Iniciar sesión</button>
-            </form>
-            <p className="sign-up-label">
-              ¿No tienes cuenta?{" "}
-              <span className="sign-up-link" onClick={() => setIsLogin(false)}>
-                Regístrate
-              </span>
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="title">Crear cuenta</p>
-            <p className="sub-title">Comienza con tu prueba gratuita de 30 días</p>
-            <form className="form" onSubmit={handleSubmit}>
+        <h2 className="text-2xl font-bold mb-4 text-center flex items-center justify-center gap-2">
+          {modo === "login" ? (
+            <>
+              <FaUser className="text-[#3b82f6]" /> Iniciar Sesión
+            </>
+          ) : (
+            <>
+              <FaUserPlus className="text-[#3b82f6]" /> Registrarse
+            </>
+          )}
+        </h2>
+
+        {error && (
+          <p className="text-red-400 mb-4 text-center font-semibold">{error}</p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {modo === "signup" && (
+            <div>
+              <label className="block text-sm mb-1">Nombre</label>
               <input
                 type="text"
-                className="input"
-                placeholder="Nombre"
+                required
+                className="w-full bg-[#1e293b] border border-[#3b82f6]/40 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                required
               />
-              <input
-                type="email"
-                className="input"
-                placeholder="Correo electrónico"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                className="input"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button type="submit" className="form-btn">Crear cuenta</button>
-            </form>
-            <p className="sign-up-label">
-              ¿Ya tienes cuenta?{" "}
-              <span className="sign-up-link" onClick={() => setIsLogin(true)}>
-                Inicia sesión
-              </span>
-            </p>
-          </>
-        )}
-      </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm mb-1">Correo electrónico</label>
+            <input
+              type="email"
+              required
+              className="w-full bg-[#1e293b] border border-[#3b82f6]/40 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm mb-1">Contraseña</label>
+            <input
+              type="password"
+              required
+              className="w-full bg-[#1e293b] border border-[#3b82f6]/40 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold py-2 rounded-lg shadow-lg transition transform hover:scale-105"
+          >
+            {modo === "login" ? "Iniciar sesión" : "Registrarse"}
+          </button>
+        </form>
+
+        <p
+          className="mt-4 text-center text-sm cursor-pointer text-[#3b82f6] hover:underline select-none"
+          onClick={() => {
+            setError("");
+            const nuevoModo = modo === "login" ? "signup" : "login";
+            setModoLocal(nuevoModo);
+            setModo(nuevoModo);
+          }}
+        >
+          {modo === "login"
+            ? "¿No tienes una cuenta? Regístrate"
+            : "¿Ya tienes cuenta? Inicia sesión"}
+        </p>
+      </motion.div>
     </div>
   );
 }

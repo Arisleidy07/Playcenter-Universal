@@ -43,6 +43,8 @@ import Tablets from "./pages/categories/Tablets";
 import Teclados from "./pages/categories/Teclados";
 import Videojuegos from "./pages/categories/Videojuegos";
 
+import PrivateRoute from "./components/PrivateRoute";
+
 export default function AnimatedRoutes() {
   const location = useLocation();
 
@@ -51,14 +53,23 @@ export default function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Inicio /></PageTransition>} />
         <Route path="/arcade" element={<PageTransition><Arcade /></PageTransition>} />
-        <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <PageTransition><Profile /></PageTransition>
+            </PrivateRoute>
+          }
+        />
         <Route path="/producto/:id" element={<PageTransition><VistaProducto /></PageTransition>} />
         <Route path="/carrito" element={<PageTransition><Carrito /></PageTransition>} />
         <Route path="/contacto" element={<PageTransition><Contacto /></PageTransition>} />
         <Route path="/categorias" element={<PageTransition><Categorias /></PageTransition>} />
+        
         <Route path="/nosotros" element={<PageTransition><Nosotros /></PageTransition>} />
         <Route path="/producto/:id/detalle" element={<PageTransition><DetalleProducto /></PageTransition>} />
         <Route path="/buscar" element={<PageTransition><ResultadosBusqueda /></PageTransition>} />
+
 
         <Route path="/productos" element={<PageTransition><Productos /></PageTransition>}>
           <Route index element={<ProductosTodos />} />
