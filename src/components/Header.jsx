@@ -8,7 +8,6 @@ import MarioCoinBlock from "./MarioCoinBlock";
 import { FaMapMarkerAlt, FaSearch, FaTimes } from "react-icons/fa";
 
 function Header() {
-  const [menuAbierto, setMenuAbierto] = useState(false);
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
   const [buscadorVisible, setBuscadorVisible] = useState(false);
   const { usuario, logout } = useAuth();
@@ -61,7 +60,11 @@ function Header() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] px-6 py-3"
-        style={{ backdropFilter: "saturate(180%) blur(15px)", maxWidth: "100vw", overflowX: "hidden" }}
+        style={{
+          backdropFilter: "saturate(180%) blur(15px)",
+          maxWidth: "100vw",
+          overflowX: "hidden",
+        }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-4 sm:gap-6">
           {/* Logo */}
@@ -101,13 +104,14 @@ function Header() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute top-12 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-xs bg-white rounded shadow-lg p-2 z-50"
+                  className="fixed top-[70px] left-0 w-full px-4 z-50"
                 >
-                  {/* Aquí está el cambio */}
-                  <SearchBar
-                    onClose={() => setBuscadorVisible(false)}
-                    ref={buscarInputRef}
-                  />
+                  <div className="bg-white rounded shadow-lg p-2 max-w-md mx-auto">
+                    <SearchBar
+                      onClose={() => setBuscadorVisible(false)}
+                      ref={buscarInputRef}
+                    />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
