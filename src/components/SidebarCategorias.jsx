@@ -44,7 +44,6 @@
 
     return (
         <>
-        {/* Sidebar escritorio */}
         <aside
             className="hidden sm:block w-44 md:w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 sticky top-[76px] h-[calc(100vh-4.75rem)] overflow-y-auto z-30"
             aria-label="Categorías de productos"
@@ -70,12 +69,11 @@
             </ul>
         </aside>
 
-        {/* Panel móvil */}
         <AnimatePresence>
             {mostrarEnMovil && (
             <>
-                {/* Overlay móvil sidebar */}
                 <motion.div
+                id="sidebar-categorias"
                 className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm z-[1000]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
