@@ -46,20 +46,20 @@ function Categorias() {
 
   return (
     <main className="pt-6 sm:pt-8 px-3 sm:px-6 lg:px-10 pb-8 bg-white min-h-screen">
-
-      <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
-        <button
-          onClick={() => setMostrarCategorias(!mostrarCategorias)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg font-semibold text-sm transition ${
-            mostrarCategorias ? "bg-[#3bb0f3] text-white" : "bg-[#4FC3F7] text-white"
-          }`}
-          aria-expanded={mostrarCategorias}
-          aria-controls="sidebar-categorias"
-        >
-          <FaThList />
-          Categorías
-        </button>
-      </div>
+      {/* Aquí: solo mostrar botón si NO está abierto el sidebar */}
+      {!mostrarCategorias && (
+        <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
+          <button
+            onClick={() => setMostrarCategorias(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#4FC3F7] text-white rounded-full shadow-lg font-semibold text-sm"
+            aria-expanded={mostrarCategorias}
+            aria-controls="sidebar-categorias"
+          >
+            <FaThList />
+            Categorías
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-4">
         <SidebarCategorias
