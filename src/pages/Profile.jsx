@@ -89,60 +89,59 @@ export default function Profile() {
   if (!usuario || !usuarioInfo) return null;
 
   return (
-    <main className="min-h-screen bg-white text-gray-300 flex flex-col items-center py-24 px-6">
+    <main className="min-h-screen bg-gradient-to-b from-[#f0f4f8] to-[#d9e2ec] text-[#1f2937] flex flex-col items-center py-24 px-6 font-sans">
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-3xl w-full bg-white rounded-3xl shadow-xl p-10 ring-2 ring-[#4FC3F7]"
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="max-w-3xl w-full bg-white rounded-3xl shadow-2xl p-10 ring-4 ring-[#3dd9c4]"
       >
-        <h1 className="text-5xl font-extrabold text-[#4FC3F7] mb-10 tracking-wide text-center">
+        <h1 className="text-5xl font-extrabold mb-10 tracking-tight text-center text-[#0f172a] select-none">
           Mi Cuenta
         </h1>
-                {!modoEdicion ? (
+
+        {!modoEdicion ? (
           <>
             <div className="flex flex-col sm:flex-row gap-12 mb-10 items-center">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#4FC3F7]">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#3dd9c4] shadow-lg transition-transform hover:scale-105 cursor-pointer select-none">
                 {previewImg ? (
                   <img
                     src={previewImg}
                     alt="Foto de perfil"
                     className="object-cover w-full h-full rounded-full"
+                    draggable={false}
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-full h-full bg-blue-100 text-[#4FC3F7] font-bold text-6xl rounded-full">
+                  <div className="flex items-center justify-center w-full h-full bg-[#c5f0e8] text-[#0f172a] font-extrabold text-6xl rounded-full select-none">
                     {formData.nombre[0]?.toUpperCase() || "U"}
                   </div>
                 )}
               </div>
 
               <div className="flex flex-col flex-1 gap-6 text-lg">
-                <div>
-                  <h3 className="text-[#75D6FF] font-semibold mb-1">Nombre</h3>
-                  <p>{formData.nombre}</p>
-                </div>
-                <div>
-                  <h3 className="text-[#75D6FF] font-semibold mb-1">Correo</h3>
-                  <p>{formData.email}</p>
-                </div>
-                <div>
-                  <h3 className="text-[#75D6FF] font-semibold mb-1">Teléfono</h3>
-                  <p>{formData.telefono || "No definido"}</p>
-                </div>
-                <div>
-                  <h3 className="text-[#75D6FF] font-semibold mb-1">Dirección</h3>
-                  <p>{formData.direccion || "No definida"}</p>
-                </div>
+                {["Nombre", "Correo", "Teléfono", "Dirección"].map((label, idx) => {
+                  const key = label.toLowerCase();
+                  return (
+                    <div key={idx}>
+                      <h3 className="text-[#3dd9c4] font-semibold mb-1 select-none">{label}</h3>
+                      <p className="text-[#475569]">
+                        {formData[key] || (key === "telefono" || key === "dirección" ? "No definido" : "")}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             <div className="flex justify-center">
-              <button
+              <motion.button
                 onClick={() => setModoEdicion(true)}
-                className="bg-[#4FC3F7] hover:bg-[#3BB0F3] transition rounded-full px-10 py-4 font-semibold text-black shadow-lg hover:shadow-xl"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-[#3dd9c4] text-[#0f172a] rounded-full px-12 py-4 font-semibold shadow-md hover:shadow-xl transition"
               >
                 Editar Perfil
-              </button>
+              </motion.button>
             </div>
           </>
         ) : (
@@ -154,15 +153,16 @@ export default function Profile() {
             className="space-y-8"
           >
             <div className="flex flex-col items-center gap-6 mb-8">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#4FC3F7] relative cursor-pointer hover:brightness-110 transition">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-8 border-[#3dd9c4] relative cursor-pointer hover:brightness-110 transition-transform select-none">
                 {previewImg ? (
                   <img
                     src={previewImg}
                     alt="Preview"
                     className="object-cover w-full h-full rounded-full"
+                    draggable={false}
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-full h-full bg-[#292E3B] text-[#4FC3F7] font-bold text-6xl rounded-full">
+                  <div className="flex items-center justify-center w-full h-full bg-[#0f172a] text-[#3dd9c4] font-extrabold text-6xl rounded-full select-none">
                     {formData.nombre[0]?.toUpperCase() || "U"}
                   </div>
                 )}
@@ -180,7 +180,7 @@ export default function Profile() {
               <div key={campo} className="max-w-lg mx-auto">
                 <label
                   htmlFor={campo}
-                  className="block text-[#75D6FF] font-semibold mb-2"
+                  className="block text-[#3dd9c4] font-semibold mb-2 select-none"
                 >
                   {campo.charAt(0).toUpperCase() + campo.slice(1)}
                 </label>
@@ -191,7 +191,7 @@ export default function Profile() {
                   value={formData[campo]}
                   onChange={handleChange}
                   placeholder={campo === "telefono" ? "+1 809 000 0000" : ""}
-                  className="w-full bg-[#292E3B] border border-[#4FC3F7] rounded-lg px-5 py-3 text-gray-300 focus:outline-none focus:ring-4 focus:ring-[#4FC3F7] transition"
+                  className="w-full bg-[#f0f4f8] border border-[#3dd9c4] rounded-lg px-5 py-3 text-[#1f2937] focus:outline-none focus:ring-4 focus:ring-[#3dd9c4] transition"
                   required
                   autoComplete="off"
                 />
@@ -201,7 +201,7 @@ export default function Profile() {
             {mensaje && (
               <p
                 className={`text-center text-sm font-semibold ${
-                  mensaje.includes("Error") ? "text-red-500" : "text-green-400"
+                  mensaje.includes("Error") ? "text-red-500" : "text-green-500"
                 }`}
               >
                 {mensaje}
@@ -209,15 +209,17 @@ export default function Profile() {
             )}
 
             <div className="flex justify-center gap-8 max-w-lg mx-auto">
-              <button
+              <motion.button
                 type="submit"
                 disabled={guardando}
-                className="bg-[#4FC3F7] hover:bg-[#3BB0F3] transition rounded-full px-8 py-3 font-semibold text-black shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-60"
+                whileHover={{ scale: guardando ? 1 : 1.05 }}
+                whileTap={{ scale: guardando ? 1 : 0.95 }}
+                className="bg-[#3dd9c4] text-[#0f172a] rounded-full px-10 py-3 font-semibold shadow-md hover:shadow-xl transition disabled:opacity-60"
               >
                 {guardando ? "Guardando..." : "Guardar Cambios"}
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
                 type="button"
                 disabled={guardando}
                 onClick={() => {
@@ -226,10 +228,12 @@ export default function Profile() {
                   setPreviewImg(formData.fotoURL);
                   setImgFile(null);
                 }}
-                className="bg-[#2C313C] hover:bg-[#414A5A] transition rounded-full px-8 py-3 font-semibold text-gray-300"
+                whileHover={{ scale: guardando ? 1 : 1.05 }}
+                whileTap={{ scale: guardando ? 1 : 0.95 }}
+                className="bg-[#475569] hover:bg-[#334155] text-white rounded-full px-10 py-3 font-semibold transition disabled:opacity-60"
               >
                 Cancelar
-              </button>
+              </motion.button>
             </div>
           </form>
         )}
@@ -237,4 +241,3 @@ export default function Profile() {
     </main>
   );
 }
-
