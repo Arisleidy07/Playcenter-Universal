@@ -38,7 +38,6 @@ function Header() {
         setBuscadorVisible(false);
       }
     }
-
     if (dropdownAbierto || buscadorVisible) {
       document.addEventListener("mousedown", handleClickFuera);
     }
@@ -55,6 +54,7 @@ function Header() {
 
   return (
     <>
+      {/* HEADER PRINCIPAL */}
       <motion.header
         initial={{ y: -120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -87,7 +87,7 @@ function Header() {
             </div>
           </Link>
 
-          {/* BUSCADOR MOBILE */}
+          {/* BOTÓN BUSCADOR MOBILE */}
           <div className="sm:hidden relative" id="search-bar-container">
             <button
               onClick={() => setBuscadorVisible((v) => !v)}
@@ -96,29 +96,15 @@ function Header() {
             >
               {buscadorVisible ? <FaTimes /> : <FaSearch />}
             </button>
-
-            <AnimatePresence>
-              {buscadorVisible && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="fixed top-[70px] left-0 w-full z-50 bg-white px-4 py-3 shadow-md"
-                >
-                  <SearchBar
-                    onClose={() => setBuscadorVisible(false)}
-                    ref={buscarInputRef}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
-          {/* Navegación y login/perfil desktop */}
+          {/* NAV DESKTOP */}
           <div className="hidden sm:flex items-center gap-6">
             <div className="flex-grow max-w-[240px]">
-              <SearchBar />
+              <SearchBar
+                onClose={() => setBuscadorVisible(false)}
+                ref={buscarInputRef}
+              />
             </div>
             <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
               <MarioCoinBlock />
@@ -190,6 +176,25 @@ function Header() {
         </div>
       </motion.header>
 
+      {/* BUSCADOR MOBILE QUE SIEMPRE SE VE */}
+      <AnimatePresence>
+        {buscadorVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-0 left-0 w-full z-[99999] bg-white p-4 shadow-md"
+          >
+            <SearchBar
+              onClose={() => setBuscadorVisible(false)}
+              ref={buscarInputRef}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ESPACIO HEADER */}
       <div className="h-[70px] sm:h-[110px]" />
     </>
   );
