@@ -110,7 +110,7 @@ export default function Profile() {
                     className="object-cover w-full h-full rounded-full"
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-full h-full bg-[#292E3B] text-[#4FC3F7] font-bold text-6xl rounded-full">
+                  <div className="flex items-center justify-center w-full h-full bg-blue-100 text-[#4FC3F7] font-bold text-6xl rounded-full">
                     {formData.nombre[0]?.toUpperCase() || "U"}
                   </div>
                 )}
