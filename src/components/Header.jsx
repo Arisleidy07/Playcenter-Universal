@@ -6,11 +6,12 @@ import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { motion, AnimatePresence } from "framer-motion";
 import MarioCoinBlock from "./MarioCoinBlock";
-import { FaMapMarkerAlt } from "react-icons/fa";
+import { FaMapMarkerAlt, FaSearch } from "react-icons/fa";
 
 function Header() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
+  const [buscadorVisible, setBuscadorVisible] = useState(false);
   const { usuario, logout } = useAuth();
   const { modalAbierto, setModalAbierto } = useAuthModal();
   const dropdownRef = useRef(null);
@@ -28,18 +29,24 @@ function Header() {
 
   useEffect(() => {
     function handleClickFuera(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target) &&
+        buscadorVisible &&
+        !event.target.closest("#search-bar-container")
+      ) {
         setDropdownAbierto(false);
+        setBuscadorVisible(false);
       }
     }
 
-    if (dropdownAbierto) {
+    if (dropdownAbierto || buscadorVisible) {
       document.addEventListener("mousedown", handleClickFuera);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickFuera);
     };
-  }, [dropdownAbierto]);
+  }, [dropdownAbierto, buscadorVisible]);
 
   return (
     <>
@@ -48,7 +55,7 @@ function Header() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] px-6 py-3"
-        style={{ backdropFilter: "saturate(180%) blur(15px)" }}
+        style={{ backdropFilter: "saturate(180%) blur(15px)", maxWidth: "100vw", overflowX: "hidden" }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-4 sm:gap-6">
 
@@ -72,13 +79,41 @@ function Header() {
             </div>
           </Link>
 
-          {/* SearchBar visible en móvil y escritorio */}
-          <div className="flex-grow max-w-full sm:max-w-[240px]">
-            <SearchBar />
+          {/* BUSCADOR MOBILE: Solo lupa que abre SearchBar */}
+          <div className="sm:hidden relative" id="search-bar-container">
+            {!buscadorVisible && (
+              <button
+                onClick={() => setBuscadorVisible(true)}
+                aria-label="Abrir búsqueda"
+                className="text-gray-600 hover:text-[#4FC3F7] transition text-xl"
+              >
+                <FaSearch />
+              </button>
+            )}
+
+            <AnimatePresence>
+              {buscadorVisible && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-10 left-0 w-screen max-w-xs bg-white rounded shadow-lg p-2 z-50"
+                >
+                  <SearchBar onClose={() => setBuscadorVisible(false)} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Navegación y Login/Perfil en desktop */}
+          {/* Navegación y login/perfil desktop */}
           <div className="hidden sm:flex items-center gap-6">
+
+            {/* SearchBar desktop */}
+            <div className="flex-grow max-w-[240px]">
+              <SearchBar />
+            </div>
+
             <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
               <MarioCoinBlock />
               <Link to="/" className="nav-link">
@@ -163,7 +198,8 @@ function Header() {
 
       <SidebarMenu isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
 
-      <div className="h-[100px] sm:h-[110px]" />
+      {/* Espacio para que el contenido no quede debajo del header */}
+      <div className="h-[70px] sm:h-[110px]" />
     </>
   );
 }

@@ -56,13 +56,14 @@ function SliderAnuncios() {
     }
   };
 
-  return (
+ return (
     <div
       ref={sliderRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="relative w-full max-w-[1600px] mx-auto overflow-hidden rounded-xl shadow-xl h-[200px] sm:h-[260px] md:h-[320px] lg:h-[500px]"
+      className="relative w-full max-w-[1600px] mx-auto overflow-hidden rounded-xl shadow-xl
+        h-[140px] sm:h-[180px] md:h-[260px] lg:h-[400px]"
     >
       <div
         className="flex transition-transform duration-700 ease-in-out h-full"
@@ -84,8 +85,8 @@ function SliderAnuncios() {
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.02]"
                 loading="lazy"
+                className="w-full h-full object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
               />
             </a>
           ) : (
@@ -98,8 +99,8 @@ function SliderAnuncios() {
               <img
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
-                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.02]"
                 loading="lazy"
+                className="w-full h-full object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
               />
             </Link>
           )
@@ -109,21 +110,21 @@ function SliderAnuncios() {
       {/* Botones de navegación */}
       <button
         onClick={handlePrev}
-        className="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 sm:p-3 z-20 transition"
+        className="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-1.5 sm:p-3 z-20 transition"
         aria-label="Anterior"
       >
-        <ChevronLeft className="text-white w-5 h-5 sm:w-6 sm:h-6" />
+        <ChevronLeft className="text-white w-4 h-4 sm:w-6 sm:h-6" />
       </button>
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 sm:p-3 z-20 transition"
+        className="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-1.5 sm:p-3 z-20 transition"
         aria-label="Siguiente"
       >
-        <ChevronRight className="text-white w-5 h-5 sm:w-6 sm:h-6" />
+        <ChevronRight className="text-white w-4 h-4 sm:w-6 sm:h-6" />
       </button>
 
       {/* Indicadores */}
-      <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+      <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {anuncios.map((_, idx) => (
           <button
             key={idx}
@@ -141,5 +142,4 @@ function SliderAnuncios() {
     </div>
   );
 }
-
 export default SliderAnuncios;

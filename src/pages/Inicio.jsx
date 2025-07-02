@@ -13,7 +13,9 @@ import productosAll from "../data/productosAll";
 
 function Inicio() {
   return (
-    <div className="pt-[80px] bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 min-h-screen">
+      {/* Si quieres mantener espacio para el header fijo, controla ese espacio desde el Header.jsx */}
+      
       {/* SLIDER GRANDE */}
       <div className="w-full max-w-[1600px] mx-auto px-4">
         <div className="rounded-lg overflow-hidden shadow-xl">
