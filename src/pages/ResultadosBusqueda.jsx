@@ -11,7 +11,6 @@ export default function ResultadosBusqueda() {
   const query = useQuery();
   const termino = query.get("q")?.toLowerCase() || "";
 
-  // Buscar en todos los productos
   const todos = productosAll.flatMap((cat) => cat.productos);
   const coincidencias = todos.filter((producto) =>
     producto.nombre.toLowerCase().includes(termino)
@@ -24,7 +23,7 @@ export default function ResultadosBusqueda() {
       </h1>
 
       {coincidencias.length > 0 ? (
-        <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6 max-w-[1600px] mx-auto">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
           {coincidencias.map((producto) => (
             <TarjetaProducto key={producto.id} producto={producto} />
           ))}
