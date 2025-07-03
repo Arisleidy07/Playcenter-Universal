@@ -14,13 +14,13 @@ function SliderAnunciosMovil() {
   return (
     <div className="block sm:hidden w-full max-w-[600px] mx-auto px-3 py-4">
       <div
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-2"
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-3"
         style={{ scrollPaddingLeft: "12px", scrollPaddingRight: "12px" }}
       >
         {imagenes.map((src, i) => (
           <div
             key={i}
-            className="flex-shrink-0 w-[260px] h-[380px] rounded-xl overflow-hidden shadow-lg bg-white snap-center"
+            className="flex-shrink-0 w-[300px] h-[420px] rounded-xl overflow-hidden shadow-lg bg-white snap-center"
           >
             <img
               src={src}

@@ -66,8 +66,8 @@ const Header = () => {
         }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+          {/* Logo solo visible en sm+ */}
+          <Link to="/" className="hidden sm:flex items-center gap-3 flex-shrink-0">
             <motion.img
               src="/playcenter.jpeg"
               alt="Playcenter Universal"
@@ -75,7 +75,6 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
-            {/* Solo se ve en sm+ */}
             <div className="hidden sm:flex flex-col leading-tight text-xs text-gray-700 font-medium">
               <span className="flex items-center gap-1 text-[11px] text-gray-500">
                 <FaMapMarkerAlt className="text-[#4FC3F7]" />
@@ -92,6 +91,7 @@ const Header = () => {
             <SearchBar
               onClose={() => setBuscadorVisible(false)}
               ref={buscarInputRef}
+              placeholder="Buscar en Playcenter.do"
             />
           </div>
 
@@ -185,7 +185,7 @@ const Header = () => {
         </div>
       </motion.header>
 
-      {/* BUSCADOR MOBILE QUE SE VE CUANDO EL BOTÓN ES CLICKEADO */}
+      {/* BUSCADOR MOBILE GRANDE (sin logo) */}
       <AnimatePresence>
         {buscadorVisible && (
           <motion.div
@@ -198,6 +198,7 @@ const Header = () => {
             <SearchBar
               onClose={() => setBuscadorVisible(false)}
               ref={buscarInputRef}
+              placeholder="Buscar en Playcenter.do"
             />
           </motion.div>
         )}
