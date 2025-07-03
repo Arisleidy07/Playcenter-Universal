@@ -36,10 +36,7 @@ function Categorias() {
   const handleSeleccion = (nombre) => {
     const ruta = nombre.toLowerCase().replace(/\s/g, "-");
     navigate(`/productos/${ruta}`);
-
-    // Cuando eliges una categoría, ocultas el sidebar y muestras el botón
     setMostrarCategorias(false);
-
     setTimeout(() => {
       document.getElementById("productos-seccion")?.scrollIntoView({
         behavior: "smooth",
@@ -50,7 +47,6 @@ function Categorias() {
   return (
     <main className="pt-6 sm:pt-8 px-3 sm:px-6 lg:px-10 pb-8 bg-white min-h-screen">
       <section className="pt-20 sm:pt-0">
-        {/* Botón categorías SOLO móvil y solo si NO está el sidebar abierto */}
         {!mostrarCategorias && (
           <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
             <button

@@ -1,4 +1,3 @@
-// Header.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
@@ -54,6 +53,7 @@ const Header = () => {
 
   return (
     <>
+      {/* HEADER PRINCIPAL */}
       <motion.header
         initial={{ y: -120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -66,6 +66,7 @@ const Header = () => {
         }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-3 flex-shrink-0">
             <motion.img
               src="/playcenter.jpeg"
@@ -74,6 +75,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
+            {/* Solo se ve en sm+ */}
             <div className="hidden sm:flex flex-col leading-tight text-xs text-gray-700 font-medium">
               <span className="flex items-center gap-1 text-[11px] text-gray-500">
                 <FaMapMarkerAlt className="text-[#4FC3F7]" />
@@ -85,6 +87,7 @@ const Header = () => {
             </div>
           </Link>
 
+          {/* SEARCH BAR desktop */}
           <div className="hidden sm:flex flex-grow max-w-xl">
             <SearchBar
               onClose={() => setBuscadorVisible(false)}
@@ -92,6 +95,7 @@ const Header = () => {
             />
           </div>
 
+          {/* BOTÓN BUSCADOR MOBILE */}
           <div className="sm:hidden relative" id="search-bar-container">
             <button
               onClick={() => setBuscadorVisible((v) => !v)}
@@ -102,14 +106,26 @@ const Header = () => {
             </button>
           </div>
 
+          {/* NAV DESKTOP */}
           <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-700">
-            <Link to="/" className="nav-link">Inicio</Link>
-            <Link to="/productos" className="nav-link">Categorías</Link>
-            <Link to="/nosotros" className="nav-link">Nosotros</Link>
-            <Link to="/contacto" className="nav-link">Contáctanos</Link>
-            <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
+            <Link to="/" className="nav-link">
+              Inicio
+            </Link>
+            <Link to="/productos" className="nav-link">
+              Categorías
+            </Link>
+            <Link to="/nosotros" className="nav-link">
+              Nosotros
+            </Link>
+            <Link to="/contacto" className="nav-link">
+              Contáctanos
+            </Link>
+            <Link to="/carrito" className="nav-link text-xl hover:scale-110">
+              🛒
+            </Link>
           </div>
 
+          {/* USUARIO / LOGIN */}
           {usuario ? (
             <motion.div
               className="relative hidden sm:block"
@@ -169,6 +185,7 @@ const Header = () => {
         </div>
       </motion.header>
 
+      {/* BUSCADOR MOBILE QUE SE VE CUANDO EL BOTÓN ES CLICKEADO */}
       <AnimatePresence>
         {buscadorVisible && (
           <motion.div
@@ -186,8 +203,8 @@ const Header = () => {
         )}
       </AnimatePresence>
 
-      {/* SOLO ESPACIADOR PARA MÓVIL */}
-      <div className="block sm:hidden h-[70px]" />
+      {/* ESPACIO PARA EL HEADER FIJO */}
+      <div className="h-[70px] sm:h-[110px]" />
     </>
   );
 };
