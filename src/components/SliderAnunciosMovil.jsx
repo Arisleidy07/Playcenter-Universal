@@ -17,18 +17,18 @@ function SliderAnunciosMovil() {
     const contenedor = contenedorRef.current;
     if (!contenedor) return;
 
-    const scrollStep = 220 + 16; // ancho + gap (4 = 1rem = 16px)
+    const scrollStep = 250 + 8; // ancho imagen + gap
     let scrollPosition = 0;
 
     const intervalo = setInterval(() => {
       scrollPosition += scrollStep;
 
-      if (scrollPosition >= contenedor.scrollWidth) {
+      if (scrollPosition >= contenedor.scrollWidth - contenedor.clientWidth) {
         scrollPosition = 0;
       }
 
       contenedor.scrollTo({ left: scrollPosition, behavior: "smooth" });
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(intervalo);
   }, []);
@@ -37,13 +37,13 @@ function SliderAnunciosMovil() {
     <div className="block sm:block md:hidden w-full">
       <div
         ref={contenedorRef}
-        className="flex space-x-4 overflow-x-auto scrollbar-hide px-4 py-4"
+        className="flex space-x-2 overflow-x-auto scrollbar-hide px-3 py-4"
         style={{ scrollSnapType: "x mandatory" }}
       >
         {imagenes.map((src, i) => (
           <div
             key={i}
-            className="flex-shrink-0 w-[220px] h-[350px] rounded-xl overflow-hidden shadow-lg bg-white scroll-snap-align-center"
+            className="flex-shrink-0 w-[250px] h-[380px] rounded-xl overflow-hidden shadow-lg bg-white scroll-snap-align-center"
           >
             <img
               src={src}
