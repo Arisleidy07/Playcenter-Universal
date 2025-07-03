@@ -15,39 +15,40 @@ function SliderAnunciosMovil() {
 
   useEffect(() => {
     const contenedor = contenedorRef.current;
-    let scrollInterval = null;
+    if (!contenedor) return;
 
-    if (contenedor) {
-      scrollInterval = setInterval(() => {
-        if (
-          contenedor.scrollLeft + contenedor.offsetWidth >=
-          contenedor.scrollWidth
-        ) {
-          contenedor.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          contenedor.scrollBy({ left: 220, behavior: "smooth" });
-        }
-      }, 3000);
-    }
+    const scrollStep = 220 + 16; // ancho + gap (4 = 1rem = 16px)
+    let scrollPosition = 0;
 
-    return () => clearInterval(scrollInterval);
+    const intervalo = setInterval(() => {
+      scrollPosition += scrollStep;
+
+      if (scrollPosition >= contenedor.scrollWidth) {
+        scrollPosition = 0;
+      }
+
+      contenedor.scrollTo({ left: scrollPosition, behavior: "smooth" });
+    }, 3000);
+
+    return () => clearInterval(intervalo);
   }, []);
 
   return (
     <div className="block sm:block md:hidden w-full">
       <div
         ref={contenedorRef}
-        className="flex space-x-4 overflow-x-auto scrollbar-hide px-2 py-2"
+        className="flex space-x-4 overflow-x-auto scrollbar-hide px-4 py-4"
+        style={{ scrollSnapType: "x mandatory" }}
       >
         {imagenes.map((src, i) => (
           <div
             key={i}
-            className="flex-shrink-0 w-[220px] h-[350px] rounded-xl overflow-hidden shadow-lg bg-white"
+            className="flex-shrink-0 w-[220px] h-[350px] rounded-xl overflow-hidden shadow-lg bg-white scroll-snap-align-center"
           >
             <img
               src={src}
               alt={`Anuncio ${i + 1}`}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           </div>
         ))}

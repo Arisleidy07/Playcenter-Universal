@@ -22,7 +22,7 @@ function Inicio() {
       </div>
 
       {/* SLIDER SOLO MOBILE */}
-      <div className="block max-w-[600px] mx-auto px-2 mt-4 sm:hidden">
+      <div className="block sm:hidden w-full max-w-[600px] mx-auto px-2 mt-4">
         <SliderAnunciosMovil />
       </div>
 
