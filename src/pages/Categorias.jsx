@@ -46,7 +46,7 @@ function Categorias() {
 
   return (
     <main className="pt-6 sm:pt-8 px-3 sm:px-6 lg:px-10 pb-8 bg-white min-h-screen">
-      {/* Aquí: solo mostrar botón si NO está abierto el sidebar */}
+      <section className="pt-20 sm:pt-0">
       {!mostrarCategorias && (
         <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
           <button
@@ -80,6 +80,7 @@ function Categorias() {
           ))}
         </section>
       </div>
+      </section>
     </main>
   );
 }
