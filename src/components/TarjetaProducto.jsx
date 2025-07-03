@@ -37,34 +37,29 @@ function TarjetaProducto({ producto }) {
     <>
       <div
         onClick={irADetalle}
-        className="flex flex-col sm:flex-row items-center sm:items-start gap-3 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer w-full p-4 sm:p-5"
+        className="flex flex-col sm:flex-row bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer w-full p-4 sm:p-5 gap-4"
       >
-        {/* Imagen */}
         <img
           src={producto.imagen || producto.imagenes?.[0]}
           alt={producto.nombre}
-          className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded bg-white flex-shrink-0"
+          className="w-full sm:w-28 sm:h-28 h-48 object-contain rounded-lg bg-white flex-shrink-0"
         />
-
-        {/* Contenido */}
-        <div className="flex flex-col justify-between flex-1 w-full overflow-hidden">
-          <div className="mb-3">
-            <h2 className="font-semibold text-base text-gray-800 leading-tight line-clamp-2">
+        <div className="flex flex-col justify-between flex-1">
+          <div>
+            <h2 className="font-semibold text-lg text-gray-800 leading-tight line-clamp-2">
               {producto.nombre}
             </h2>
-            <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+            <p className="text-sm text-gray-500 line-clamp-3 mt-1">
               {producto.descripcion || "Descripción del producto."}
             </p>
           </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 gap-3">
             <p className="text-lg font-bold text-gray-900">
               ${producto.precio.toFixed(2)}
             </p>
-
             <button
               onClick={handleBoton}
-              className={`text-sm w-full sm:w-auto px-4 py-2 rounded-md font-semibold transition flex items-center justify-center gap-2 ${
+              className={`text-sm px-4 py-2 rounded-full font-semibold transition flex items-center justify-center gap-2 ${
                 estaEnCarrito
                   ? "bg-red-500 hover:bg-red-600 text-white"
                   : "bg-yellow-400 hover:bg-yellow-500 text-black"
@@ -72,11 +67,11 @@ function TarjetaProducto({ producto }) {
             >
               {estaEnCarrito ? (
                 <>
-                  <FaTrash size={14} /> Quitar
+                  <FaTrash /> Quitar
                 </>
               ) : (
                 <>
-                  <FaShoppingCart size={14} /> Agregar
+                  <FaShoppingCart /> Agregar
                 </>
               )}
             </button>
