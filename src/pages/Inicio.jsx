@@ -8,39 +8,46 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import SliderAnuncios from "../components/SliderAnuncios";
+import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
 import productosAll from "../data/productosAll";
 
 function Inicio() {
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* SLIDER GRANDE */}
-      <div className="w-full max-w-[1600px] mx-auto px-4">
+      {/* SLIDER SOLO DESKTOP */}
+      <div className="hidden sm:block w-full max-w-[1600px] mx-auto px-4">
         <div className="rounded-lg overflow-hidden shadow-xl">
           <SliderAnuncios />
         </div>
       </div>
 
-      {/* BANNERS GRANDES */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-[1600px] mx-auto px-4 mt-12">
-        <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition h-[220px] sm:h-[300px] md:h-[400px]">
-          <Link to="/productos/retro-consolas" className="block w-full h-full">
-            <img
-              src="/ads/retro.png"
-              alt="Retro Consolas"
-              className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
-            />
-          </Link>
-        </div>
-        <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition h-[220px] sm:h-[300px] md:h-[400px]">
-          <Link to="/productos/camaras" className="block w-full h-full">
-            <img
-              src="/ads/camaras.png"
-              alt="Cámaras"
-              className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
-            />
-          </Link>
-        </div>
-      </section>
+      {/* SLIDER SOLO MOBILE */}
+      <div className="block sm:hidden w-full max-w-[600px] mx-auto px-2 mt-4">
+        <SliderAnunciosMovil />
+      </div>
+
+{/* BANNERS GRANDES - SOLO COMPUTADORA */}
+<section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-[1600px] mx-auto px-4 mt-12">
+  <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition h-[220px] sm:h-[300px] md:h-[400px]">
+    <Link to="/productos/retro-consolas" className="block w-full h-full">
+      <img
+        src="/ads/retro.png"
+        alt="Retro Consolas"
+        className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
+      />
+    </Link>
+  </div>
+  <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition h-[220px] sm:h-[300px] md:h-[400px]">
+    <Link to="/productos/camaras" className="block w-full h-full">
+      <img
+        src="/ads/camaras.png"
+        alt="Cámaras"
+        className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
+      />
+    </Link>
+  </div>
+</section>
+
 
       {/* BLOQUES CUADRADOS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1600px] mx-auto px-4 mt-10">
