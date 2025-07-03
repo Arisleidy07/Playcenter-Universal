@@ -37,29 +37,29 @@ function TarjetaProducto({ producto }) {
     <>
       <div
         onClick={irADetalle}
-        className="flex items-start gap-3 sm:gap-5 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer w-full p-3 sm:p-5"
+        className="flex items-start gap-3 sm:gap-4 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer w-full p-2 sm:p-3"
       >
         <img
           src={producto.imagen || producto.imagenes?.[0]}
           alt={producto.nombre}
-          className="w-20 h-20 sm:w-28 sm:h-28 object-contain rounded-lg bg-white flex-shrink-0"
+          className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded bg-white flex-shrink-0"
         />
         <div className="flex flex-col justify-between flex-1 overflow-hidden">
           <div>
-            <h2 className="font-semibold text-sm sm:text-lg text-gray-800 leading-tight line-clamp-2">
+            <h2 className="font-medium text-xs sm:text-sm text-gray-800 leading-tight line-clamp-2">
               {producto.nombre}
             </h2>
-            <p className="text-xs sm:text-sm text-gray-500 line-clamp-3 mt-1">
+            <p className="text-xs text-gray-500 line-clamp-2 mt-1">
               {producto.descripcion || "Descripción del producto."}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 gap-2">
-            <p className="text-base sm:text-lg font-bold text-gray-900">
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-sm font-bold text-gray-900">
               ${producto.precio.toFixed(2)}
             </p>
             <button
               onClick={handleBoton}
-              className={`w-full sm:w-auto text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold transition flex items-center justify-center gap-2 ${
+              className={`text-xs px-2 py-1 rounded font-semibold transition flex items-center gap-1 ${
                 estaEnCarrito
                   ? "bg-red-500 hover:bg-red-600 text-white"
                   : "bg-yellow-400 hover:bg-yellow-500 text-black"
@@ -67,11 +67,11 @@ function TarjetaProducto({ producto }) {
             >
               {estaEnCarrito ? (
                 <>
-                  <FaTrash /> Quitar
+                  <FaTrash size={12} /> Quitar
                 </>
               ) : (
                 <>
-                  <FaShoppingCart /> Agregar
+                  <FaShoppingCart size={12} /> Agregar
                 </>
               )}
             </button>
