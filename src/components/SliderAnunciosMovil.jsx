@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
 const imagenes = [
   "/ads/movil/articulosads.png",
@@ -11,44 +11,22 @@ const imagenes = [
 ];
 
 function SliderAnunciosMovil() {
-  const contenedorRef = useRef(null);
-
-  useEffect(() => {
-    const contenedor = contenedorRef.current;
-    if (!contenedor) return;
-
-    const scrollStep = 250 + 8; // ancho imagen + gap
-    let scrollPosition = 0;
-
-    const intervalo = setInterval(() => {
-      scrollPosition += scrollStep;
-
-      if (scrollPosition >= contenedor.scrollWidth - contenedor.clientWidth) {
-        scrollPosition = 0;
-      }
-
-      contenedor.scrollTo({ left: scrollPosition, behavior: "smooth" });
-    }, 5000);
-
-    return () => clearInterval(intervalo);
-  }, []);
-
   return (
-    <div className="block sm:block md:hidden w-full">
+    <div className="block sm:hidden w-full max-w-[600px] mx-auto px-3 py-4">
       <div
-        ref={contenedorRef}
-        className="flex space-x-2 overflow-x-auto scrollbar-hide px-3 py-4"
-        style={{ scrollSnapType: "x mandatory" }}
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-2"
+        style={{ scrollPaddingLeft: "12px", scrollPaddingRight: "12px" }}
       >
         {imagenes.map((src, i) => (
           <div
             key={i}
-            className="flex-shrink-0 w-[250px] h-[380px] rounded-xl overflow-hidden shadow-lg bg-white scroll-snap-align-center"
+            className="flex-shrink-0 w-[260px] h-[380px] rounded-xl overflow-hidden shadow-lg bg-white snap-center"
           >
             <img
               src={src}
               alt={`Anuncio ${i + 1}`}
               className="w-full h-full object-cover"
+              draggable={false}
             />
           </div>
         ))}
