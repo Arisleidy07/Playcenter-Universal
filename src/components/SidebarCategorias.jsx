@@ -1,4 +1,3 @@
-    // SidebarCategorias.jsx
     import React from "react";
     import { motion, AnimatePresence } from "framer-motion";
     import { useNavigate } from "react-router-dom";
@@ -39,17 +38,16 @@
 
     const handleClick = (cat) => {
         navigate(`/productos/${cat.ruta}`);
-        if (window.innerWidth < 640 && setMostrarEnMovil) {
-        setMostrarEnMovil(false);
-        }
+        if (setMostrarEnMovil) setMostrarEnMovil(false);
     };
 
     const isActiva = (nombre) => nombre === categoriaActiva;
 
     return (
         <>
+        {/* Sidebar desktop */}
         <aside
-            className="hidden sm:block w-44 md:w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 sticky top-[76px] h-[calc(100vh-4.75rem)] overflow-y-auto z-30"
+            className="hidden sm:block w-44 md:w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 sticky top-[70px] h-[calc(100vh-4.375rem)] overflow-y-auto z-30"
             aria-label="Categorías de productos"
         >
             <h2 className="text-sm font-bold text-blue-800 mb-3 text-center uppercase tracking-wide select-none">
@@ -73,6 +71,7 @@
             </ul>
         </aside>
 
+        {/* Sidebar mobile */}
         <AnimatePresence>
             {mostrarEnMovil && (
             <>
@@ -85,6 +84,7 @@
                 onClick={() => setMostrarEnMovil(false)}
                 aria-hidden="true"
                 />
+
                 <motion.nav
                 role="navigation"
                 aria-label="Categorías"
