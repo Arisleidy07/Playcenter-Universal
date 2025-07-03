@@ -204,6 +204,12 @@ const Header = () => {
         )}
       </AnimatePresence>
 
+      {/* ENVÍOS A TODO RD solo en móvil */}
+      <div className="flex sm:hidden items-center justify-center gap-2 bg-[#F5F5F5] text-gray-700 py-2">
+        <FaMapMarkerAlt className="text-[#4FC3F7]" />
+        <span className="text-sm font-medium">Envíos a TODO RD</span>
+      </div>
+
       {/* ESPACIO PARA EL HEADER FIJO */}
       <div className="h-[70px] sm:h-[110px]" />
     </>
