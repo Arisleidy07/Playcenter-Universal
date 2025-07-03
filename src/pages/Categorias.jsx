@@ -36,7 +36,10 @@ function Categorias() {
   const handleSeleccion = (nombre) => {
     const ruta = nombre.toLowerCase().replace(/\s/g, "-");
     navigate(`/productos/${ruta}`);
+
+    // Cuando eliges una categoría, ocultas el sidebar y muestras el botón
     setMostrarCategorias(false);
+
     setTimeout(() => {
       document.getElementById("productos-seccion")?.scrollIntoView({
         behavior: "smooth",
@@ -47,39 +50,40 @@ function Categorias() {
   return (
     <main className="pt-6 sm:pt-8 px-3 sm:px-6 lg:px-10 pb-8 bg-white min-h-screen">
       <section className="pt-20 sm:pt-0">
-      {!mostrarCategorias && (
-        <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
-          <button
-            onClick={() => setMostrarCategorias(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#4FC3F7] text-white rounded-full shadow-lg font-semibold text-sm"
-            aria-expanded={mostrarCategorias}
-            aria-controls="sidebar-categorias"
+        {/* Botón categorías SOLO móvil y solo si NO está el sidebar abierto */}
+        {!mostrarCategorias && (
+          <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
+            <button
+              onClick={() => setMostrarCategorias(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#4FC3F7] text-white rounded-full shadow-lg font-semibold text-sm"
+              aria-expanded={mostrarCategorias}
+              aria-controls="sidebar-categorias"
+            >
+              <FaThList />
+              Categorías
+            </button>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <SidebarCategorias
+            categoriaActiva={categoriaActiva}
+            setCategoriaActiva={handleSeleccion}
+            mostrarEnMovil={mostrarCategorias}
+            setMostrarEnMovil={setMostrarCategorias}
+          />
+
+          <section
+            id="productos-seccion"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 max-w-6xl mx-auto px-2 sm:px-4"
           >
-            <FaThList />
-            Categorías
-          </button>
+            {productosFiltrados.map((prod) => (
+              <div key={prod.id} className="w-full">
+                <TarjetaProducto producto={prod} />
+              </div>
+            ))}
+          </section>
         </div>
-      )}
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <SidebarCategorias
-          categoriaActiva={categoriaActiva}
-          setCategoriaActiva={handleSeleccion}
-          mostrarEnMovil={mostrarCategorias}
-          setMostrarEnMovil={setMostrarCategorias}
-        />
-
-        <section
-          id="productos-seccion"
-          className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 max-w-6xl mx-auto px-2 sm:px-4"
-        >
-          {productosFiltrados.map((prod) => (
-            <div key={prod.id} className="w-full">
-              <TarjetaProducto producto={prod} />
-            </div>
-          ))}
-        </section>
-      </div>
       </section>
     </main>
   );
