@@ -46,20 +46,20 @@ function TarjetaProducto({ producto }) {
         />
         <div className="flex flex-col justify-between flex-1 overflow-hidden">
           <div>
-            <h2 className="font-semibold text-base sm:text-lg text-gray-800 leading-tight line-clamp-2">
+            <h2 className="font-semibold text-sm sm:text-lg text-gray-800 leading-tight line-clamp-2">
               {producto.nombre}
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 line-clamp-3 mt-1">
               {producto.descripcion || "Descripción del producto."}
             </p>
           </div>
-          <div className="flex items-center justify-between mt-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 gap-2">
             <p className="text-base sm:text-lg font-bold text-gray-900">
               ${producto.precio.toFixed(2)}
             </p>
             <button
               onClick={handleBoton}
-              className={`text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold transition flex items-center gap-2 ${
+              className={`w-full sm:w-auto text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold transition flex items-center justify-center gap-2 ${
                 estaEnCarrito
                   ? "bg-red-500 hover:bg-red-600 text-white"
                   : "bg-yellow-400 hover:bg-yellow-500 text-black"
