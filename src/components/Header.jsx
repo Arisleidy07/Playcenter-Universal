@@ -55,21 +55,22 @@ const Header = () => {
   }, []);
 
   // Control scroll para mostrar/ocultar aviso envíos
-  useEffect(() => {
-    function handleScroll() {
-      const currentScroll = window.pageYOffset;
-      if (currentScroll > lastScroll && currentScroll > 50) {
-        // Scrollea hacia abajo => oculta aviso
-        controls.start({ y: 20, opacity: 0, transition: { duration: 0.3 } });
-      } else {
-        // Scrollea hacia arriba => muestra aviso
-        controls.start({ y: 0, opacity: 1, transition: { duration: 0.3 } });
-      }
-      lastScroll = currentScroll;
+useEffect(() => {
+  function handleScroll() {
+    const currentScroll = window.pageYOffset;
+    if (currentScroll > lastScroll) {
+      // Si baja, oculta YA sin esperar más
+      controls.start({ y: 20, opacity: 0, transition: { duration: 0.2 } });
+    } else {
+      // Si sube, muestra YA
+      controls.start({ y: 0, opacity: 1, transition: { duration: 0.2 } });
     }
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [controls]);
+    lastScroll = currentScroll;
+  }
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, [controls]);
+
 
   return (
     <>
