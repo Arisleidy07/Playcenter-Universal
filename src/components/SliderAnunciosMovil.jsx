@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 const imagenes = [
   "/ads/movil/articulosads.png",
@@ -11,32 +11,45 @@ const imagenes = [
 ];
 
 function SliderAnunciosMovil() {
-  const [actual, setActual] = useState(0);
+  const contenedorRef = useRef(null);
 
-  const siguiente = () => {
-    setActual((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
-  };
-
-  // Auto-slide cada 4 segundos
   useEffect(() => {
-    const intervalo = setInterval(() => {
-      siguiente();
-    }, 4000);
-    return () => clearInterval(intervalo);
+    const contenedor = contenedorRef.current;
+    let scrollInterval = null;
+
+    if (contenedor) {
+      scrollInterval = setInterval(() => {
+        if (
+          contenedor.scrollLeft + contenedor.offsetWidth >=
+          contenedor.scrollWidth
+        ) {
+          contenedor.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          contenedor.scrollBy({ left: 220, behavior: "smooth" });
+        }
+      }, 3000);
+    }
+
+    return () => clearInterval(scrollInterval);
   }, []);
 
   return (
-    <div className="block md:hidden w-full max-w-[480px] mx-auto px-3">
-      <div className="relative rounded-2xl overflow-hidden shadow-lg">
-        {imagenes.map((src, index) => (
-          <img
-            key={index}
-            src={src}
-            alt={`Anuncio ${index + 1}`}
-            className={`w-full h-[180px] object-cover transition-opacity duration-700 ease-in-out ${
-              index === actual ? "opacity-100" : "opacity-0 absolute top-0 left-0"
-            }`}
-          />
+    <div className="block sm:block md:hidden w-full">
+      <div
+        ref={contenedorRef}
+        className="flex space-x-4 overflow-x-auto scrollbar-hide px-2 py-2"
+      >
+        {imagenes.map((src, i) => (
+          <div
+            key={i}
+            className="flex-shrink-0 w-[220px] h-[350px] rounded-xl overflow-hidden shadow-lg bg-white"
+          >
+            <img
+              src={src}
+              alt={`Anuncio ${i + 1}`}
+              className="w-full h-full object-contain"
+            />
+          </div>
         ))}
       </div>
     </div>
