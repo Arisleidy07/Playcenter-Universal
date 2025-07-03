@@ -3,17 +3,23 @@ import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Header = () => {
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
+  const [buscadorVisible, setBuscadorVisible] = useState(true); // fijo visible en móvil
   const { usuario, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
   const dropdownRef = useRef(null);
   const buscarInputRef = useRef(null);
   const navigate = useNavigate();
 
+  // Control animación del aviso envíos
+  const controls = useAnimation();
+  let lastScroll = 0;
+
+  // Maneja logout
   const manejarLogout = async () => {
     try {
       await logout();
@@ -24,19 +30,46 @@ const Header = () => {
     }
   };
 
+  // Cerrar dropdown y buscador al click fuera
   useEffect(() => {
     function handleClickFuera(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        !event.target.closest("#search-bar-container")
+      ) {
         setDropdownAbierto(false);
       }
     }
-    if (dropdownAbierto) {
-      document.addEventListener("mousedown", handleClickFuera);
-    }
+    document.addEventListener("mousedown", handleClickFuera);
     return () => {
       document.removeEventListener("mousedown", handleClickFuera);
     };
-  }, [dropdownAbierto]);
+  }, []);
+
+  // Focus al buscador cuando se monta
+  useEffect(() => {
+    if (buscarInputRef.current) {
+      buscarInputRef.current.focus();
+    }
+  }, []);
+
+  // Control scroll para mostrar/ocultar aviso envíos
+  useEffect(() => {
+    function handleScroll() {
+      const currentScroll = window.pageYOffset;
+      if (currentScroll > lastScroll && currentScroll > 50) {
+        // Scrollea hacia abajo => oculta aviso
+        controls.start({ y: 20, opacity: 0, transition: { duration: 0.3 } });
+      } else {
+        // Scrollea hacia arriba => muestra aviso
+        controls.start({ y: 0, opacity: 1, transition: { duration: 0.3 } });
+      }
+      lastScroll = currentScroll;
+    }
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [controls]);
 
   return (
     <>
@@ -52,10 +85,9 @@ const Header = () => {
           overflowX: "hidden",
         }}
       >
-        {/* Desktop Header */}
-        <div className="hidden sm:flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
+          {/* Logo solo visible en sm+ */}
+          <Link to="/" className="hidden sm:flex items-center gap-3 flex-shrink-0">
             <motion.img
               src="/playcenter.jpeg"
               alt="Playcenter Universal"
@@ -63,7 +95,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
-            <div className="flex flex-col leading-tight text-xs text-gray-700 font-medium">
+            <div className="hidden sm:flex flex-col leading-tight text-xs text-gray-700 font-medium">
               <span className="flex items-center gap-1 text-[11px] text-gray-500">
                 <FaMapMarkerAlt className="text-[#4FC3F7]" />
                 Envios
@@ -74,44 +106,55 @@ const Header = () => {
             </div>
           </Link>
 
-          {/* SearchBar desktop */}
-          <div className="flex-grow max-w-xl">
+          {/* SEARCH BAR desktop */}
+          <div className="hidden sm:flex flex-grow max-w-xl">
             <SearchBar
+              onClose={() => setBuscadorVisible(false)}
               ref={buscarInputRef}
               placeholder="Buscar en Playcenter.do"
-              onClose={() => {}}
-              className="shadow-sm rounded-md border border-gray-300"
             />
           </div>
 
-          {/* Nav Desktop */}
-          <div className="items-center gap-6 text-sm font-medium text-gray-700 flex">
-            <Link to="/" className="nav-link hover:text-[#4FC3F7] transition">
+          {/* BUSCADOR MOBILE FIJO (sin lupa) */}
+          <div
+            id="search-bar-container"
+            className="sm:hidden flex-grow max-w-full px-2"
+          >
+            <SearchBar
+              onClose={() => {}}
+              ref={buscarInputRef}
+              placeholder="Buscar en Playcenter.do"
+            />
+          </div>
+
+          {/* NAV DESKTOP */}
+          <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-700">
+            <Link to="/" className="nav-link">
               Inicio
             </Link>
-            <Link to="/productos" className="nav-link hover:text-[#4FC3F7] transition">
+            <Link to="/productos" className="nav-link">
               Categorías
             </Link>
-            <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] transition">
+            <Link to="/nosotros" className="nav-link">
               Nosotros
             </Link>
-            <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition">
+            <Link to="/contacto" className="nav-link">
               Contáctanos
             </Link>
-            <Link to="/carrito" className="nav-link text-xl hover:scale-110 transition-transform">
+            <Link to="/carrito" className="nav-link text-xl hover:scale-110">
               🛒
             </Link>
           </div>
 
-          {/* Usuario / Login desktop */}
+          {/* USUARIO / LOGIN */}
           {usuario ? (
             <motion.div
-              className="relative block cursor-pointer"
+              className="relative hidden sm:block"
               ref={dropdownRef}
               onClick={() => setDropdownAbierto(!dropdownAbierto)}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition">
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer">
                 {usuario.photoURL ? (
                   <img
                     src={usuario.photoURL}
@@ -153,7 +196,7 @@ const Header = () => {
           ) : (
             <motion.button
               onClick={() => setModalAbierto(true)}
-              className="px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
+              className="hidden sm:inline-block px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -161,26 +204,20 @@ const Header = () => {
             </motion.button>
           )}
         </div>
-
-        {/* Mobile Header: buscador fijo + barra envíos */}
-        <div className="sm:hidden flex flex-col gap-2 bg-white pt-3 pb-2 shadow-md">
-          <div className="px-4">
-            <SearchBar
-              ref={buscarInputRef}
-              placeholder="Buscar en Playcenter.do"
-              onClose={() => {}}
-              className="rounded-md shadow-sm border border-gray-300"
-            />
-          </div>
-          <div className="flex items-center justify-center gap-2 bg-[#E8F6FF] text-[#4FC3F7] py-2 rounded-md mx-4 text-sm font-semibold select-none">
-            <FaMapMarkerAlt />
-            <span>Envíos a TODO RD</span>
-          </div>
-        </div>
       </motion.header>
 
-      {/* Espacio para header fijo */}
-      <div className="h-[110px] sm:h-[110px]" />
+      {/* AVISO ENVÍOS A TODO RD - tamaño mini y aparece/desaparece al scroll */}
+      <motion.div
+        animate={controls}
+        initial={{ y: 0, opacity: 1 }}
+        className="flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-0.5 rounded-md mx-4 text-[10px] font-semibold select-none fixed top-[70px] sm:top-[110px] left-0 right-0 z-[9998]"
+      >
+        <FaMapMarkerAlt className="text-xs" />
+        <span>Envíos a TODO RD</span>
+      </motion.div>
+
+      {/* ESPACIO PARA EL HEADER FIJO */}
+      <div className="h-[100px] sm:h-[140px]" />
     </>
   );
 };
