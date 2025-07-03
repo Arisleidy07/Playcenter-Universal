@@ -188,10 +188,10 @@ function Inicio() {
           </div>
           <div className="text-right mt-4">
           <Link
-            to="/productos/tu-rincon-variado"
+            to="/productos"
             className="text-blue-600 hover:underline text-sm"
           >
-            Explora nuestro Rincón Variado →
+            Explora nuestros productos →
           </Link>
           </div>
         </div>
