@@ -3,20 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Header = () => {
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
   const [buscadorVisible, setBuscadorVisible] = useState(true); // fijo visible en móvil
+  const [showEnvios, setShowEnvios] = useState(true);
   const { usuario, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
   const dropdownRef = useRef(null);
   const buscarInputRef = useRef(null);
   const navigate = useNavigate();
-
-  // Control animación del aviso envíos
-  const controls = useAnimation();
   let lastScroll = 0;
 
   // Maneja logout
@@ -30,7 +28,7 @@ const Header = () => {
     }
   };
 
-  // Cerrar dropdown y buscador al click fuera
+  // Cerrar dropdown al click fuera
   useEffect(() => {
     function handleClickFuera(event) {
       if (
@@ -42,12 +40,10 @@ const Header = () => {
       }
     }
     document.addEventListener("mousedown", handleClickFuera);
-    return () => {
-      document.removeEventListener("mousedown", handleClickFuera);
-    };
+    return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
 
-  // Focus al buscador cuando se monta
+  // Focus al buscador al montar
   useEffect(() => {
     if (buscarInputRef.current) {
       buscarInputRef.current.focus();
@@ -55,22 +51,21 @@ const Header = () => {
   }, []);
 
   // Control scroll para mostrar/ocultar aviso envíos
-useEffect(() => {
-  function handleScroll() {
-    const currentScroll = window.pageYOffset;
-    if (currentScroll > lastScroll) {
-      // Si baja, oculta YA sin esperar más
-      controls.start({ y: 20, opacity: 0, transition: { duration: 0.2 } });
-    } else {
-      // Si sube, muestra YA
-      controls.start({ y: 0, opacity: 1, transition: { duration: 0.2 } });
+  useEffect(() => {
+    function handleScroll() {
+      const currentScroll = window.pageYOffset;
+      if (currentScroll > lastScroll) {
+        // Bajando
+        setShowEnvios(false);
+      } else {
+        // Subiendo
+        setShowEnvios(true);
+      }
+      lastScroll = currentScroll;
     }
-    lastScroll = currentScroll;
-  }
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
-}, [controls]);
-
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
@@ -130,21 +125,11 @@ useEffect(() => {
 
           {/* NAV DESKTOP */}
           <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-700">
-            <Link to="/" className="nav-link">
-              Inicio
-            </Link>
-            <Link to="/productos" className="nav-link">
-              Categorías
-            </Link>
-            <Link to="/nosotros" className="nav-link">
-              Nosotros
-            </Link>
-            <Link to="/contacto" className="nav-link">
-              Contáctanos
-            </Link>
-            <Link to="/carrito" className="nav-link text-xl hover:scale-110">
-              🛒
-            </Link>
+            <Link to="/" className="nav-link">Inicio</Link>
+            <Link to="/productos" className="nav-link">Categorías</Link>
+            <Link to="/nosotros" className="nav-link">Nosotros</Link>
+            <Link to="/contacto" className="nav-link">Contáctanos</Link>
+            <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
           </div>
 
           {/* USUARIO / LOGIN */}
@@ -207,15 +192,15 @@ useEffect(() => {
         </div>
       </motion.header>
 
-      {/* AVISO ENVÍOS A TODO RD - tamaño mini y aparece/desaparece al scroll */}
-      <motion.div
-        animate={controls}
-        initial={{ y: 0, opacity: 1 }}
-        className="flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-0.5 rounded-md mx-4 text-[10px] font-semibold select-none fixed top-[70px] sm:top-[110px] left-0 right-0 z-[9998]"
-      >
-        <FaMapMarkerAlt className="text-xs" />
-        <span>Envíos a TODO RD</span>
-      </motion.div>
+      {/* AVISO ENVÍOS SOLO MÓVIL */}
+      {showEnvios && (
+        <div
+          className="sm:hidden flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-1 text-[11px] font-semibold select-none fixed top-[58px] left-0 right-0 z-[9998]"
+        >
+          <FaMapMarkerAlt className="text-xs" />
+          <span>Envíos a TODO RD</span>
+        </div>
+      )}
 
       {/* ESPACIO PARA EL HEADER FIJO */}
       <div className="h-[100px] sm:h-[140px]" />

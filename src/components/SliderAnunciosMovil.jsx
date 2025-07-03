@@ -1,13 +1,48 @@
 import React from "react";
 
-const imagenes = [
-  "/ads/movil/articulosads.png",
-  "/ads/movil/camarasads.png",
-  "/ads/movil/consolaads.png",
-  "/ads/movil/ofertas.png",
-  "/ads/movil/productosads.png",
-  "/ads/movil/retroads.png",
-  "/ads/movil/ubicacionads.png",
+const anuncios = [
+  {
+    id: 1,
+    img: "/ads/movil/articulosads.png",
+    link: "/productos/videojuegos",
+    isExternal: false,
+  },
+  {
+    id: 2,
+    img: "/ads/movil/camarasads.png",
+    link: "/productos/camaras",
+    isExternal: false,
+  },
+  {
+    id: 3,
+    img: "/ads/movil/consolaads.png",
+    link: "/productos/consolas",
+    isExternal: false,
+  },
+  {
+    id: 4,
+    img: "/ads/movil/ofertas.png",
+    link: "/productos/ofertas-especiales",
+    isExternal: false,
+  },
+  {
+    id: 5,
+    img: "/ads/movil/productosads.png",
+    link: "/productos",
+    isExternal: false,
+  },
+  {
+    id: 6,
+    img: "/ads/movil/retroads.png",
+    link: "/productos/retro-consolas",
+    isExternal: false,
+  },
+  {
+    id: 7,
+    img: "/ads/movil/ubicacionads.png",
+    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
+    isExternal: true,
+  },
 ];
 
 function SliderAnunciosMovil() {
@@ -17,18 +52,21 @@ function SliderAnunciosMovil() {
         className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-3"
         style={{ scrollPaddingLeft: "12px", scrollPaddingRight: "12px" }}
       >
-        {imagenes.map((src, i) => (
-          <div
-            key={i}
+        {anuncios.map((anuncio) => (
+          <a
+            key={anuncio.id}
+            href={anuncio.link}
+            target={anuncio.isExternal ? "_blank" : "_self"}
+            rel="noreferrer"
             className="flex-shrink-0 w-[300px] h-[420px] rounded-xl overflow-hidden shadow-lg bg-white snap-center"
           >
             <img
-              src={src}
-              alt={`Anuncio ${i + 1}`}
+              src={anuncio.img}
+              alt={`Anuncio ${anuncio.id}`}
               className="w-full h-full object-cover"
               draggable={false}
             />
-          </div>
+          </a>
         ))}
       </div>
     </div>
