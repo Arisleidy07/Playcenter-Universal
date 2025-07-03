@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -8,40 +8,50 @@ import { FaThList } from "react-icons/fa";
 function Categorias() {
   const navigate = useNavigate();
   const { categoriaURL } = useParams();
-  const [categoriaActiva, setCategoriaActiva] = useState("Todos");
-  const [mostrarCategorias, setMostrarCategorias] = useState(false);
+  const [mostrarCategorias, setMostrarCategorias] = React.useState(false);
 
+  // Todas las categorías aplanadas
   const todas = productos.flatMap((cat) => cat.productos);
 
-  const productosFiltrados =
-    categoriaActiva === "Todos"
-      ? todas
-      : productos.find(
-          (cat) =>
-            cat.nombre.toLowerCase().replace(/\s/g, "-") === categoriaURL
-        )?.productos || [];
+  // Producto filtrado según URL
+  const productosFiltrados = React.useMemo(() => {
+    if (!categoriaURL || categoriaURL === "") return todas;
+    const match = productos.find(
+      (cat) =>
+        cat.categoria
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/\s/g, "-") === categoriaURL
+    );
+    return match ? match.productos : [];
+  }, [categoriaURL, todas]);
 
-  useEffect(() => {
-    if (categoriaURL) {
-      const nombreMatch = productos.find(
-        (cat) =>
-          cat.nombre.toLowerCase().replace(/\s/g, "-") === categoriaURL
-      );
-      setCategoriaActiva(nombreMatch ? nombreMatch.nombre : "Todos");
-    } else {
-      setCategoriaActiva("Todos");
-    }
+  // Nombre de la categoría activa
+  const categoriaActiva = React.useMemo(() => {
+    if (!categoriaURL || categoriaURL === "") return "Todos";
+    const match = productos.find(
+      (cat) =>
+        cat.categoria
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/\s/g, "-") === categoriaURL
+    );
+    return match ? match.categoria : "Todos";
   }, [categoriaURL]);
 
   const handleSeleccion = (nombre) => {
-    const ruta = nombre.toLowerCase().replace(/\s/g, "-");
+    const ruta = nombre
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s/g, "-");
     navigate(`/productos/${ruta}`);
     setMostrarCategorias(false);
-    setTimeout(() => {
-      document.getElementById("productos-seccion")?.scrollIntoView({
-        behavior: "smooth",
-      });
-    }, 200);
+    document.getElementById("productos-seccion")?.scrollIntoView({
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -61,7 +71,7 @@ function Categorias() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 mt-2">
           <SidebarCategorias
             categoriaActiva={categoriaActiva}
             setCategoriaActiva={handleSeleccion}
@@ -73,11 +83,17 @@ function Categorias() {
             id="productos-seccion"
             className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 max-w-6xl mx-auto px-2 sm:px-4"
           >
-            {productosFiltrados.map((prod) => (
-              <div key={prod.id} className="w-full">
-                <TarjetaProducto producto={prod} />
-              </div>
-            ))}
+            {productosFiltrados.length === 0 ? (
+              <p className="text-center text-gray-500 col-span-full mt-10">
+                No hay productos en esta categoría.
+              </p>
+            ) : (
+              productosFiltrados.map((prod) => (
+                <div key={prod.id} className="w-full">
+                  <TarjetaProducto producto={prod} />
+                </div>
+              ))
+            )}
           </section>
         </div>
       </section>
