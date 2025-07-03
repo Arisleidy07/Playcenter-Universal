@@ -421,7 +421,7 @@ html, body {
 .titulo-categoria {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  color: #f5f5f5;
+  color: #080505;
   text-align: center;
   text-transform: uppercase;
   animation: tituloVibrante 3s ease-in-out infinite;

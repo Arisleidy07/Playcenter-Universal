@@ -8,7 +8,7 @@
     const productos = categoria ? categoria.productos : [];
 
     return (
-        <div className="pt-[66px] sm:pt-[80px] px-4 pb-10 bg-white min-h-screen">
+        <div className="pt-[0px] sm:pt-[0px] px-4 pb-10 bg-white min-h-screen">
         <h1 className="titulo-categoria">Monitores</h1>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

@@ -1,3 +1,4 @@
+    // SidebarCategorias.jsx
     import React from "react";
     import { motion, AnimatePresence } from "framer-motion";
     import { useNavigate } from "react-router-dom";
@@ -38,7 +39,9 @@
 
     const handleClick = (cat) => {
         navigate(`/productos/${cat.ruta}`);
-        if (setMostrarEnMovil) setMostrarEnMovil(false);
+        if (window.innerWidth < 640 && setMostrarEnMovil) {
+        setMostrarEnMovil(false);
+        }
     };
 
     const isActiva = (nombre) => nombre === categoriaActiva;
@@ -82,7 +85,6 @@
                 onClick={() => setMostrarEnMovil(false)}
                 aria-hidden="true"
                 />
-
                 <motion.nav
                 role="navigation"
                 aria-label="Categorías"
