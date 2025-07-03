@@ -4,11 +4,10 @@ import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaMapMarkerAlt, FaSearch, FaTimes } from "react-icons/fa";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Header = () => {
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
-  const [buscadorVisible, setBuscadorVisible] = useState(false);
   const { usuario, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
   const dropdownRef = useRef(null);
@@ -27,29 +26,17 @@ const Header = () => {
 
   useEffect(() => {
     function handleClickFuera(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target) &&
-        buscadorVisible &&
-        !event.target.closest("#search-bar-container")
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownAbierto(false);
-        setBuscadorVisible(false);
       }
     }
-    if (dropdownAbierto || buscadorVisible) {
+    if (dropdownAbierto) {
       document.addEventListener("mousedown", handleClickFuera);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickFuera);
     };
-  }, [dropdownAbierto, buscadorVisible]);
-
-  useEffect(() => {
-    if (buscadorVisible && buscarInputRef.current) {
-      buscarInputRef.current.focus();
-    }
-  }, [buscadorVisible]);
+  }, [dropdownAbierto]);
 
   return (
     <>
@@ -65,9 +52,10 @@ const Header = () => {
           overflowX: "hidden",
         }}
       >
-        <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
-          {/* Logo solo visible en sm+ */}
-          <Link to="/" className="hidden sm:flex items-center gap-3 flex-shrink-0">
+        {/* Desktop Header */}
+        <div className="hidden sm:flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3 flex-shrink-0">
             <motion.img
               src="/playcenter.jpeg"
               alt="Playcenter Universal"
@@ -75,7 +63,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
-            <div className="hidden sm:flex flex-col leading-tight text-xs text-gray-700 font-medium">
+            <div className="flex flex-col leading-tight text-xs text-gray-700 font-medium">
               <span className="flex items-center gap-1 text-[11px] text-gray-500">
                 <FaMapMarkerAlt className="text-[#4FC3F7]" />
                 Envios
@@ -86,54 +74,44 @@ const Header = () => {
             </div>
           </Link>
 
-          {/* SEARCH BAR desktop */}
-          <div className="hidden sm:flex flex-grow max-w-xl">
+          {/* SearchBar desktop */}
+          <div className="flex-grow max-w-xl">
             <SearchBar
-              onClose={() => setBuscadorVisible(false)}
               ref={buscarInputRef}
               placeholder="Buscar en Playcenter.do"
+              onClose={() => {}}
+              className="shadow-sm rounded-md border border-gray-300"
             />
           </div>
 
-          {/* BOTÓN BUSCADOR MOBILE */}
-          <div className="sm:hidden relative" id="search-bar-container">
-            <button
-              onClick={() => setBuscadorVisible((v) => !v)}
-              aria-label={buscadorVisible ? "Cerrar búsqueda" : "Abrir búsqueda"}
-              className="text-gray-600 hover:text-[#4FC3F7] transition text-xl flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-md"
-            >
-              {buscadorVisible ? <FaTimes /> : <FaSearch />}
-            </button>
-          </div>
-
-          {/* NAV DESKTOP */}
-          <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-700">
-            <Link to="/" className="nav-link">
+          {/* Nav Desktop */}
+          <div className="items-center gap-6 text-sm font-medium text-gray-700 flex">
+            <Link to="/" className="nav-link hover:text-[#4FC3F7] transition">
               Inicio
             </Link>
-            <Link to="/productos" className="nav-link">
+            <Link to="/productos" className="nav-link hover:text-[#4FC3F7] transition">
               Categorías
             </Link>
-            <Link to="/nosotros" className="nav-link">
+            <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] transition">
               Nosotros
             </Link>
-            <Link to="/contacto" className="nav-link">
+            <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition">
               Contáctanos
             </Link>
-            <Link to="/carrito" className="nav-link text-xl hover:scale-110">
+            <Link to="/carrito" className="nav-link text-xl hover:scale-110 transition-transform">
               🛒
             </Link>
           </div>
 
-          {/* USUARIO / LOGIN */}
+          {/* Usuario / Login desktop */}
           {usuario ? (
             <motion.div
-              className="relative hidden sm:block"
+              className="relative block cursor-pointer"
               ref={dropdownRef}
               onClick={() => setDropdownAbierto(!dropdownAbierto)}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer">
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition">
                 {usuario.photoURL ? (
                   <img
                     src={usuario.photoURL}
@@ -175,7 +153,7 @@ const Header = () => {
           ) : (
             <motion.button
               onClick={() => setModalAbierto(true)}
-              className="hidden sm:inline-block px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
+              className="px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -183,35 +161,26 @@ const Header = () => {
             </motion.button>
           )}
         </div>
-      </motion.header>
 
-      {/* BUSCADOR MOBILE GRANDE (sin logo) */}
-      <AnimatePresence>
-        {buscadorVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 w-full z-[99999] bg-white p-4 shadow-md"
-          >
+        {/* Mobile Header: buscador fijo + barra envíos */}
+        <div className="sm:hidden flex flex-col gap-2 bg-white pt-3 pb-2 shadow-md">
+          <div className="px-4">
             <SearchBar
-              onClose={() => setBuscadorVisible(false)}
               ref={buscarInputRef}
               placeholder="Buscar en Playcenter.do"
+              onClose={() => {}}
+              className="rounded-md shadow-sm border border-gray-300"
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+          <div className="flex items-center justify-center gap-2 bg-[#E8F6FF] text-[#4FC3F7] py-2 rounded-md mx-4 text-sm font-semibold select-none">
+            <FaMapMarkerAlt />
+            <span>Envíos a TODO RD</span>
+          </div>
+        </div>
+      </motion.header>
 
-      {/* ENVÍOS A TODO RD solo en móvil */}
-      <div className="flex sm:hidden items-center justify-center gap-2 bg-[#F5F5F5] text-gray-700 py-2">
-        <FaMapMarkerAlt className="text-[#4FC3F7]" />
-        <span className="text-sm font-medium">Envíos a TODO RD</span>
-      </div>
-
-      {/* ESPACIO PARA EL HEADER FIJO */}
-      <div className="h-[70px] sm:h-[110px]" />
+      {/* Espacio para header fijo */}
+      <div className="h-[110px] sm:h-[110px]" />
     </>
   );
 };
