@@ -47,8 +47,9 @@ function Categorias() {
   return (
     <main className="pt-6 sm:pt-8 px-3 sm:px-6 lg:px-10 pb-8 bg-white min-h-screen">
       <section className="pt-20 sm:pt-0">
+        {/* Botón Categorías siempre que no se esté mostrando */}
         {!mostrarCategorias && (
-          <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
+          <div className="sm:hidden fixed top-[100px] left-4 z-[9999]">
             <button
               onClick={() => setMostrarCategorias(true)}
               className="flex items-center gap-2 px-4 py-2 bg-[#4FC3F7] text-white rounded-full shadow-lg font-semibold text-sm"
