@@ -21,10 +21,13 @@ function Inicio() {
         </div>
       </div>
 
-      {/* SLIDER SOLO MOBILE */}
-      <div className="block sm:hidden w-full max-w-[600px] mx-auto px-2 mt-4">
-        <SliderAnunciosMovil />
-      </div>
+{/* SLIDER SOLO MOBILE - ESTILO AMAZON */}
+<div className="block sm:hidden w-full max-w-[600px] mx-auto px-2 mt-2">
+  <div className="rounded-md shadow-md overflow-hidden h-[180px]">
+    <SliderAnunciosMovil />
+  </div>
+</div>
+
 
 {/* BANNERS GRANDES - SOLO COMPUTADORA */}
 <section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-[1600px] mx-auto px-4 mt-12">
