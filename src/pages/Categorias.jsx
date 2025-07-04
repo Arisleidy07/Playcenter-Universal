@@ -75,10 +75,10 @@ function Categorias() {
             mostrarEnMovil={mostrarCategorias}
             setMostrarEnMovil={setMostrarCategorias}
           />
-          
+
 <section
   id="productos-seccion"
-  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+  className="productos-grid"
 >
   {productosFiltrados.length === 0 ? (
     <p className="text-center text-gray-500 col-span-full mt-10">
@@ -86,14 +86,10 @@ function Categorias() {
     </p>
   ) : (
     productosFiltrados.map((prod) => (
-      <div key={prod.id} className="w-full">
-        <TarjetaProducto producto={prod} />
-      </div>
+      <TarjetaProducto key={prod.id} producto={prod} />
     ))
   )}
 </section>
-
-
 
 
         </div>

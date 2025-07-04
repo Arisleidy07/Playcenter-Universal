@@ -132,75 +132,6 @@ html, body {
   animation: glitch 1.2s infinite;
 }
 
-.tarjeta-amazon {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 0.4rem;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.tarjeta-amazon:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-}
-.tarjeta-amazon .imagen {
-  width: 100%;
-  aspect-ratio: 1/1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background: white;
-}
-.tarjeta-amazon .imagen img {
-  max-height: 100%;
-  object-fit: contain;
-}
-.tarjeta-amazon .contenido {
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  flex: 1;
-}
-.tarjeta-amazon .contenido h2 {
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.2;
-  height: 2.2em;
-  overflow: hidden;
-}
-.tarjeta-amazon .contenido p {
-  font-size: 0.75rem;
-  color: #555;
-  height: 2em;
-  overflow: hidden;
-}
-.tarjeta-amazon .contenido .precio {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #222;
-}
-.tarjeta-amazon .contenido button {
-  width: 100%;
-  font-size: 0.8rem;
-  padding: 0.35rem 0.4rem;
-  border-radius: 0.3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  background: #f7ca00;
-  border: 1px solid #f2c200;
-  transition: background 0.2s;
-}
-.tarjeta-amazon .contenido button:hover {
-  background: #e6b800;
-}
-
 
 
 /* === CATEGORÍAS TÍTULO ANIMADO === */
@@ -241,3 +172,4 @@ html, body {
     opacity: 0.9;
   }
 }
+
