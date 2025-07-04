@@ -10,10 +10,8 @@ function Categorias() {
   const { categoriaURL } = useParams();
   const [mostrarCategorias, setMostrarCategorias] = React.useState(false);
 
-  // Todas las categorías aplanadas
   const todas = productos.flatMap((cat) => cat.productos);
 
-  // Producto filtrado según URL
   const productosFiltrados = React.useMemo(() => {
     if (!categoriaURL || categoriaURL === "") return todas;
     const match = productos.find(
@@ -27,7 +25,6 @@ function Categorias() {
     return match ? match.productos : [];
   }, [categoriaURL, todas]);
 
-  // Nombre de la categoría activa
   const categoriaActiva = React.useMemo(() => {
     if (!categoriaURL || categoriaURL === "") return "Todos";
     const match = productos.find(
@@ -78,23 +75,27 @@ function Categorias() {
             mostrarEnMovil={mostrarCategorias}
             setMostrarEnMovil={setMostrarCategorias}
           />
+          
+<section
+  id="productos-seccion"
+  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+>
+  {productosFiltrados.length === 0 ? (
+    <p className="text-center text-gray-500 col-span-full mt-10">
+      No hay productos en esta categoría.
+    </p>
+  ) : (
+    productosFiltrados.map((prod) => (
+      <div key={prod.id} className="w-full">
+        <TarjetaProducto producto={prod} />
+      </div>
+    ))
+  )}
+</section>
 
-          <section
-            id="productos-seccion"
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 max-w-6xl mx-auto px-2 sm:px-4"
-          >
-            {productosFiltrados.length === 0 ? (
-              <p className="text-center text-gray-500 col-span-full mt-10">
-                No hay productos en esta categoría.
-              </p>
-            ) : (
-              productosFiltrados.map((prod) => (
-                <div key={prod.id} className="w-full">
-                  <TarjetaProducto producto={prod} />
-                </div>
-              ))
-            )}
-          </section>
+
+
+
         </div>
       </section>
     </main>
