@@ -173,3 +173,7 @@ html, body {
   }
 }
 
+.productos-grid img {
+  max-height: 200px;
+  object-fit: contain;
+}

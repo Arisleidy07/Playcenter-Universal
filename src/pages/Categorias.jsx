@@ -4,6 +4,7 @@ import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
 import productos from "../data/productosAll";
 import { FaThList } from "react-icons/fa";
+import "../styles/productosGrid.css";
 
 function Categorias() {
   const navigate = useNavigate();
@@ -76,22 +77,17 @@ function Categorias() {
             setMostrarEnMovil={setMostrarCategorias}
           />
 
-<section
-  id="productos-seccion"
-  className="productos-grid"
->
-  {productosFiltrados.length === 0 ? (
-    <p className="text-center text-gray-500 col-span-full mt-10">
-      No hay productos en esta categoría.
-    </p>
-  ) : (
-    productosFiltrados.map((prod) => (
-      <TarjetaProducto key={prod.id} producto={prod} />
-    ))
-  )}
-</section>
-
-
+          <section id="productos-seccion" className="productos-grid flex-1">
+            {productosFiltrados.length === 0 ? (
+              <p className="text-center text-gray-500 col-span-full mt-10">
+                No hay productos en esta categoría.
+              </p>
+            ) : (
+              productosFiltrados.map((prod) => (
+                <TarjetaProducto key={prod.id} producto={prod} />
+              ))
+            )}
+          </section>
         </div>
       </section>
     </main>
