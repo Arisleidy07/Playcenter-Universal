@@ -1,19 +1,11 @@
 .productos-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: 1fr;
   gap: 20px;
   width: 100%;
 }
 
-
-/* Tablet: 3 columnas */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .productos-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Desktop: 5 columnas fijas */
+/* Escritorio: 5 columnas */
 @media (min-width: 1024px) {
   .productos-grid {
     grid-template-columns: repeat(5, 1fr);

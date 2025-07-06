@@ -37,28 +37,31 @@ function TarjetaProducto({ producto }) {
     <>
       <div
         onClick={irADetalle}
-        className="flex flex-col bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer p-4 h-full"
+        className="group flex flex-col lg:flex-col bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer p-4 h-full w-full"
       >
-        {/* Imagen */}
-        <div className="w-full h-48 flex items-center justify-center mb-3">
-          <img
-            src={producto.imagen || producto.imagenes?.[0]}
-            alt={producto.nombre}
-            className="max-h-full object-contain"
-          />
-        </div>
+        {/* Móvil / Tableta: fila */}
+        <div className="flex flex-row lg:flex-col items-center lg:items-start gap-4 w-full">
+          {/* Imagen */}
+          <div className="flex-shrink-0 w-24 h-24 lg:w-full lg:h-48 flex items-center justify-center">
+            <img
+              src={producto.imagen || producto.imagenes?.[0]}
+              alt={producto.nombre}
+              className="object-contain max-h-full"
+            />
+          </div>
 
-        {/* Contenido */}
-        <div className="flex flex-col flex-1 w-full overflow-hidden gap-1">
-          <h2 className="font-semibold text-base text-gray-800 leading-tight line-clamp-2">
-            {producto.nombre}
-          </h2>
-          <p className="text-sm text-gray-500 line-clamp-2">
-            {producto.descripcion || "Descripción del producto."}
-          </p>
-          <p className="text-lg font-bold text-gray-900 mt-1">
-            ${producto.precio.toFixed(2)}
-          </p>
+          {/* Contenido */}
+          <div className="flex flex-col flex-1 w-full overflow-hidden gap-1">
+            <h2 className="font-semibold text-base text-gray-800 leading-tight line-clamp-2">
+              {producto.nombre}
+            </h2>
+            <p className="text-sm text-gray-500 line-clamp-2">
+              {producto.descripcion || "Descripción del producto."}
+            </p>
+            <p className="text-lg font-bold text-gray-900 mt-1">
+              ${producto.precio.toFixed(2)}
+            </p>
+          </div>
         </div>
 
         {/* Botón */}
