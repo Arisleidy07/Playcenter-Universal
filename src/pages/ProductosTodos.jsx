@@ -13,7 +13,7 @@ function ProductosTodos() {
     return (
     <div className="px-4 sm:px-6 lg:px-10 pt-6 pb-10 bg-white min-h-screen">
         <h1 className="titulo-categoria">
-        Videojuegos
+        Todos nuestros productos
         </h1>
 
         <div className="productos-grid mt-6">

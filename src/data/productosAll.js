@@ -10,6 +10,7 @@ const productosAll = [
         descripcion: "La consola que marcó el inicio de una generación gamer.",
         imagenes: ["/Productos/nintendoentertainment.jpeg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "rc2",
@@ -19,6 +20,7 @@ const productosAll = [
         descripcion: "Gráficos coloridos, clásicos como Super Mario World.",
         imagenes: ["/Productos/supernintendo.avif"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "rc3",
@@ -28,6 +30,7 @@ const productosAll = [
         descripcion: "Sonic, Streets of Rage y más.",
         imagenes: ["/Productos/segagenesis.webp"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "rc4",
@@ -37,6 +40,7 @@ const productosAll = [
         descripcion: "Donde empezó la leyenda de Crash y Final Fantasy.",
         imagenes: ["/Productos/playstation1.webp"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "rc5",
@@ -46,6 +50,7 @@ const productosAll = [
         descripcion: "Pokémon Red en tu bolsillo.",
         imagenes: ["/Productos/gameboy.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "rc6",
@@ -55,6 +60,7 @@ const productosAll = [
         descripcion: "La precursora de las consolas modernas.",
         imagenes: ["/Productos/atari2600.png"],
         oferta: false,
+        estado: "Nuevo"
       },
     ],
   },
@@ -69,6 +75,7 @@ const productosAll = [
       descripcion: "El juego más icónico de plataformas 2D.",
       imagenes: ["/Productos/mariobrosretro.jpg"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "rj2",
@@ -78,6 +85,7 @@ const productosAll = [
       descripcion: "Explora Hyrule en 8 bits.",
       imagenes: ["/Productos/zeldaretro.jpg"],
       oferta: false,
+      estado: "Nuevo"
     },
     {
       id: "rj3",
@@ -87,6 +95,7 @@ const productosAll = [
       descripcion: "Gráficos renderizados pioneros.",
       imagenes: ["/Productos/donkeykongnretro.jpeg"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "rj4",
@@ -96,6 +105,7 @@ const productosAll = [
       descripcion: "Aventura en 3D de culto.",
       imagenes: ["/Productos/crash-bandicoat-PS1.webp"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "rj5",
@@ -105,6 +115,7 @@ const productosAll = [
       descripcion: "RPG legendario que marcó época.",
       imagenes: ["/Productos/ff7.jpg"],
       oferta: false,
+      estado: "Nuevo"
     },
   ],
 },
@@ -120,6 +131,7 @@ const productosAll = [
         descripcion: "Cancelación de ruido con batería de 30h.",
         imagenes: ["/Productos/audifonos-bluetooth.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "au2",
@@ -129,6 +141,7 @@ const productosAll = [
         descripcion: "Luz, sonido 3D y confort extremo.",
         imagenes: ["/Productos/audifonos-gamer.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "au3",
@@ -138,6 +151,7 @@ const productosAll = [
         descripcion: "Sonido puro para llamadas y música.",
         imagenes: ["/Productos/audifonos-inear.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "au4",
@@ -147,6 +161,7 @@ const productosAll = [
         descripcion: "Ideales para entrenar sin cables.",
         imagenes: ["/Productos/audifonos-sport.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -161,6 +176,7 @@ const productosAll = [
         descripcion: "Carga rápida para iPhone y iPad.",
         imagenes: ["/Productos/usb-c.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cb2",
@@ -170,6 +186,7 @@ const productosAll = [
         descripcion: "Video y audio en alta definición.",
         imagenes: ["/Productos/hdmi4k.jpeg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cb3",
@@ -179,6 +196,7 @@ const productosAll = [
         descripcion: "Transferencia rápida para móviles.",
         imagenes: ["/Productos/micro.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "cb4",
@@ -188,6 +206,7 @@ const productosAll = [
         descripcion: "Internet sin interferencias.",
         imagenes: ["/Productos/ethernet.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cb5",
@@ -197,6 +216,7 @@ const productosAll = [
         descripcion: "Soporta hasta 8K a 60Hz.",
         imagenes: ["/Productos/displayport.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -211,6 +231,7 @@ const productosAll = [
         descripcion: "Mongoose, la clásica MTB para la ciudad y off-road.",
         imagenes: ["/Productos/mongose.jpg"],
         oferta: true,
+        estado: "Usado"
       },
       {
         id: "rv2",
@@ -220,6 +241,7 @@ const productosAll = [
         descripcion: "Compacta, ligera, alcance hasta 25km y full power.",
         imagenes: ["/Productos/patinetaelectrica.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "rv3",
@@ -229,6 +251,7 @@ const productosAll = [
         descripcion: "Tecnología smart para moverte con estilo y velocidad.",
         imagenes: ["/Productos/hoverboard.jpg"],
         oferta: true,
+        estado: "Usado"
       },
       {
         id: "rv4",
@@ -238,6 +261,7 @@ const productosAll = [
         descripcion: "Estilo y velocidad para deslizarte con flow.",
         imagenes: ["/Productos/patines4ruedaasenlinea.jpeg"],
         oferta: false,
+        estado: "Usado"
       },
       {
         id: "rv5",
@@ -247,6 +271,7 @@ const productosAll = [
         descripcion: "Roller clásico para pura diversión.",
         imagenes: ["/Productos/patinesclasicos.webp"],
         oferta: false,
+        estado: "Usado"
       },
       {
         id: "rv6",
@@ -256,6 +281,7 @@ const productosAll = [
         descripcion: "Juego de 4 ruedas para tu patineta o longboard.",
         imagenes: ["/Productos/ruedapatineta.webp"],
         oferta: true,
+        estado: "Usado"
       },
       {
         id: "rv7",
@@ -265,6 +291,7 @@ const productosAll = [
         descripcion: "Seguridad y estilo en un solo casco moderno.",
         imagenes: ["/Productos/casco.jpg"],
         oferta: false,
+        estado: "Usado"
       },
       {
         id: "rv8",
@@ -274,6 +301,7 @@ const productosAll = [
         descripcion: "Mantiene tus bebidas frías o calientes por horas.",
         imagenes: ["/Productos/botella.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "rv9",
@@ -283,6 +311,7 @@ const productosAll = [
         descripcion: "Visibilidad garantizada en la noche, USB recargable.",
         imagenes: ["/Productos/lucesbici.webp"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -296,6 +325,7 @@ const productosAll = [
     descripcion: "Cámara de seguridad tipo Dome con resolución 4MP, visión nocturna y carcasa resistente.",
     categoria: "camaras-vigilancia",
     imagen: "/Productos/hikvision.png",
+    estado: "Nuevo"
   },
   {
     id: "cam2",
@@ -304,6 +334,7 @@ const productosAll = [
     descripcion: "Cámara Bullet Full HD con lente gran angular, ideal para exteriores.",
     categoria: "camaras-vigilancia",
     imagen: "/Productos/dahua.webp",
+    estado: "Nuevo"
   },
   {
     id: "cam3",
@@ -312,6 +343,7 @@ const productosAll = [
     descripcion: "Cámara WiFi con grabación en la nube, visión nocturna y audio bidireccional.",
     categoria: "camaras-vigilancia",
     imagen: "/Productos/ezviz.png",
+    estado: "Nuevo"
   },
   {
     id: "cam4",
@@ -320,6 +352,7 @@ const productosAll = [
     descripcion: "Cámara PTZ con movimiento horizontal y vertical, notificaciones instantáneas y almacenamiento local.",
     categoria: "camaras-vigilancia",
     imagen: "/Productos/tapo.webp",
+    estado: "Nuevo"
   },
 
 
@@ -336,6 +369,7 @@ const productosAll = [
         descripcion: "Carga eficiente para Android y iPhone.",
         imagenes: ["/Productos/cargador-rapido.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cg2",
@@ -345,6 +379,7 @@ const productosAll = [
         descripcion: "Compatible con smartphones que permiten carga por inducción.",
         imagenes: ["/Productos/cargador-inalambrico.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cg3",
@@ -354,6 +389,7 @@ const productosAll = [
         descripcion: "Carga hasta 3 dispositivos con alta capacidad.",
         imagenes: ["/Productos/powerbank.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cg4",
@@ -363,6 +399,7 @@ const productosAll = [
         descripcion: "Ideal para cargar dos equipos a la vez.",
         imagenes: ["/Productos/cargador-doble.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
     ],
   },
@@ -377,6 +414,7 @@ const productosAll = [
         descripcion: "Pantalla Super Retina XDR, chip A16 Bionic.",
         imagenes: ["/Productos/iphone14pro.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cl2",
@@ -386,6 +424,7 @@ const productosAll = [
         descripcion: "Cámara profesional en formato móvil.",
         imagenes: ["/Productos/galaxy-s22.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "cl3",
@@ -395,6 +434,7 @@ const productosAll = [
         descripcion: "Inteligencia artificial integrada al sistema.",
         imagenes: ["/Productos/pixel7.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "cl4",
@@ -404,6 +444,7 @@ const productosAll = [
         descripcion: "Pantalla OLED, 144Hz y gran batería.",
         imagenes: ["/Productos/moto-edge30.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -418,6 +459,7 @@ const productosAll = [
       descripcion: "Gráficos de nueva generación y control DualSense.",
       imagenes: ["/Productos/ps5.webp"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "cs2",
@@ -427,6 +469,7 @@ const productosAll = [
       descripcion: "La consola más potente de Microsoft.",
       imagenes: ["/Productos/xboxseriesx.webp"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "cs3",
@@ -436,6 +479,7 @@ const productosAll = [
       descripcion: "Llévala donde quieras con pantalla brillante.",
       imagenes: ["/Productos/nintendoswitch.jpg"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "cs4",
@@ -445,6 +489,7 @@ const productosAll = [
       descripcion: "Gaming portátil con rendimiento de PC.",
       imagenes: ["/Productos/steam-deck.jpg"],
       oferta: false,
+      estado: "Usado"
     },
     {
       id: "cs5",
@@ -454,6 +499,7 @@ const productosAll = [
       descripcion: "La consola que marcó una generación de gamers.",
       imagenes: ["/Productos/ps4.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "cs6",
@@ -463,6 +509,7 @@ const productosAll = [
       descripcion: "Disfruta juegos, entretenimiento y apps en una sola consola.",
       imagenes: ["/Productos/xboxone.webp"],
       oferta: true,
+      estado: "Usado"
     },
   ],
 },
@@ -478,6 +525,7 @@ const productosAll = [
         descripcion: "Pequeño, rápido y confiable.",
         imagenes: ["/Productos/seagate.png"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "dd2",
@@ -487,6 +535,7 @@ const productosAll = [
         descripcion: "Perfecto para acelerar tu sistema.",
         imagenes: ["/Productos/samsung.webp"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "dd3",
@@ -496,6 +545,7 @@ const productosAll = [
         descripcion: "Ideal para respaldo completo.",
         imagenes: ["/Productos/wd2tb.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "dd4",
@@ -505,6 +555,7 @@ const productosAll = [
         descripcion: "Ultraportátil con conexión USB-C.",
         imagenes: ["/Productos/crucial.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "dd5",
@@ -514,6 +565,7 @@ const productosAll = [
         descripcion: "Resistente a golpes y polvo, ideal para creativos.",
         imagenes: ["/Productos/lacie-rugged.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -528,6 +580,7 @@ const productosAll = [
         descripcion: "Motor potente con jarra de vidrio.",
         imagenes: ["/Productos/licuadora-oster.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "ed2",
@@ -537,6 +590,7 @@ const productosAll = [
         descripcion: "Moderno, rápido y eficiente.",
         imagenes: ["/Productos/microondas.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "ed3",
@@ -546,6 +600,7 @@ const productosAll = [
         descripcion: "Limpieza automática vía app.",
         imagenes: ["/Productos/xiaomi-aspiradora.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "ed4",
@@ -555,6 +610,7 @@ const productosAll = [
         descripcion: "Cocina sin aceite y más saludable.",
         imagenes: ["/Productos/freidora.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -568,7 +624,8 @@ const productosAll = [
         precio: 229.99,
         descripcion: "Iluminación RGB y soporte lumbar acolchado.",
         imagenes: ["/Productos/silla-gamer-rgb.jpg"],
-        oferta: true,
+        oferta: true,   
+        estado: "Nuevo"
       },
       {
         id: "gc2",
@@ -578,6 +635,7 @@ const productosAll = [
         descripcion: "Reposacabeza ajustable y respaldo reforzado.",
         imagenes: ["/Productos/silla-gamer-cojines.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "gc3",
@@ -587,6 +645,7 @@ const productosAll = [
         descripcion: "Diseño básico pero funcional.",
         imagenes: ["/Productos/silla-gamer-barata.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "gc4",
@@ -596,6 +655,7 @@ const productosAll = [
         descripcion: "Máxima comodidad en sesiones largas.",
         imagenes: ["/Productos/silla-reposapies.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -610,6 +670,7 @@ const productosAll = [
         descripcion: "Intel i5, SSD 256GB, pantalla 15.6”.",
         imagenes: ["/Productos/dell-inspiron15.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "lp2",
@@ -619,6 +680,7 @@ const productosAll = [
         descripcion: "Ligera, elegante y veloz.",
         imagenes: ["/Productos/macbook-air-m2.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "lp3",
@@ -628,6 +690,7 @@ const productosAll = [
         descripcion: "Tarjeta gráfica potente y diseño agresivo.",
         imagenes: ["/Productos/asus-rog.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "lp4",
@@ -637,6 +700,7 @@ const productosAll = [
         descripcion: "Perfecta para estudiantes y oficina.",
         imagenes: ["/Productos/ideapad.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -651,6 +715,7 @@ const productosAll = [
         descripcion: "Colores vibrantes para diseño y gaming.",
         imagenes: ["/Productos/monitor-lg-4k.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "mn2",
@@ -660,6 +725,7 @@ const productosAll = [
         descripcion: "Inmersión completa con su forma curva.",
         imagenes: ["/Productos/monitor-samsung-curvo.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "mn3",
@@ -669,6 +735,7 @@ const productosAll = [
         descripcion: "Rápido y eficiente para tareas cotidianas.",
         imagenes: ["/Productos/monitor-acer-24.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "mn4",
@@ -678,6 +745,7 @@ const productosAll = [
         descripcion: "Ideal para eSports.",
         imagenes: ["/Productos/monitor-benq.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -692,6 +760,7 @@ const productosAll = [
         descripcion: "Chip M1 y pantalla Liquid Retina.",
         imagenes: ["/Productos/ipad-pro.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "tb2",
@@ -701,6 +770,7 @@ const productosAll = [
         descripcion: "Ligera, potente y con pantalla AMOLED.",
         imagenes: ["/Productos/galaxy-tab-s8.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "tb3",
@@ -710,6 +780,7 @@ const productosAll = [
         descripcion: "Ideal para lectura y video.",
         imagenes: ["/Productos/fire-hd10.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "tb4",
@@ -719,6 +790,7 @@ const productosAll = [
         descripcion: "Diseño delgado y pantalla nítida.",
         imagenes: ["/Productos/huawei-matepad.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -733,6 +805,7 @@ const productosAll = [
         descripcion: "Multidispositivo, compacto y silencioso.",
         imagenes: ["/Productos/teclado-logitech-k380.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "tk2",
@@ -742,6 +815,7 @@ const productosAll = [
         descripcion: "Iluminación personalizable y switches táctiles.",
         imagenes: ["/Productos/teclado-gamer-rgb.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "tk3",
@@ -751,6 +825,7 @@ const productosAll = [
         descripcion: "Diseño para largas sesiones de escritura.",
         imagenes: ["/Productos/teclado-ergonomico.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
     ],
   },
@@ -765,6 +840,7 @@ const productosAll = [
       descripcion: "Fútbol con mejoras gráficas y físicas.",
       imagenes: ["/Productos/fifa23.jpg"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "vj3",
@@ -774,6 +850,7 @@ const productosAll = [
       descripcion: "Aventura épica en mundo abierto.",
       imagenes: ["/Productos/zelda.webp"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "vj4",
@@ -783,6 +860,7 @@ const productosAll = [
       descripcion: "Simulación de autos realista.",
       imagenes: ["/Productos/gt7.jpg"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "vj5",
@@ -792,6 +870,7 @@ const productosAll = [
       descripcion: "Ágil y cinematográfica aventura del universo Marvel.",
       imagenes: ["/Productos/spider-manps5.jpeg"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "vj6",
@@ -801,6 +880,7 @@ const productosAll = [
       descripcion: "Carreras locas, ítems clásicos y multiplayer épico.",
       imagenes: ["/Productos/Mario-Kart-8.jpeg"],
       oferta: false,
+      estado: "Nuevo"
     },
     {
       id: "vj7",
@@ -810,6 +890,7 @@ const productosAll = [
       descripcion: "El crossover de batallas más grande de Nintendo.",
       imagenes: ["/Productos/super-smash-bros.jpg"],
       oferta: true,
+      estado: "Nuevo"
     },
   ],
 },
@@ -824,6 +905,7 @@ const productosAll = [
         descripcion: "4K UHD, control por voz y apps integradas.",
         imagenes: ["/Productos/samsung-smarttv.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "tv2",
@@ -833,6 +915,7 @@ const productosAll = [
         descripcion: "Negros profundos y colores realistas.",
         imagenes: ["/Productos/lg-oled65.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "tv3",
@@ -842,6 +925,7 @@ const productosAll = [
         descripcion: "Compacta y con acceso rápido a streaming.",
         imagenes: ["/Productos/hisense-43.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -856,6 +940,7 @@ const productosAll = [
         descripcion: "Compacta y veloz para llevar tus archivos.",
         imagenes: ["/Productos/sandisk.jpeg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "usb2",
@@ -865,6 +950,7 @@ const productosAll = [
         descripcion: "Velocidades superiores para trabajo o backup.",
         imagenes: ["/Productos/kingston.webp"],
         oferta: false,
+        estado: "Nuevo"
       },
       {
         id: "usb3",
@@ -874,6 +960,7 @@ const productosAll = [
         descripcion: "Diseño duradero y práctico.",
         imagenes: ["/Productos/hp.jpeg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "usb4",
@@ -883,6 +970,7 @@ const productosAll = [
         descripcion: "Almacenamiento masivo en formato USB 3.0.",
         imagenes: ["/Productos/corsair.avif"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "usb5",
@@ -892,6 +980,7 @@ const productosAll = [
         descripcion: "Transferencia ultrarrápida hasta 400MB/s.",
         imagenes: ["/Productos/patriot-rage2.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
     ],
   },
@@ -906,6 +995,7 @@ const productosAll = [
       descripcion: "Control desde app o comandos de voz.",
       imagenes: ["/Productos/foco-inteligente.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "hi2",
@@ -915,6 +1005,7 @@ const productosAll = [
       descripcion: "Enciende o apaga tus dispositivos remotamente.",
       imagenes: ["/Productos/enchufe-inteligente.jpg"],
       oferta: false,
+      estado: "Usado"
     },
     {
       id: "hi4",
@@ -924,6 +1015,7 @@ const productosAll = [
       descripcion: "Detecta presencia y envía alertas a tu celular.",
       imagenes: ["/Productos/sensor-movimiento.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "hi5",
@@ -933,6 +1025,7 @@ const productosAll = [
       descripcion: "Convierte cualquier luz convencional en smart.",
       imagenes: ["/Productos/interruptor-inteligente.jpg"],
       oferta: false,
+      estado: "Usado"
     },
     {
       id: "hi6",
@@ -942,6 +1035,7 @@ const productosAll = [
       descripcion: "Recibe notificaciones cuando se abren o cierran.",
       imagenes: ["/Productos/sensor-puerta.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "hi7",
@@ -951,6 +1045,7 @@ const productosAll = [
       descripcion: "Conéctalo a Alexa o Google Assistant y relájate.",
       imagenes: ["/Productos/humidificador-smart.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "hi8",
@@ -960,6 +1055,7 @@ const productosAll = [
       descripcion: "Altavoz inteligente con Alexa integrado.",
       imagenes: ["/Productos/echo-dot.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "hi9",
@@ -969,6 +1065,7 @@ const productosAll = [
       descripcion: "Pantalla inteligente para videollamadas y control del hogar.",
       imagenes: ["/Productos/echo-show-8.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "hi10",
@@ -978,6 +1075,7 @@ const productosAll = [
       descripcion: "Alexa para tu vehículo con manos libres.",
       imagenes: ["/Productos/echo-auto.jpg"],
       oferta: false,
+      estado: "Usado"
     },
     {
       id: "hi11",
@@ -987,6 +1085,7 @@ const productosAll = [
       descripcion: "Controla cualquier aparato con comandos de voz.",
       imagenes: ["/Productos/smart-plug-alexa.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "hi12",
@@ -996,6 +1095,7 @@ const productosAll = [
       descripcion: "Control universal de TV, aire y más vía Alexa.",
       imagenes: ["/Productos/ir-remote.jpg"],
       oferta: false,
+      estado: "Usado"
     },
   ],
 },
@@ -1013,6 +1113,7 @@ const productosAll = [
         "Impresora multifuncional con sistema de tinta continua, ideal para hogar y oficina.",
       imagenes: ["/Productos/epson-l3250.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "imp002",
@@ -1023,6 +1124,7 @@ const productosAll = [
         "Impresión inalámbrica, escaneo y copia desde tu celular con la app HP Smart.",
       imagenes: ["/Productos/hp-deskjet.jpg"],
       oferta: false,
+      estado: "Usado"
     },
     {
       id: "imp003",
@@ -1033,6 +1135,7 @@ const productosAll = [
         "Impresora láser rápida y compacta con Wi-Fi y auto dúplex.",
       imagenes: ["/Productos/brother-hl.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "imp004",
@@ -1043,6 +1146,7 @@ const productosAll = [
         "Tanques de tinta integrados, gran rendimiento por página, ideal para impresión masiva.",
       imagenes: ["/Productos/canon-pixma-g5020.jpg"],
       oferta: false,
+      estado: "Usado"
     }
   ]
   },
@@ -1058,6 +1162,7 @@ const productosAll = [
         descripcion: "Juego remoto de PS5 en tus manos.",
         imagenes: ["/Productos/playstation-portal.jpg"],
         oferta: true,
+        estado: "Usado"
       },
       {
         id: "nl2",
@@ -1067,15 +1172,17 @@ const productosAll = [
         descripcion: "Revoluciona tu espacio con realidad mixta.",
         imagenes: ["/Productos/vision-pro.jpg"],
         oferta: false,
+        estado: "Usado"
       },
       {
         id: "nl3",
-        nombre: "Nintendo Switch 2 (Rumor Confirmado)",
+        nombre: "Nintendo Switch 2 ",
         imagen: "/Productos/switch2.jpg",
         precio: 449.99,
         descripcion: "Pantalla mejorada, nuevo dock y retrocompatibilidad.",
         imagenes: ["/Productos/switch2.jpg"],
         oferta: true,
+        estado: "Usado"
       },
     ],
   },
@@ -1090,6 +1197,7 @@ const productosAll = [
         descripcion: "Incluye Spider-Man y God of War.",
         imagenes: ["/Productos/combo-ps5.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "of2",
@@ -1099,6 +1207,7 @@ const productosAll = [
         descripcion: "Estilo, comodidad y precisión.",
         imagenes: ["/Productos/combo-gamer.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "of3",
@@ -1108,6 +1217,7 @@ const productosAll = [
         descripcion: "Ideal para tu setup de sala o habitación.",
         imagenes: ["/Productos/combo-tv.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
     ],
   },
@@ -1122,6 +1232,7 @@ const productosAll = [
         descripcion: "Monitoreo avanzado de salud y entrenamiento.",
         imagenes: ["/Productos/apple-watch9.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "rl2",
@@ -1131,6 +1242,7 @@ const productosAll = [
         descripcion: "Diseño elegante y duración de batería sólida.",
         imagenes: ["/Productos/galaxy-watch6.jpg"],
         oferta: true,
+        estado: "Nuevo"
       },
       {
         id: "rl3",
@@ -1140,6 +1252,7 @@ const productosAll = [
         descripcion: "Resistente al agua y con más de 100 modos deportivos.",
         imagenes: ["/Productos/xiaomi-watch.jpg"],
         oferta: false,
+        estado: "Nuevo"
       },
     ],
   },
@@ -1154,6 +1267,7 @@ const productosAll = [
       descripcion: "Diseño ergonómico con agarre antideslizante y respuesta háptica precisa.",
       imagenes: ["/Productos/control-xbox.jpg"],
       oferta: true,
+      estado: "Nuevo"
     },
     {
       id: "av2",
@@ -1163,6 +1277,7 @@ const productosAll = [
       descripcion: "Auriculares inalámbricos con sonido envolvente y micrófono de calidad profesional.",
       imagenes: ["/Productos/logitech-g733.jpg"],
       oferta: false,
+      estado: "Nuevo"
     },
     {
       id: "av3",
@@ -1172,6 +1287,7 @@ const productosAll = [
       descripcion: "Switches mecánicos verdes y retroiluminación RGB personalizable.",
       imagenes: ["/Productos/razer-teclado.jpg"],
       oferta: true,
+      estado: "Nuevo"
     },
   ],
 },
@@ -1186,6 +1302,7 @@ const productosAll = [
       descripcion: "Sensor HERO 25K con 25,600 DPI y 11 botones programables.",
       imagenes: ["/Productos/logitech-g502.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "m2",
@@ -1195,6 +1312,7 @@ const productosAll = [
       descripcion: "Conectividad inalámbrica Bluetooth y 16,000 DPI.",
       imagenes: ["/Productos/razer-basilisk-x.jpg"],
       oferta: false,
+      estado: "Usado"
     },
     {
       id: "m3",
@@ -1204,6 +1322,7 @@ const productosAll = [
       descripcion: "Carcasa de aluminio y peso ajustable para máxima precisión.",
       imagenes: ["/Productos/corsair-m65.jpg"],
       oferta: true,
+      estado: "Usado"
     },
   ],
 },
@@ -1218,6 +1337,7 @@ const productosAll = [
       descripcion: "Inmersión háptica y gatillos adaptativos para una experiencia de juego revolucionaria.",
       imagenes: ["/Productos/ps5-dualsense.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "c2",
@@ -1227,6 +1347,7 @@ const productosAll = [
       descripcion: "Diseño mejorado con texturizado y latencia reducida.",
       imagenes: ["/Productos/xbox-seriesx.jpg"],
       oferta: false,
+      estado: "Usado"
     },
     {
       id: "c3",
@@ -1236,6 +1357,7 @@ const productosAll = [
       descripcion: "Ergonómico, batería de larga duración y controles precisos.",
       imagenes: ["/Productos/switch-pro.jpg"],
       oferta: true,
+      estado: "Usado"
     },
     {
       id: "c4",
@@ -1245,6 +1367,7 @@ const productosAll = [
       descripcion: "Compatibilidad con PC y vibración dual.",
       imagenes: ["/Productos/logitech-f710.jpg"],
       oferta: false,
+      estado: "Usado"
     }
   ]
 }

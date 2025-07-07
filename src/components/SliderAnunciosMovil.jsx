@@ -1,48 +1,12 @@
 import React from "react";
 
+
 const anuncios = [
-  {
-    id: 1,
-    img: "/ads/movil/articulosads.png",
-    link: "/productos/videojuegos",
-    isExternal: false,
-  },
-  {
-    id: 2,
-    img: "/ads/movil/camarasads.png",
-    link: "/productos/camaras",
-    isExternal: false,
-  },
-  {
-    id: 3,
-    img: "/ads/movil/consolaads.png",
-    link: "/productos/consolas",
-    isExternal: false,
-  },
-  {
-    id: 4,
-    img: "/ads/movil/ofertas.png",
-    link: "/productos/ofertas-especiales",
-    isExternal: false,
-  },
-  {
-    id: 5,
-    img: "/ads/movil/productosads.png",
-    link: "/productos",
-    isExternal: false,
-  },
-  {
-    id: 6,
-    img: "/ads/movil/retroads.png",
-    link: "/productos/retro-consolas",
-    isExternal: false,
-  },
-  {
-    id: 7,
-    img: "/ads/movil/ubicacionads.png",
-    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
-    isExternal: true,
-  },
+  { id: 1, img: "/ads/movil/articulosads.png", link: "/productos/consolas", isExternal: false },
+  { id: 2, img: "/ads/movil/camarasads.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
+  { id: 3, img: "/ads/movil/consolaads.png", link: "/productos/consolas", isExternal: false },
+  { id: 4, img: "/ads/movil/ofertas.png", link: "/productos/ofertas-especiales", isExternal: false },
+  { id: 5, img: "/ads/movil/productosads.png", link: "/productos", isExternal: false },
 ];
 
 function SliderAnunciosMovil() {

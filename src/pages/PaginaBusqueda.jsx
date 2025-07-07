@@ -1,7 +1,7 @@
 // src/pages/PaginaBusqueda.js
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import productos from "../data/productos.json"; // Cambia según tu fuente
+import productosAll from "../data/productosAll"; 
 import { normalizarTexto } from "../utils/normalizarTexto";
 
 function PaginaBusqueda() {

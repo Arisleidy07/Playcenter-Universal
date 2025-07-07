@@ -1,96 +1,141 @@
-import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
-import productos from "../data/productosAll";
-import { FaThList } from "react-icons/fa";
+import SidebarFiltros from "../components/SidebarFiltros";
+import productosAll from "../data/productosAll";
+import { normalizar } from "../utils/normalizarCategoria";
+import { FiMenu, FiFilter } from "react-icons/fi";
 import "../styles/productosGrid.css";
 
 function Categorias() {
-  const navigate = useNavigate();
-  const { categoriaURL } = useParams();
-  const [mostrarCategorias, setMostrarCategorias] = React.useState(false);
+  const { categoria } = useParams();
 
-  const todas = productos.flatMap((cat) => cat.productos);
+  const [categoriaActiva, setCategoriaActiva] = useState("Todos");
+  const [mostrarSidebarMovil, setMostrarSidebarMovil] = useState(false);
+  const [mostrarFiltrosMovil, setMostrarFiltrosMovil] = useState(false);
+  const [filtros, setFiltros] = useState({
+    estado: { nuevo: false, usado: false },
+    precio: { min: "", max: "" },
+  });
+  const [productosFiltrados, setProductosFiltrados] = useState([]);
 
-  const productosFiltrados = React.useMemo(() => {
-    if (!categoriaURL || categoriaURL === "") return todas;
-    const match = productos.find(
-      (cat) =>
-        cat.categoria
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/\s/g, "-") === categoriaURL
-    );
-    return match ? match.productos : [];
-  }, [categoriaURL, todas]);
+  useEffect(() => {
+    if (!categoria || categoria === "") {
+      setCategoriaActiva("Todos");
+    } else {
+      const catOriginal = productosAll.find(
+        (cat) => normalizar(cat.categoria) === normalizar(categoria)
+      );
+      setCategoriaActiva(catOriginal ? catOriginal.categoria : "Todos");
+    }
+  }, [categoria]);
 
-  const categoriaActiva = React.useMemo(() => {
-    if (!categoriaURL || categoriaURL === "") return "Todos";
-    const match = productos.find(
-      (cat) =>
-        cat.categoria
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/\s/g, "-") === categoriaURL
-    );
-    return match ? match.categoria : "Todos";
-  }, [categoriaURL]);
+  useEffect(() => {
+    let productos = [];
+    if (categoriaActiva === "Todos") {
+      productos = productosAll.flatMap((cat) => cat.productos);
+    } else {
+      const cat = productosAll.find(
+        (cat) => normalizar(cat.categoria) === normalizar(categoriaActiva)
+      );
+      productos = cat ? cat.productos : [];
+    }
 
-  const handleSeleccion = (nombre) => {
-    const ruta = nombre
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s/g, "-");
-    navigate(`/productos/${ruta}`);
-    setMostrarCategorias(false);
-    document.getElementById("productos-seccion")?.scrollIntoView({
-      behavior: "smooth",
+    const filtrados = productos.filter((p) => {
+      const cumpleMin = !filtros.precio.min || p.precio >= Number(filtros.precio.min);
+      const cumpleMax = !filtros.precio.max || p.precio <= Number(filtros.precio.max);
+      const cumpleEstado =
+        (!filtros.estado.nuevo && !filtros.estado.usado) ||
+        (filtros.estado.nuevo && p.estado === "Nuevo") ||
+        (filtros.estado.usado && p.estado === "Usado");
+      return cumpleMin && cumpleMax && cumpleEstado;
     });
-  };
+
+    setProductosFiltrados(filtrados);
+  }, [categoriaActiva, filtros]);
 
   return (
-    <main className="pt-6 sm:pt-8 px-3 sm:px-6 lg:px-10 pb-8 bg-white min-h-screen">
-      <section className="pt-20 sm:pt-0">
-        {!mostrarCategorias && (
-          <div className="sm:hidden fixed top-[76px] left-4 z-[9999]">
-            <button
-              onClick={() => setMostrarCategorias(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#4FC3F7] text-white rounded-full shadow-lg font-semibold text-sm"
-              aria-expanded={mostrarCategorias}
-              aria-controls="sidebar-categorias"
-            >
-              <FaThList />
-              Categorías
-            </button>
-          </div>
+    <>
+      <header className="fixed top-0 left-0 right-0 bg-white shadow z-50 flex items-center justify-between px-4 sm:px-6 h-14">
+        <button
+          className="sm:hidden text-2xl text-blue-800"
+          onClick={() => setMostrarSidebarMovil(true)}
+          aria-label="Abrir categorías"
+        >
+          <FiMenu />
+        </button>
+
+        <h1 className="text-lg sm:text-xl font-bold text-blue-800 truncate">
+          {categoriaActiva}
+        </h1>
+
+        <button
+          className="sm:hidden text-2xl text-blue-800"
+          onClick={() => setMostrarFiltrosMovil(true)}
+          aria-label="Abrir filtros"
+        >
+          <FiFilter />
+        </button>
+      </header>
+
+      <div className="pt-14 flex min-h-screen bg-white">
+        <SidebarCategorias
+          categoriaActiva={categoriaActiva}
+          mostrarEnMovil={mostrarSidebarMovil}
+          setMostrarEnMovil={setMostrarSidebarMovil}
+          setCategoriaActiva={setCategoriaActiva}
+        />
+
+        <SidebarFiltros
+          mostrarEnMovil={false}
+          setMostrarEnMovil={() => {}}
+          filtros={filtros}
+          setFiltros={setFiltros}
+          productosOriginales={
+            categoriaActiva === "Todos"
+              ? productosAll.flatMap((cat) => cat.productos)
+              : productosAll.find((cat) => normalizar(cat.categoria) === normalizar(categoriaActiva))?.productos || []
+          }
+        />
+
+        {mostrarFiltrosMovil && (
+          <>
+            <div
+              className="fixed inset-0 bg-black bg-opacity-30 z-[1050]"
+              onClick={() => setMostrarFiltrosMovil(false)}
+            />
+            <aside className="fixed top-14 right-0 bottom-0 w-72 bg-white z-[1051] shadow-lg overflow-y-auto">
+              <SidebarFiltros
+                mostrarEnMovil={true}
+                setMostrarEnMovil={setMostrarFiltrosMovil}
+                filtros={filtros}
+                setFiltros={setFiltros}
+                productosOriginales={
+                  categoriaActiva === "Todos"
+                    ? productosAll.flatMap((cat) => cat.productos)
+                    : productosAll.find((cat) => normalizar(cat.categoria) === normalizar(categoriaActiva))?.productos || []
+                }
+              />
+            </aside>
+          </>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-4 mt-2">
-          <SidebarCategorias
-            categoriaActiva={categoriaActiva}
-            setCategoriaActiva={handleSeleccion}
-            mostrarEnMovil={mostrarCategorias}
-            setMostrarEnMovil={setMostrarCategorias}
-          />
-
-          <section id="productos-seccion" className="productos-grid flex-1">
-            {productosFiltrados.length === 0 ? (
-              <p className="text-center text-gray-500 col-span-full mt-10">
-                No hay productos en esta categoría.
-              </p>
-            ) : (
-              productosFiltrados.map((prod) => (
-                <TarjetaProducto key={prod.id} producto={prod} />
-              ))
-            )}
-          </section>
-        </div>
-      </section>
-    </main>
+        <main className="flex-1 px-4 sm:px-6 lg:px-10 py-6">
+          {productosFiltrados.length === 0 ? (
+            <p className="text-center text-gray-600 mt-10">
+              No hay productos que coincidan con tus filtros.
+            </p>
+          ) : (
+            <div className="productos-grid">
+              {productosFiltrados.map((producto) => (
+                <TarjetaProducto key={producto.id} producto={producto} />
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    </>
   );
 }
 
