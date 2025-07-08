@@ -70,6 +70,23 @@ function ProductosPage() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white pt-1">
+      {/* Barra fija móvil con botones Categorías y Filtros */}
+      <div className="fixed top-14 left-0 right-0 z-50 bg-white border-b border-gray-300 flex justify-between items-center px-4 py-2 lg:hidden">
+        <button
+          disabled
+          className="text-blue-600 font-semibold cursor-default"
+        >
+          Categorías
+        </button>
+
+        <button
+          onClick={() => setFiltrosVisible(true)}
+          className="text-blue-600 font-semibold"
+        >
+          Filtros
+        </button>
+      </div>
+
       {/* Sidebar categorías */}
       <aside className="block w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-gray-200 lg:sticky lg:top-14 lg:h-[calc(100vh-56px)] overflow-x-auto lg:overflow-y-auto">
         <SidebarCategorias
@@ -79,12 +96,7 @@ function ProductosPage() {
       </aside>
 
       {/* Contenido principal */}
-      <main className="flex-1 p-4 overflow-y-auto relative">
-        {/* Botón filtros solo en móvil */}
-        <div className="sm:block lg:hidden mb-4">
-          <BotonFiltro onClick={() => setFiltrosVisible(true)} />
-        </div>
-
+      <main className="flex-1 p-4 overflow-y-auto relative pt-16 lg:pt-0">
         <h1 className="text-2xl font-semibold mb-4 text-blue-800">
           {categoriaActiva === "Todos"
             ? "Todos los productos"
@@ -114,15 +126,13 @@ function ProductosPage() {
       </aside>
 
       {/* Drawer filtros SOLO en móvil */}
-      <div className="lg:hidden">
-        <FiltroDrawer
-          filtros={filtros}
-          setFiltros={setFiltros}
-          visible={filtrosVisible}
-          onClose={() => setFiltrosVisible(false)}
-          onReset={handleResetFiltros}
-        />
-      </div>
+      <FiltroDrawer
+        filtros={filtros}
+        setFiltros={setFiltros}
+        visible={filtrosVisible}
+        onClose={() => setFiltrosVisible(false)}
+        onReset={handleResetFiltros}
+      />
     </div>
   );
 }
