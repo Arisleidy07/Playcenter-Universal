@@ -21,3 +21,5 @@ function BotonFiltro({ onClick }) {
     </button>
   );
 }
+
+export default BotonFiltro;
