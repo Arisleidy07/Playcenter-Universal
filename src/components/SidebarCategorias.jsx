@@ -43,6 +43,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
   };
 
   const isActiva = (nombre) => nombre === categoriaActiva;
+
   return (
     <>
       {/* Desktop */}
@@ -71,12 +72,12 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
         </ul>
       </aside>
 
-      {/* Mobile */}
+      {/* Mobile drawer igual que FiltroDrawer */}
       <AnimatePresence>
         {mostrarEnMovil && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-[1000]"
+              className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-[9998]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -87,27 +88,41 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="sidebar-movil fixed top-[80px] left-0 bottom-0 w-72 bg-white shadow-lg z-[1001] overflow-y-auto px-4 py-4"
+              className="fixed top-0 left-0 h-full w-72 bg-white border-r shadow-lg z-[9999] flex flex-col"
             >
-              <h2 className="text-base font-bold text-blue-800 mb-3 uppercase tracking-wide">
-                Categorías
-              </h2>
-              <ul className="space-y-2 text-sm">
-                {categorias.map((cat, idx) => (
-                  <li key={idx}>
-                    <button
-                      onClick={() => handleClick(cat)}
-                      className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 focus:outline-none ${
-                        isActiva(cat.nombre)
-                          ? "bg-blue-600 text-white shadow"
-                          : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
-                      }`}
-                    >
-                      {cat.nombre}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {/* Header con botón rojo para cerrar */}
+              <div className="flex justify-between items-center px-4 py-4 border-b">
+                <h2 className="text-lg font-semibold text-blue-800 uppercase tracking-wide">
+                  Categorías
+                </h2>
+                <button
+                  onClick={() => setMostrarEnMovil(false)}
+                  className="text-red-600 font-bold text-xl hover:text-red-800"
+                  aria-label="Cerrar categorías"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Lista categorías scroll */}
+              <nav className="flex-1 overflow-y-auto px-4 py-2">
+                <ul className="space-y-2 text-sm">
+                  {categorias.map((cat, idx) => (
+                    <li key={idx}>
+                      <button
+                        onClick={() => handleClick(cat)}
+                        className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 focus:outline-none ${
+                          isActiva(cat.nombre)
+                            ? "bg-blue-600 text-white shadow"
+                            : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
+                        }`}
+                      >
+                        {cat.nombre}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
             </motion.nav>
           </>
         )}
