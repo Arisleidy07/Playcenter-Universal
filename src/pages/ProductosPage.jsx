@@ -18,6 +18,7 @@ function ProductosPage() {
   });
 
   const [filtrosVisible, setFiltrosVisible] = useState(false);
+  const [mostrarCategorias, setMostrarCategorias] = useState(false);
 
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
 
@@ -59,6 +60,7 @@ function ProductosPage() {
   const handleCategoriaChange = (nombre, ruta) => {
     navigate(`/productos/${ruta}`);
     setFiltrosVisible(false);
+    setMostrarCategorias(false);
   };
 
   const handleResetFiltros = () => {
@@ -70,25 +72,8 @@ function ProductosPage() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white pt-1">
-      {/* Barra fija móvil con botones Categorías y Filtros */}
-      <div className="fixed top-14 left-0 right-0 z-50 bg-white border-b border-gray-300 flex justify-between items-center px-4 py-2 lg:hidden">
-        <button
-          disabled
-          className="text-blue-600 font-semibold cursor-default"
-        >
-          Categorías
-        </button>
-
-        <button
-          onClick={() => setFiltrosVisible(true)}
-          className="text-blue-600 font-semibold"
-        >
-          Filtros
-        </button>
-      </div>
-
-      {/* Sidebar categorías */}
-      <aside className="block w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-gray-200 lg:sticky lg:top-14 lg:h-[calc(100vh-56px)] overflow-x-auto lg:overflow-y-auto">
+      {/* Sidebar categorías SOLO en escritorio */}
+      <aside className="hidden lg:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
           onCategoriaClick={handleCategoriaChange}
@@ -96,7 +81,18 @@ function ProductosPage() {
       </aside>
 
       {/* Contenido principal */}
-      <main className="flex-1 p-4 overflow-y-auto relative pt-16 lg:pt-0">
+      <main className="flex-1 p-4 overflow-y-auto relative">
+        {/* Botones Categorías y Filtros en móvil */}
+        <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
+          <button
+            onClick={() => setMostrarCategorias(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+          >
+            📂 Categorías
+          </button>
+          <BotonFiltro onClick={() => setFiltrosVisible(true)} />
+        </div>
+
         <h1 className="text-2xl font-semibold mb-4 text-blue-800">
           {categoriaActiva === "Todos"
             ? "Todos los productos"
@@ -125,14 +121,26 @@ function ProductosPage() {
         />
       </aside>
 
+      {/* Sidebar categorías SOLO en móvil */}
+      {mostrarCategorias && (
+        <SidebarCategorias
+          categoriaActiva={categoriaActiva}
+          onCategoriaClick={handleCategoriaChange}
+          mostrarEnMovil={mostrarCategorias}
+          setMostrarEnMovil={setMostrarCategorias}
+        />
+      )}
+
       {/* Drawer filtros SOLO en móvil */}
-      <FiltroDrawer
-        filtros={filtros}
-        setFiltros={setFiltros}
-        visible={filtrosVisible}
-        onClose={() => setFiltrosVisible(false)}
-        onReset={handleResetFiltros}
-      />
+      <div className="lg:hidden">
+        <FiltroDrawer
+          filtros={filtros}
+          setFiltros={setFiltros}
+          visible={filtrosVisible}
+          onClose={() => setFiltrosVisible(false)}
+          onReset={handleResetFiltros}
+        />
+      </div>
     </div>
   );
 }
