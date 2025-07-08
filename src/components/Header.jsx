@@ -8,7 +8,6 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Header = () => {
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
-  const [buscadorVisible, setBuscadorVisible] = useState(true); // fijo visible en móvil
   const [showEnvios, setShowEnvios] = useState(true);
   const { usuario, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
@@ -17,7 +16,6 @@ const Header = () => {
   const navigate = useNavigate();
   let lastScroll = 0;
 
-  // Maneja logout
   const manejarLogout = async () => {
     try {
       await logout();
@@ -28,7 +26,6 @@ const Header = () => {
     }
   };
 
-  // Cerrar dropdown al click fuera
   useEffect(() => {
     function handleClickFuera(event) {
       if (
@@ -43,22 +40,18 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
 
-  // Focus al buscador al montar
   useEffect(() => {
     if (buscarInputRef.current) {
       buscarInputRef.current.focus();
     }
   }, []);
 
-  // Control scroll para mostrar/ocultar aviso envíos
   useEffect(() => {
     function handleScroll() {
       const currentScroll = window.pageYOffset;
       if (currentScroll > lastScroll) {
-        // Bajando
         setShowEnvios(false);
       } else {
-        // Subiendo
         setShowEnvios(true);
       }
       lastScroll = currentScroll;
@@ -69,7 +62,6 @@ const Header = () => {
 
   return (
     <>
-      {/* HEADER PRINCIPAL */}
       <motion.header
         initial={{ y: -120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -82,8 +74,12 @@ const Header = () => {
         }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
-          {/* Logo solo visible en sm+ */}
-          <Link to="/" className="hidden sm:flex items-center gap-3 flex-shrink-0">
+
+          {/* Logo: oculto en tablet y móvil */}
+          <Link
+            to="/"
+            className="hidden md:flex items-center gap-3 flex-shrink-0"
+          >
             <motion.img
               src="/playcenter.jpeg"
               alt="Playcenter Universal"
@@ -102,19 +98,10 @@ const Header = () => {
             </div>
           </Link>
 
-          {/* SEARCH BAR desktop */}
-          <div className="hidden sm:flex flex-grow max-w-xl">
-            <SearchBar
-              onClose={() => setBuscadorVisible(false)}
-              ref={buscarInputRef}
-              placeholder="Buscar en Playcenter.do"
-            />
-          </div>
-
-          {/* BUSCADOR MOBILE FIJO (sin lupa) */}
+          {/* SEARCH BAR: visible en móvil y tablet (sm y md), y desktop */}
           <div
             id="search-bar-container"
-            className="sm:hidden flex-grow max-w-full px-2"
+            className="flex-grow max-w-full px-2 sm:max-w-xl md:max-w-xl"
           >
             <SearchBar
               onClose={() => {}}
@@ -123,72 +110,73 @@ const Header = () => {
             />
           </div>
 
-          {/* NAV DESKTOP */}
-          <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-700">
+          {/* NAV, carrito y usuario solo visible en desktop (md+) */}
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
+
             <Link to="/" className="nav-link">Inicio</Link>
             <Link to="/productos" className="nav-link">Categorías</Link>
             <Link to="/nosotros" className="nav-link">Nosotros</Link>
             <Link to="/contacto" className="nav-link">Contáctanos</Link>
             <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
-          </div>
 
-          {/* USUARIO / LOGIN */}
-          {usuario ? (
-            <motion.div
-              className="relative hidden sm:block"
-              ref={dropdownRef}
-              onClick={() => setDropdownAbierto(!dropdownAbierto)}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer">
-                {usuario.photoURL ? (
-                  <img
-                    src={usuario.photoURL}
-                    alt="Perfil"
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-base">
-                    {usuario.displayName?.charAt(0).toUpperCase() || "U"}
-                  </div>
-                )}
-              </div>
-              <AnimatePresence>
-                {dropdownAbierto && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
-                  >
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
-                      onClick={() => setDropdownAbierto(false)}
+            {usuario ? (
+              <motion.div
+                className="relative"
+                ref={dropdownRef}
+                onClick={() => setDropdownAbierto(!dropdownAbierto)}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer">
+                  {usuario.photoURL ? (
+                    <img
+                      src={usuario.photoURL}
+                      alt="Perfil"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-base">
+                      {usuario.displayName?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                  )}
+                </div>
+                <AnimatePresence>
+                  {dropdownAbierto && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
                     >
-                      Mi Perfil
-                    </Link>
-                    <button
-                      onClick={manejarLogout}
-                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
-                    >
-                      Cerrar sesión
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ) : (
-            <motion.button
-              onClick={() => setModalAbierto(true)}
-              className="hidden sm:inline-block px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Iniciar sesión
-            </motion.button>
-          )}
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
+                        onClick={() => setDropdownAbierto(false)}
+                      >
+                        Mi Perfil
+                      </Link>
+                      <button
+                        onClick={manejarLogout}
+                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
+                      >
+                        Cerrar sesión
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ) : (
+              <motion.button
+                onClick={() => setModalAbierto(true)}
+                className="px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Iniciar sesión
+              </motion.button>
+            )}
+
+          </div>
         </div>
       </motion.header>
 
