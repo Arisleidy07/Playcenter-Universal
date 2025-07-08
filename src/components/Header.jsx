@@ -66,19 +66,18 @@ const Header = () => {
         initial={{ y: -120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] px-4 sm:px-6 py-3"
+        className="fixed top-0 left-0 w-full bg-white shadow-md z-[9999] px-4 py-3"
         style={{
           backdropFilter: "saturate(180%) blur(15px)",
           maxWidth: "100vw",
           overflowX: "hidden",
         }}
       >
-        <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
-
-          {/* SOLO BUSCADOR en móvil y tablet */}
+        <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3">
+          {/* SOLO BUSCADOR en TODO menor que lg */}
           <div
             id="search-bar-container"
-            className="flex-grow max-w-full px-2 md:hidden"
+            className="flex-grow max-w-full px-2 lg:hidden"
           >
             <SearchBar
               onClose={() => {}}
@@ -87,14 +86,13 @@ const Header = () => {
             />
           </div>
 
-          {/* TODO lo demás solo visible en desktop */}
-          <div className="hidden md:flex w-full items-center justify-between gap-6">
-            {/* Logo */}
+          {/* HEADER COMPLETO SOLO en lg+ */}
+          <div className="hidden lg:flex w-full items-center justify-between gap-6">
             <Link to="/" className="flex items-center gap-3 flex-shrink-0">
               <motion.img
                 src="/playcenter.jpeg"
                 alt="Playcenter Universal"
-                className="h-10 sm:h-12 object-contain"
+                className="h-10 object-contain"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               />
@@ -109,7 +107,6 @@ const Header = () => {
               </div>
             </Link>
 
-            {/* Buscador */}
             <div className="flex-grow max-w-xl">
               <SearchBar
                 onClose={() => {}}
@@ -118,14 +115,12 @@ const Header = () => {
               />
             </div>
 
-            {/* Nav y usuario */}
             <div className="flex items-center gap-6 text-sm font-medium text-gray-700">
               <Link to="/" className="nav-link">Inicio</Link>
               <Link to="/productos" className="nav-link">Categorías</Link>
               <Link to="/nosotros" className="nav-link">Nosotros</Link>
               <Link to="/contacto" className="nav-link">Contáctanos</Link>
               <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
-
               {usuario ? (
                 <motion.div
                   className="relative"
@@ -187,7 +182,6 @@ const Header = () => {
         </div>
       </motion.header>
 
-      {/* AVISO SOLO móvil */}
       {showEnvios && (
         <div
           className="sm:hidden flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-1 text-[11px] font-semibold select-none fixed top-[58px] left-0 right-0 z-[9998]"
@@ -197,7 +191,6 @@ const Header = () => {
         </div>
       )}
 
-      {/* ESPACIO HEADER */}
       <div className="h-[100px] sm:h-[140px]" />
     </>
   );
