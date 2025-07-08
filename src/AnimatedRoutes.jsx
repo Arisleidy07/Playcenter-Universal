@@ -37,6 +37,9 @@ export default function AnimatedRoutes() {
         <Route path="/contacto" element={<PageTransition><Contacto /></PageTransition>} />
         <Route path="/nosotros" element={<PageTransition><Nosotros /></PageTransition>} />
         <Route path="/buscar" element={<PageTransition><PaginaBusqueda /></PageTransition>} />
+        <Route path="/categorias" element={<PageTransition><ProductosPage /></PageTransition>} />
+
+
 
         {/* Aquí la magia: productos con categoría opcional */}
         <Route
