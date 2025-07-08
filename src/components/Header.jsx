@@ -121,6 +121,13 @@ const Header = () => {
               <Link to="/nosotros" className="nav-link">Nosotros</Link>
               <Link to="/contacto" className="nav-link">Contáctanos</Link>
               <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
+               
+              {usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (
+                <Link to="/admin" className="px-3 py-2 rounded bg-[#4FC3F7] text-white hover:bg-[#3BB0F3] transition">
+                  Panel Admin
+                </Link>
+              )}
+
               {usuario ? (
                 <motion.div
                   className="relative"
@@ -142,30 +149,31 @@ const Header = () => {
                     )}
                   </div>
                   <AnimatePresence>
-                    {dropdownAbierto && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
-                      >
-                        <Link
-                          to="/profile"
-                          className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
-                          onClick={() => setDropdownAbierto(false)}
-                        >
-                          Mi Perfil
-                        </Link>
-                        <button
-                          onClick={manejarLogout}
-                          className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
-                        >
-                          Cerrar sesión
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+  {dropdownAbierto && (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.2 }}
+      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-[10000]"
+    >
+      <Link
+        to="/profile"
+        className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
+        onClick={() => setDropdownAbierto(false)}
+      >
+        Mi Perfil
+      </Link>
+      <button
+        onClick={manejarLogout}
+        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
+      >
+        Cerrar sesión
+      </button>
+    </motion.div>
+  )}
+</AnimatePresence>
+
                 </motion.div>
               ) : (
                 <motion.button

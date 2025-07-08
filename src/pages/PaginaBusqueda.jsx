@@ -55,7 +55,7 @@ function PaginaBusqueda() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-white pt-1">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-white pt-0">
       {/* Sidebar categorías escritorio */}
       <aside className="hidden lg:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
         <SidebarCategorias

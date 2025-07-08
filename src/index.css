@@ -190,3 +190,7 @@ html, body {
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
+
+header, .header-container {
+  overflow: visible !important;
+}

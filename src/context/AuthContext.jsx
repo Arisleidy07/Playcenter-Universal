@@ -23,6 +23,20 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 
+// Función para generar código único por usuario
+function generarCodigoUnico() {
+  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numeros = "0123456789";
+  let codigo = "USER-";
+  for (let i = 0; i < 3; i++) {
+    codigo += letras.charAt(Math.floor(Math.random() * letras.length));
+  }
+  for (let i = 0; i < 3; i++) {
+    codigo += numeros.charAt(Math.floor(Math.random() * numeros.length));
+  }
+  return codigo;
+}
+
 // ✅ Tu configuración REAL de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCraPDyyhOJs9IJtVMCe2b1VNFYkbtqWEg",
@@ -57,11 +71,37 @@ export function AuthProvider({ children }) {
       if (user) {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
+
         if (docSnap.exists()) {
-          setUsuarioInfo(docSnap.data());
+          const data = docSnap.data();
+
+          // Si no tiene código, generamos y actualizamos
+          if (!data.codigo) {
+            const nuevoCodigo = generarCodigoUnico();
+            await updateDoc(docRef, { codigo: nuevoCodigo });
+            data.codigo = nuevoCodigo;
+          }
+
+          setUsuarioInfo({
+            ...data,
+            isAdmin: data.admin === true,
+          });
         } else {
-          await setDoc(docRef, { telefono: "", direccion: "" });
-          setUsuarioInfo({ telefono: "", direccion: "" });
+          // Si no existe documento, creamos con código
+          const nuevoCodigo = generarCodigoUnico();
+          await setDoc(docRef, {
+            telefono: "",
+            direccion: "",
+            admin: false,
+            codigo: nuevoCodigo,
+          });
+          setUsuarioInfo({
+            telefono: "",
+            direccion: "",
+            admin: false,
+            codigo: nuevoCodigo,
+            isAdmin: false,
+          });
         }
       } else {
         setUsuarioInfo(null);
@@ -79,12 +119,18 @@ export function AuthProvider({ children }) {
   async function signup(email, password, name) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName: name });
+
+    const nuevoCodigo = generarCodigoUnico();
+
     await setDoc(doc(db, "users", userCredential.user.uid), {
       telefono: "",
       direccion: "",
+      admin: false,
+      codigo: nuevoCodigo,
     });
+
     setUsuario(userCredential.user);
-    setUsuarioInfo({ telefono: "", direccion: "" });
+    setUsuarioInfo({ telefono: "", direccion: "", admin: false, codigo: nuevoCodigo, isAdmin: false });
   }
 
   function logout() {
@@ -126,3 +172,4 @@ export function AuthProvider({ children }) {
 }
 
 export default AuthContext;
+export { db };
