@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import Slider from '@mui/material/Slider';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import "../index.css";
 
 function SidebarFiltros({
-  mostrarEnMovil,
-  setMostrarEnMovil,
   filtros,
   setFiltros,
   productosOriginales,
 }) {
   const [productosFiltrados, setProductosFiltrados] = useState([]);
-
-  const validarPrecio = () => {
-    const min = Number(filtros.precio.min);
-    const max = Number(filtros.precio.max);
-    if (isNaN(min) || isNaN(max)) return false;
-    if (min < 0 || max < 0) return false;
-    if (min > max) return false;
-    return true;
-  };
 
   useEffect(() => {
     let filtrados = productosOriginales;
@@ -31,62 +23,38 @@ function SidebarFiltros({
       });
     }
 
-    if (validarPrecio()) {
-      const min = Number(filtros.precio.min);
-      const max = Number(filtros.precio.max);
-      filtrados = filtrados.filter((p) => p.precio >= min && p.precio <= max);
-    }
+    const min = filtros.precio.min !== "" ? Number(filtros.precio.min) : 0;
+    const max = filtros.precio.max !== "" ? Number(filtros.precio.max) : Infinity;
+    filtrados = filtrados.filter((p) => p.precio >= min && p.precio <= max);
 
     setProductosFiltrados(filtrados);
   }, [filtros, productosOriginales]);
 
+  const handlePrecioChange = (event, newValue) => {
+    setFiltros((prev) => ({
+      ...prev,
+      precio: { min: newValue[0], max: newValue[1] },
+    }));
+  };
+
   const onReset = () => {
     setFiltros({
       estado: { nuevo: false, usado: false },
-      precio: { min: "", max: "" },
+      precio: { min: 0, max: 1000 },
     });
   };
 
   return (
-    <>
-      <button
-        className="flex lg:hidden items-center gap-1 px-3 py-2 rounded-md border text-sm font-medium bg-white shadow hover:bg-gray-100 fixed top-14 right-4 z-[1100]"
-        onClick={() => setMostrarEnMovil(true)}
-        aria-label="Abrir filtros"
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M3 12h18M3 20h18" />
-        </svg>
-        Filtros
-      </button>
+    <aside className="p-4 w-56 max-w-[240px] border-l border-gray-200 bg-white shadow">
+      <h2 className="text-lg font-semibold mb-4 text-blue-800">Filtros</h2>
 
-      <aside
-        className={`${
-          mostrarEnMovil ? "fixed top-[80px] right-0 bottom-0 w-72 z-[1200]" : "hidden lg:block w-64"
-        } bg-white border-l border-gray-200 shadow px-4 py-4 overflow-y-auto`}
-        aria-label="Filtros"
-        style={{ height: mostrarEnMovil ? "calc(100vh - 80px)" : "auto" }}
-      >
-        <FiltrosContenido filtros={filtros} setFiltros={setFiltros} onReset={onReset} productosFiltrados={productosFiltrados} setMostrarEnMovil={setMostrarEnMovil} />
-      </aside>
-    </>
-  );
-}
-
-function FiltrosContenido({ filtros, setFiltros, onReset, productosFiltrados, setMostrarEnMovil }) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="font-semibold mb-2">Estado</h3>
-        <label className="flex items-center gap-2">
+      {/* Estado */}
+      <div className="mb-6">
+        <h3 className="font-medium mb-2">Estado</h3>
+        <label className="switch-container">
           <input
             type="checkbox"
+            className="checkbox"
             checked={filtros.estado.nuevo}
             onChange={() =>
               setFiltros((f) => ({
@@ -94,14 +62,15 @@ function FiltrosContenido({ filtros, setFiltros, onReset, productosFiltrados, se
                 estado: { ...f.estado, nuevo: !f.estado.nuevo },
               }))
             }
-            aria-checked={filtros.estado.nuevo}
-            aria-label="Filtro estado nuevo"
           />
-          Nuevo
+          <div className="slider"></div>
+          <span className="ml-2">Nuevo</span>
         </label>
-        <label className="flex items-center gap-2">
+
+        <label className="switch-container mt-2">
           <input
             type="checkbox"
+            className="checkbox"
             checked={filtros.estado.usado}
             onChange={() =>
               setFiltros((f) => ({
@@ -109,67 +78,69 @@ function FiltrosContenido({ filtros, setFiltros, onReset, productosFiltrados, se
                 estado: { ...f.estado, usado: !f.estado.usado },
               }))
             }
-            aria-checked={filtros.estado.usado}
-            aria-label="Filtro estado usado"
           />
-          Usado
+          <div className="slider"></div>
+          <span className="ml-2">Usado</span>
         </label>
       </div>
 
-      <div>
-        <h3 className="font-semibold mb-2">Precio</h3>
-        <div className="flex gap-2">
-          <input
-            type="number"
+      {/* Precio estilo Amazon con MUI */}
+      <div className="mb-6">
+        <Typography gutterBottom>Precio (RD$)</Typography>
+        <Box
+          sx={{
+            px: 1,
+            '& .MuiSlider-thumb': {
+              width: 14,
+              height: 14,
+              bgcolor: '#1976d2',
+              border: '2px solid white',
+              '&:focus, &:hover, &.Mui-active': {
+                boxShadow: '0 0 0 8px rgba(25, 118, 210, 0.16)',
+              },
+            },
+            '& .MuiSlider-rail': {
+              height: 6,
+              opacity: 0.5,
+              bgcolor: '#bfbfbf',
+              borderRadius: 3,
+            },
+            '& .MuiSlider-track': {
+              height: 6,
+              borderRadius: 3,
+            },
+            '& .MuiSlider-root': {
+              padding: '15px 0',
+            },
+          }}
+        >
+          <Slider
+            value={[filtros.precio.min, filtros.precio.max]}
+            onChange={handlePrecioChange}
+            valueLabelDisplay="auto"
             min={0}
-            placeholder="Mín"
-            className="border rounded px-2 py-1 w-1/2"
-            value={filtros.precio.min}
-            onChange={(e) =>
-              setFiltros((f) => ({
-                ...f,
-                precio: { ...f.precio, min: e.target.value },
-              }))
-            }
-            aria-label="Precio mínimo"
+            max={1000}
           />
-          <input
-            type="number"
-            min={0}
-            placeholder="Máx"
-            className="border rounded px-2 py-1 w-1/2"
-            value={filtros.precio.max}
-            onChange={(e) =>
-              setFiltros((f) => ({
-                ...f,
-                precio: { ...f.precio, max: e.target.value },
-              }))
-            }
-            aria-label="Precio máximo"
-          />
+        </Box>
+        <div className="flex justify-between text-sm mt-2 text-gray-700">
+          <span>RD${filtros.precio.min}</span>
+          <span>RD${filtros.precio.max}</span>
         </div>
       </div>
 
-      <button onClick={onReset} className="text-sm text-blue-600 underline" aria-label="Restablecer filtros">
+      <button
+        onClick={onReset}
+        className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded transition w-full"
+      >
         Restablecer filtros
       </button>
 
-      <p className="mt-4 text-sm text-gray-700">
+      <p className="mt-4 text-sm text-gray-600">
         {productosFiltrados.length === 0
           ? "No hay productos que coincidan con los filtros."
           : `Mostrando ${productosFiltrados.length} producto${productosFiltrados.length > 1 ? "s" : ""}`}
       </p>
-
-      {setMostrarEnMovil && (
-        <button
-          onClick={() => setMostrarEnMovil(false)}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded w-full"
-          aria-label="Cerrar filtros móvil"
-        >
-          Cerrar filtros
-        </button>
-      )}
-    </div>
+    </aside>
   );
 }
 

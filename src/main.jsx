@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CarritoProvider } from "./context/CarritoContext";
 import { AuthModalProvider } from "./context/AuthModalContext";
 import "./index.css";
+import "rc-slider/assets/index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

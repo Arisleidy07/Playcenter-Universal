@@ -9,10 +9,9 @@ import Carrito from "./pages/Carrito";
 import Contacto from "./pages/Contacto";
 import Nosotros from "./pages/Nosotros";
 import DetalleProducto from "./pages/DetalleProducto";
-import Productos from "./pages/Productos";
-import ProductosTodos from "./pages/ProductosTodos";
-import Categorias from "./pages/Categorias"; // ✅ Cambiado
-import ResultadosBusqueda from "./pages/PaginaBusqueda";
+import PaginaBusqueda from "./pages/PaginaBusqueda";
+import ProductosPage from "./pages/ProductosPage";  // Importa tu page única
+
 import PrivateRoute from "./components/PrivateRoute";
 
 export default function AnimatedRoutes() {
@@ -21,93 +20,28 @@ export default function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route
-          path="/"
-          element={
-            <PageTransition>
-              <Inicio />
-            </PageTransition>
-          }
-        />
+        <Route path="/" element={<PageTransition><Inicio /></PageTransition>} />
+
         <Route
           path="/profile"
           element={
             <PrivateRoute>
-              <PageTransition>
-                <Profile />
-              </PageTransition>
+              <PageTransition><Profile /></PageTransition>
             </PrivateRoute>
           }
         />
-        <Route
-          path="/producto/:id"
-          element={
-            <PageTransition>
-              <VistaProducto />
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/producto/:id/detalle"
-          element={
-            <PageTransition>
-              <DetalleProducto />
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/carrito"
-          element={
-            <PageTransition>
-              <Carrito />
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/contacto"
-          element={
-            <PageTransition>
-              <Contacto />
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/nosotros"
-          element={
-            <PageTransition>
-              <Nosotros />
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/buscar"
-          element={
-            <PageTransition>
-              <ResultadosBusqueda />
-            </PageTransition>
-          }
-        />
 
-        {/* RUTA general de productos */}
-        <Route
-          path="/productos"
-          element={
-            <PageTransition>
-              <Productos />
-            </PageTransition>
-          }
-        >
-          <Route index element={<ProductosTodos />} />
-        </Route>
+        <Route path="/producto/:id" element={<PageTransition><VistaProducto /></PageTransition>} />
+        <Route path="/producto/:id/detalle" element={<PageTransition><DetalleProducto /></PageTransition>} />
+        <Route path="/carrito" element={<PageTransition><Carrito /></PageTransition>} />
+        <Route path="/contacto" element={<PageTransition><Contacto /></PageTransition>} />
+        <Route path="/nosotros" element={<PageTransition><Nosotros /></PageTransition>} />
+        <Route path="/buscar" element={<PageTransition><PaginaBusqueda /></PageTransition>} />
 
-        {/* RUTA DINÁMICA de categorías */}
+        {/* Aquí la magia: productos con categoría opcional */}
         <Route
-          path="/productos/:categoria"
-          element={
-            <PageTransition>
-              <Categorias />
-            </PageTransition>
-          }
+          path="/productos/:categoria?"
+          element={<PageTransition><ProductosPage /></PageTransition>}
         />
       </Routes>
     </AnimatePresence>
