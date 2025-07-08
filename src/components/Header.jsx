@@ -75,33 +75,10 @@ const Header = () => {
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3 sm:gap-6">
 
-          {/* Logo: oculto en tablet y móvil */}
-          <Link
-            to="/"
-            className="hidden md:flex items-center gap-3 flex-shrink-0"
-          >
-            <motion.img
-              src="/playcenter.jpeg"
-              alt="Playcenter Universal"
-              className="h-10 sm:h-12 object-contain"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            />
-            <div className="hidden sm:flex flex-col leading-tight text-xs text-gray-700 font-medium">
-              <span className="flex items-center gap-1 text-[11px] text-gray-500">
-                <FaMapMarkerAlt className="text-[#4FC3F7]" />
-                Envios
-              </span>
-              <strong className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide">
-                EN TODO RD
-              </strong>
-            </div>
-          </Link>
-
-          {/* SEARCH BAR: visible en móvil y tablet (sm y md), y desktop */}
+          {/* SOLO BUSCADOR en móvil y tablet */}
           <div
             id="search-bar-container"
-            className="flex-grow max-w-full px-2 sm:max-w-xl md:max-w-xl"
+            className="flex-grow max-w-full px-2 md:hidden"
           >
             <SearchBar
               onClose={() => {}}
@@ -110,77 +87,107 @@ const Header = () => {
             />
           </div>
 
-          {/* NAV, carrito y usuario solo visible en desktop (md+) */}
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
-
-            <Link to="/" className="nav-link">Inicio</Link>
-            <Link to="/productos" className="nav-link">Categorías</Link>
-            <Link to="/nosotros" className="nav-link">Nosotros</Link>
-            <Link to="/contacto" className="nav-link">Contáctanos</Link>
-            <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
-
-            {usuario ? (
-              <motion.div
-                className="relative"
-                ref={dropdownRef}
-                onClick={() => setDropdownAbierto(!dropdownAbierto)}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer">
-                  {usuario.photoURL ? (
-                    <img
-                      src={usuario.photoURL}
-                      alt="Perfil"
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-base">
-                      {usuario.displayName?.charAt(0).toUpperCase() || "U"}
-                    </div>
-                  )}
-                </div>
-                <AnimatePresence>
-                  {dropdownAbierto && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
-                    >
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
-                        onClick={() => setDropdownAbierto(false)}
-                      >
-                        Mi Perfil
-                      </Link>
-                      <button
-                        onClick={manejarLogout}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
-                      >
-                        Cerrar sesión
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ) : (
-              <motion.button
-                onClick={() => setModalAbierto(true)}
-                className="px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
+          {/* TODO lo demás solo visible en desktop */}
+          <div className="hidden md:flex w-full items-center justify-between gap-6">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+              <motion.img
+                src="/playcenter.jpeg"
+                alt="Playcenter Universal"
+                className="h-10 sm:h-12 object-contain"
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Iniciar sesión
-              </motion.button>
-            )}
+                transition={{ type: "spring", stiffness: 300 }}
+              />
+              <div className="flex flex-col leading-tight text-xs text-gray-700 font-medium">
+                <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                  <FaMapMarkerAlt className="text-[#4FC3F7]" />
+                  Envios
+                </span>
+                <strong className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide">
+                  EN TODO RD
+                </strong>
+              </div>
+            </Link>
 
+            {/* Buscador */}
+            <div className="flex-grow max-w-xl">
+              <SearchBar
+                onClose={() => {}}
+                ref={buscarInputRef}
+                placeholder="Buscar en Playcenter.do"
+              />
+            </div>
+
+            {/* Nav y usuario */}
+            <div className="flex items-center gap-6 text-sm font-medium text-gray-700">
+              <Link to="/" className="nav-link">Inicio</Link>
+              <Link to="/productos" className="nav-link">Categorías</Link>
+              <Link to="/nosotros" className="nav-link">Nosotros</Link>
+              <Link to="/contacto" className="nav-link">Contáctanos</Link>
+              <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
+
+              {usuario ? (
+                <motion.div
+                  className="relative"
+                  ref={dropdownRef}
+                  onClick={() => setDropdownAbierto(!dropdownAbierto)}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer">
+                    {usuario.photoURL ? (
+                      <img
+                        src={usuario.photoURL}
+                        alt="Perfil"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-base">
+                        {usuario.displayName?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                    )}
+                  </div>
+                  <AnimatePresence>
+                    {dropdownAbierto && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
+                      >
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
+                          onClick={() => setDropdownAbierto(false)}
+                        >
+                          Mi Perfil
+                        </Link>
+                        <button
+                          onClick={manejarLogout}
+                          className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
+                        >
+                          Cerrar sesión
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ) : (
+                <motion.button
+                  onClick={() => setModalAbierto(true)}
+                  className="px-4 py-2 text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Iniciar sesión
+                </motion.button>
+              )}
+            </div>
           </div>
         </div>
       </motion.header>
 
-      {/* AVISO ENVÍOS SOLO MÓVIL */}
+      {/* AVISO SOLO móvil */}
       {showEnvios && (
         <div
           className="sm:hidden flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-1 text-[11px] font-semibold select-none fixed top-[58px] left-0 right-0 z-[9998]"
@@ -190,7 +197,7 @@ const Header = () => {
         </div>
       )}
 
-      {/* ESPACIO PARA EL HEADER FIJO */}
+      {/* ESPACIO HEADER */}
       <div className="h-[100px] sm:h-[140px]" />
     </>
   );
