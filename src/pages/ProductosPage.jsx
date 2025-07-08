@@ -72,8 +72,8 @@ function ProductosPage() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white pt-1">
-      {/* Sidebar categorías SOLO en escritorio */}
-      <aside className="hidden lg:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
+      {/* Sidebar categorías SOLO en escritorio grande */}
+      <aside className="hidden xl:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
           onCategoriaClick={handleCategoriaChange}
@@ -81,8 +81,8 @@ function ProductosPage() {
       </aside>
 
       {/* Contenido principal */}
-      <main className="flex-1 p-4 overflow-y-auto relative">
-        {/* Botones Categorías y Filtros en móvil */}
+      <main className="flex-1 p-0 lg:p-4 overflow-y-auto relative">
+        {/* Botones Categorías y Filtros en móvil y tablet */}
         <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
           <button
             onClick={() => setMostrarCategorias(true)}
@@ -93,7 +93,7 @@ function ProductosPage() {
           <BotonFiltro onClick={() => setFiltrosVisible(true)} />
         </div>
 
-        <h1 className="text-2xl font-semibold mb-4 text-blue-800">
+        <h1 className="text-2xl font-semibold mb-4 text-blue-800 px-4 lg:px-0">
           {categoriaActiva === "Todos"
             ? "Todos los productos"
             : categoriaActiva}
@@ -104,7 +104,7 @@ function ProductosPage() {
             No hay productos que coincidan con tus filtros.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 lg:px-0">
             {productosFiltrados.map((producto) => (
               <TarjetaProducto key={producto.id} producto={producto} />
             ))}
@@ -112,8 +112,8 @@ function ProductosPage() {
         )}
       </main>
 
-      {/* Sidebar filtros SOLO en escritorio */}
-      <aside className="hidden lg:block w-64 border-l border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto px-4 py-4">
+      {/* Sidebar filtros SOLO en escritorio grande */}
+      <aside className="hidden xl:block w-64 border-l border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto px-4 py-4">
         <SidebarFiltros
           filtros={filtros}
           setFiltros={setFiltros}
@@ -121,7 +121,7 @@ function ProductosPage() {
         />
       </aside>
 
-      {/* Sidebar categorías SOLO en móvil */}
+      {/* Sidebar categorías SOLO en móvil/tablet (modal) */}
       {mostrarCategorias && (
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
@@ -131,8 +131,8 @@ function ProductosPage() {
         />
       )}
 
-      {/* Drawer filtros SOLO en móvil */}
-      <div className="lg:hidden">
+      {/* Drawer filtros SOLO en móvil/tablet */}
+      <div className="xl:hidden">
         <FiltroDrawer
           filtros={filtros}
           setFiltros={setFiltros}

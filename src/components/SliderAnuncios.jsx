@@ -12,9 +12,6 @@ const anuncios = [
 
 function SliderAnuncios() {
   const [index, setIndex] = useState(0);
-  const sliderRef = useRef(null);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
   const timeoutRef = useRef(null);
   const delay = 6000;
 
@@ -40,6 +37,10 @@ function SliderAnuncios() {
     setIndex((prev) => (prev + 1) % anuncios.length);
   };
 
+  // Swipe touch handlers
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -56,9 +57,8 @@ function SliderAnuncios() {
     }
   };
 
- return (
+  return (
     <div
-      ref={sliderRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -86,7 +86,7 @@ function SliderAnuncios() {
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
                 loading="lazy"
-                className="w-full h-full object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
+                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.02]"
               />
             </a>
           ) : (
@@ -100,7 +100,7 @@ function SliderAnuncios() {
                 src={item.img}
                 alt={`Anuncio ${item.id}`}
                 loading="lazy"
-                className="w-full h-full object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
+                className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.02]"
               />
             </Link>
           )
@@ -142,4 +142,5 @@ function SliderAnuncios() {
     </div>
   );
 }
+
 export default SliderAnuncios;
