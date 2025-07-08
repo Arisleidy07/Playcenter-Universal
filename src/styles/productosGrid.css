@@ -5,16 +5,16 @@
   width: 100%;
 }
 
-/* Tablets: 2 columnas */
-@media (min-width: 640px) {
+/* Tablets (640px a 1023px): 2 columnas */
+@media (min-width: 640px) and (max-width: 1023px) {
   .productos-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Escritorio: 5 columnas */
+/* Escritorio (1024px en adelante): 4 columnas */
 @media (min-width: 1024px) {
   .productos-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }

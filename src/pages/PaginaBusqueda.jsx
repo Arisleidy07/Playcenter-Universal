@@ -66,7 +66,7 @@ function PaginaBusqueda() {
 
       {/* Contenido principal */}
       <main className="flex-1 p-4 overflow-y-auto relative">
-        {/* Botones Categorías y Filtros en móvil */}
+        {/* Botones Categorías y Filtros en móvil y tablet */}
         <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
           <button
             onClick={() => setMostrarCategorias(true)}
@@ -84,7 +84,7 @@ function PaginaBusqueda() {
         {resultadosFiltrados.length === 0 ? (
           <p className="text-gray-600">No se encontraron productos relacionados.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="productos-grid">
             {resultadosFiltrados.map((producto) => (
               <TarjetaProducto key={producto.id} producto={producto} />
             ))}
