@@ -7,6 +7,7 @@ import BotonFiltro from "../components/BotonFiltro";
 import TarjetaProducto from "../components/TarjetaProducto";
 import productosAll from "../data/productosAll";
 import { normalizar } from "../utils/normalizarCategoria";
+import "../styles/productosGrid.css";
 
 function ProductosPage() {
   const { categoria } = useParams();
@@ -83,7 +84,7 @@ function ProductosPage() {
       {/* Contenido principal */}
       <main className="flex-1 p-0 lg:p-4 overflow-y-auto relative">
         {/* Botones Categorías y Filtros en móvil y tablet */}
-        <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
+        <div className="flex justify-between items-center mb-4 px-2 xl:hidden">
           <button
             onClick={() => setMostrarCategorias(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
@@ -121,7 +122,7 @@ function ProductosPage() {
         />
       </aside>
 
-      {/* Sidebar categorías SOLO en móvil/tablet (modal) */}
+      {/* Sidebar categorías SOLO en móvil/tablet (modal/drawer) */}
       {mostrarCategorias && (
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
