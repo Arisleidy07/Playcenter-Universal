@@ -1,4 +1,3 @@
-// src/components/FiltroDrawer.jsx
 import React, { useState, useEffect } from "react";
 import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
@@ -11,7 +10,6 @@ function FiltroDrawer({
   onReset,
   visible,
   onClose,
-  onApply
 }) {
   const [tempFiltros, setTempFiltros] = useState(filtros);
 
@@ -33,11 +31,12 @@ function FiltroDrawer({
       }`}
     >
       {/* Header */}
-      <div className="flex justify-between items-center px-4 py-4 border-b">
-        <h2 className="text-lg font-semibold text-blue-800">Filtros</h2>
+      <div className="flex justify-between items-center px-4 py-4 border-b border-gray-300">
+        <h2 className="text-lg font-semibold text-indigo-700">Filtros</h2>
         <button
           onClick={onClose}
-          className="text-red-600 font-bold text-xl hover:text-red-800"
+          className="text-indigo-600 font-extrabold text-xl hover:text-indigo-800 transition-colors"
+          aria-label="Cerrar filtro"
         >
           ✕
         </button>
@@ -47,7 +46,7 @@ function FiltroDrawer({
       <div className="p-4 pt-6 flex flex-col gap-6 overflow-y-auto">
         {/* Estado */}
         <div>
-          <h3 className="font-medium mb-3">Estado</h3>
+          <h3 className="font-medium mb-3 text-indigo-700">Estado</h3>
           <label className="switch-container mb-2">
             <input
               type="checkbox"
@@ -61,7 +60,7 @@ function FiltroDrawer({
               }
             />
             <div className="slider"></div>
-            <span className="ml-2">Nuevo</span>
+            <span className="ml-2 text-gray-800 font-medium">Nuevo</span>
           </label>
           <label className="switch-container">
             <input
@@ -76,39 +75,40 @@ function FiltroDrawer({
               }
             />
             <div className="slider"></div>
-            <span className="ml-2">Usado</span>
+            <span className="ml-2 text-gray-800 font-medium">Usado</span>
           </label>
         </div>
 
         {/* Precio */}
         <div>
-          <Typography gutterBottom className="text-sm font-medium">
+          <Typography gutterBottom className="text-sm font-semibold text-indigo-700">
             Precio (RD$)
           </Typography>
           <Box
             sx={{
               px: 1,
               '& .MuiSlider-thumb': {
-                width: 14,
-                height: 14,
-                bgcolor: '#1976d2',
+                width: 16,
+                height: 16,
+                bgcolor: '#5a67d8', // indigo 600
                 border: '2px solid white',
                 '&:focus, &:hover, &.Mui-active': {
-                  boxShadow: '0 0 0 8px rgba(25, 118, 210, 0.16)',
+                  boxShadow: '0 0 0 10px rgba(90, 103, 216, 0.2)',
                 },
               },
               '& .MuiSlider-rail': {
-                height: 6,
-                opacity: 0.5,
-                bgcolor: '#bfbfbf',
-                borderRadius: 3,
+                height: 8,
+                opacity: 0.3,
+                bgcolor: '#cbd5e1', // slate 300
+                borderRadius: 4,
               },
               '& .MuiSlider-track': {
-                height: 6,
-                borderRadius: 3,
+                height: 8,
+                borderRadius: 4,
+                bgcolor: '#5a67d8', // indigo 600
               },
               '& .MuiSlider-root': {
-                padding: '15px 0',
+                padding: '20px 0',
               },
             }}
           >
@@ -123,7 +123,7 @@ function FiltroDrawer({
               max={1000}
             />
           </Box>
-          <div className="flex justify-between text-xs text-gray-700 mt-1">
+          <div className="flex justify-between text-xs text-indigo-700 mt-1 font-semibold">
             <span>RD${tempFiltros.precio.min}</span>
             <span>RD${tempFiltros.precio.max}</span>
           </div>
@@ -131,13 +131,13 @@ function FiltroDrawer({
       </div>
 
       {/* Botones abajo */}
-      <div className="flex justify-between gap-2 border-t p-4 mt-4">
+      <div className="flex justify-between gap-3 border-t border-gray-300 p-4 mt-4">
         <button
           onClick={() => {
             onReset();
             onClose();
           }}
-          className="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm py-2 rounded"
+          className="w-1/2 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold text-sm py-2 rounded transition-colors"
         >
           Restablecer
         </button>
@@ -146,7 +146,7 @@ function FiltroDrawer({
             setFiltros(tempFiltros);
             onClose();
           }}
-          className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded"
+          className="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm py-2 rounded transition-colors"
         >
           Aplicar filtros
         </button>
