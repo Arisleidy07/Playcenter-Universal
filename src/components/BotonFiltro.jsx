@@ -1,10 +1,8 @@
-import React from "react";
-
 function BotonFiltro({ onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 px-4 py-2 bg-gray-200 rounded-full text-sm font-medium sm:hidden"
+      className="flex items-center gap-2 px-4 py-2 bg-gray-200 rounded-full text-sm font-medium"
     >
       <svg
         className="w-5 h-5"
@@ -23,5 +21,3 @@ function BotonFiltro({ onClick }) {
     </button>
   );
 }
-
-export default BotonFiltro;
