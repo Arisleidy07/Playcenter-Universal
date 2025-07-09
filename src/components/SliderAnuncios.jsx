@@ -4,10 +4,12 @@ import { Link } from "react-router-dom";
 
 const anuncios = [
   { id: 1, img: "/ads/1.png", link: "/productos/consolas", isExternal: false },
+  { id: 6, img: "/ads/6.png", link: "https://playcenterwisp.com", isExternal: true },
   { id: 2, img: "/ads/2.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
   { id: 3, img: "/ads/3.png", link: "/productos/videojuegos", isExternal: false },
   { id: 4, img: "/ads/5.png", link: "/productos/ofertas-especiales", isExternal: false },
   { id: 5, img: "/ads/4.png", link: "/productos", isExternal: false },
+
 ];
 
 function SliderAnuncios() {

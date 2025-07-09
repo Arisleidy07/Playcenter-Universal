@@ -3,6 +3,7 @@ import React from "react";
 
 const anuncios = [
   { id: 1, img: "/ads/movil/articulosads.png", link: "/productos/videojuegos", isExternal: false },
+  { id: 1, img: "/ads/movil/internetads.png", link: "https://playcenterwisp.com", isExternal: false },
   { id: 2, img: "/ads/movil/camarasads.png", link: "/productos/camaras", isExternal: false },
   { id: 3, img: "/ads/movil/consolaads.png", link: "/productos/consolas", isExternal: false },
   { id: 4, img: "/ads/movil/ofertas.png", link: "/productos/ofertas-especiales", isExternal: false },
