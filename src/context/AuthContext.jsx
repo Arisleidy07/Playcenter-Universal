@@ -1,8 +1,5 @@
-// src/context/AuthContext.jsx
-import { initializeApp } from "firebase/app";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -10,48 +7,22 @@ import {
   updateProfile,
 } from "firebase/auth";
 import {
-  getFirestore,
   doc,
   getDoc,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "firebase/storage";
+import { auth, db, storage } from "../firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-// Función para generar código único por usuario
 function generarCodigoUnico() {
   const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const numeros = "0123456789";
   let codigo = "USER-";
-  for (let i = 0; i < 3; i++) {
-    codigo += letras.charAt(Math.floor(Math.random() * letras.length));
-  }
-  for (let i = 0; i < 3; i++) {
-    codigo += numeros.charAt(Math.floor(Math.random() * numeros.length));
-  }
+  for (let i = 0; i < 3; i++) codigo += letras.charAt(Math.floor(Math.random() * letras.length));
+  for (let i = 0; i < 3; i++) codigo += numeros.charAt(Math.floor(Math.random() * numeros.length));
   return codigo;
 }
-
-// ✅ Tu configuración REAL de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyCraPDyyhOJs9IJtVMCe2b1VNFYkbtqWEg",
-  authDomain: "playcenter-universal.firebaseapp.com",
-  projectId: "playcenter-universal",
-  storageBucket: "playcenter-universal.appspot.com",
-  messagingSenderId: "876884906641",
-  appId: "1:876884906641:web:a0a5b7526b7f4161452530",
-  measurementId: "G-4MPL62WSKW",
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
 
 const AuthContext = createContext();
 
@@ -75,7 +46,6 @@ export function AuthProvider({ children }) {
         if (docSnap.exists()) {
           const data = docSnap.data();
 
-          // Si no tiene código, generamos y actualizamos
           if (!data.codigo) {
             const nuevoCodigo = generarCodigoUnico();
             await updateDoc(docRef, { codigo: nuevoCodigo });
@@ -84,22 +54,27 @@ export function AuthProvider({ children }) {
 
           setUsuarioInfo({
             ...data,
+            displayName: user.displayName || data.displayName || "",
+            email: user.email || data.email || "",
             isAdmin: data.admin === true,
           });
         } else {
-          // Si no existe documento, creamos con código
           const nuevoCodigo = generarCodigoUnico();
           await setDoc(docRef, {
             telefono: "",
             direccion: "",
             admin: false,
             codigo: nuevoCodigo,
+            displayName: user.displayName || "",
+            email: user.email || "",
           });
           setUsuarioInfo({
             telefono: "",
             direccion: "",
             admin: false,
             codigo: nuevoCodigo,
+            displayName: user.displayName || "",
+            email: user.email || "",
             isAdmin: false,
           });
         }
@@ -112,10 +87,6 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  function login(email, password) {
-    return signInWithEmailAndPassword(auth, email, password);
-  }
-
   async function signup(email, password, name) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName: name });
@@ -127,10 +98,24 @@ export function AuthProvider({ children }) {
       direccion: "",
       admin: false,
       codigo: nuevoCodigo,
+      displayName: name,
+      email: email,
     });
 
     setUsuario(userCredential.user);
-    setUsuarioInfo({ telefono: "", direccion: "", admin: false, codigo: nuevoCodigo, isAdmin: false });
+    setUsuarioInfo({
+      telefono: "",
+      direccion: "",
+      admin: false,
+      codigo: nuevoCodigo,
+      displayName: name,
+      email: email,
+      isAdmin: false,
+    });
+  }
+
+  function login(email, password) {
+    return signInWithEmailAndPassword(auth, email, password);
   }
 
   function logout() {
@@ -141,7 +126,13 @@ export function AuthProvider({ children }) {
     if (!usuario) throw new Error("No user logged in");
     const docRef = doc(db, "users", usuario.uid);
     await updateDoc(docRef, data);
+
     setUsuarioInfo((prev) => ({ ...prev, ...data }));
+
+    if (data.displayName && usuario.displayName !== data.displayName) {
+      await updateProfile(usuario, { displayName: data.displayName });
+      setUsuario((prev) => ({ ...prev, displayName: data.displayName }));
+    }
   }
 
   async function subirImagen(file) {
@@ -164,12 +155,7 @@ export function AuthProvider({ children }) {
     subirImagen,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }
 
 export default AuthContext;
-export { db };
