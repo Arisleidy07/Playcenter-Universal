@@ -21,7 +21,7 @@ export default function Admin() {
 
       try {
         const snap = await getDocs(collection(db, "users"));
-        const lista = snap.docs.map(doc => ({
+        const lista = snap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
@@ -62,7 +62,7 @@ export default function Admin() {
 
   return (
     <main className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Panel Admin - Usuarios Registrados</h1>
+      <h1 className="text-3xl font-bold mb-4">Panel Admin - Usuarios trados</h1>
 
       <input
         type="text"
@@ -80,18 +80,32 @@ export default function Admin() {
       )}
 
       <div className="grid md:grid-cols-2 gap-4">
-        {usuariosFiltrados.map(u => (
+        {usuariosFiltrados.map((u) => (
           <div
             key={u.id}
             className="border p-4 rounded shadow hover:shadow-lg transition"
           >
-            <p><strong>ID:</strong> {u.id}</p>
-            <p><strong>Nombre:</strong> {u.displayName || "Sin nombre"}</p>
-            <p><strong>Email:</strong> {u.email || "Sin email"}</p>
-            <p><strong>Teléfono:</strong> {u.telefono || "Sin teléfono"}</p>
-            <p><strong>Dirección:</strong> {u.direccion || "Sin dirección"}</p>
-            <p><strong>Código:</strong> {u.codigo || "Sin código"}</p>
-            <p><strong>Admin:</strong> {u.admin ? "Sí" : "No"}</p>
+            <p>
+              <strong>ID:</strong> {u.id}
+            </p>
+            <p>
+              <strong>Nombre:</strong> {u.displayName || "Sin nombre"}
+            </p>
+            <p>
+              <strong>Email:</strong> {u.email || "Sin email"}
+            </p>
+            <p>
+              <strong>Teléfono:</strong> {u.telefono || "Sin teléfono"}
+            </p>
+            <p>
+              <strong>Dirección:</strong> {u.direccion || "Sin dirección"}
+            </p>
+            <p>
+              <strong>Código:</strong> {u.codigo || "Sin código"}
+            </p>
+            <p>
+              <strong>Admin:</strong> {u.admin ? "Sí" : "No"}
+            </p>
           </div>
         ))}
       </div>

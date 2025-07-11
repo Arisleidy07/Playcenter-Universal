@@ -1,3 +1,4 @@
+// src/context/AuthContext.js
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   onAuthStateChanged,
@@ -89,7 +90,11 @@ export function AuthProvider({ children }) {
 
   async function signup(email, password, name) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(userCredential.user, { displayName: name });
+    try {
+      await updateProfile(userCredential.user, { displayName: name });
+    } catch (err) {
+      console.error("Error actualizando displayName:", err);
+    }
 
     const nuevoCodigo = generarCodigoUnico();
 
@@ -102,7 +107,8 @@ export function AuthProvider({ children }) {
       email: email,
     });
 
-    setUsuario(userCredential.user);
+    // Refrescar usuario actualizado
+    setUsuario(auth.currentUser);
     setUsuarioInfo({
       telefono: "",
       direccion: "",
@@ -131,7 +137,7 @@ export function AuthProvider({ children }) {
 
     if (data.displayName && usuario.displayName !== data.displayName) {
       await updateProfile(usuario, { displayName: data.displayName });
-      setUsuario((prev) => ({ ...prev, displayName: data.displayName }));
+      setUsuario(auth.currentUser);
     }
   }
 
@@ -141,7 +147,7 @@ export function AuthProvider({ children }) {
     await uploadBytes(fileRef, file);
     const photoURL = await getDownloadURL(fileRef);
     await updateProfile(usuario, { photoURL });
-    setUsuario({ ...usuario, photoURL });
+    setUsuario(auth.currentUser);
     return photoURL;
   }
 

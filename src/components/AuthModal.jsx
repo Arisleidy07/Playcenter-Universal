@@ -1,8 +1,9 @@
+// src/components/AuthModal.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { motion } from "framer-motion";
-import { FaUser, FaLock, FaUserPlus } from "react-icons/fa";
+import { FaUser, FaUserPlus } from "react-icons/fa";
 
 export default function AuthModal() {
   const { modalAbierto, setModalAbierto, modo: modoGlobal, setModo } = useAuthModal();

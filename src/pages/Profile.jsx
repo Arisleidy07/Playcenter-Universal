@@ -1,3 +1,4 @@
+// src/pages/Profile.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "firebase/auth";
@@ -93,7 +94,13 @@ export default function Profile() {
     navigate("/");
   };
 
-  if (!usuario || !usuarioInfo) return null;
+  if (!usuario || !usuarioInfo) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Cargando perfil...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 flex flex-col items-center py-20 px-6 font-sans">
