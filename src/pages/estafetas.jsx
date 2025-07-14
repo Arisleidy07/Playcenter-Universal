@@ -14,9 +14,9 @@ const estafetas = [
   },
   {
     id: 2,
-    nombre: "Estafeta Nivaje",
+    nombre: "Estafeta Nibaje",
     descripcion: "Cafetería Guido",
-    direccion: "Avenida Franco Vido, Nº 148, Nivaje",
+    direccion: "Avenida Franco Vido, Nº 148, Nibaje",
     telefono: "829-324-2318",
     ubicacionLink: "https://www.google.com/maps/place//@19.420887,-70.6811611,3857m/data=!3m2!1e3!4b1?entry=ttu&g_ep=EgoyMDI1MDcxMy4wIKXMDSoASAFQAw%3D%3D",
     imagen: "/estafetas/cafeteria-guido.png",

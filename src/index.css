@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Forzar fondo blanco y texto oscuro sin importar modo oscuro */
+html, body {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Opcional: prevenir que el navegador aplique modo oscuro */
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background-color: white !important;
+    color: black !important;
+  }
+}
+
+
 /* === ANIMACIONES Y UTILIDADES === */
 @layer utilities {
   .animate-text-glow {
