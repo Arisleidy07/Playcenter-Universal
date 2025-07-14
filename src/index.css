@@ -194,3 +194,8 @@ html, body {
 header, .header-container {
   overflow: visible !important;
 }
+
+/* En tu CSS global */
+img:hover {
+  transform: scale(1.02);
+}

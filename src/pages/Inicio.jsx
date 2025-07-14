@@ -48,6 +48,19 @@ function Inicio() {
   </div>
 </section>
 
+{/* BANNER ESTAFETAS - SOLO DESKTOP */}
+<div className="hidden lg:block max-w-[1600px] mx-auto px-4 mt-8">
+  <Link to="/estafetas" className="block overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition">
+    <img
+      src="/ads/Nuestrasestafetas.png"
+      alt="Ver Nuestras Estafetas"
+      className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
+    />
+  </Link>
+</div>
+
+
+
 
       {/* BLOQUES CUADRADOS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1600px] mx-auto px-4 mt-10">

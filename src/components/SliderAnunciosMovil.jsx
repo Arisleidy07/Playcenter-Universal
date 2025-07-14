@@ -9,7 +9,8 @@ const anuncios = [
   { id: 4, img: "/ads/movil/ofertas.png", link: "/productos/ofertas-especiales", isExternal: false },
   { id: 5, img: "/ads/movil/productosads.png", link: "/productos", isExternal: false },
   { id: 6, img: "/ads/movil/retroads.png", link: "/productos/retro-juegos", isExternal: false },
-  { id: 7, img: "/ads/movil/ubicacionads.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
+  { id: 7, img: "/ads/movil/nuestras-estafetas.png", link: "/estafetas", isExternal: false },
+  { id: 8, img: "/ads/movil/ubicacionads.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
 ];
 
 
