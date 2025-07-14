@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Forzar fondo blanco y texto oscuro sin importar modo oscuro */
+/* Forzar fondo blanco y texto negro siempre */
 html, body {
   background-color: white !important;
   color: black !important;
 }
 
-/* Opcional: prevenir que el navegador aplique modo oscuro */
+/* También forzar para dispositivos en modo oscuro */
 @media (prefers-color-scheme: dark) {
   html, body {
     background-color: white !important;
@@ -25,12 +25,6 @@ html, body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: textGlow 3s ease infinite;
-  }
-
-  .glitch-effect {
-    color: #3b82f6;
-    position: relative;
-    animation: glitch 1.5s infinite;
   }
 }
 

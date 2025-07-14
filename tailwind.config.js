@@ -1,4 +1,3 @@
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -6,7 +5,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-        animation: {
+    animation: {
       bounce: "bounce 2s infinite",
       pulse: "pulse 2s infinite",
     },
@@ -29,15 +28,15 @@ export default {
         },
       },
       colors: {
-        primary: '#0f172a',        // Azul noche, fondo header y secciones
-        secondary: '#22d3ee',      // Cyan neón para iconos, hover y detalles
-        accent: '#7c3aed',         // Violeta neón para links hover y botones
-        highlight: '#38bdf8',      // Azul celeste vibrante para textos importantes
-        warning: '#fbbf24',        // Amarillo para alertas o toques warm
-        danger: '#ef4444',         // Rojo para errores o botones de cancelar
-        neutral: '#ffffff',        // Blanco puro para texto y fondo claro
-        base100: '#111827',        // Gris oscuro para fondos secundarios
-        cardBg: 'linear-gradient(145deg, #1e1b4b, #111827)', // Fondo gradiente tarjetas
+        primary: '#0f172a',
+        secondary: '#22d3ee',
+        accent: '#7c3aed',
+        highlight: '#38bdf8',
+        warning: '#fbbf24',
+        danger: '#ef4444',
+        neutral: '#ffffff',
+        base100: '#111827',
+        cardBg: 'linear-gradient(145deg, #1e1b4b, #111827)',
       },
     },
   },
