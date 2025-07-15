@@ -64,6 +64,16 @@ const estafetas = [
       "https://www.google.com/maps/place/Espailla,+51000+Santiago+de+los+Caballeros/@19.4717075,-70.7148707,964m/data=!3m2!1e3!4b1!4m6!3m5!1s0x8eb1c5e2c3c79d7d:0x3a75c6d5f2312708!8m2!3d19.4717075!4d-70.7148707",
     imagen: "/estafetas/St electronics.png",
   },
+  {
+    id: 7,
+    nombre: "Estafeta Los Guandules",
+    descripcion: "Mini Market El Vecino",
+    direccion: "Estafeta de pago Los Guandules, próximo al puente",
+    telefono: "+1 829 218 1889",
+    ubicacionLink:
+      "https://www.google.com/maps/place/19%C2%B026'15.3%22N+70%C2%B041'22.2%22W/@19.4381999,-70.6893169,526m/data=!3m1!1e3!4m4!3m3!8m2!3d19.437576!4d-70.689512?entry=ttu",
+    imagen: "/estafetas/losguandules.png",
+  },
 ];
 
 const cuentasBancarias = [
@@ -116,7 +126,7 @@ export default function Estafetas() {
         o mediante transferencia bancaria.
       </p>
 
-      {/* Sección de Cuentas Bancarias */}
+      {/* Cuentas Bancarias */}
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-300 rounded-lg p-6 mb-10">
         <h2 className="text-2xl font-semibold text-blue-700 flex items-center gap-2 mb-4">
           <FaMoneyCheckAlt className="text-blue-500" />
