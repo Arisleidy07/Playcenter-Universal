@@ -3,6 +3,17 @@ import { FaWhatsapp, FaMoneyCheckAlt, FaUniversity } from "react-icons/fa";
 
 const estafetas = [
   {
+    id: 0,
+    nombre: "Estafeta Principal (Oficina)",
+    descripcion: "Playcenter Universal",
+    direccion:
+      "Av Estrella Sadhala Nº 55, Frente a la doble vía, Santiago",
+    telefono: "809-582-1212",
+    ubicacionLink:
+      "https://www.google.com/maps/place/19%C2%B026'13.2%22N+70%C2%B041'23.3%22W/@19.436998,-70.689812,17z/data=!4m4!3m3!8m2!3d19.437!4d-70.6898056",
+    imagen: "/estafetas/oficina.png",
+  },
+  {
     id: 1,
     nombre: "Estafeta Villa-Olímpica",
     descripcion: "Minimarket Los Hermanos",
@@ -126,7 +137,6 @@ export default function Estafetas() {
         o mediante transferencia bancaria.
       </p>
 
-      {/* Cuentas Bancarias */}
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-300 rounded-lg p-6 mb-10">
         <h2 className="text-2xl font-semibold text-blue-700 flex items-center gap-2 mb-4">
           <FaMoneyCheckAlt className="text-blue-500" />
@@ -134,10 +144,10 @@ export default function Estafetas() {
         </h2>
         <p className="text-red-600 font-semibold mb-3">
           ⚠️ Por favor incluye tu <span className="underline">código de cliente</span> o
-          <span className="underline"> nombre completo del titular</span> en la descripción del pago.
+          <span className="underline">nombre completo del titular</span> en la descripción del pago.
         </p>
         <p className="text-gray-700 mb-4">
-          *Es indispensable enviar el comprobante de pago por este medio para poder aplicarlo.* <br />
+          *Es indispensable enviar el comprobante de pago por este medio para poder aplicarlo.*<br />
           <span className="text-red-500 font-bold">
             *Sin el comprobante no podremos procesar tu pago.*
           </span>
@@ -169,7 +179,6 @@ export default function Estafetas() {
         </div>
       </div>
 
-      {/* Estafetas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {estafetas.map((punto) => (
           <div
@@ -211,7 +220,7 @@ export default function Estafetas() {
       </div>
 
       <p className="text-center text-gray-500 mt-10">
-        Agradecemos su preferencia. Estamos para servirle.
+        💫 Agradecemos su preferencia. Estamos para servirle.
       </p>
     </div>
   );
