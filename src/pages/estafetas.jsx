@@ -220,7 +220,7 @@ export default function Estafetas() {
       </div>
 
       <p className="text-center text-gray-500 mt-10">
-        💫 Agradecemos su preferencia. Estamos para servirle.
+          Agradecemos su preferencia. Estamos para servirle.
       </p>
     </div>
   );
