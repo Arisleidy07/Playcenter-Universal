@@ -10,14 +10,15 @@ import "rc-slider/assets/index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
-      <CarritoProvider>
-        <AuthModalProvider>
-          <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <CarritoProvider>
+          <AuthModalProvider>
             <App />
-          </BrowserRouter>
-        </AuthModalProvider>
-      </CarritoProvider>
-    </AuthProvider>
+          </AuthModalProvider>
+        </CarritoProvider>
+      </AuthProvider>
+    </BrowserRouter>
+
   </React.StrictMode>
 );

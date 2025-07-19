@@ -59,12 +59,12 @@ function TarjetaProducto({ producto }) {
               {producto.descripcion || "Descripción del producto."}
             </p>
             <p className="text-lg font-bold text-gray-900 mt-1">
-              ${producto.precio.toFixed(2)}
+              {producto.precio.toFixed(2)} DOP
             </p>
           </div>
         </div>
 
-        {/* Botón */}
+        {/* Botón agregar/quitar carrito */}
         <button
           onClick={handleBoton}
           className={`mt-3 text-sm w-full px-4 py-2 rounded-md font-semibold transition flex items-center justify-center gap-2 ${
