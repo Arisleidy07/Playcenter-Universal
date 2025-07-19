@@ -14,6 +14,8 @@ import PaginaBusqueda from "./pages/PaginaBusqueda";
 import ProductosPage from "./pages/ProductosPage";
 import Estafetas from "./pages/estafetas"; 
 import PrivateRoute from "./components/PrivateRoute";
+import Gracias from "./pages/Gracias";
+
 
 export default function AnimatedRoutes() {
   const location = useLocation();
@@ -33,6 +35,8 @@ export default function AnimatedRoutes() {
           <Route path="/categorias" element={<PageTransition><ProductosPage /></PageTransition>} />
           <Route path="/productos/:categoria?" element={<PageTransition><ProductosPage /></PageTransition>} />
           <Route path="/estafetas" element={<PageTransition><Estafetas /></PageTransition>} />
+          <Route path="/gracias" element={<PageTransition><Gracias /></PageTransition>} />
+
         </Routes>
       </AnimatePresence>
     </AuthProvider>

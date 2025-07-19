@@ -1,46 +1,38 @@
-import { useEffect, useRef } from "react";
+import React from "react";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
-const BotonPayPal = ({ nombre, precio }) => {
-  const paypalRef = useRef();
-
-  useEffect(() => {
-    if (!window.paypal) {
-      console.error("PayPal SDK no cargado");
-      return;
-    }
-    window.paypal.Buttons({
-      createOrder: (data, actions) => {
-        return actions.order.create({
-          purchase_units: [
-            {
-              description: nombre,
-              amount: {
-                currency_code: "DOP",
-                value: precio.toString(),
+export default function BotonPayPal({ nombre, precio }) {
+  return (
+    <PayPalScriptProvider
+      options={{
+        clientId: "AZz6RiPNUajjFS9IYo5GRGOAf1WsyvDH4UwYHKnl6OYnGDNpJ5VuDfQDRO0jKN_pilB6IkewvvKtK8-m",
+        currency: "USD",
+      }}
+    >
+      <PayPalButtons
+        style={{ layout: "horizontal" }}
+        createOrder={(data, actions) => {
+          return actions.order.create({
+            purchase_units: [
+              {
+                description: nombre,
+                amount: {
+                  value: precio.toFixed(2),
+                },
               },
-            },
-          ],
-        });
-      },
-      onApprove: async (data, actions) => {
-        const detalles = await actions.order.capture();
-        alert(`✅ Pago completado por: ${detalles.payer.name.given_name}`);
-      },
-      onError: (err) => {
-        console.error("Error en PayPal:", err);
-        alert("Hubo un error procesando el pago");
-      },
-    }).render(paypalRef.current);
-
-return () => {
-  if (paypalRef.current) {
-    paypalRef.current.innerHTML = "";
-  }
-};
-
-  }, [nombre, precio]);
-
-  return <div ref={paypalRef}></div>;
-};
-
-export default BotonPayPal;
+            ],
+          });
+        }}
+        onApprove={(data, actions) => {
+          return actions.order.capture().then((details) => {
+            alert("Pago completado por " + details.payer.name.given_name);
+            console.log("Detalles del pago:", details);
+          });
+        }}
+        onError={(err) => {
+          console.error("Error en el pago:", err);
+        }}
+      />
+    </PayPalScriptProvider>
+  );
+}
