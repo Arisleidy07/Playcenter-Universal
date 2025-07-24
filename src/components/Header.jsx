@@ -16,6 +16,7 @@ const Header = () => {
   const navigate = useNavigate();
   let lastScroll = 0;
 
+  // Cerrar sesión
   const manejarLogout = async () => {
     try {
       await logout();
@@ -26,6 +27,7 @@ const Header = () => {
     }
   };
 
+  // Cerrar dropdown al click fuera
   useEffect(() => {
     function handleClickFuera(event) {
       if (
@@ -40,12 +42,14 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
 
+  // Autofocus buscador al renderizar
   useEffect(() => {
     if (buscarInputRef.current) {
       buscarInputRef.current.focus();
     }
   }, []);
 
+  // Mostrar/ocultar barra de envíos al hacer scroll
   useEffect(() => {
     function handleScroll() {
       const currentScroll = window.pageYOffset;
@@ -74,7 +78,7 @@ const Header = () => {
         }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3">
-          {/* SOLO BUSCADOR en TODO menor que lg */}
+          {/* Buscador solo móvil/tablet */}
           <div
             id="search-bar-container"
             className="flex-grow max-w-full px-2 lg:hidden"
@@ -86,14 +90,14 @@ const Header = () => {
             />
           </div>
 
-          {/* HEADER COMPLETO SOLO en lg+ */}
+          {/* Header completo solo desktop */}
           <div className="hidden lg:flex w-full items-center justify-between gap-6">
-            <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+            <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
               <motion.img
                 src="/playcenter.jpeg"
                 alt="Playcenter Universal"
-                className="h-10 object-contain"
-                whileHover={{ scale: 1.05 }}
+                className="h-10 object-contain rounded-xl shadow group-hover:ring-2 group-hover:ring-[#4FC3F7] transition"
+                whileHover={{ scale: 1.07 }}
                 transition={{ type: "spring", stiffness: 300 }}
               />
               <div className="flex flex-col leading-tight text-xs text-gray-700 font-medium">
@@ -116,14 +120,14 @@ const Header = () => {
             </div>
 
             <div className="flex items-center gap-6 text-sm font-medium text-gray-700">
-              <Link to="/" className="nav-link">Inicio</Link>
-              <Link to="/productos" className="nav-link">Categorías</Link>
-              <Link to="/nosotros" className="nav-link">Nosotros</Link>
-              <Link to="/contacto" className="nav-link">Contáctanos</Link>
-              <Link to="/carrito" className="nav-link text-xl hover:scale-110">🛒</Link>
-               
+              <Link to="/" className="nav-link hover:text-[#4FC3F7] transition">Inicio</Link>
+              <Link to="/productos" className="nav-link hover:text-[#4FC3F7] transition">Categorías</Link>
+              <Link to="/nosotros" className="nav-link hover:text-[#4FC3F7] transition">Nosotros</Link>
+              <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition">Contáctanos</Link>
+              <Link to="/estafetas" className="nav-link hover:text-[#4FC3F7] transition">Estafetas</Link>
+              <Link to="/carrito" className="nav-link text-xl hover:scale-110 transition">🛒</Link>
               {usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (
-                <Link to="/admin" className="px-3 py-2 rounded bg-[#4FC3F7] text-white hover:bg-[#3BB0F3] transition">
+                <Link to="/admin" className="px-3 py-2 rounded bg-[#4FC3F7] text-white hover:bg-[#3BB0F3] shadow transition">
                   Panel Admin
                 </Link>
               )}
@@ -135,7 +139,7 @@ const Header = () => {
                   onClick={() => setDropdownAbierto(!dropdownAbierto)}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer bg-white">
                     {usuario.photoURL ? (
                       <img
                         src={usuario.photoURL}
@@ -149,31 +153,30 @@ const Header = () => {
                     )}
                   </div>
                   <AnimatePresence>
-  {dropdownAbierto && (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
-      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-[10000]"
-    >
-      <Link
-        to="/profile"
-        className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md"
-        onClick={() => setDropdownAbierto(false)}
-      >
-        Mi Perfil
-      </Link>
-      <button
-        onClick={manejarLogout}
-        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md"
-      >
-        Cerrar sesión
-      </button>
-    </motion.div>
-  )}
-</AnimatePresence>
-
+                    {dropdownAbierto && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl ring-1 ring-black ring-opacity-5 z-[10000]"
+                      >
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md transition"
+                          onClick={() => setDropdownAbierto(false)}
+                        >
+                          Mi Perfil
+                        </Link>
+                        <button
+                          onClick={manejarLogout}
+                          className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md transition"
+                        >
+                          Cerrar sesión
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               ) : (
                 <motion.button
@@ -191,15 +194,14 @@ const Header = () => {
       </motion.header>
 
       {showEnvios && (
-        <div
-          className="sm:hidden flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-1 text-[11px] font-semibold select-none fixed top-[58px] left-0 right-0 z-[9998]"
-        >
+        <div className="sm:hidden flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-1 text-[11px] font-semibold select-none fixed top-[58px] left-0 right-0 z-[9998] shadow">
           <FaMapMarkerAlt className="text-xs" />
           <span>Envíos a TODO RD</span>
         </div>
       )}
 
-      <div className="h-[100px] sm:h-[140px]" />
+      {/* Espaciador debajo del header */}
+      <div className="h-[100px] sm:h-[70px]" />
     </>
   );
 };

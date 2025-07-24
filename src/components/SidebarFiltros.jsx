@@ -45,7 +45,18 @@ function SidebarFiltros({
   };
 
   return (
-    <aside className="p-4 w-56 max-w-[240px] border-l border-gray-200 bg-white shadow">
+    <aside
+      className="hidden lg:block p-4 w-56 max-w-[240px] border-l border-gray-200 bg-white shadow z-40"
+      style={{
+        position: "fixed",
+        top: "76px", // Igual al SidebarCategorias, cambia si tu header es de otra altura
+        right: 0,
+        bottom: 0,
+        height: "calc(100vh - 76px)",
+        overflowY: "auto",
+      }}
+      aria-label="Filtros"
+    >
       <h2 className="text-lg font-semibold mb-4 text-blue-800">Filtros</h2>
 
       {/* Estado */}

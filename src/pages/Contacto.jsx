@@ -3,69 +3,162 @@ import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa"
 
 function Contacto() {
     return (
-        <div className="pt-24 px-4 sm:px-8 lg:px-24 pb-16 bg-white min-h-screen text-gray-800">
-            <h1 className="text-3xl sm:text-4xl font-bold text-center mb-10 text-red-600">
+        <div
+            className="min-h-screen flex flex-col items-center justify-center px-4 bg-white"
+        >
+            <h1
+                className="text-4xl font-extrabold text-center mb-8 mt-16 tracking-wide"
+                style={{
+                    fontFamily: "'Orbitron', 'Montserrat', Arial, sans-serif",
+                    letterSpacing: "0.10em",
+                    background: "linear-gradient(90deg, #FFD700, #C0C0C0, #A1FFCE 90%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    textShadow: "0 2px 12px #FFD70055,0 1px 0 #C0C0C055",
+                }}
+            >
                 Contáctanos
             </h1>
 
-            <div className="max-w-3xl mx-auto bg-red-50 p-6 rounded-2xl shadow-md">
-                    <h2 className="text-2xl font-bold mb-4 flex flex-wrap items-center gap-1">
-                    <span className="text-red-600">P</span>
-                    <span className="text-orange-500">l</span>
-                    <span className="text-yellow-500">a</span>
-                    <span className="text-green-600">y</span>
-                    <span className="text-blue-600">c</span>
-                    <span className="text-indigo-600">e</span>
-                    <span className="text-purple-600">n</span>
-                    <span className="text-pink-600">t</span>
-                    <span className="text-teal-600">e</span>
-                    <span className="text-emerald-600">r</span>
-                    <span className="ml-2 text-green-800">Universal</span>
-                </h2>
-
-                <p className="flex items-center mb-3 text-gray-700">
-                    <FaMapMarkerAlt className="mr-2 text-red-600" />
-                    Av. Estrella Sadhalá, Santiago, República Dominicana
-                </p>
-
-                <p className="flex items-center mb-2 text-blue-700 font-medium ">
-                    <FaPhone className="mr-2 text-blue-500" />
-                    +1 (849)-635-7000 (Tienda)
-                </p>
-
-                <p className="flex items-center mb-2 text-green-700 font-medium">
-                    <FaPhone className="mr-2 text-green-500" />
-                    +1 (809)-582-1212 (Internet)
-                </p>
-
-
-
-                <p className="flex items-center mb-3 text-gray-700">
-                    <FaEnvelope className="mr-2 text-red-600" />
-                    playcenter121@gmail.com
-                </p>
-        <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <a
-            href="https://wa.me/18496357000?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-5 py-3 text-white bg-indigo-600 hover:bg-indigo-700 transition rounded-xl shadow-md w-full sm:w-auto"
+            <h2
+                className="text-xl font-bold mb-10 flex flex-wrap items-center gap-1 justify-center tracking-wide select-none"
+                style={{
+                    fontFamily: "'Orbitron', 'Montserrat', Arial, sans-serif",
+                    letterSpacing: "0.08em",
+                    textShadow: "0 1px 10px #A1FFCE44, 0 1px 0 #FFD70055"
+                }}
             >
-            <FaWhatsapp className="text-xl" />
-            WhatsApp Tienda
-            </a>
+                <span style={{
+                    background: "linear-gradient(120deg, #FFD700 20%, #FFF7AE 80%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>P</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #C0C0C0 10%, #A1FFCE 90%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>l</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #FFD700 0%, #C0C0C0 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>a</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #A1FFCE 0%, #C0C0C0 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>y</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #EEE 0%, #FFD700 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>c</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #FFD700 20%, #C0C0C0 80%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>e</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #C0C0C0 0%, #FFD700 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>n</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #FFD700 0%, #A1FFCE 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>t</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #C0C0C0 0%, #FFD700 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>e</span>
+                <span style={{
+                    background: "linear-gradient(120deg, #FFD700 0%, #A1FFCE 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>r</span>
+                <span className="ml-2"
+                    style={{
+                        background: "linear-gradient(90deg, #C0C0C0 0%, #FFD700 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        fontWeight: "bold"
+                    }}
+                >Universal</span>
+            </h2>
 
-            <a
-            href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-5 py-3 text-white bg-green-500 hover:bg-rose-600 transition rounded-xl shadow-md w-full sm:w-auto"
-            >
-            <FaWhatsapp className="text-xl" />
-            WhatsApp Internet
-            </a>
-        </div>
+            <div className="flex flex-col gap-7 w-full max-w-xl">
+                <div className="flex items-center gap-3 text-gray-700 text-lg">
+                    <FaMapMarkerAlt className="text-2xl" style={{
+                        color: "#FFD700",
+                        filter: "drop-shadow(0 0 6px #FFD70044)"
+                    }} />
+                    <span>Av. Estrella Sadhalá, Santiago, República Dominicana</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-700 text-lg">
+                    <FaPhone className="text-2xl" style={{
+                        color: "#C0C0C0",
+                        filter: "drop-shadow(0 0 6px #C0C0C044)"
+                    }} />
+                    <span>
+                        +1 (849)-635-7000 <span className="text-xs text-gray-500 ml-1">(Tienda)</span>
+                    </span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-700 text-lg">
+                    <FaPhone className="text-2xl" style={{
+                        color: "#A1FFCE",
+                        filter: "drop-shadow(0 0 6px #A1FFCE44)"
+                    }} />
+                    <span>
+                        +1 (809)-582-1212 <span className="text-xs text-gray-500 ml-1">(Internet)</span>
+                    </span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-700 text-lg">
+                    <FaEnvelope className="text-2xl" style={{
+                        color: "#FFD700",
+                        filter: "drop-shadow(0 0 6px #FFD70044)"
+                    }} />
+                    <span>playcenter121@gmail.com</span>
+                </div>
+            </div>
 
+            <div className="flex flex-col sm:flex-row gap-6 mt-12 mb-10 justify-center w-full max-w-xl">
+                <a
+                    href="https://wa.me/18496357000?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-8 py-3 text-lg font-semibold rounded-full shadow transition-all"
+                    style={{
+                        background: "linear-gradient(90deg,#FFD700,#C0C0C0 80%)",
+                        color: "#232323",
+                        fontFamily: "'Montserrat', Arial, sans-serif",
+                        letterSpacing: "0.03em",
+                        boxShadow: "0 4px 18px #FFD70044, 0 1.5px 0 #C0C0C044",
+                        border: "2px solid #FFD700"
+                    }}
+                >
+                    <FaWhatsapp className="text-2xl" />
+                    WhatsApp Tienda
+                </a>
+
+                <a
+                    href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-8 py-3 text-lg font-semibold rounded-full shadow transition-all"
+                    style={{
+                        background: "linear-gradient(90deg,#C0C0C0,#FFD700 80%)",
+                        color: "#232323",
+                        fontFamily: "'Montserrat', Arial, sans-serif",
+                        letterSpacing: "0.03em",
+                        boxShadow: "0 4px 18px #C0C0C044, 0 1.5px 0 #FFD70044",
+                        border: "2px solid #C0C0C0"
+                    }}
+                >
+                    <FaWhatsapp className="text-2xl" />
+                    WhatsApp Internet
+                </a>
             </div>
         </div>
     );

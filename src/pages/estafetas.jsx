@@ -129,7 +129,7 @@ const cuentasBancarias = [
 export default function Estafetas() {
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
+      <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-2 text-gray-800 tracking-tight">
         Estafetas de Pago y Métodos de Pago
       </h1>
       <p className="text-center text-gray-600 mb-6">
@@ -137,36 +137,37 @@ export default function Estafetas() {
         o mediante transferencia bancaria.
       </p>
 
-      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-300 rounded-lg p-6 mb-10">
-        <h2 className="text-2xl font-semibold text-blue-700 flex items-center gap-2 mb-4">
+      {/* Cuentas Bancarias */}
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-7 mb-12 shadow-lg">
+        <h2 className="text-2xl font-semibold text-blue-700 flex items-center gap-2 mb-3">
           <FaMoneyCheckAlt className="text-blue-500" />
           Cuentas Bancarias para Transferencias
         </h2>
-        <p className="text-red-600 font-semibold mb-3">
-          ⚠️ Por favor incluye tu <span className="underline">código de cliente</span> o
-          <span className="underline">nombre completo del titular</span> en la descripción del pago.
+        <p className="text-red-600 font-semibold mb-2">
+          ⚠️ Incluye tu <span className="underline">código de cliente</span> o
+          <span className="underline"> nombre completo</span> en la descripción del pago.
         </p>
-        <p className="text-gray-700 mb-4">
-          *Es indispensable enviar el comprobante de pago por este medio para poder aplicarlo.*<br />
+        <p className="text-gray-700 mb-4 text-[15px]">
+          Es indispensable enviar el comprobante de pago por este medio para poder aplicarlo.<br />
           <span className="text-red-500 font-bold">
-            *Sin el comprobante no podremos procesar tu pago.*
+            Sin el comprobante no podremos procesar tu pago.
           </span>
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {cuentasBancarias.map((cuenta, index) => (
             <div
               key={index}
-              className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col shadow-sm"
+              className="bg-white border border-gray-100 rounded-xl p-5 flex flex-col shadow group hover:shadow-xl transition"
             >
-              <h3 className="text-lg font-bold text-indigo-700 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-indigo-700 flex items-center gap-2 mb-2">
                 <FaUniversity className="text-indigo-500" />
                 {cuenta.banco}
               </h3>
-              <p className="text-gray-700">
+              <p className="text-gray-700 mb-1">
                 <span className="font-semibold">Número: </span>
                 <span className="text-gray-900 font-mono">{cuenta.numero}</span>
               </p>
-              <p className="text-gray-700">
+              <p className="text-gray-700 mb-1">
                 <span className="font-semibold">Tipo: </span>
                 {cuenta.tipo}
               </p>
@@ -179,29 +180,30 @@ export default function Estafetas() {
         </div>
       </div>
 
+      {/* Estafetas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {estafetas.map((punto) => (
           <div
             key={punto.id}
-            className="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200"
+            className="flex flex-col md:flex-row bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition"
           >
-            <div className="w-full md:w-1/2 h-80 bg-gray-100 flex items-center justify-center">
+            <div className="w-full md:w-1/2 h-64 md:h-auto bg-blue-50 flex items-center justify-center p-3">
               <img
                 src={punto.imagen}
                 alt={punto.nombre}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-xl"
               />
             </div>
-            <div className="p-6 flex flex-col justify-between">
+            <div className="p-6 flex flex-col justify-between flex-1">
               <div>
-                <h2 className="text-2xl font-semibold text-blue-800">
+                <h2 className="text-2xl font-bold text-blue-800 mb-1">
                   {punto.nombre}
                 </h2>
-                <p className="text-gray-700 text-lg font-medium">
+                <p className="text-gray-700 text-lg font-medium mb-1">
                   {punto.descripcion}
                 </p>
-                <p className="text-gray-600">{punto.direccion}</p>
-                <p className="text-green-600 flex items-center gap-2">
+                <p className="text-gray-600 mb-1">{punto.direccion}</p>
+                <p className="text-green-600 flex items-center gap-2 mb-2">
                   <FaWhatsapp className="text-green-500" />
                   {punto.telefono}
                 </p>
@@ -210,17 +212,18 @@ export default function Estafetas() {
                 href={punto.ubicacionLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:underline mt-4 font-semibold"
+                className="text-blue-600 hover:underline mt-3 font-semibold flex items-center gap-2"
               >
-                📍 Ver Ubicación
+                <span role="img" aria-label="location">📍</span>
+                Ver Ubicación
               </a>
             </div>
           </div>
         ))}
       </div>
 
-      <p className="text-center text-gray-500 mt-10">
-          Agradecemos su preferencia. Estamos para servirle.
+      <p className="text-center text-gray-500 mt-12 text-lg">
+        ¡Agradecemos su preferencia! Estamos para servirle.
       </p>
     </div>
   );

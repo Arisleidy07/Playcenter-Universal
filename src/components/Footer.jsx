@@ -12,7 +12,7 @@ import "./../styles/footer.css";
 function Footer() {
   return (
     <div className="hidden sm:block">
-      <footer className="relative bg-black text-gray-300 px-4 sm:px-6 lg:px-8 py-12 mt-20 overflow-hidden">
+      <footer className="relative bg-black text-gray-300 px-4 sm:px-6 lg:px-8 py-12 mt-0 overflow-hidden">
         {/* ESTRELLAS */}
         <div className="box-of-star1">
           {Array.from({ length: 7 }).map((_, i) => (

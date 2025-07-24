@@ -1,4 +1,3 @@
-// src/components/SidebarCategorias.jsx
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -46,9 +45,16 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
 
   return (
     <>
-      {/* Desktop */}
+      {/* Desktop - FIXED Sidebar */}
       <aside
-        className="sidebar-desktop hidden lg:block w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 sticky top-[76px] h-[calc(100vh-4.75rem)] overflow-y-auto z-30"
+        className="hidden lg:block w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 overflow-y-auto z-40"
+        style={{
+          position: "fixed",
+          top: "76px", // Cambia este valor por la altura real de tu header si es necesario
+          left: 0,
+          bottom: 0,
+          height: "calc(100vh - 76px)",
+        }}
         aria-label="Categorías"
       >
         <h2 className="text-sm font-bold text-blue-800 mb-3 text-center uppercase tracking-wide select-none">

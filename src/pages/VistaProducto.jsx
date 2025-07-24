@@ -1,73 +1,48 @@
+// VistaProducto.jsx
+
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaWhatsapp, FaShoppingCart, FaTrash } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { FaWhatsapp, FaShoppingCart } from "react-icons/fa";
+import GaleriaImagenes from "../components/GaleriaImagenes";
 import productosAll from "../data/productosAll";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
-import BotonPayPal from "../components/BotonPayPal";
 
-function GaleriaImagenes({ imagenes }) {
-  const [imagenActiva, setImagenActiva] = useState(0);
-
-  return (
-    <div>
-      <div className="border rounded-md overflow-hidden mb-4 h-[420px] flex items-center justify-center bg-white">
-        <img
-          src={imagenes[imagenActiva]}
-          alt={`Imagen ${imagenActiva + 1}`}
-          className="max-h-full max-w-full object-contain"
-        />
-      </div>
-      <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-        {imagenes.map((img, i) => (
-          <button
-            key={i}
-            onClick={() => setImagenActiva(i)}
-            className={`border rounded-md p-1 flex-shrink-0 transition-transform hover:scale-110 ${
-              i === imagenActiva ? "border-blue-600" : "border-gray-300"
-            }`}
-            aria-label={`Seleccionar imagen ${i + 1}`}
-          >
-            <img
-              src={img}
-              alt={`Miniatura ${i + 1}`}
-              className="w-16 h-16 object-contain"
-            />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export default function VistaProducto() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
+function VistaProducto() {
   const { carrito, agregarAlCarrito, quitarDelCarrito } = useCarrito();
   const { usuario } = useAuth();
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [colorSeleccionado, setColorSeleccionado] = useState(null);
 
-  const todos = productosAll.flatMap((cat) => cat.productos);
+  // Unifica todos los productos de todas las categorías
+  const todos = productosAll.flatMap((categoria) => categoria.productos);
   const producto = todos.find((p) => p.id === id);
+  const estaEnCarrito = carrito.some((item) => item.id === producto?.id);
 
-  if (!producto)
+  if (!producto) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <p className="text-center text-xl font-semibold text-gray-700">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
+        <p className="text-center text-xl font-semibold">
           Producto no encontrado.
           <button
             onClick={() => navigate(-1)}
-            className="text-blue-600 underline ml-2"
+            className="text-blue-500 underline ml-2"
           >
             Volver
           </button>
         </p>
       </div>
     );
+  }
 
-  const estaEnCarrito = carrito.some((item) => item.id === producto.id);
+  // Determina la variante activa
+  const varianteActiva =
+    producto.variantes?.find((v) => v.color === colorSeleccionado) ||
+    producto.variantes?.[0];
 
   const mensajeWhatsApp = `https://wa.me/18496357000?text=${encodeURIComponent(
     `¡Hola! Estoy interesado/a en el producto "${producto.nombre}". ¿Sigue disponible?`
@@ -85,74 +60,137 @@ export default function VistaProducto() {
     }
   };
 
+  // Solo muestra selector de color si hay variantes con color
+  const variantesConColor =
+    producto.variantes?.filter((v) => v.color && v.color.trim() !== "");
+
   return (
     <>
-      <main className="min-h-screen bg-white p-8 max-w-6xl mx-auto font-sans">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-6 text-blue-600 hover:underline font-semibold text-lg"
-        >
-          ← Volver
-        </button>
+      <main className="min-h-screen bg-white px-4 py-10 text-gray-800 flex justify-center">
+        <section className="max-w-6xl w-full flex flex-col lg:flex-row gap-10">
+          {/* Columna Izquierda: Imagen + miniaturas + colores */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center w-full lg:w-1/2"
+          >
+            <GaleriaImagenes
+              imagenes={
+                varianteActiva?.imagenes?.length
+                  ? varianteActiva.imagenes
+                  : producto.imagenes || [producto.imagen]
+              }
+            />
 
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Galería */}
-          <div className="lg:w-1/2">
-            <GaleriaImagenes imagenes={producto.imagenes || [producto.imagen]} />
-          </div>
-
-          {/* Info */}
-          <div className="lg:w-1/2 flex flex-col justify-between">
-            <section>
-              <h1 className="text-4xl font-extrabold mb-3 leading-tight text-gray-900">
-                {producto.nombre}
-              </h1>
-
-              {/* Descripción justo debajo del título */}
-              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                {producto.descripcion ||
-                  "Contáctanos para más detalles o para coordinar una compra en nuestra tienda física."}
-              </p>
-
-              {/* Precio */}
-              <p className="text-3xl text-[#FF9900] font-extrabold mb-8">
-                ${producto.precio.toFixed(2)}
-              </p>
-
-              {/* Botones agregar carrito y WhatsApp */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <button
-                  onClick={handleAgregarCarrito}
-                  className={`flex items-center justify-center gap-3 rounded-full px-6 py-3 font-semibold transition hover:scale-105 shadow-md text-lg ${
-                    estaEnCarrito
-                      ? "bg-red-600 text-white hover:bg-red-700"
-                      : "bg-yellow-400 text-black hover:bg-yellow-500"
-                  }`}
-                  aria-label={estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
-                >
-                  {estaEnCarrito ? <FaTrash size={18} /> : <FaShoppingCart size={18} />}
-                  {estaEnCarrito ? " Quitar del carrito" : " Agregar al carrito"}
-                </button>
-
-                <a
-                  href={mensajeWhatsApp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 rounded-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-semibold shadow-md text-lg transition hover:scale-105"
-                  aria-label="Escribir por WhatsApp"
-                >
-                  <FaWhatsapp size={22} />
-                  Escribir por WhatsApp
-                </a>
+            {/* Cuadros de colores SOLO si existen variantes con color */}
+            {variantesConColor && variantesConColor.length > 1 && (
+              <div className="grid grid-cols-3 gap-3 mt-6">
+                {variantesConColor.map((variante, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setColorSeleccionado(variante.color)}
+                    className={`border-2 p-1 rounded-md cursor-pointer transition-transform hover:scale-105 ${
+                      colorSeleccionado === variante.color
+                        ? "border-yellow-500"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <img
+                      src={variante.imagen}
+                      alt={variante.color || "Variante"}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <p className="text-xs text-center mt-1 font-medium capitalize">
+                      Color {variante.color}
+                    </p>
+                  </div>
+                ))}
               </div>
+            )}
+          </motion.div>
 
-              {/* Botón PayPal */}
-              <div className="max-w-xs">
-                <BotonPayPal nombre={producto.nombre} precio={producto.precio} />
+          {/* Columna Centro: Info del producto */}
+          <motion.div
+            className="flex flex-col gap-4 w-full lg:w-1/2"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#333]">
+              {producto.nombre}
+            </h1>
+
+            <motion.p
+              className="text-gray-700 text-base sm:text-lg leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
+              {producto.descripcion ||
+                "Contáctanos para más detalles o para coordinar una compra en nuestra tienda física."}
+            </motion.p>
+
+            {producto.acerca && (
+              <div>
+                <h3 className="font-bold text-gray-800 mt-4 mb-2">
+                  Acerca de este artículo:
+                </h3>
+                <ul className="list-disc list-inside text-sm text-gray-600">
+                  {producto.acerca.map((detalle, i) => (
+                    <li key={i}>{detalle}</li>
+                  ))}
+                </ul>
               </div>
-            </section>
+            )}
+          </motion.div>
+
+          {/* Columna Derecha: Compra */}
+          <div className="w-full lg:w-80 bg-gray-50 rounded-xl border p-5 shadow-md flex flex-col gap-4 h-fit">
+            <p className="text-xl font-semibold text-[#FF9900]">
+              RD${producto.precio.toFixed(2)}
+            </p>
+
+            {varianteActiva?.cantidad !== undefined && (
+              <p
+                className={`text-sm font-medium ${
+                  varianteActiva.cantidad === 0
+                    ? "text-red-600"
+                    : varianteActiva.cantidad <= 2
+                    ? "text-yellow-600"
+                    : "text-green-600"
+                }`}
+              >
+                {varianteActiva.cantidad === 0
+                  ? "No disponible"
+                  : `Quedan ${varianteActiva.cantidad} disponibles`}
+              </p>
+            )}
+
+            <button
+              onClick={handleAgregarCarrito}
+              disabled={varianteActiva?.cantidad === 0}
+              className={`w-full inline-flex justify-center items-center gap-3 px-6 py-3 rounded-full shadow transition-transform hover:scale-105 font-semibold ${
+                estaEnCarrito
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-yellow-400 hover:bg-yellow-500 text-black"
+              } ${varianteActiva?.cantidad === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <FaShoppingCart className="text-xl" />
+              {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
+            </button>
+
+            <a
+              href={mensajeWhatsApp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow transition-transform hover:scale-105 w-full"
+            >
+              <FaWhatsapp className="text-2xl" />
+              Escribir por WhatsApp
+            </a>
           </div>
-        </div>
+        </section>
       </main>
 
       <ModalLoginAlert
@@ -162,3 +200,5 @@ export default function VistaProducto() {
     </>
   );
 }
+
+export default VistaProducto;
