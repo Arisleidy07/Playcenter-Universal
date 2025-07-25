@@ -1,5 +1,11 @@
-import React from "react";
-import { FaWhatsapp, FaMoneyCheckAlt, FaUniversity } from "react-icons/fa";
+import React, { useState } from "react";
+import {
+  FaWhatsapp,
+  FaMoneyCheckAlt,
+  FaUniversity,
+  FaRegCopy,
+  FaCheck,
+} from "react-icons/fa";
 
 const estafetas = [
   {
@@ -127,6 +133,14 @@ const cuentasBancarias = [
 ];
 
 export default function Estafetas() {
+  const [copiedIndex, setCopiedIndex] = useState(null);
+
+  const handleCopy = (numero, index) => {
+    navigator.clipboard.writeText(numero);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-10">
       <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-2 text-gray-800 tracking-tight">
@@ -163,9 +177,18 @@ export default function Estafetas() {
                 <FaUniversity className="text-indigo-500" />
                 {cuenta.banco}
               </h3>
-              <p className="text-gray-700 mb-1">
-                <span className="font-semibold">Número: </span>
-                <span className="text-gray-900 font-mono">{cuenta.numero}</span>
+              <p className="text-gray-700 mb-1 flex items-center justify-between">
+                <span>
+                  <span className="font-semibold">Número: </span>
+                  <span className="text-gray-900 font-mono">{cuenta.numero}</span>
+                </span>
+                <button
+                  onClick={() => handleCopy(cuenta.numero, index)}
+                  className="text-indigo-600 hover:text-indigo-800 ml-2"
+                  title="Copiar número"
+                >
+                  {copiedIndex === index ? <FaCheck /> : <FaRegCopy />}
+                </button>
               </p>
               <p className="text-gray-700 mb-1">
                 <span className="font-semibold">Tipo: </span>
