@@ -177,19 +177,20 @@ export default function Estafetas() {
                 <FaUniversity className="text-indigo-500" />
                 {cuenta.banco}
               </h3>
-              <p className="text-gray-700 mb-1 flex items-center justify-between">
-                <span>
-                  <span className="font-semibold">Número: </span>
-                  <span className="text-gray-900 font-mono">{cuenta.numero}</span>
-                </span>
-                <button
-                  onClick={() => handleCopy(cuenta.numero, index)}
-                  className="text-indigo-600 hover:text-indigo-800 ml-2"
-                  title="Copiar número"
-                >
-                  {copiedIndex === index ? <FaCheck /> : <FaRegCopy />}
-                </button>
-              </p>
+<p className="text-gray-700 mb-1 flex items-center">
+  <span className="font-semibold mr-1">Número: </span>
+  <span className="text-gray-900 font-mono flex items-center">
+    {cuenta.numero}
+    <button
+      onClick={() => handleCopy(cuenta.numero, index)}
+      className="text-indigo-600 hover:text-indigo-800 ml-1"
+      title="Copiar número"
+    >
+      {copiedIndex === index ? <FaCheck /> : <FaRegCopy />}
+    </button>
+  </span>
+</p>
+
               <p className="text-gray-700 mb-1">
                 <span className="font-semibold">Tipo: </span>
                 {cuenta.tipo}
