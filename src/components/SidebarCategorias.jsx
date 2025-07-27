@@ -30,14 +30,18 @@ const categorias = [
   { nombre: "Tablets", ruta: "tablets" },
   { nombre: "Teclados", ruta: "teclados" },
   { nombre: "Videojuegos", ruta: "videojuegos" },
-  { nombre: "Accesorios Videojuegos", ruta: "accesorios-videojuegos" },
+  { nombre: "Accesorios Videojuegos", ruta: "AccesoriosVideojuegos" },
 ];
 
-function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil }) {
+function SidebarCategorias({
+  categoriaActiva,
+  mostrarEnMovil,
+  setMostrarEnMovil,
+}) {
   const navigate = useNavigate();
 
   const handleClick = (cat) => {
-    navigate(`/productos/${cat.ruta}`);
+    navigate(`/Productos/${cat.ruta}`);
     if (setMostrarEnMovil) setMostrarEnMovil(false);
   };
 

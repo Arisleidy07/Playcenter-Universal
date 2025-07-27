@@ -15,16 +15,16 @@ const productosAll = [
           "Incluye un control clásico",
           "Compatible con cartuchos originales y réplicas",
           "Salida AV para TV modernas",
-          "Fácil de conectar y usar"
+          "Fácil de conectar y usar",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/nintendoentertainment.jpeg",
             imagenes: ["/Productos/nintendoentertainment.jpeg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "rc2",
@@ -39,16 +39,16 @@ const productosAll = [
           "Incluye dos controles",
           "Soporta juegos PAL y NTSC",
           "Salida AV y S-Video",
-          "Compacta y fácil de instalar"
+          "Compacta y fácil de instalar",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/supernintendo.avif",
             imagenes: ["/Productos/supernintendo.avif"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rc3",
@@ -62,16 +62,16 @@ const productosAll = [
         acerca: [
           "Incluye cable de poder y AV",
           "Compatibilidad con cartuchos originales",
-          "Diseño retro compacto"
+          "Diseño retro compacto",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/segagenesis.webp",
             imagenes: ["/Productos/segagenesis.webp"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "rc4",
@@ -85,16 +85,16 @@ const productosAll = [
         acerca: [
           "Lector de CD original",
           "Incluye un control clásico",
-          "Compatible con memory card"
+          "Compatible con memory card",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/playstation1.webp",
             imagenes: ["/Productos/playstation1.webp"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rc5",
@@ -108,16 +108,16 @@ const productosAll = [
         acerca: [
           "Pantalla monocromática",
           "Funciona con pilas AA",
-          "Compatible con todos los juegos Game Boy"
+          "Compatible con todos los juegos Game Boy",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/gameboy.jpg",
             imagenes: ["/Productos/gameboy.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "rc6",
@@ -131,16 +131,16 @@ const productosAll = [
         acerca: [
           "Incluye joystick clásico",
           "Compatibilidad con cartuchos originales",
-          "Diseño de madera vintage"
+          "Diseño de madera vintage",
         ],
         variantes: [
           {
             color: "Madera",
             imagen: "/Productos/atari2600.png",
             imagenes: ["/Productos/atari2600.png"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
     ],
   },
@@ -159,16 +159,16 @@ const productosAll = [
         acerca: [
           "Cartucho original",
           "Compatible con NES y clones",
-          "Incluye caja protectora"
+          "Incluye caja protectora",
         ],
         variantes: [
           {
             color: "Rojo",
             imagen: "/Productos/mariobrosretro.jpg",
             imagenes: ["/Productos/mariobrosretro.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rj2",
@@ -182,16 +182,16 @@ const productosAll = [
         acerca: [
           "Cartucho dorado",
           "Compatible con NES",
-          "Incluye manual digital"
+          "Incluye manual digital",
         ],
         variantes: [
           {
             color: "Dorado",
             imagen: "/Productos/zeldaretro.jpg",
             imagenes: ["/Productos/zeldaretro.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "rj3",
@@ -205,16 +205,16 @@ const productosAll = [
         acerca: [
           "Cartucho original",
           "Compatible con SNES",
-          "Incluye caja retro"
+          "Incluye caja retro",
         ],
         variantes: [
           {
             color: "Verde",
             imagen: "/Productos/donkeykongnretro.jpeg",
             imagenes: ["/Productos/donkeykongnretro.jpeg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rj4",
@@ -228,16 +228,16 @@ const productosAll = [
         acerca: [
           "Juego en CD original",
           "Compatible con PS1",
-          "Incluye estuche retro"
+          "Incluye estuche retro",
         ],
         variantes: [
           {
             color: "Naranja",
             imagen: "/Productos/crash-bandicoat-PS1.webp",
             imagenes: ["/Productos/crash-bandicoat-PS1.webp"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "rj5",
@@ -251,97 +251,164 @@ const productosAll = [
         acerca: [
           "3 discos originales",
           "Compatible con PS1 y PS2",
-          "Incluye manual digital"
+          "Incluye manual digital",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/ff7.jpg",
             imagenes: ["/Productos/ff7.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
     ],
   },
   {
     categoria: "Audífonos",
     productos: [
-    {
-      id: "p1",
-      nombre: "Gaming Headset con Micrófono Ajustable para Xbox 360",
-      sku: "HEADSET-X360",
-      precio: 800,
-      descripcion: "Audífonos para gaming con micrófono ajustable, conexión directa al control de Xbox 360. Ideal para chat y audio de juego.",
-      imagen: "/productospcu/gamingheadsetxbox.png",
-      imagenes: ["/productospcu/gamingheadsetxbox.png"],
-      oferta: false,
-      estado: "Nuevo",
-      acerca: [
-        "Micrófono flexible y ajustable",
-        "Conexión por cable al control",
-        "Diseño cómodo para largas sesiones",
-        "Compatible solo con Xbox 360"
-      ],
-      variantes: [
-        {
-          imagen: "/productospcu/gamingheadsetxbox.png",
-          imagenes: ["/productospcu/gaming-headset-back.png"],
-          cantidad: 3
-        }
-      ]
-    },
 
-    {
-      id: "p2",
-      nombre: "Headset Inalámbrico AH-806W 6D Shock Sound",
-      sku: "AH-806W-WIRELESS",
-      precio: 1450,
-      descripcion: "Audífonos inalámbricos con sonido envolvente 6D y graves potentes. Batería recargable, ideal para juegos y música.",
-      imagen: "/productospcu/minionheadset.png",
-      imagenes: ["/productospcu/minionheadset.png"],
-      oferta: false,
-      estado: "Nuevo",
-      acerca: [
-        "Inalámbrico",
-        "Sonido envolvente 6D",
-        "Graves potentes",
-        "Diseño cómodo y moderno",
-        "Batería recargable"
-      ],
-      variantes: [
-        {
-          imagen: "/productospcu/minionheadset.png",
-          imagenes: ["/productospcu/minionheadset.png"],
-          cantidad: 1
-        }
-      ]
-    },
+      {
+        id: "ps4audio1",
+        nombre: "Gaming Headphones con Micrófono para PS4",
+        precio: 29.99,
+        descripcion: "Auriculares con micrófono de reducción de ruido, compatibles con PS4. Ideales para gaming online y chats en tiempo real.",
+        imagen: "/productospcu/headphones.png",
+        imagenes: ["/productospcu/headphones.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Conexión directa al control de PS4",
+          "Controles de volumen y silencio integrados",
+          "Cable de 1.3 metros (4.25 pies)",
+          "Diseño cómodo y ajustable",
+          "Micrófono con cancelación de ruido",
+          "Sonido claro y nítido ideal para juegos online",
+          "Compatible con juegos, chats, Skype y más"
+        ],
+        variantes: [
+          {
+            color: "Negro",
+            imagen: "/productospcu/headphones.png",
+            imagenes: [
+              "/productospcu/headphones.png",
+              "/productospcu/headphones-back.png"
+            ],
+            cantidad: 2
+          }
+        ]
+      },
 
+
+
+      {
+        id: "p1",
+        nombre: "Gaming Headset con Micrófono Ajustable para Xbox 360",
+        sku: "HEADSET-X360",
+        precio: 800,
+        descripcion:
+          "Audífonos para gaming con micrófono ajustable, conexión directa al control de Xbox 360. Ideal para chat y audio de juego.",
+        imagen: "/productospcu/gamingheadsetxbox.png",
+        imagenes: ["/productospcu/gamingheadsetxbox.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Micrófono flexible y ajustable",
+          "Conexión por cable al control",
+          "Diseño cómodo para largas sesiones",
+          "Compatible solo con Xbox 360",
+        ],
+        variantes: [
+          {
+            imagen: "/productospcu/gamingheadsetxbox.png",
+            imagenes: [
+              "/productospcu/gamingheadsetxbox.png",
+              "/productospcu/gaming-headset-back.png",
+            ],
+            cantidad: 3,
+          },
+        ],
+      },
+
+      {
+  id: "aud1",
+  nombre: "Audífonos Inalámbricos 771A",
+  precio: 34.99,
+  descripcion: "Audífonos inalámbricos con micrófono integrado y sonido HD para música sin interrupciones.",
+  imagen: "/productospcu/audifonos.png",
+  imagenes: ["/productospcu/audifonos.png"],
+  oferta: false,
+  estado: "Nuevo",
+  acerca: [
+    "Sonido de alta definición",
+    "Diseño cómodo para uso prolongado",
+    "Micrófono integrado para llamadas o juegos",
+    "Conexión inalámbrica Bluetooth",
+    "Diseñados para música, películas y gaming"
+  ],
+  variantes: [
     {
-      id: "p3",
-      nombre: "MA-1 Wireless Headphone MARIO",
-      sku: "MA1-MARIO",
-      precio: 1200,
-      descripcion: "Audífonos inalámbricos edición especial MARIO, compatibles con varios dispositivos y micrófono incorporado.",
-      imagen: "/productospcu/marioheadset.png",
-      imagenes: ["/productospcu/marioheadset.png"],
-      oferta: false,
-      estado: "Nuevo",
-      acerca: [
-        "Diseño edición Mario",
-        "Inalámbrico y recargable",
-        "Compatibles con dispositivos móviles y PC",
-        "Micrófono integrado"
-      ],
-      variantes: [
-        {
-          imagen: "/productospcu/marioheadset.png",
-          imagenes: ["/productospcu/marioheadset.png"],
-          cantidad: 1
-        }
-      ]
-    },
+      color: "Negro",
+      imagen: "/productospcu/audifonos.png",
+      imagenes: ["/productospcu/audifonos.png"],
+      cantidad: 5
+    }
+  ]
+},
+
+
+      {
+        id: "p2",
+        nombre: "Headset Inalámbrico AH-806W 6D Shock Sound",
+        sku: "AH-806W-WIRELESS",
+        precio: 1450,
+        descripcion:
+          "Audífonos inalámbricos con sonido envolvente 6D y graves potentes. Batería recargable, ideal para juegos y música.",
+        imagen: "/productospcu/minionheadset.png",
+        imagenes: ["/productospcu/minionheadset.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Inalámbrico",
+          "Sonido envolvente 6D",
+          "Graves potentes",
+          "Diseño cómodo y moderno",
+          "Batería recargable",
+        ],
+        variantes: [
+          {
+            imagen: "/productospcu/minionheadset.png",
+            imagenes: ["/productospcu/minionheadset.png"],
+            cantidad: 1,
+          },
+        ],
+      },
+
+      {
+        id: "p3",
+        nombre: "MA-1 Wireless Headphone MARIO",
+        sku: "MA1-MARIO",
+        precio: 1200,
+        descripcion:
+          "Audífonos inalámbricos edición especial MARIO, compatibles con varios dispositivos y micrófono incorporado.",
+        imagen: "/productospcu/marioheadset.png",
+        imagenes: ["/productospcu/marioheadset.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Diseño edición Mario",
+          "Inalámbrico y recargable",
+          "Compatibles con dispositivos móviles y PC",
+          "Micrófono integrado",
+        ],
+        variantes: [
+          {
+            imagen: "/productospcu/marioheadset.png",
+            imagenes: ["/productospcu/marioheadset.png"],
+            cantidad: 1,
+          },
+        ],
+      },
     ],
   },
 
@@ -361,16 +428,16 @@ const productosAll = [
           "Compatible con dispositivos Apple",
           "Longitud de 1 metro",
           "Soporta carga rápida",
-          "Conectores reforzados"
+          "Conectores reforzados",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/usb-c.jpg",
             imagenes: ["/Productos/usb-c.jpg"],
-            cantidad: 10
-          }
-        ]
+            cantidad: 10,
+          },
+        ],
       },
       {
         id: "cb2",
@@ -385,16 +452,16 @@ const productosAll = [
           "Resolución 4K",
           "Longitud de 2 metros",
           "Compatible con TV, monitores y consolas",
-          "Conectores dorados para mejor señal"
+          "Conectores dorados para mejor señal",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/hdmi4k.jpeg",
             imagenes: ["/Productos/hdmi4k.jpeg"],
-            cantidad: 7
-          }
-        ]
+            cantidad: 7,
+          },
+        ],
       },
       {
         id: "cb3",
@@ -409,16 +476,16 @@ const productosAll = [
           "Soporta USB 3.0",
           "Longitud de 1 metro",
           "Ideal para móviles y discos duros externos",
-          "Transferencia de datos y carga rápida"
+          "Transferencia de datos y carga rápida",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/micro.jpg",
             imagenes: ["/Productos/micro.jpg"],
-            cantidad: 8
-          }
-        ]
+            cantidad: 8,
+          },
+        ],
       },
       {
         id: "cb4",
@@ -433,16 +500,16 @@ const productosAll = [
           "Cable de red Cat6",
           "Longitud de 1.5 metros",
           "Alta velocidad y baja interferencia",
-          "Ideal para gaming y streaming"
+          "Ideal para gaming y streaming",
         ],
         variantes: [
           {
             color: "Azul",
             imagen: "/Productos/ethernet.jpeg",
             imagenes: ["/Productos/ethernet.jpg"],
-            cantidad: 6
-          }
-        ]
+            cantidad: 6,
+          },
+        ],
       },
       {
         id: "cb5",
@@ -457,16 +524,16 @@ const productosAll = [
           "Soporta hasta 8K a 60Hz",
           "Longitud de 2 metros",
           "Compatible con monitores y tarjetas gráficas",
-          "Conectores de alta calidad"
+          "Conectores de alta calidad",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/displayport.jpg",
             imagenes: ["/Productos/displayport.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
     ],
   },
@@ -486,17 +553,44 @@ const productosAll = [
           "Cuadro de acero resistente",
           "Llantas de 26 pulgadas",
           "Ideal para ciudad y caminos",
-          "Frenos de disco delanteros y traseros"
+          "Frenos de disco delanteros y traseros",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/mongose.jpg",
             imagenes: ["/Productos/mongose.jpg"],
-            cantidad: 1
+            cantidad: 1,
+          },
+        ],
+      },
+
+      {
+        id: "mic1",
+        nombre: "Micrófono de Grabación con Reducción de Ruido",
+        precio: 29.99,
+        descripcion: "Micrófono ideal para grabar voces e instrumentos, con diseño especial para plataformas como YouTube y Twitch.",
+        imagen: "/productospcu/microfono.png",
+        imagenes: ["/productospcu/microfono.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Reducción de ruido integrada",
+          "Ideal para grabar voz e instrumentos",
+          "Compatible con YouTube, Skype, Twitch y más",
+          "Perfecto para Home Studio y Oficina",
+          "Plug and Play (no requiere drivers)"
+        ],
+        variantes: [
+          {
+            color: "Negro",
+            imagen: "/productospcu/microfono.png",
+            imagenes: ["/productospcu/microfono.png"],
+            cantidad: 4
           }
         ]
       },
+
       {
         id: "rv2",
         nombre: "Patineta Eléctrica Plegable",
@@ -510,20 +604,20 @@ const productosAll = [
           "Motor de 250W",
           "Alcance de hasta 25km",
           "Batería recargable",
-          "Plegable y liviana"
+          "Plegable y liviana",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/patinetaelectrica.jpg",
             imagenes: ["/Productos/patinetaelectrica.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rv3",
-        nombre: "Hoverboard Autoequilibrado 10\"",
+        nombre: 'Hoverboard Autoequilibrado 10"',
         precio: 299.99,
         descripcion: "Tecnología smart para moverte con estilo y velocidad.",
         imagen: "/Productos/hoverboard.jpg",
@@ -534,16 +628,16 @@ const productosAll = [
           "Ruedas de 10 pulgadas",
           "Sensores de equilibrio inteligente",
           "Luces LED integradas",
-          "Batería recargable de larga duración"
+          "Batería recargable de larga duración",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/hoverboard.jpg",
             imagenes: ["/Productos/hoverboard.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "rv4",
@@ -558,16 +652,16 @@ const productosAll = [
           "4 ruedas resistentes",
           "Rodamientos ABEC-7",
           "Ajuste seguro",
-          "Freno trasero incluido"
+          "Freno trasero incluido",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/patines4ruedaasenlinea.jpeg",
             imagenes: ["/Productos/patines4ruedaasenlinea.jpeg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rv5",
@@ -582,16 +676,16 @@ const productosAll = [
           "Diseño clásico",
           "Ruedas de goma",
           "Ajuste cómodo",
-          "Disponible en varias tallas"
+          "Disponible en varias tallas",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/patinesclasicos.webp",
             imagenes: ["/Productos/patinesclasicos.webp"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "rv6",
@@ -606,16 +700,16 @@ const productosAll = [
           "4 ruedas incluidas",
           "Material de poliuretano",
           "Compatibles con skate y longboard",
-          "Durabilidad extra"
+          "Durabilidad extra",
         ],
         variantes: [
           {
             color: "Transparente",
             imagen: "/Productos/ruedapatineta.webp",
             imagenes: ["/Productos/ruedapatineta.webp"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "rv7",
@@ -630,16 +724,16 @@ const productosAll = [
           "Certificado para ciclismo y skate",
           "Ajuste regulable",
           "Acolchado interno extraíble",
-          "Ligero y resistente"
+          "Ligero y resistente",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/casco.jpg",
             imagenes: ["/Productos/casco.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rv8",
@@ -654,16 +748,16 @@ const productosAll = [
           "Capacidad de 1 litro",
           "Acero inoxidable",
           "Tapa a prueba de fugas",
-          "Mantiene la temperatura por 12h"
+          "Mantiene la temperatura por 12h",
         ],
         variantes: [
           {
             color: "Plateado",
             imagen: "/Productos/botella.jpg",
             imagenes: ["/Productos/botella.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "rv9",
@@ -678,16 +772,16 @@ const productosAll = [
           "Luz blanca frontal LED",
           "Recargable por USB",
           "Incluye soporte para manubrio",
-          "3 modos de intensidad"
+          "3 modos de intensidad",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/lucesbici.webp",
             imagenes: ["/Productos/lucesbici.webp"],
-            cantidad: 6
-          }
-        ]
+            cantidad: 6,
+          },
+        ],
       },
     ],
   },
@@ -698,7 +792,8 @@ const productosAll = [
         id: "cam1",
         nombre: "Cámara Hikvision Dome 4MP",
         precio: 120,
-        descripcion: "Cámara de seguridad tipo Dome con resolución 4MP, visión nocturna y carcasa resistente.",
+        descripcion:
+          "Cámara de seguridad tipo Dome con resolución 4MP, visión nocturna y carcasa resistente.",
         imagen: "/Productos/hikvision.png",
         imagenes: ["/Productos/hikvision.png"],
         oferta: false,
@@ -707,22 +802,23 @@ const productosAll = [
           "Resolución 4MP",
           "Visión nocturna infrarroja",
           "Carcasa resistente a la intemperie",
-          "Fácil instalación"
+          "Fácil instalación",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/hikvision.png",
             imagenes: ["/Productos/hikvision.png"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "cam2",
         nombre: "Cámara Dahua Bullet Full HD",
         precio: 95,
-        descripcion: "Cámara Bullet Full HD con lente gran angular, ideal para exteriores.",
+        descripcion:
+          "Cámara Bullet Full HD con lente gran angular, ideal para exteriores.",
         imagen: "/Productos/dahua.webp",
         imagenes: ["/Productos/dahua.webp"],
         oferta: false,
@@ -731,22 +827,23 @@ const productosAll = [
           "Full HD 1080p",
           "Lente gran angular",
           "Resistente a la lluvia",
-          "Visión nocturna"
+          "Visión nocturna",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/dahua.webp",
             imagenes: ["/Productos/dahua.webp"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "cam3",
         nombre: "Cámara EZVIZ WiFi 1080p",
         precio: 75,
-        descripcion: "Cámara WiFi con grabación en la nube, visión nocturna y audio bidireccional.",
+        descripcion:
+          "Cámara WiFi con grabación en la nube, visión nocturna y audio bidireccional.",
         imagen: "/Productos/ezviz.png",
         imagenes: ["/Productos/ezviz.png"],
         oferta: false,
@@ -755,22 +852,23 @@ const productosAll = [
           "Conexión WiFi",
           "Grabación en la nube",
           "Audio bidireccional",
-          "Visión nocturna"
+          "Visión nocturna",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/ezviz.png",
             imagenes: ["/Productos/ezviz.png"],
-            cantidad: 6
-          }
-        ]
+            cantidad: 6,
+          },
+        ],
       },
       {
         id: "cam4",
         nombre: "Cámara TP-Link Tapo C200",
         precio: 60,
-        descripcion: "Cámara PTZ con movimiento horizontal y vertical, notificaciones instantáneas y almacenamiento local.",
+        descripcion:
+          "Cámara PTZ con movimiento horizontal y vertical, notificaciones instantáneas y almacenamiento local.",
         imagen: "/Productos/tapo.webp",
         imagenes: ["/Productos/tapo.webp"],
         oferta: false,
@@ -779,17 +877,17 @@ const productosAll = [
           "Control de movimiento PTZ",
           "Notificaciones instantáneas",
           "Almacenamiento local SD",
-          "Compatible con app móvil"
+          "Compatible con app móvil",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/tapo.webp",
             imagenes: ["/Productos/tapo.webp"],
-            cantidad: 4
-          }
-        ]
-      }
+            cantidad: 4,
+          },
+        ],
+      },
     ],
   },
 
@@ -809,22 +907,23 @@ const productosAll = [
           "Carga rápida 20W",
           "Compatible con Android y iPhone",
           "Protección contra sobrecarga",
-          "Diseño compacto"
+          "Diseño compacto",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/cargador-rapido.jpg",
             imagenes: ["/Productos/cargador-rapido.jpg"],
-            cantidad: 8
-          }
-        ]
+            cantidad: 8,
+          },
+        ],
       },
       {
         id: "cg2",
         nombre: "Cargador inalámbrico universal",
         precio: 599,
-        descripcion: "Compatible con smartphones que permiten carga por inducción.",
+        descripcion:
+          "Compatible con smartphones que permiten carga por inducción.",
         imagen: "/Productos/cargador-inalambrico.jpg",
         imagenes: ["/Productos/cargador-inalambrico.jpg"],
         oferta: true,
@@ -833,16 +932,16 @@ const productosAll = [
           "Carga inalámbrica Qi",
           "Funciona con la mayoría de smartphones",
           "Diseño antideslizante",
-          "Indicador LED de carga"
+          "Indicador LED de carga",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/cargador-inalambrico.jpg",
             imagenes: ["/Productos/cargador-inalambrico.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "cg3",
@@ -857,16 +956,16 @@ const productosAll = [
           "Capacidad 20,000 mAh",
           "3 puertos de salida USB",
           "Carga rápida",
-          "Pantalla LED de batería"
+          "Pantalla LED de batería",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/powerbank.jpg",
             imagenes: ["/Productos/powerbank.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "cg4",
@@ -881,16 +980,16 @@ const productosAll = [
           "2 puertos USB",
           "Potencia total 30W",
           "Protección contra cortocircuito",
-          "Compatible con múltiples dispositivos"
+          "Compatible con múltiples dispositivos",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/cargador-doble.jpg",
             imagenes: ["/Productos/cargador-doble.jpg"],
-            cantidad: 9
-          }
-        ]
+            cantidad: 9,
+          },
+        ],
       },
     ],
   },
@@ -910,22 +1009,22 @@ const productosAll = [
           "Pantalla Super Retina XDR",
           "Chip A16 Bionic",
           "Triple cámara profesional",
-          "Face ID y MagSafe"
+          "Face ID y MagSafe",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/iphone14pro.jpg",
             imagenes: ["/Productos/iphone14pro.jpg"],
-            cantidad: 3
+            cantidad: 3,
           },
           {
             color: "Morado",
             imagen: "/Productos/iphone14pro.jpg",
             imagenes: ["/Productos/iphone14pro.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "cl2",
@@ -940,22 +1039,22 @@ const productosAll = [
           "Pantalla Dynamic AMOLED 2X",
           "Cámara triple 50MP",
           "5G Ready",
-          "Carga rápida e inalámbrica"
+          "Carga rápida e inalámbrica",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/galaxy-s22.jpg",
             imagenes: ["/Productos/galaxy-s22.jpg"],
-            cantidad: 2
+            cantidad: 2,
           },
           {
             color: "Negro",
             imagen: "/Productos/galaxy-s22.jpg",
             imagenes: ["/Productos/galaxy-s22.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "cl3",
@@ -970,16 +1069,16 @@ const productosAll = [
           "Pantalla AMOLED 90Hz",
           "Cámara dual con IA",
           "Android puro actualizable",
-          "Batería de larga duración"
+          "Batería de larga duración",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/pixel7.jpg",
             imagenes: ["/Productos/pixel7.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "cl4",
@@ -994,22 +1093,22 @@ const productosAll = [
           "Pantalla OLED 144Hz",
           "Cámara triple 50MP",
           "Batería 4020 mAh",
-          "Carga turbo power"
+          "Carga turbo power",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/moto-edge30.jpg",
             imagenes: ["/Productos/moto-edge30.jpg"],
-            cantidad: 2
+            cantidad: 2,
           },
           {
             color: "Azul",
             imagen: "/Productos/moto-edge30.jpg",
             imagenes: ["/Productos/moto-edge30.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
     ],
   },
@@ -1029,16 +1128,16 @@ const productosAll = [
           "Procesador AMD Ryzen",
           "SSD ultrarrápido",
           "Soporta juegos 4K",
-          "Incluye control DualSense"
+          "Incluye control DualSense",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/ps5.webp",
             imagenes: ["/Productos/ps5.webp"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "cs2",
@@ -1053,16 +1152,16 @@ const productosAll = [
           "8K HDR Gaming",
           "Almacenamiento SSD 1TB",
           "Compatible con generaciones anteriores",
-          "Incluye control inalámbrico"
+          "Incluye control inalámbrico",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/xboxseriesx.webp",
             imagenes: ["/Productos/xboxseriesx.webp"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "cs3",
@@ -1077,16 +1176,16 @@ const productosAll = [
           "Pantalla OLED de 7 pulgadas",
           "Modo portátil y TV",
           "Control Joy-Con incluidos",
-          "Almacenamiento ampliable"
+          "Almacenamiento ampliable",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/nintendoswitch.jpg",
             imagenes: ["/Productos/nintendoswitch.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "cs4",
@@ -1098,19 +1197,19 @@ const productosAll = [
         oferta: false,
         estado: "Usado",
         acerca: [
-          "Pantalla táctil 7\"",
+          'Pantalla táctil 7"',
           "Procesador AMD personalizado",
           "Controles integrados",
-          "Compatible con juegos de PC"
+          "Compatible con juegos de PC",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/steam-deck.jpg",
             imagenes: ["/Productos/steam-deck.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "cs5",
@@ -1125,22 +1224,23 @@ const productosAll = [
           "Soporte para juegos exclusivos",
           "Almacenamiento 500GB",
           "Blu-ray integrado",
-          "Incluye control DualShock 4"
+          "Incluye control DualShock 4",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/ps4.jpg",
             imagenes: ["/Productos/ps4.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "cs6",
         nombre: "Xbox One",
         precio: 279.99,
-        descripcion: "Disfruta juegos, entretenimiento y apps en una sola consola.",
+        descripcion:
+          "Disfruta juegos, entretenimiento y apps en una sola consola.",
         imagen: "/Productos/xboxone.webp",
         imagenes: ["/Productos/xboxone.webp"],
         oferta: true,
@@ -1149,22 +1249,21 @@ const productosAll = [
           "Compatible con Xbox Game Pass",
           "Almacenamiento 500GB",
           "Control inalámbrico incluido",
-          "Soporte para apps de streaming"
+          "Soporte para apps de streaming",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/xboxone.webp",
             imagenes: ["/Productos/xboxone.webp"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
     ],
   },
 
-
-    {
+  {
     categoria: "Discos Duros",
     productos: [
       {
@@ -1180,16 +1279,16 @@ const productosAll = [
           "Capacidad de 1TB",
           "USB 3.0 para alta velocidad",
           "Compatible con Windows y Mac",
-          "Diseño portátil y resistente"
+          "Diseño portátil y resistente",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/seagate.png",
             imagenes: ["/Productos/seagate.png"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "dd2",
@@ -1204,16 +1303,16 @@ const productosAll = [
           "500GB SSD",
           "Velocidad de lectura/escritura superior a 500MB/s",
           "Interfaz SATA III",
-          "Ideal para laptops y PC"
+          "Ideal para laptops y PC",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/samsung.webp",
             imagenes: ["/Productos/samsung.webp"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "dd3",
@@ -1228,16 +1327,16 @@ const productosAll = [
           "2TB de capacidad",
           "USB 3.0",
           "Protección por hardware",
-          "Diseño resistente"
+          "Diseño resistente",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/wd2tb.jpg",
             imagenes: ["/Productos/wd2tb.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "dd4",
@@ -1252,16 +1351,16 @@ const productosAll = [
           "1TB SSD externo",
           "Interfaz USB-C",
           "Resistente a golpes",
-          "Ultracompacto"
+          "Ultracompacto",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/crucial.jpg",
             imagenes: ["/Productos/crucial.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "dd5",
@@ -1276,16 +1375,16 @@ const productosAll = [
           "4TB de capacidad",
           "Protección anticaídas",
           "USB-C y Thunderbolt",
-          "Diseño resistente a polvo y agua"
+          "Diseño resistente a polvo y agua",
         ],
         variantes: [
           {
             color: "Naranja",
             imagen: "/Productos/lacie-rugged.jpg",
             imagenes: ["/Productos/lacie-rugged.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
     ],
   },
@@ -1305,16 +1404,16 @@ const productosAll = [
           "Motor de 600W",
           "Jarra de vidrio de 1.25L",
           "Cuchillas de acero inoxidable",
-          "Fácil de limpiar"
+          "Fácil de limpiar",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/licuadora-oster.jpg",
             imagenes: ["/Productos/licuadora-oster.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "ed2",
@@ -1329,16 +1428,16 @@ const productosAll = [
           "Potencia de 1000W",
           "Panel digital",
           "Capacidad 23L",
-          "Función de descongelado"
+          "Función de descongelado",
         ],
         variantes: [
           {
             color: "Plateado",
             imagen: "/Productos/microondas.jpg",
             imagenes: ["/Productos/microondas.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "ed3",
@@ -1353,16 +1452,16 @@ const productosAll = [
           "Control desde app móvil",
           "Sensores inteligentes",
           "Batería de larga duración",
-          "Filtro HEPA lavable"
+          "Filtro HEPA lavable",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/xiaomi-aspiradora.jpg",
             imagenes: ["/Productos/xiaomi-aspiradora.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "ed4",
@@ -1377,16 +1476,16 @@ const productosAll = [
           "Capacidad 4L",
           "Tecnología Rapid Air",
           "Fácil de limpiar",
-          "Control de temperatura"
+          "Control de temperatura",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/freidora.jpg",
             imagenes: ["/Productos/freidora.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
     ],
   },
@@ -1406,16 +1505,16 @@ const productosAll = [
           "Iluminación RGB personalizable",
           "Soporte lumbar acolchado",
           "Reposabrazos ajustable",
-          "Reclinable hasta 180°"
+          "Reclinable hasta 180°",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/silla-gamer-rgb.jpg",
             imagenes: ["/Productos/silla-gamer-rgb.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "gc2",
@@ -1430,16 +1529,16 @@ const productosAll = [
           "Cojines de soporte lumbar y cervical",
           "Reposacabeza ajustable",
           "Respaldo con refuerzo",
-          "Material transpirable"
+          "Material transpirable",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/silla-gamer-cojines.jpg",
             imagenes: ["/Productos/silla-gamer-cojines.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "gc3",
@@ -1454,16 +1553,16 @@ const productosAll = [
           "Diseño básico y ergonómico",
           "Material resistente",
           "Altura ajustable",
-          "Ruedas de desplazamiento suave"
+          "Ruedas de desplazamiento suave",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/silla-gamer-barata.jpg",
             imagenes: ["/Productos/silla-gamer-barata.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "gc4",
@@ -1478,16 +1577,16 @@ const productosAll = [
           "Reposapiés extensible",
           "Respaldo reclinable",
           "Soporte lumbar",
-          "Material PU premium"
+          "Material PU premium",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/silla-reposapies.jpg",
             imagenes: ["/Productos/silla-reposapies.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
     ],
   },
@@ -1507,16 +1606,16 @@ const productosAll = [
           "Procesador Intel Core i5",
           "SSD 256GB",
           "Pantalla 15.6'' Full HD",
-          "Windows 11 preinstalado"
+          "Windows 11 preinstalado",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/dell-inspiron15.jpg",
             imagenes: ["/Productos/dell-inspiron15.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "lp2",
@@ -1531,16 +1630,16 @@ const productosAll = [
           "Chip Apple M2",
           "Pantalla Retina 13.6''",
           "Batería hasta 18h",
-          "Teclado Magic Keyboard"
+          "Teclado Magic Keyboard",
         ],
         variantes: [
           {
             color: "Gris espacial",
             imagen: "/Productos/macbook-air-m2.jpg",
             imagenes: ["/Productos/macbook-air-m2.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "lp3",
@@ -1555,16 +1654,16 @@ const productosAll = [
           "Tarjeta gráfica RTX Series",
           "Pantalla 144Hz",
           "Teclado RGB",
-          "Almacenamiento SSD 1TB"
+          "Almacenamiento SSD 1TB",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/asus-rog.jpg",
             imagenes: ["/Productos/asus-rog.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "lp4",
@@ -1579,22 +1678,21 @@ const productosAll = [
           "Procesador AMD Ryzen 5",
           "SSD 512GB",
           "Pantalla 15.6''",
-          "Windows 11 Home"
+          "Windows 11 Home",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/ideapad.jpg",
             imagenes: ["/Productos/ideapad.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
     ],
   },
 
-
-    {
+  {
     categoria: "Monitores",
     productos: [
       {
@@ -1610,16 +1708,16 @@ const productosAll = [
           "Resolución 4K UHD",
           "Pantalla IPS 27''",
           "Frecuencia de actualización 60Hz",
-          "Compatible con HDMI y DisplayPort"
+          "Compatible con HDMI y DisplayPort",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/monitor-lg-4k.jpg",
             imagenes: ["/Productos/monitor-lg-4k.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "mn2",
@@ -1634,16 +1732,16 @@ const productosAll = [
           "Pantalla curva 32''",
           "Resolución Full HD",
           "Frecuencia de actualización 75Hz",
-          "Tecnología Flicker Free"
+          "Tecnología Flicker Free",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/monitor-samsung-curvo.jpg",
             imagenes: ["/Productos/monitor-samsung-curvo.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "mn3",
@@ -1658,16 +1756,16 @@ const productosAll = [
           "Resolución Full HD",
           "Tamaño 24''",
           "Panel IPS de 60Hz",
-          "Conectividad HDMI y VGA"
+          "Conectividad HDMI y VGA",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/monitor-acer-24.jpg",
             imagenes: ["/Productos/monitor-acer-24.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "mn4",
@@ -1682,16 +1780,16 @@ const productosAll = [
           "Frecuencia de actualización 144Hz",
           "Pantalla 27''",
           "Tecnología Low Blue Light",
-          "Compatible con HDMI y DisplayPort"
+          "Compatible con HDMI y DisplayPort",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/monitor-benq.jpg",
             imagenes: ["/Productos/monitor-benq.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
     ],
   },
@@ -1711,16 +1809,16 @@ const productosAll = [
           "Pantalla Liquid Retina 12.9''",
           "Chip Apple M1",
           "Compatible con Apple Pencil",
-          "Face ID y USB-C"
+          "Face ID y USB-C",
         ],
         variantes: [
           {
             color: "Gris espacial",
             imagen: "/Productos/ipad-pro.jpg",
             imagenes: ["/Productos/ipad-pro.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "tb2",
@@ -1735,16 +1833,16 @@ const productosAll = [
           "Pantalla AMOLED 11''",
           "Procesador Snapdragon 8 Gen 1",
           "Soporte S Pen incluido",
-          "Android 12"
+          "Android 12",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/galaxy-tab-s8.jpg",
             imagenes: ["/Productos/galaxy-tab-s8.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "tb3",
@@ -1759,16 +1857,16 @@ const productosAll = [
           "Pantalla Full HD 10''",
           "Procesador octa-core",
           "Alexa integrada",
-          "Batería hasta 12 horas"
+          "Batería hasta 12 horas",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/fire-hd10.jpg",
             imagenes: ["/Productos/fire-hd10.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "tb4",
@@ -1783,46 +1881,51 @@ const productosAll = [
           "Pantalla IPS 10.4''",
           "Procesador Kirin 820A",
           "4GB RAM, 64GB almacenamiento",
-          "Batería 7250mAh"
+          "Batería 7250mAh",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/huawei-matepad.jpg",
             imagenes: ["/Productos/huawei-matepad.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
     ],
   },
   {
     categoria: "Teclados",
     productos: [
-      {
-        id: "tk1",
-        nombre: "Teclado inalámbrico Logitech K380",
-        precio: 39.99,
-        descripcion: "Multidispositivo, compacto y silencioso.",
-        imagen: "/Productos/teclado-logitech-k380.jpg",
-        imagenes: ["/Productos/teclado-logitech-k380.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Conexión Bluetooth multidispositivo",
-          "Diseño compacto y ligero",
-          "Batería de larga duración",
-          "Compatible con Windows, Mac, iOS y Android"
-        ],
-        variantes: [
-          {
-            color: "Gris",
-            imagen: "/Productos/teclado-logitech-k380.jpg",
-            imagenes: ["/Productos/teclado-logitech-k380.jpg"],
-            cantidad: 3
-          }
-        ]
-      },
+{
+  id: "acc1",
+  nombre: "Mini Teclado Inalámbrico con Touchpad",
+  precio: 24.99,
+  descripcion: "Mini teclado inalámbrico con touchpad integrado, ideal para controlar tu PC, Smart TV o consola desde el sofá.",
+  imagen: "/productospcu/miniteclado.png",
+  imagenes: ["/productospcu/miniteclado.png"],
+  oferta: false,
+  estado: "Nuevo",
+  acerca: [
+    "Touchpad con función DPI ajustable",
+    "Compatible con PC, Smart TV, Android TV Box, consolas y más",
+    "Portátil, elegante y fácil de usar",
+    "Rueda de mouse integrada para navegación fluida",
+    "Control multimedia remoto específico",
+    "Diseño compacto y recargable"
+  ],
+  variantes: [
+    {
+      imagen: "/productospcu/miniteclado.png",
+      imagenes: [
+        "/productospcu/miniteclado.png",
+        "/productospcu/tminieclado-back.png"
+      ],
+      cantidad: 3
+    }
+  ]
+},
+
       {
         id: "tk2",
         nombre: "Teclado mecánico RGB gaming",
@@ -1836,16 +1939,16 @@ const productosAll = [
           "Switches mecánicos",
           "Iluminación RGB personalizable",
           "Teclas anti-ghosting",
-          "Reposamuñecas desmontable"
+          "Reposamuñecas desmontable",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/teclado-gamer-rgb.jpg",
             imagenes: ["/Productos/teclado-gamer-rgb.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "tk3",
@@ -1860,16 +1963,16 @@ const productosAll = [
           "Diseño dividido ergonómico",
           "Soporte para muñecas acolchado",
           "Teclas multimedia",
-          "Compatible con Windows y Mac"
+          "Compatible con Windows y Mac",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/teclado-ergonomico.jpg",
             imagenes: ["/Productos/teclado-ergonomico.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
     ],
   },
@@ -1889,16 +1992,16 @@ const productosAll = [
           "Modo carrera y multijugador",
           "Plantillas actualizadas",
           "Compatible con PS5/PS4/Xbox/PC",
-          "Nuevas físicas de balón"
+          "Nuevas físicas de balón",
         ],
         variantes: [
           {
             color: "Azul",
             imagen: "/Productos/fifa23.jpg",
             imagenes: ["/Productos/fifa23.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "vj3",
@@ -1913,16 +2016,16 @@ const productosAll = [
           "Exploración libre",
           "Compatible con Nintendo Switch",
           "Gran duración de juego",
-          "Gráficos impresionantes"
+          "Gráficos impresionantes",
         ],
         variantes: [
           {
             color: "Verde",
             imagen: "/Productos/zelda.webp",
             imagenes: ["/Productos/zelda.webp"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "vj4",
@@ -1937,16 +2040,16 @@ const productosAll = [
           "Más de 400 autos",
           "Modo online y offline",
           "Compatible con PS5/PS4",
-          "Gráficos ultra realistas"
+          "Gráficos ultra realistas",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/gt7.jpg",
             imagenes: ["/Productos/gt7.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "vj5",
@@ -1961,16 +2064,16 @@ const productosAll = [
           "Exclusivo para PS5",
           "Gráficos en 4K",
           "Historia original Marvel",
-          "Acción en mundo abierto"
+          "Acción en mundo abierto",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/spider-manps5.jpeg",
             imagenes: ["/Productos/spider-manps5.jpeg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "vj6",
@@ -1985,16 +2088,16 @@ const productosAll = [
           "Compatible con Nintendo Switch",
           "Multijugador local y online",
           "Incluye todos los DLC",
-          "Frenesí de carreras"
+          "Frenesí de carreras",
         ],
         variantes: [
           {
             color: "Rojo",
             imagen: "/Productos/Mario-Kart-8.jpeg",
             imagenes: ["/Productos/Mario-Kart-8.jpeg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "vj7",
@@ -2009,26 +2112,26 @@ const productosAll = [
           "Más de 70 personajes jugables",
           "Compatible con Nintendo Switch",
           "Modo aventura y multijugador",
-          "Todos los universos de Nintendo"
+          "Todos los universos de Nintendo",
         ],
         variantes: [
           {
             color: "Azul",
             imagen: "/Productos/super-smash-bros.jpg",
             imagenes: ["/Productos/super-smash-bros.jpg"],
-            cantidad: 6
-          }
-        ]
+            cantidad: 6,
+          },
+        ],
       },
     ],
   },
 
-    {
+  {
     categoria: "Smart TV",
     productos: [
       {
         id: "tv1",
-        nombre: "Samsung Smart TV 55\" UHD",
+        nombre: 'Samsung Smart TV 55" UHD',
         precio: 499.99,
         descripcion: "4K UHD, control por voz y apps integradas.",
         imagen: "/Productos/samsung-smarttv.jpg",
@@ -2039,16 +2142,16 @@ const productosAll = [
           "Pantalla 55'' 4K UHD",
           "Control por voz integrado",
           "Acceso a apps de streaming",
-          "HDR10+ y WiFi"
+          "HDR10+ y WiFi",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/samsung-smarttv.jpg",
             imagenes: ["/Productos/samsung-smarttv.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "tv2",
@@ -2063,20 +2166,20 @@ const productosAll = [
           "Pantalla OLED 65''",
           "Resolución 4K",
           "Dolby Vision y Atmos",
-          "ThinQ AI integrado"
+          "ThinQ AI integrado",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/lg-oled65.jpg",
             imagenes: ["/Productos/lg-oled65.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "tv3",
-        nombre: "Hisense 43\" FHD Smart TV",
+        nombre: 'Hisense 43" FHD Smart TV',
         precio: 299.99,
         descripcion: "Compacta y con acceso rápido a streaming.",
         imagen: "/Productos/hisense-43.jpg",
@@ -2087,16 +2190,16 @@ const productosAll = [
           "Pantalla Full HD 43''",
           "Smart TV con apps populares",
           "Control remoto incluido",
-          "Conectividad HDMI y USB"
+          "Conectividad HDMI y USB",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/hisense-43.jpg",
             imagenes: ["/Productos/hisense-43.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
     ],
   },
@@ -2116,16 +2219,16 @@ const productosAll = [
           "Capacidad 64GB",
           "USB 3.1",
           "Diseño resistente",
-          "Compatible con Windows, Mac y Linux"
+          "Compatible con Windows, Mac y Linux",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/sandisk.jpeg",
             imagenes: ["/Productos/sandisk.jpeg"],
-            cantidad: 10
-          }
-        ]
+            cantidad: 10,
+          },
+        ],
       },
       {
         id: "usb2",
@@ -2140,16 +2243,16 @@ const productosAll = [
           "Capacidad 128GB",
           "USB 3.1 Gen 1",
           "Alto rendimiento de lectura y escritura",
-          "Diseño compacto"
+          "Diseño compacto",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/kingston.webp",
             imagenes: ["/Productos/kingston.webp"],
-            cantidad: 8
-          }
-        ]
+            cantidad: 8,
+          },
+        ],
       },
       {
         id: "usb3",
@@ -2164,16 +2267,16 @@ const productosAll = [
           "Capacidad 32GB",
           "USB 2.0",
           "Resistente al agua y golpes",
-          "Ideal para portabilidad"
+          "Ideal para portabilidad",
         ],
         variantes: [
           {
             color: "Azul",
             imagen: "/Productos/hp.jpeg",
             imagenes: ["/Productos/hp.jpeg"],
-            cantidad: 12
-          }
-        ]
+            cantidad: 12,
+          },
+        ],
       },
       {
         id: "usb4",
@@ -2188,16 +2291,16 @@ const productosAll = [
           "Capacidad 256GB",
           "USB 3.0 de alta velocidad",
           "Diseño resistente al agua",
-          "Compatible con todos los sistemas operativos"
+          "Compatible con todos los sistemas operativos",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/corsair.avif",
             imagenes: ["/Productos/corsair.avif"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "usb5",
@@ -2212,16 +2315,16 @@ const productosAll = [
           "Capacidad 128GB",
           "USB 3.1",
           "Velocidad de transferencia hasta 400MB/s",
-          "Carcasa resistente"
+          "Carcasa resistente",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/patriot-rage2.jpg",
             imagenes: ["/Productos/patriot-rage2.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
     ],
   },
@@ -2241,16 +2344,16 @@ const productosAll = [
           "Control por app o voz",
           "Colores RGB configurables",
           "Compatible con Alexa y Google",
-          "Ahorro energético"
+          "Ahorro energético",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/foco-inteligente.jpg",
             imagenes: ["/Productos/foco-inteligente.jpg"],
-            cantidad: 8
-          }
-        ]
+            cantidad: 8,
+          },
+        ],
       },
       {
         id: "hi2",
@@ -2265,16 +2368,16 @@ const productosAll = [
           "Control remoto vía app",
           "Medición de consumo energético",
           "Programación de horarios",
-          "Compatible con Alexa y Google"
+          "Compatible con Alexa y Google",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/enchufe-inteligente.jpg",
             imagenes: ["/Productos/enchufe-inteligente.jpg"],
-            cantidad: 6
-          }
-        ]
+            cantidad: 6,
+          },
+        ],
       },
       {
         id: "hi4",
@@ -2289,16 +2392,16 @@ const productosAll = [
           "Conexión Wi-Fi",
           "Alertas instantáneas",
           "Compatible con app móvil",
-          "Fácil instalación"
+          "Fácil instalación",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/sensor-movimiento.jpg",
             imagenes: ["/Productos/sensor-movimiento.jpg"],
-            cantidad: 7
-          }
-        ]
+            cantidad: 7,
+          },
+        ],
       },
       {
         id: "hi5",
@@ -2313,16 +2416,16 @@ const productosAll = [
           "Control remoto y por voz",
           "Compatible con Alexa y Google",
           "Fácil de instalar",
-          "Permite programar horarios"
+          "Permite programar horarios",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/interruptor-inteligente.jpg",
             imagenes: ["/Productos/interruptor-inteligente.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "hi6",
@@ -2337,16 +2440,16 @@ const productosAll = [
           "Notificación instantánea",
           "Funciona por Wi-Fi",
           "Compatible con Alexa y Google",
-          "Batería de larga duración"
+          "Batería de larga duración",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/sensor-puerta.jpg",
             imagenes: ["/Productos/sensor-puerta.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "hi7",
@@ -2361,16 +2464,16 @@ const productosAll = [
           "Iluminación LED",
           "Control por voz y app",
           "Capacidad de 300ml",
-          "Apagado automático"
+          "Apagado automático",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/humidificador-smart.jpg",
             imagenes: ["/Productos/humidificador-smart.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "hi8",
@@ -2385,22 +2488,23 @@ const productosAll = [
           "Control por voz con Alexa",
           "Altavoz de alta calidad",
           "Conectividad Bluetooth y Wi-Fi",
-          "Diseño compacto"
+          "Diseño compacto",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/echo-dot.jpg",
             imagenes: ["/Productos/echo-dot.jpg"],
-            cantidad: 7
-          }
-        ]
+            cantidad: 7,
+          },
+        ],
       },
       {
         id: "hi9",
         nombre: "Amazon Echo Show 8",
         precio: 89.99,
-        descripcion: "Pantalla inteligente para videollamadas y control del hogar.",
+        descripcion:
+          "Pantalla inteligente para videollamadas y control del hogar.",
         imagen: "/Productos/echo-show-8.jpg",
         imagenes: ["/Productos/echo-show-8.jpg"],
         oferta: true,
@@ -2409,16 +2513,16 @@ const productosAll = [
           "Pantalla HD 8''",
           "Videollamadas y mensajes",
           "Control de hogar inteligente",
-          "Cámara integrada"
+          "Cámara integrada",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/echo-show-8.jpg",
             imagenes: ["/Productos/echo-show-8.jpg"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "hi10",
@@ -2433,16 +2537,16 @@ const productosAll = [
           "Control de voz para automóvil",
           "Conexión por Bluetooth y jack 3.5mm",
           "Compatible con Alexa",
-          "Instalación sencilla"
+          "Instalación sencilla",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/echo-auto.jpg",
             imagenes: ["/Productos/echo-auto.jpg"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
       {
         id: "hi11",
@@ -2457,16 +2561,16 @@ const productosAll = [
           "Funciona con Alexa",
           "Control remoto por app",
           "Programación de horarios",
-          "Fácil de configurar"
+          "Fácil de configurar",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/smart-plug-alexa.jpg",
             imagenes: ["/Productos/smart-plug-alexa.jpg"],
-            cantidad: 9
-          }
-        ]
+            cantidad: 9,
+          },
+        ],
       },
       {
         id: "hi12",
@@ -2481,28 +2585,29 @@ const productosAll = [
           "Compatible con múltiples dispositivos",
           "Control vía app y Alexa",
           "Fácil configuración",
-          "Transmisión IR de largo alcance"
+          "Transmisión IR de largo alcance",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/ir-remote.jpg",
             imagenes: ["/Productos/ir-remote.jpg"],
-            cantidad: 6
-          }
-        ]
+            cantidad: 6,
+          },
+        ],
       },
     ],
   },
 
-    {
+  {
     categoria: "Impresoras",
     productos: [
       {
         id: "imp001",
         nombre: "Impresora Epson EcoTank L3250",
         precio: 229.99,
-        descripcion: "Impresora multifuncional con sistema de tinta continua, ideal para hogar y oficina.",
+        descripcion:
+          "Impresora multifuncional con sistema de tinta continua, ideal para hogar y oficina.",
         imagen: "/Productos/epson-l3250.jpg",
         imagenes: ["/Productos/epson-l3250.jpg"],
         oferta: true,
@@ -2511,22 +2616,23 @@ const productosAll = [
           "Sistema de tinta continua EcoTank",
           "Impresión, escaneo y copiado",
           "WiFi y USB",
-          "Ahorro en costos de impresión"
+          "Ahorro en costos de impresión",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/epson-l3250.jpg",
             imagenes: ["/Productos/epson-l3250.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "imp002",
         nombre: "HP DeskJet 4155e All-in-One",
         precio: 119.99,
-        descripcion: "Impresión inalámbrica, escaneo y copia desde tu celular con la app HP Smart.",
+        descripcion:
+          "Impresión inalámbrica, escaneo y copia desde tu celular con la app HP Smart.",
         imagen: "/Productos/hp-deskjet.jpg",
         imagenes: ["/Productos/hp-deskjet.jpg"],
         oferta: false,
@@ -2535,22 +2641,23 @@ const productosAll = [
           "Multifuncional: imprime, copia y escanea",
           "Conectividad WiFi y USB",
           "Compatible con app HP Smart",
-          "Cartuchos económicos"
+          "Cartuchos económicos",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/hp-deskjet.jpg",
             imagenes: ["/Productos/hp-deskjet.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "imp003",
         nombre: "Brother HL-L2350DW Láser monocromática",
         precio: 179.99,
-        descripcion: "Impresora láser rápida y compacta con Wi-Fi y auto dúplex.",
+        descripcion:
+          "Impresora láser rápida y compacta con Wi-Fi y auto dúplex.",
         imagen: "/Productos/brother-hl.jpg",
         imagenes: ["/Productos/brother-hl.jpg"],
         oferta: true,
@@ -2559,22 +2666,23 @@ const productosAll = [
           "Impresora láser monocromática",
           "WiFi y USB",
           "Impresión automática a doble cara",
-          "Alta velocidad de impresión"
+          "Alta velocidad de impresión",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/brother-hl.jpg",
             imagenes: ["/Productos/brother-hl.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "imp004",
         nombre: "Canon PIXMA G5020",
         precio: 199.99,
-        descripcion: "Tanques de tinta integrados, gran rendimiento por página, ideal para impresión masiva.",
+        descripcion:
+          "Tanques de tinta integrados, gran rendimiento por página, ideal para impresión masiva.",
         imagen: "/Productos/canon-pixma-g5020.jpg",
         imagenes: ["/Productos/canon-pixma-g5020.jpg"],
         oferta: false,
@@ -2583,18 +2691,18 @@ const productosAll = [
           "Sistema de tinta continua",
           "WiFi y Ethernet",
           "Alta capacidad de impresión",
-          "Impresión sin bordes"
+          "Impresión sin bordes",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/canon-pixma-g5020.jpg",
             imagenes: ["/Productos/canon-pixma-g5020.jpg"],
-            cantidad: 2
-          }
-        ]
-      }
-    ]
+            cantidad: 2,
+          },
+        ],
+      },
+    ],
   },
   {
     categoria: "Nuevos Lanzamientos",
@@ -2612,21 +2720,21 @@ const productosAll = [
           "Pantalla LCD de 8''",
           "Streaming remoto de juegos PS5",
           "Controles integrados",
-          "Conectividad WiFi"
+          "Conectividad WiFi",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/playstation-portal.jpg",
             imagenes: ["/Productos/playstation-portal.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "nl2",
         nombre: "Apple Vision Pro",
-        precio: 3499.00,
+        precio: 3499.0,
         descripcion: "Revoluciona tu espacio con realidad mixta.",
         imagen: "/Productos/vision-pro.jpg",
         imagenes: ["/Productos/vision-pro.jpg"],
@@ -2636,16 +2744,16 @@ const productosAll = [
           "Realidad aumentada y virtual",
           "Pantalla micro-OLED 4K",
           "Procesador Apple M2",
-          "Control por gestos y voz"
+          "Control por gestos y voz",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/vision-pro.jpg",
             imagenes: ["/Productos/vision-pro.jpg"],
-            cantidad: 1
-          }
-        ]
+            cantidad: 1,
+          },
+        ],
       },
       {
         id: "nl3",
@@ -2660,18 +2768,18 @@ const productosAll = [
           "Pantalla OLED mejorada",
           "Nuevo dock con salida 4K",
           "Retrocompatible con Switch 1",
-          "Mayor duración de batería"
+          "Mayor duración de batería",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/switch2.jpg",
             imagenes: ["/Productos/switch2.jpg"],
-            cantidad: 2
-          }
-        ]
-      }
-    ]
+            cantidad: 2,
+          },
+        ],
+      },
+    ],
   },
   {
     categoria: "Ofertas Especiales",
@@ -2689,16 +2797,16 @@ const productosAll = [
           "PlayStation 5 edición estándar",
           "Incluye Spider-Man y God of War",
           "2 controles DualSense",
-          "Listo para jugar"
+          "Listo para jugar",
         ],
         variantes: [
           {
             color: "Blanco",
             imagen: "/Productos/combo-ps5.jpg",
             imagenes: ["/Productos/combo-ps5.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "of2",
@@ -2713,16 +2821,16 @@ const productosAll = [
           "Silla gamer ergonómica",
           "Mousepad con iluminación RGB",
           "Ajuste de altura y respaldo",
-          "Superficie antideslizante"
+          "Superficie antideslizante",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/combo-gamer.jpg",
             imagenes: ["/Productos/combo-gamer.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "of3",
@@ -2737,18 +2845,18 @@ const productosAll = [
           "Smart TV 50'' 4K UHD",
           "Soporte de pared incluido",
           "Control remoto",
-          "Conectividad HDMI y USB"
+          "Conectividad HDMI y USB",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/combo-tv.jpg",
             imagenes: ["/Productos/combo-tv.jpg"],
-            cantidad: 2
-          }
-        ]
-      }
-    ]
+            cantidad: 2,
+          },
+        ],
+      },
+    ],
   },
   {
     categoria: "Relojes Inteligentes",
@@ -2766,16 +2874,16 @@ const productosAll = [
           "Pantalla Always-On Retina",
           "Resistencia al agua 50m",
           "Monitoreo de salud y ejercicio",
-          "Hasta 18h de batería"
+          "Hasta 18h de batería",
         ],
         variantes: [
           {
             color: "Gris",
             imagen: "/Productos/apple-watch9.jpg",
             imagenes: ["/Productos/apple-watch9.jpg"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
       {
         id: "rl2",
@@ -2790,16 +2898,16 @@ const productosAll = [
           "Pantalla AMOLED",
           "GPS integrado",
           "Monitor de sueño y ritmo cardíaco",
-          "Duración batería hasta 40h"
+          "Duración batería hasta 40h",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/galaxy-watch6.jpg",
             imagenes: ["/Productos/galaxy-watch6.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "rl3",
@@ -2814,95 +2922,110 @@ const productosAll = [
           "Más de 100 modos deportivos",
           "Resistente al agua 5ATM",
           "GPS y monitor de oxígeno",
-          "Pantalla AMOLED de 1.43''"
+          "Pantalla AMOLED de 1.43''",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/xiaomi-watch.jpg",
             imagenes: ["/Productos/xiaomi-watch.jpg"],
-            cantidad: 5
-          }
-        ]
-      }
-    ]
+            cantidad: 5,
+          },
+        ],
+      },
+    ],
   },
   {
     categoria: "AccesoriosVideojuegos",
     productos: [
       {
-        id: "av1",
-        nombre: "Controlador Inalámbrico Xbox Series X",
-        precio: 59.99,
-        descripcion: "Diseño ergonómico con agarre antideslizante y respuesta háptica precisa.",
-        imagen: "/Productos/control-xbox.jpg",
-        imagenes: ["/Productos/control-xbox.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Conectividad inalámbrica y Bluetooth",
-          "Compatibilidad con Xbox y PC",
-          "Agarre antideslizante",
-          "Respuesta háptica precisa"
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/control-xbox.jpg",
-            imagenes: ["/Productos/control-xbox.jpg"],
-            cantidad: 6
-          }
-        ]
-      },
-      {
-        id: "av2",
-        nombre: "Headset Gaming Logitech G733",
-        precio: 129.99,
-        descripcion: "Auriculares inalámbricos con sonido envolvente y micrófono de calidad profesional.",
-        imagen: "/Productos/logitech-g733.jpg",
-        imagenes: ["/Productos/logitech-g733.jpg"],
+        id: "sw2",
+        nombre: "Crystal Protector para Nintendo Switch (PCS-2545)",
+        precio: 14.99,
+        descripcion:
+          "Protector rígido y transparente para proteger tu consola Nintendo Switch de golpes y rayaduras.",
+        imagen: "/productospcu/cristal-protector.png",
+        imagenes: ["/productospcu/cristal-protector.png"],
         oferta: false,
         estado: "Nuevo",
         acerca: [
-          "Sonido envolvente LIGHTSPEED",
-          "Micrófono de calidad profesional",
-          "Iluminación RGB",
-          "Compatibilidad multiplataforma"
+          "Diseñado específicamente para Nintendo Switch",
+          "Material acrílico transparente resistente a impactos",
+          "Permite acceso a todos los botones y puertos",
+          "Fácil de instalar y remover",
+          "Protección total sin perder visibilidad del diseño original",
+        ],
+        variantes: [
+          {
+            imagen: "/productospcu/cristal-protector.png",
+            imagenes: [
+              "/productospcu/cristal-protector.png",
+              "/productospcu/cristal-protector-back.png"
+
+            ],
+            cantidad: 4,
+          },
+        ],
+      },
+
+      {
+        id: "sw4",
+        nombre: "Cargador Doble para Switch Joy-Con & Pro Controller",
+        precio: 24.99,
+        descripcion: "Base de carga para 2 Joy-Con y un Pro Controller al mismo tiempo.",
+        imagen: "/productospcu/cargador-controles.png",
+        imagenes: ["/productospcu/cargador-controles.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Carga simultáneamente 2 Joy-Con y 1 Pro Controller",
+          "Diseño compacto y resistente",
+          "Luz LED de estado de carga",
+          "Compatible con Nintendo Switch",
+          "Fabricado por DOBE / FOMIS Electronics"
         ],
         variantes: [
           {
             color: "Negro",
-            imagen: "/Productos/logitech-g733.jpg",
-            imagenes: ["/Productos/logitech-g733.jpg"],
-            cantidad: 3
+            imagen: "/productospcu/cargador-controles.png",
+            imagenes: ["/productospcu/cargador-controles.png"],
+            cantidad: 5
           }
         ]
       },
+
       {
-        id: "av3",
-        nombre: "Teclado Mecánico Razer BlackWidow V3",
-        precio: 139.99,
-        descripcion: "Switches mecánicos verdes y retroiluminación RGB personalizable.",
-        imagen: "/Productos/razer-teclado.jpg",
-        imagenes: ["/Productos/razer-teclado.jpg"],
-        oferta: true,
+        id: "sw3",
+        nombre: "Base Soporte Handgrip para Joy-Con",
+        precio: 9.99,
+        descripcion:
+          "Base para convertir tus Joy-Con en un solo control estilo tradicional.",
+        imagen: "/productospcu/n-switch.png",
+        imagenes: ["/productospcu/n-switch.png"],
+        oferta: false,
         estado: "Nuevo",
         acerca: [
-          "Switches mecánicos verdes",
-          "Iluminación RGB personalizable",
-          "Reposamuñecas ergonómico",
-          "Compatible con Synapse"
+          "Diseñado para Nintendo Switch Joy-Con",
+          "NS Joy-Con no incluidos",
+          "Convierte los Joy-Con en un control único",
+          "Diseño cómodo para largas sesiones",
+          "Fabricado en plástico resistente",
         ],
         variantes: [
           {
             color: "Negro",
-            imagen: "/Productos/razer-teclado.jpg",
-            imagenes: ["/Productos/razer-teclado.jpg"],
-            cantidad: 4
-          }
-        ]
-      }
-    ]
+            imagen: "/productospcu/n-switcg.png",
+            imagenes: [
+              "/productospcu/n-switch.png",
+              "/productospcu/n-switch-back.png"
+
+            ],
+            cantidad: 6,
+          },
+        ],
+      },
+
+    ],
   },
   {
     categoria: "Mouses",
@@ -2912,24 +3035,25 @@ const productosAll = [
         nombre: "Mouse Gamer MEE TION M371",
         sku: "M371-GAMING",
         precio: 700,
-        descripcion: "Mouse con iluminación LED, 3 niveles de DPI (800/1200/1600), botones de navegación y diseño ergonómico.",
-        imagen: "/productospcu/meetionmouse.png",
-        imagenes: ["/productospcu/meetionmouse.png"],
+        descripcion:
+          "Mouse con iluminación LED, 3 niveles de DPI (800/1200/1600), botones de navegación y diseño ergonómico.",
+        imagen: "/Productospcu/meetionmouse.png",
+        imagenes: ["/Productospcu/meetionmouse.png"],
         oferta: false,
         estado: "Nuevo",
         acerca: [
           "Iluminación LED breathing",
           "3 niveles de DPI: 800/1200/1600",
           "Botones adicionales para navegación",
-          "Sensor óptico preciso"
+          "Sensor óptico preciso",
         ],
         variantes: [
           {
-            imagen: "/productospcu/meetionmouse.png",
-            imagenes: ["/productospcu/meetionmouse.png"],
-            cantidad: 4
-          }
-        ]
+            imagen: "/Productospcu/meetionmouse.png",
+            imagenes: ["/Productospcu/meetionmouse.png"],
+            cantidad: 4,
+          },
+        ],
       },
 
       {
@@ -2945,22 +3069,23 @@ const productosAll = [
           "Conectividad Bluetooth y 2.4GHz",
           "Sensor 16,000 DPI",
           "Hasta 450 horas de batería",
-          "6 botones programables"
+          "6 botones programables",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/razer-basilisk-x.jpg",
             imagenes: ["/Productos/razer-basilisk-x.jpg"],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
       {
         id: "m3",
         nombre: "Mouse Corsair M65 RGB Elite",
         precio: 59.99,
-        descripcion: "Carcasa de aluminio y peso ajustable para máxima precisión.",
+        descripcion:
+          "Carcasa de aluminio y peso ajustable para máxima precisión.",
         imagen: "/Productos/corsair-m65.jpg",
         imagenes: ["/Productos/corsair-m65.jpg"],
         oferta: true,
@@ -2969,53 +3094,30 @@ const productosAll = [
           "Carcasa de aluminio",
           "Peso ajustable",
           "Sensor óptico de alta precisión",
-          "Retroiluminación RGB"
+          "Retroiluminación RGB",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/Productos/corsair-m65.jpg",
             imagenes: ["/Productos/corsair-m65.jpg"],
-            cantidad: 1
-          }
-        ]
-      }
-    ]
+            cantidad: 1,
+          },
+        ],
+      },
+    ],
   },
   {
     categoria: "Controles",
     productos: [
-      {
-        id: "c1",
-        nombre: "Control Inalámbrico PS5 DualSense",
-        precio: 69.99,
-        descripcion: "Inmersión háptica y gatillos adaptativos para una experiencia de juego revolucionaria.",
-        imagen: "/Productos/ps5-dualsense.jpg",
-        imagenes: ["/Productos/ps5-dualsense.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Inmersión háptica",
-          "Gatillos adaptativos",
-          "Batería recargable",
-          "Compatibilidad con PS5 y PC"
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/ps5-dualsense.jpg",
-            imagenes: ["/Productos/ps5-dualsense.jpg"],
-            cantidad: 2
-          }
-        ]
-      },
 
       {
         id: "p5",
         nombre: "Controlador Inalámbrico para Nintendo Switch",
         sku: "NS-WIRELESS",
         precio: 1450,
-        descripcion: "Control inalámbrico con sensores de movimiento, vibración doble y conexión USB Tipo-C. Compatible con Nintendo Switch.",
+        descripcion:
+          "Control inalámbrico con sensores de movimiento, vibración doble y conexión USB Tipo-C. Compatible con Nintendo Switch.",
         imagen: "/productospcu/controlN-S.png",
         imagenes: ["/productospcu/controlN-S.png"],
         oferta: false,
@@ -3025,100 +3127,111 @@ const productosAll = [
           "Sensores de movimiento",
           "Vibración doble",
           "Recargable por USB Tipo-C",
-          "Conexión Bluetooth"
+          "Conexión Bluetooth",
         ],
         variantes: [
           {
             imagen: "/productospcu/controlN-S.png",
             imagenes: ["/productospcu/controlN-S.png"],
-            cantidad: 3
-          }
-        ]
+            cantidad: 3,
+          },
+        ],
       },
 
       {
-        id: "c2",
-        nombre: "Control Xbox Series X",
-        precio: 59.99,
-        descripcion: "Diseño mejorado con texturizado y latencia reducida.",
-        imagen: "/Productos/xbox-seriesx.jpg",
-        imagenes: ["/Productos/xbox-seriesx.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Texturizado mejorado",
-          "Baja latencia",
-          "Compatibilidad con Xbox y PC",
-          "Bluetooth integrado"
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/xbox-seriesx.jpg",
-            imagenes: ["/Productos/xbox-seriesx.jpg"],
-            cantidad: 2
-          }
-        ]
-      },
-      {
-        id: "c3",
+        id: "sw1",
         nombre: "Nintendo Switch Pro Controller",
         precio: 69.99,
-        descripcion: "Ergonómico, batería de larga duración y controles precisos.",
-        imagen: "/Productos/switch-pro.jpg",
-        imagenes: ["/Productos/switch-pro.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Diseño ergonómico",
-          "Batería de larga duración",
-          "Compatibilidad con Nintendo Switch",
-          "Vibración HD"
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/switch-pro.jpg",
-            imagenes: ["/Productos/switch-pro.jpg"],
-            cantidad: 1
-          }
-        ]
-      },
-      {
-        id: "c4",
-        nombre: "Control Inalámbrico Logitech F710",
-        precio: 49.99,
-        descripcion: "Compatibilidad con PC y vibración dual.",
-        imagen: "/Productos/logitech-f710.jpg",
-        imagenes: ["/Productos/logitech-f710.jpg"],
+        descripcion:
+          "Control inalámbrico original para Nintendo Switch con excelente ergonomía y respuesta precisa.",
+        imagen: "/productospcu/control-pro.png",
+        imagenes: ["/productospcu/control-pro.png"],
         oferta: false,
-        estado: "Usado",
+        estado: "Nuevo",
         acerca: [
-          "Compatibilidad con PC",
-          "Conexión inalámbrica",
-          "Vibración dual",
-          "Agarre ergonómico"
+          "Diseñado para Nintendo Switch",
+          "Conexión inalámbrica estable vía Bluetooth",
+          "Compatible con vibración HD y sensores de movimiento",
+          "Batería recargable de larga duración",
+          "Diseño ergonómico para mayor comodidad",
         ],
         variantes: [
           {
-            color: "Gris",
-            imagen: "/Productos/logitech-f710.jpg",
-            imagenes: ["/Productos/logitech-f710.jpg"],
-            cantidad: 1
-          }
-        ]
+            imagen: "/productospcu/control-pro.png",
+            imagenes: [
+              "/productospcu/control-pro.png",
+              "/productospcu/control-pro-back.png",
+
+            ],
+            cantidad: 1,
+          },
+        ],
+      },
+
+      {
+        id: "xone1",
+        nombre: "Control Inalámbrico para Xbox One",
+        precio: 64.99,
+        descripcion:
+          "Control inalámbrico original para Xbox One con vibración precisa y agarre texturizado.",
+        imagen: "/productospcu/control-one.png",
+        imagenes: ["/productospcu/control-one.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Compatibilidad con Xbox One y PC",
+          "Conexión inalámbrica estable",
+          "Vibración precisa y sensibilidad mejorada",
+          "Diseño ergonómico con agarre texturizado",
+          "Soporta conexión vía Bluetooth o cable USB",
+        ],
+        variantes: [
+          {
+            imagen: "/productospcu/control-one.png",
+            imagenes: ["/productospcu/control-one.png"],
+            cantidad: 3,
+          },
+        ],
+      },
+
+      {
+        id: "wii1",
+        nombre: "Control Remoto + Nunchuk para Wii (Motion Plus)",
+        precio: 39.99,
+        descripcion:
+          "Combo de control remoto y nunchuk cableado compatible con Motion Plus.",
+        imagen: "/productospcu/control-wii.png",
+        imagenes: ["/productospcu/control-wii.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Compatible con Wii y Wii U",
+          "Incluye control remoto inalámbrico y nunchuk con cable",
+          "Soporte para Motion Plus integrado",
+          "Funciona con todos los juegos compatibles",
+          "Diseño liviano y ergonómico",
+        ],
+        variantes: [
+          {
+            imagen: "/productospcu/control-wii.png",
+            imagenes: ["/productospcu/control-wii.png"],
+            cantidad: 5,
+          },
+        ],
       },
       {
         id: "c5",
-        nombre: "Sony DualShock 4 Wireless Controller para PS4 / PS TV / PS Now",
+        nombre:
+          "Sony DualShock 4 Wireless Controller para PS4 / PS TV / PS Now",
         precio: 54.99,
-        descripcion: "Control original con conexión inalámbrica y vibración dual compatible con múltiples plataformas.",
+        descripcion:
+          "Control original con conexión inalámbrica y vibración dual compatible con múltiples plataformas.",
         imagen: "/productospcu/dualshock4-negro.png",
         imagenes: [
           "/productospcu/dualshock4-negro.png",
           "/productospcu/Adualshock4-rojo.png",
           "/productospcu/dualshock4-azul.png",
-          "/productospcu/dualshock4-back.png"
+          "/productospcu/dualshock4-back.png",
         ],
         acerca: [
           "Conexión inalámbrica Bluetooth para mayor libertad de juego",
@@ -3126,7 +3239,7 @@ const productosAll = [
           "Barra de luz integrada para seguimiento y personalización",
           "Jack de audio de 3.5 mm para auriculares",
           "Compatible con PS4, PS TV, PS Now y PC vía Bluetooth o cable USB",
-          "Batería recargable con hasta 8 horas de duración"
+          "Batería recargable con hasta 8 horas de duración",
         ],
         variantes: [
           {
@@ -3134,35 +3247,90 @@ const productosAll = [
             imagen: "/productospcu/dualshock4-negro.png",
             imagenes: [
               "/productospcu/dualshock4-negro.png",
-              "/productospcu/dualshock4-back.png"
+              "/productospcu/dualshock4-back.png",
             ],
-            cantidad: 1
+            cantidad: 1,
           },
           {
             color: "Rojo",
             imagen: "/productospcu/Adualshock4-rojo.png",
             imagenes: [
               "/productospcu/Adualshock4-rojo.png",
-              "/productospcu/dualshock4-back.png"
+              "/productospcu/dualshock4-back.png",
             ],
-            cantidad: 1
+            cantidad: 1,
           },
           {
             color: "Azul",
             imagen: "/productospcu/dualshock4-azul.png",
             imagenes: [
               "/productospcu/dualshock4-azul.png",
-              "/productospcu/dualshock4-back.png"
+              "/productospcu/dualshock4-back.png",
             ],
-            cantidad: 1
-          }
+            cantidad: 1,
+          },
         ],
         oferta: true,
-        estado: "Usado"
-      }
-    ]
-  }
-];
+        estado: "Usado",
+      },
 
+      {
+  id: "ps2ctrl1",
+  nombre: "Control Sony DualShock 2 para PS2",
+  precio: 29.99,
+  descripcion: "Control original con vibración dual y sticks analógicos, compatible con todas las consolas PlayStation 2.",
+  imagen: "/productospcu/dualshock2.png",
+  imagenes: ["/productospcu/dualshock2.png"],
+  oferta: false,
+  estado: "Usado",
+  acerca: [
+    "Fabricado por Sony para PlayStation 2",
+    "Vibración dual para una experiencia inmersiva",
+    "Dos sticks analógicos con alta precisión",
+    "Diseño ergonómico clásico",
+    "Compatible con todos los modelos de PS2",
+    "Cable de conexión robusto"
+  ],
+  variantes: [
+    {
+      color: "Negro",
+      imagen: "/productospcu/dualshock2.png",
+      imagenes: ["/productospcu/dualshock2.png"],
+      cantidad: 1
+    }
+  ]
+},
+
+{
+  id: "xone2",
+  nombre: "Control Inalámbrico Cosaux FM08 para Xbox",
+  precio: 34.99,
+  descripcion: "Gamepad inalámbrico estilo Xbox, ideal para juegos casuales en PC o consola. *Producto sin probar (untested)*.",
+  imagen: "/productospcu/controlxbox.png",
+  imagenes: ["/productospcu/controlxbox.png"],
+  oferta: true,
+  estado: "Nuevo",
+  acerca: [
+    "Diseño ergonómico tipo Xbox",
+    "Botones responsivos y joystick doble",
+    "Conectividad inalámbrica",
+    "Compatible con PC y algunas consolas",
+    "Ideal como control secundario",
+    "*Nota: producto sin probar (untested)*"
+  ],
+  variantes: [
+    {
+      color: "Negro",
+      imagen: "/productospcu/controlxbox.png",
+      imagenes: ["/productospcu/controlxbox.png"],
+      cantidad: 1
+    }
+  ]
+},
+
+
+    ],
+  },
+];
 
 export default productosAll;

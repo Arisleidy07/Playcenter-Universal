@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
-import productosAll from "../data/productosAll";
+import productosAll from "../data/ProductosAll";
 
 // Animación sutil para bloques y banners
 const fadeIn = {
@@ -45,8 +45,16 @@ function Inicio() {
       {/* BANNERS GRANDES - SOLO COMPUTADORA */}
       <section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
         {[
-          { to: "/productos/retro-consolas", src: "/ads/retro.png", alt: "Retro Consolas" },
-          { to: "/productos/camaras", src: "/ads/camaras.png", alt: "Cámaras" },
+          {
+            to: "/Productos/retro-consolas",
+            src: "/ads/retro.png",
+            alt: "Retro Consolas",
+          },
+          {
+            to: "/Productos/camaras",
+            src: "/ads/camaras.png",
+            alt: "Cámaras",
+          },
         ].map((banner, idx) => (
           <motion.div
             key={idx}
@@ -71,7 +79,10 @@ function Inicio() {
         initial="hidden"
         animate="visible"
       >
-        <Link to="/estafetas" className="block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition">
+        <Link
+          to="/estafetas"
+          className="block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition"
+        >
           <img
             src="/ads/Nuestrasestafetas.png"
             alt="Ver Nuestras Estafetas"
@@ -87,41 +98,101 @@ function Inicio() {
             title: "Consolas",
             links: [
               { to: "/producto/cs5", img: "/Productos/ps4.jpg", alt: "PS4" },
-              { to: "/producto/cs1", img: "/Productos/ps5.webp", alt: "PS5" },
-              { to: "/producto/cs6", img: "/Productos/xboxone.webp", alt: "Xbox One" },
-              { to: "/producto/cs3", img: "/Productos/nintendoswitch.jpg", alt: "Switch OLED" },
+              {
+                to: "/producto/cs1",
+                img: "/Productos/ps5.webp",
+                alt: "PS5",
+              },
+              {
+                to: "/producto/cs6",
+                img: "/Productos/xboxone.webp",
+                alt: "Xbox One",
+              },
+              {
+                to: "/producto/cs3",
+                img: "/Productos/nintendoswitch.jpg",
+                alt: "Switch OLED",
+              },
             ],
-            explore: "/productos/consolas",
+            explore: "/Productos/consolas",
           },
           {
             title: "Consolas Retro",
             links: [
-              { to: "/producto/rc6", img: "/Productos/atari2600.png", alt: "Atari 2600" },
-              { to: "/producto/rc5", img: "/Productos/gameboy.jpg", alt: "Game Boy" },
-              { to: "/producto/rc3", img: "/Productos/segagenesis.webp", alt: "Sega Genesis" },
-              { to: "/producto/rc4", img: "/Productos/playstation1.webp", alt: "PS1" },
+              {
+                to: "/producto/rc6",
+                img: "/Productos/atari2600.png",
+                alt: "Atari 2600",
+              },
+              {
+                to: "/producto/rc5",
+                img: "/Productos/gameboy.jpg",
+                alt: "Game Boy",
+              },
+              {
+                to: "/producto/rc3",
+                img: "/Productos/segagenesis.webp",
+                alt: "Sega Genesis",
+              },
+              {
+                to: "/producto/rc4",
+                img: "/Productos/playstation1.webp",
+                alt: "PS1",
+              },
             ],
-            explore: "/productos/retro-consolas",
+            explore: "/Productos/retro-consolas",
           },
           {
             title: "Videojuegos",
             links: [
-              { to: "/producto/vj6", img: "/Productos/Mario-Kart-8.jpeg", alt: "Mario Kart 8" },
-              { to: "/producto/vj3", img: "/Productos/zelda.webp", alt: "Zelda BOTW" },
-              { to: "/producto/vj5", img: "/Productos/spider-manps5.jpeg", alt: "Spider-Man PS5" },
-              { to: "/producto/vj7", img: "/Productos/super-smash-bros.jpg", alt: "Super Smash Bros" },
+              {
+                to: "/producto/vj6",
+                img: "/Productos/Mario-Kart-8.jpeg",
+                alt: "Mario Kart 8",
+              },
+              {
+                to: "/producto/vj3",
+                img: "/Productos/zelda.webp",
+                alt: "Zelda BOTW",
+              },
+              {
+                to: "/producto/vj5",
+                img: "/Productos/spider-manps5.jpeg",
+                alt: "Spider-Man PS5",
+              },
+              {
+                to: "/producto/vj7",
+                img: "/Productos/super-smash-bros.jpg",
+                alt: "Super Smash Bros",
+              },
             ],
-            explore: "/productos/videojuegos",
+            explore: "/Productos/videojuegos",
           },
           {
             title: "Retro Juegos",
             links: [
-              { to: "/producto/rj3", img: "/Productos/donkeykongnretro.jpeg", alt: "Donkey Kong Country" },
-              { to: "/producto/rj4", img: "/Productos/crash-bandicoat-PS1.webp", alt: "Crash Bandicoot PS1" },
-              { to: "/producto/rj1", img: "/Productos/mariobrosretro.jpg", alt: "Super Mario Bros NES" },
-              { to: "/producto/rj2", img: "/Productos/zeldaretro.jpg", alt: "Zelda NES" },
+              {
+                to: "/producto/rj3",
+                img: "/Productos/donkeykongnretro.jpeg",
+                alt: "Donkey Kong Country",
+              },
+              {
+                to: "/producto/rj4",
+                img: "/Productos/crash-bandicoat-PS1.webp",
+                alt: "Crash Bandicoot PS1",
+              },
+              {
+                to: "/producto/rj1",
+                img: "/Productos/mariobrosretro.jpg",
+                alt: "Super Mario Bros NES",
+              },
+              {
+                to: "/producto/rj2",
+                img: "/Productos/zeldaretro.jpg",
+                alt: "Zelda NES",
+              },
             ],
-            explore: "/productos/retro-juegos",
+            explore: "/Productos/retro-juegos",
           },
         ].map((bloque, idx) => (
           <motion.div
@@ -132,7 +203,9 @@ function Inicio() {
             animate="visible"
             transition={{ delay: 0.1 * idx }}
           >
-            <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">{bloque.title}</h3>
+            <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">
+              {bloque.title}
+            </h3>
             <div className="grid grid-cols-2 gap-2 flex-grow">
               {bloque.links.map((item, i) => (
                 <Link to={item.to} key={i}>
@@ -144,7 +217,10 @@ function Inicio() {
                 </Link>
               ))}
             </div>
-            <Link to={bloque.explore} className="text-indigo-600 text-sm mt-3 hover:underline font-medium">
+            <Link
+              to={bloque.explore}
+              className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
+            >
               Explora nuestras {bloque.title} →
             </Link>
           </motion.div>
@@ -159,15 +235,41 @@ function Inicio() {
         animate="visible"
       >
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Explora nuestras categorías</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
+            Explora nuestras categorías
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-7">
             {[
-              { to: "/productos/audifonos", src: "/ads/audifonoscate.png", alt: "Audífonos" },
-              { to: "/productos/mouses", src: "/ads/mousecate.png", alt: "Mouses" },
-              { to: "/productos/teclados", src: "/ads/tecladocate.png", alt: "Teclados" },
-              { to: "/productos/camaras", src: "/ads/camaracate.png", alt: "Cámaras" },
-              { to: "/productos/discos-duros", src: "/ads/discodurocate.png", alt: "Discos Duros" },
-              { to: "/productos/controles", src: "/ads/controlcate.png", alt: "Controles" },
+              {
+                to: "/Productos/audifonos",
+                src: "/ads/audifonoscate.png",
+                alt: "Audífonos",
+              },
+              {
+                to: "/Productos/mouses",
+                src: "/ads/mousecate.png",
+                alt: "Mouses",
+              },
+              {
+                to: "/Productos/teclados",
+                src: "/ads/tecladocate.png",
+                alt: "Teclados",
+              },
+              {
+                to: "/Productos/camaras",
+                src: "/ads/camaracate.png",
+                alt: "Cámaras",
+              },
+              {
+                to: "/Productos/discos-duros",
+                src: "/ads/discodurocate.png",
+                alt: "Discos Duros",
+              },
+              {
+                to: "/Productos/controles",
+                src: "/ads/controlcate.png",
+                alt: "Controles",
+              },
             ].map((cat, i) => (
               <Link to={cat.to} key={cat.alt}>
                 <img
@@ -180,7 +282,7 @@ function Inicio() {
           </div>
           <div className="text-right mt-6">
             <Link
-              to="/productos"
+              to="/Productos"
               className="text-indigo-600 hover:underline text-base font-medium"
             >
               Ver todas las categorías →
@@ -197,7 +299,9 @@ function Inicio() {
         animate="visible"
       >
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Descubre nuestros productos</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
+            Descubre nuestros productos
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-7">
             {productosAll
               .flatMap((cat) => cat.productos)
@@ -216,7 +320,7 @@ function Inicio() {
           </div>
           <div className="text-right mt-6">
             <Link
-              to="/productos"
+              to="/Productos"
               className="text-indigo-600 hover:underline text-base font-medium"
             >
               Explora nuestros productos →
@@ -233,15 +337,41 @@ function Inicio() {
         animate="visible"
       >
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Hogar Inteligente en Oferta</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
+            Hogar Inteligente en Oferta
+          </h2>
           <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
             {[
-              { to: "/producto/hi1", img: "/Productos/focointeligente.webp", alt: "Foco inteligente Wi-Fi RGB" },
-              { to: "/producto/hi2", img: "/Productos/enchufeinteligentewifi.jpg", alt: "Enchufe inteligente TP-Link" },
-              { to: "/producto/hi4", img: "/Productos/sensormovimientowifi.jpg", alt: "Sensor de movimiento Wi-Fi" },
-              { to: "/producto/hi8", img: "/Productos/echodot.png", alt: "Amazon Echo Dot" },
-              { to: "/producto/hi9", img: "/Productos/alexaecho.webp", alt: "Amazon Echo Show 8" },
-              { to: "/producto/hi11", img: "/Productos/smartplug.jpg", alt: "Smart Plug compatible con Alexa" },
+              {
+                to: "/producto/hi1",
+                img: "/Productos/focointeligente.webp",
+                alt: "Foco inteligente Wi-Fi RGB",
+              },
+              {
+                to: "/producto/hi2",
+                img: "/Productos/enchufeinteligentewifi.jpg",
+                alt: "Enchufe inteligente TP-Link",
+              },
+              {
+                to: "/producto/hi4",
+                img: "/Productos/sensormovimientowifi.jpg",
+                alt: "Sensor de movimiento Wi-Fi",
+              },
+              {
+                to: "/producto/hi8",
+                img: "/Productos/echodot.png",
+                alt: "Amazon Echo Dot",
+              },
+              {
+                to: "/producto/hi9",
+                img: "/Productos/alexaecho.webp",
+                alt: "Amazon Echo Show 8",
+              },
+              {
+                to: "/producto/hi11",
+                img: "/Productos/smartplug.jpg",
+                alt: "Smart Plug compatible con Alexa",
+              },
             ].map((prod, idx) => (
               <Link to={prod.to} className="min-w-[180px] px-2" key={idx}>
                 <img
@@ -254,7 +384,7 @@ function Inicio() {
           </div>
           <div className="text-right mt-6">
             <Link
-              to="/productos/hogar-inteligente"
+              to="/Productos/hogar-inteligente"
               className="text-indigo-600 hover:underline text-base font-medium"
             >
               Descubre cómo transformar tu casa en un hogar inteligente →
@@ -271,18 +401,56 @@ function Inicio() {
         animate="visible"
       >
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Tu Rincón Variado</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
+            Tu Rincón Variado
+          </h2>
           <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
             {[
-              { id: "rv1", nombre: "Bicicleta Urbana MTB 26'' Mongoose", img: "/Productos/mongose.jpg" },
-              { id: "rv2", nombre: "Patineta Eléctrica Plegable", img: "/Productos/patinetaelectrica.jpg" },
-              { id: "rv3", nombre: "Hoverboard Autoequilibrado 10\"", img: "/Productos/hoverboard.jpg" },
-              { id: "rv4", nombre: "Patines en línea 4 ruedas", img: "/Productos/patines4ruedaasenlinea.jpeg" },
-              { id: "rv5", nombre: "Patines clásicos 4 ruedas", img: "/Productos/patinesclasicos.webp" },
-              { id: "rv6", nombre: "Ruedas de repuesto para patineta", img: "/Productos/ruedapatineta.webp" },
-              { id: "rv7", nombre: "Casco Protector Urbano", img: "/Productos/casco.jpg" },
-              { id: "rv8", nombre: "Botella Térmica 1L Acero Inoxidable", img: "/Productos/botella.jpg" },
-              { id: "rv9", nombre: "Luz LED Recargable para Bicicleta", img: "/Productos/lucesbici.webp" },
+              {
+                id: "rv1",
+                nombre: "Bicicleta Urbana MTB 26'' Mongoose",
+                img: "/Productos/mongose.jpg",
+              },
+              {
+                id: "rv2",
+                nombre: "Patineta Eléctrica Plegable",
+                img: "/Productos/patinetaelectrica.jpg",
+              },
+              {
+                id: "rv3",
+                nombre: 'Hoverboard Autoequilibrado 10"',
+                img: "/Productos/hoverboard.jpg",
+              },
+              {
+                id: "rv4",
+                nombre: "Patines en línea 4 ruedas",
+                img: "/Productos/patines4ruedaasenlinea.jpeg",
+              },
+              {
+                id: "rv5",
+                nombre: "Patines clásicos 4 ruedas",
+                img: "/Productos/patinesclasicos.webp",
+              },
+              {
+                id: "rv6",
+                nombre: "Ruedas de repuesto para patineta",
+                img: "/Productos/ruedapatineta.webp",
+              },
+              {
+                id: "rv7",
+                nombre: "Casco Protector Urbano",
+                img: "/Productos/casco.jpg",
+              },
+              {
+                id: "rv8",
+                nombre: "Botella Térmica 1L Acero Inoxidable",
+                img: "/Productos/botella.jpg",
+              },
+              {
+                id: "rv9",
+                nombre: "Luz LED Recargable para Bicicleta",
+                img: "/Productos/lucesbici.webp",
+              },
             ].map((prod) => (
               <Link
                 to={`/producto/${prod.id}`}
@@ -300,7 +468,7 @@ function Inicio() {
           </div>
           <div className="text-right mt-6">
             <Link
-              to="/productos/tu-rincon-variado"
+              to="/Productos/tu-rincon-variado"
               className="text-indigo-600 hover:underline text-base font-medium"
             >
               Explora nuestro Rincón Variado →
@@ -312,8 +480,16 @@ function Inicio() {
       {/* DOBLE BANNER */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-16">
         {[
-          { to: "/productos/consolas", src: "/ads/nintendoswtitchads.png", alt: "Consolas" },
-          { to: "/productos/controles", src: "/ads/controlads.png", alt: "Controles" },
+          {
+            to: "/Productos/consolas",
+            src: "/ads/nintendoswtitchads.png",
+            alt: "Consolas",
+          },
+          {
+            to: "/Productos/controles",
+            src: "/ads/controlads.png",
+            alt: "Controles",
+          },
         ].map((banner, idx) => (
           <motion.div
             key={banner.alt}
@@ -340,13 +516,31 @@ function Inicio() {
           initial="hidden"
           animate="visible"
         >
-          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">Cámaras de Vigilancia</h3>
+          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">
+            Cámaras de Vigilancia
+          </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
             {[
-              { id: "cam1", nombre: "Hikvision Dome", img: "/Productos/hikvision.png" },
-              { id: "cam2", nombre: "Dahua Bullet", img: "/Productos/dahua.webp" },
-              { id: "cam3", nombre: "EZVIZ WiFi", img: "/Productos/ezviz.png" },
-              { id: "cam4", nombre: "TP-Link Tapo", img: "/Productos/tapo.webp" },
+              {
+                id: "cam1",
+                nombre: "Hikvision Dome",
+                img: "/Productos/hikvision.png",
+              },
+              {
+                id: "cam2",
+                nombre: "Dahua Bullet",
+                img: "/Productos/dahua.webp",
+              },
+              {
+                id: "cam3",
+                nombre: "EZVIZ WiFi",
+                img: "/Productos/ezviz.png",
+              },
+              {
+                id: "cam4",
+                nombre: "TP-Link Tapo",
+                img: "/Productos/tapo.webp",
+              },
             ].map((prod) => (
               <Link to={`/producto/${prod.id}`} key={prod.id}>
                 <img
@@ -357,7 +551,10 @@ function Inicio() {
               </Link>
             ))}
           </div>
-          <Link to="/categoria/camaras-vigilancia" className="text-indigo-600 text-sm mt-3 hover:underline font-medium">
+          <Link
+            to="/categoria/camaras-vigilancia"
+            className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
+          >
             Explora nuestras Cámaras de Vigilancia →
           </Link>
         </motion.div>
@@ -369,13 +566,27 @@ function Inicio() {
           initial="hidden"
           animate="visible"
         >
-          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">Discos Duros</h3>
+          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">
+            Discos Duros
+          </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
             {[
-              { id: "dd1", nombre: "Seagate 1TB", img: "/Productos/seagate.png" },
-              { id: "dd2", nombre: "SSD Samsung", img: "/Productos/samsung.webp" },
+              {
+                id: "dd1",
+                nombre: "Seagate 1TB",
+                img: "/Productos/seagate.png",
+              },
+              {
+                id: "dd2",
+                nombre: "SSD Samsung",
+                img: "/Productos/samsung.webp",
+              },
               { id: "dd3", nombre: "WD 2TB", img: "/Productos/wd2tb.jpg" },
-              { id: "dd4", nombre: "Crucial X6", img: "/Productos/crucial.jpg" },
+              {
+                id: "dd4",
+                nombre: "Crucial X6",
+                img: "/Productos/crucial.jpg",
+              },
             ].map((prod) => (
               <Link to={`/producto/${prod.id}`} key={prod.id}>
                 <img
@@ -386,7 +597,10 @@ function Inicio() {
               </Link>
             ))}
           </div>
-          <Link to="/categoria/discos-duros" className="text-indigo-600 text-sm mt-3 hover:underline font-medium">
+          <Link
+            to="/categoria/discos-duros"
+            className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
+          >
             Explora nuestros Discos Duros →
           </Link>
         </motion.div>
@@ -398,13 +612,31 @@ function Inicio() {
           initial="hidden"
           animate="visible"
         >
-          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">Memorias USB</h3>
+          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">
+            Memorias USB
+          </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
             {[
-              { id: "usb1", nombre: "USB SanDisk 64GB", img: "/Productos/sandisk.jpeg" },
-              { id: "usb2", nombre: "Kingston 128GB USB 3.1", img: "/Productos/kingston.webp" },
-              { id: "usb3", nombre: "HP v150w 32GB", img: "/Productos/hp.jpeg" },
-              { id: "usb4", nombre: "Corsair Flash Voyager 256GB", img: "/Productos/corsair.avif" },
+              {
+                id: "usb1",
+                nombre: "USB SanDisk 64GB",
+                img: "/Productos/sandisk.jpeg",
+              },
+              {
+                id: "usb2",
+                nombre: "Kingston 128GB USB 3.1",
+                img: "/Productos/kingston.webp",
+              },
+              {
+                id: "usb3",
+                nombre: "HP v150w 32GB",
+                img: "/Productos/hp.jpeg",
+              },
+              {
+                id: "usb4",
+                nombre: "Corsair Flash Voyager 256GB",
+                img: "/Productos/corsair.avif",
+              },
             ].map((prod) => (
               <Link to={`/producto/${prod.id}`} key={prod.id}>
                 <img
@@ -415,7 +647,10 @@ function Inicio() {
               </Link>
             ))}
           </div>
-          <Link to="/categoria/memorias-usb" className="text-indigo-600 text-sm mt-3 hover:underline font-medium">
+          <Link
+            to="/categoria/memorias-usb"
+            className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
+          >
             Explora nuestras Memorias USB →
           </Link>
         </motion.div>
@@ -427,7 +662,9 @@ function Inicio() {
           initial="hidden"
           animate="visible"
         >
-          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">Cables</h3>
+          <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">
+            Cables
+          </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
             {[
               { id: "cb1", img: "/Productos/usb-c.jpg" },
@@ -444,7 +681,10 @@ function Inicio() {
               </Link>
             ))}
           </div>
-          <Link to="/categoria/cables" className="text-indigo-600 text-sm mt-3 hover:underline font-medium">
+          <Link
+            to="/categoria/cables"
+            className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
+          >
             Explora nuestros Cables →
           </Link>
         </motion.div>
@@ -458,10 +698,12 @@ function Inicio() {
         animate="visible"
       >
         <h2 className="text-3xl sm:text-4xl font-extrabold mb-6 text-gray-800">
-          ¿Tienes dudas? <span className="text-indigo-700">Contáctanos ahora</span>
+          ¿Tienes dudas?{" "}
+          <span className="text-indigo-700">Contáctanos ahora</span>
         </h2>
         <p className="text-gray-600 mb-10 max-w-xl mx-auto">
-          Nuestro equipo está listo para ayudarte por WhatsApp, teléfono o correo. Atención rápida y profesional.
+          Nuestro equipo está listo para ayudarte por WhatsApp, teléfono o
+          correo. Atención rápida y profesional.
         </p>
         <div className="bg-white shadow-2xl rounded-2xl p-10 max-w-3xl mx-auto flex flex-col gap-6 border border-indigo-100">
           <p className="flex items-center justify-center text-gray-700 gap-3">

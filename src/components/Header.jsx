@@ -94,7 +94,7 @@ const Header = () => {
           <div className="hidden lg:flex w-full items-center justify-between gap-6">
             <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
               <motion.img
-                src="/playcenter.jpeg"
+                src="/Playlogo.png"
                 alt="Playcenter Universal"
                 className="h-10 object-contain rounded-xl shadow group-hover:ring-2 group-hover:ring-[#4FC3F7] transition"
                 whileHover={{ scale: 1.07 }}

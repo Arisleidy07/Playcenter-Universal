@@ -16,7 +16,6 @@ html, body {
   }
 }
 
-
 /* === ANIMACIONES Y UTILIDADES === */
 @layer utilities {
   .animate-text-glow {
@@ -31,12 +30,6 @@ html, body {
 @keyframes textGlow {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
-}
-
-@keyframes glitch {
-  0% { text-shadow: 2px 0 #2563eb, -2px 0 #8b5cf6; }
-  50% { text-shadow: -2px 0 #2563eb, 2px 0 #22d3ee; }
-  100% { text-shadow: 2px 0 #2563eb, -2px 0 #8b5cf6; }
 }
 
 @keyframes fadeIn {
@@ -83,10 +76,6 @@ html, body {
 }
 .nav-link:hover::after {
   width: 100%;
-}
-.nav-link.glitch:hover {
-  animation: glitch 1s infinite;
-  color: #2563eb;
 }
 
 /* === BUSCADOR === */
@@ -138,9 +127,7 @@ html, body {
 .button-glitch:hover {
   color: #2563eb;
   box-shadow: 0 0 8px #3b82f6, 0 0 15px #2563eb;
-  animation: glitch 1.2s infinite;
 }
-
 
 .productos-grid img {
   max-height: 200px;

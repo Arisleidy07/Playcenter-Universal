@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import productosAll from "../data/productosAll";
+import productosAll from "../data/ProductosAll";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -82,7 +82,9 @@ function PaginaBusqueda() {
         </h2>
 
         {resultadosFiltrados.length === 0 ? (
-          <p className="text-gray-600">No se encontraron productos relacionados.</p>
+          <p className="text-gray-600">
+            No se encontraron productos relacionados.
+          </p>
         ) : (
           <div className="productos-grid">
             {resultadosFiltrados.map((producto) => (

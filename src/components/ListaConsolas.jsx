@@ -1,5 +1,5 @@
 import React from "react";
-import productosAll from "./productosAll"; // Tu archivo con productos
+import productosAll from "./ProductosAll"; // Tu archivo con productos
 import TarjetaProducto from "./TarjetaProducto";
 
 function ListaConsolas() {

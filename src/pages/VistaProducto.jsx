@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaWhatsapp, FaShoppingCart } from "react-icons/fa";
 import GaleriaImagenes from "../components/GaleriaImagenes";
-import productosAll from "../data/productosAll";
+import productosAll from "../data/ProductosAll";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
@@ -61,8 +61,9 @@ function VistaProducto() {
   };
 
   // Solo muestra selector de color si hay variantes con color
-  const variantesConColor =
-    producto.variantes?.filter((v) => v.color && v.color.trim() !== "");
+  const variantesConColor = producto.variantes?.filter(
+    (v) => v.color && v.color.trim() !== ""
+  );
 
   return (
     <>
@@ -174,7 +175,11 @@ function VistaProducto() {
                 estaEnCarrito
                   ? "bg-red-500 hover:bg-red-600 text-white"
                   : "bg-yellow-400 hover:bg-yellow-500 text-black"
-              } ${varianteActiva?.cantidad === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${
+                varianteActiva?.cantidad === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
             >
               <FaShoppingCart className="text-xl" />
               {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}

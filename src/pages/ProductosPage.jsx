@@ -5,9 +5,9 @@ import SidebarFiltros from "../components/SidebarFiltros";
 import FiltroDrawer from "../components/FiltroDrawer";
 import BotonFiltro from "../components/BotonFiltro";
 import TarjetaProducto from "../components/TarjetaProducto";
-import productosAll from "../data/productosAll";
+import productosAll from "../data/ProductosAll";
 import { normalizar } from "../utils/normalizarCategoria";
-import "../styles/productosGrid.css";
+import "../styles/ProductosGrid.css";
 
 function ProductosPage() {
   const { categoria } = useParams();
@@ -59,7 +59,7 @@ function ProductosPage() {
   }, [productosOriginales, filtros]);
 
   const handleCategoriaChange = (nombre, ruta) => {
-    navigate(`/productos/${ruta}`);
+    navigate(`/Productos/${ruta}`);
     setFiltrosVisible(false);
     setMostrarCategorias(false);
   };
@@ -95,7 +95,9 @@ function ProductosPage() {
         </div>
 
         <h1 className="text-2xl font-semibold mb-4 text-blue-800 px-4 lg:px-0">
-          {categoriaActiva === "Todos" ? "Todos los productos" : categoriaActiva}
+          {categoriaActiva === "Todos"
+            ? "Todos los productos"
+            : categoriaActiva}
         </h1>
 
         {productosFiltrados.length === 0 ? (

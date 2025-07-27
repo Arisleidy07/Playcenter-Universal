@@ -1,62 +1,41 @@
 import React from "react";
-import {
-  FaFacebookF,
-  FaInstagram,
-  FaTiktok,
-  FaYoutube,
-  FaPhoneAlt,
-  FaEnvelope,
-} from "react-icons/fa";
+import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import "./../styles/footer.css";
 
 function Footer() {
   return (
-    <div className="hidden sm:block">
-      <footer className="relative bg-black text-gray-300 px-4 sm:px-6 lg:px-8 py-12 mt-0 overflow-hidden">
-        {/* ESTRELLAS */}
-        <div className="box-of-star1">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className={`star star-position${i + 1}`}></div>
-          ))}
-        </div>
-        <div className="box-of-star2">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className={`star star-position${i + 1}`}></div>
-          ))}
-        </div>
-        <div className="box-of-star3">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className={`star star-position${i + 1}`}></div>
-          ))}
-        </div>
-        <div className="box-of-star4">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className={`star star-position${i + 1}`}></div>
+    <div className="block">
+      <footer className="relative bg-black text-gray-300 px-6 py-12 sm:px-10 lg:px-16">
+
+        {/* Estrellas móviles para fondo */}
+        <div className="sm:hidden">
+          {["box-of-star1", "box-of-star2", "box-of-star3", "box-of-star4"].map((box) => (
+            <div key={box} className={box}>
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className={`star star-position${i + 1}`}></div>
+              ))}
+            </div>
           ))}
         </div>
 
-        {/* ASTRONAUTA */}
-        <div data-js="astro" className="astronaut">
-          <div className="head"></div>
-          <div className="arm arm-left"></div>
-          <div className="arm arm-right"></div>
-          <div className="body">
-            <div className="panel"></div>
-          </div>
-          <div className="leg leg-left"></div>
-          <div className="leg leg-right"></div>
-          <div className="schoolbag"></div>
+        {/* Logo centrado arriba */}
+        <div className="w-full flex justify-center mb-10 relative z-20">
+          <img
+            src="/Playlogo.png"
+            alt="Playcenter Universal Logo"
+            className="w-40 sm:w-52 lg:w-64 transition-transform duration-300 hover:scale-105 hover:drop-shadow-[0_0_20px_rgba(0,255,255,0.6)]"
+          />
         </div>
 
-        {/* CONTENIDO DEL FOOTER */}
-        <div className="relative z-20 w-full max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
-          {/* Empresa */}
+        {/* Contenido de columnas */}
+        <div className="relative z-20 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-sm">
+
+          {/* Empresa + contacto */}
           <div className="text-center sm:text-left">
-            <h3 className="text-white text-xl font-bold mb-4">
-              Playcenter Universal
-            </h3>
-            <p>
-              Tu universo de tecnología, estilo e innovación en Santiago, R.D.
+            <h3 className="text-white text-lg font-bold mb-4">Playcenter Universal</h3>
+            <p>Tu universo de tecnología y gaming en Santiago, R.D.</p>
+            <p className="mt-3 flex justify-center sm:justify-start items-center gap-2">
+              <FaMapMarkerAlt /> Av. Estrella Sadhalá #55, frente a la doble vía, Santiago, R.D.
             </p>
             <p className="mt-3 flex justify-center sm:justify-start items-center gap-2">
               <FaPhoneAlt /> +1 (809) 582-1212 (Internet)
@@ -69,96 +48,68 @@ function Footer() {
             </p>
           </div>
 
-          {/* Enlaces */}
+          {/* Navegación */}
           <div className="text-center sm:text-left">
-            <h3 className="text-white text-lg sm:text-xl font-semibold mb-4">
-              Enlaces útiles
-            </h3>
+            <h3 className="text-white text-lg font-semibold mb-4">Navegación</h3>
             <ul className="space-y-2">
-              <li>
-                <a
-                  href="/productos"
-                  className="hover:text-white transition"
-                >
-                  Productos
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/productos/ofertas-especiales"
-                  className="hover:text-white transition"
-                >
-                  Ofertas Especiales
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/favoritos"
-                  className="hover:text-white transition"
-                >
-                  Favoritos
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/contacto"
-                  className="hover:text-white transition"
-                >
-                  Contáctanos
-                </a>
-              </li>
+              {[
+                ["Categorías", "/categorias"],
+                ["Nosotros", "/nosotros"],
+                ["Contáctanos", "/contacto"],
+                ["Estafetas", "/estafetas"],
+                ["Carrito", "/carrito"],
+                ["Mi perfil", "/Profile"],
+              ].map(([text, url]) => (
+                <li key={text}>
+                  <a
+                    href={url}
+                    className="hover:text-cyan-400 transition duration-300 ease-in-out"
+                  >
+                    {text}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Horario */}
           <div className="text-center sm:text-left">
-            <h3 className="text-white text-lg sm:text-xl font-semibold mb-4">Horario</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">Horario</h3>
             <p>Lunes a Viernes: 8:30am - 5:30pm</p>
             <p>Sábados: 8:30am - 12:30pm</p>
-            <p>Domingo: Cerrado</p>
+            <p>Domingos: Cerrado</p>
           </div>
 
-          {/* Redes */}
+          {/* Redes sociales */}
           <div className="text-center sm:text-left">
-            <h3 className="text-white text-lg sm:text-xl font-semibold mb-4">Síguenos</h3>
-            <div className="flex flex-col items-center sm:items-start gap-3 text-base">
-              <a
-                href="https://www.facebook.com/pcu12"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 text-white hover:text-blue-500 transition"
-              >
-                <FaFacebookF className="text-xl" /> Facebook
-              </a>
-              <a
-                href="https://www.instagram.com/playcenter_universal/?hl=es"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 text-white hover:text-pink-500 transition"
-              >
-                <FaInstagram className="text-xl" /> Instagram
-              </a>
-              <a
-                href="https://www.tiktok.com/@playcenter_universal?lang=es"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 text-white hover:text-gray-100 transition"
-              >
-                <FaTiktok className="text-xl" /> TikTok
-              </a>
-              <a
-                href="https://youtube.com/@playcenteruniversal1916"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 text-white hover:text-red-500 transition"
-              >
-                <FaYoutube className="text-xl" /> YouTube
-              </a>
+            <h3 className="text-white text-xl font-bold mb-4">Conéctate con nosotros</h3>
+            <div className="grid grid-cols-2 gap-4 justify-items-center sm:justify-items-start">
+              {[
+                ["https://www.facebook.com/pcu12", "/Facebook.png", "Facebook"],
+                ["https://www.instagram.com/playcenter_universal/?hl=es", "/Instagram.png", "Instagram"],
+                ["https://www.tiktok.com/@playcenter_universal?lang=es", "/tiktok.png", "TikTok"],
+                ["https://youtube.com/@playcenteruniversal1916", "/Youtube.png", "YouTube"],
+              ].map(([url, imgSrc, alt]) => (
+                <a
+                  key={alt}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="relative group"
+                >
+                  <img
+                    src={imgSrc}
+                    alt={alt}
+                    className="w-16 h-16 rounded-full transition-transform duration-300 transform group-hover:scale-110 group-hover:shadow-[0_0_15px_3px_rgba(0,255,255,0.6)]"
+                  />
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mt-10 relative z-20">
+        {/* Footer final */}
+        <p className="text-center text-gray-500 text-xs mt-10 relative z-20">
           © {new Date().getFullYear()} Playcenter Universal. Todos los derechos reservados.
         </p>
       </footer>

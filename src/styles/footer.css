@@ -1,4 +1,31 @@
 /* FOOTER */
+
+.footer-link {
+  color: #d1d5db;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.footer-link:hover {
+  color: #00b4d8; /* azul turquesa tech */
+  text-decoration: underline;
+  transform: translateX(3px);
+}
+
+.social-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+
 .footer {
   background-color: #0c0f16;
   color: white;

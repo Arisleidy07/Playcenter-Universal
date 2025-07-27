@@ -3,13 +3,37 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const anuncios = [
-  { id: 1, img: "/ads/1.png", link: "/productos/consolas", isExternal: false },
-  { id: 6, img: "/ads/6.png", link: "https://playcenterwisp.com", isExternal: true },
-  { id: 2, img: "/ads/2.png", link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78", isExternal: true },
-  { id: 3, img: "/ads/3.png", link: "/productos/videojuegos", isExternal: false },
-  { id: 4, img: "/ads/5.png", link: "/productos/ofertas-especiales", isExternal: false },
-  { id: 5, img: "/ads/4.png", link: "/productos", isExternal: false },
-
+  {
+    id: 1,
+    img: "/ads/1.png",
+    link: "/Productos/consolas",
+    isExternal: false,
+  },
+  {
+    id: 6,
+    img: "/ads/6.png",
+    link: "https://playcenterwisp.com",
+    isExternal: true,
+  },
+  {
+    id: 2,
+    img: "/ads/2.png",
+    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
+    isExternal: true,
+  },
+  {
+    id: 3,
+    img: "/ads/3.png",
+    link: "/Productos/videojuegos",
+    isExternal: false,
+  },
+  {
+    id: 4,
+    img: "/ads/5.png",
+    link: "/Productos/ofertas-especiales",
+    isExternal: false,
+  },
+  { id: 5, img: "/ads/4.png", link: "/Productos", isExternal: false },
 ];
 
 function SliderAnuncios() {
@@ -136,7 +160,9 @@ function SliderAnuncios() {
             }}
             aria-label={`Ir al slide ${idx + 1}`}
             className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${
-              idx === index ? "bg-white opacity-90 scale-110" : "bg-white opacity-40"
+              idx === index
+                ? "bg-white opacity-90 scale-110"
+                : "bg-white opacity-40"
             } transition`}
           />
         ))}
