@@ -1,4 +1,4 @@
-const productosAl = [
+const productosAll = [
   {
     categoria: "Retro Consolas",
     productos: [
@@ -3329,4 +3329,4 @@ const productosAl = [
   },
 ];
 
-export default productosAl;
+export default productosAll;

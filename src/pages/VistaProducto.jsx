@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaWhatsapp, FaShoppingCart } from "react-icons/fa";
 import GaleriaImagenes from "../components/GaleriaImagenes";
-import productosAl from "../data/productosAl";
+import productosAll from "../data/productosAll";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
@@ -19,7 +19,7 @@ function VistaProducto() {
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
 
   // Unifica todos los productos de todas las categorías
-  const todos = productosAl.flatMap((categoria) => categoria.productos);
+  const todos = productosAll.flatMap((categoria) => categoria.productos);
   const producto = todos.find((p) => p.id === id);
   const estaEnCarrito = carrito.some((item) => item.id === producto?.id);
 

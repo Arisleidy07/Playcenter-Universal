@@ -1,9 +1,9 @@
 import React from "react";
-import productosAl from "./productosAl"; // Tu archivo con productos
+import productosAll from "./productosAll"; // Tu archivo con productos
 import TarjetaProducto from "./TarjetaProducto";
 
 function ListaConsolas() {
-  const categoria = productosAl.find((c) => c.categoria === "Consolas");
+  const categoria = productosAll.find((c) => c.categoria === "Consolas");
 
   if (!categoria) return <p>No hay productos en esta categoría.</p>;
 

@@ -5,7 +5,7 @@ import SidebarFiltros from "../components/SidebarFiltros";
 import FiltroDrawer from "../components/FiltroDrawer";
 import BotonFiltro from "../components/BotonFiltro";
 import TarjetaProducto from "../components/TarjetaProducto";
-import productosAl from "../data/productosAl";
+import productosAll from "../data/productosAll";
 import { normalizar } from "../utils/normalizarCategoria";
 import "../styles/ProductosGrid.css";
 
@@ -27,7 +27,7 @@ function ProductosPage() {
     if (!categoria || categoria === "todos") {
       setCategoriaActiva("Todos");
     } else {
-      const encontrada = productosAl.find(
+      const encontrada = productosAll.find(
         (cat) => normalizar(cat.categoria) === normalizar(categoria)
       );
       setCategoriaActiva(encontrada ? encontrada.categoria : "Todos");
@@ -36,9 +36,9 @@ function ProductosPage() {
 
   const productosOriginales = useMemo(() => {
     if (categoriaActiva === "Todos") {
-      return productosAl.flatMap((cat) => cat.productos);
+      return productosAll.flatMap((cat) => cat.productos);
     }
-    const categoriaEncontrada = productosAl.find(
+    const categoriaEncontrada = productosAll.find(
       (cat) => normalizar(cat.categoria) === normalizar(categoriaActiva)
     );
     return categoriaEncontrada ? categoriaEncontrada.productos : [];
