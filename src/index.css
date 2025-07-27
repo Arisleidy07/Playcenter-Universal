@@ -6,6 +6,15 @@
 html, body {
   background-color: white !important;
   color: black !important;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-x: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fff;
+  color: #1e293b;
 }
 
 /* También forzar para dispositivos en modo oscuro */
@@ -39,19 +48,6 @@ html, body {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease forwards;
-}
-
-/* === BASE === */
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  touch-action: pan-y;
-  -webkit-text-size-adjust: 100%;
-  overscroll-behavior-x: none;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #fff;
-  color: #1e293b;
 }
 
 /* === HEADER Y NAV === */
