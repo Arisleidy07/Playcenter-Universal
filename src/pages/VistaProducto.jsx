@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaWhatsapp, FaShoppingCart } from "react-icons/fa";
 import GaleriaImagenes from "../components/GaleriaImagenes";
-import productosAll from "../data/ProductosAll";
+import productosAll from "../data/productosAll";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
