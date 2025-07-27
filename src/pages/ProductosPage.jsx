@@ -7,7 +7,7 @@ import BotonFiltro from "../components/BotonFiltro";
 import TarjetaProducto from "../components/TarjetaProducto";
 import productosAll from "../data/productosAll";
 import { normalizar } from "../utils/normalizarCategoria";
-import "../styles/ProductosGrid.css";
+import "../styles/productosGrid.css";
 
 function ProductosPage() {
   const { categoria } = useParams();
