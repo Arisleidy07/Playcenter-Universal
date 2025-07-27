@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
-import productosAll from "../data/productosAll";
+import productosAl from "../data/productosAl";
 
 // Animación sutil para bloques y banners
 const fadeIn = {
@@ -303,7 +303,7 @@ function Inicio() {
             Descubre nuestros productos
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-7">
-            {productosAll
+            {productosAl
               .flatMap((cat) => cat.productos)
               .slice(0, 6)
               .map((producto) => (

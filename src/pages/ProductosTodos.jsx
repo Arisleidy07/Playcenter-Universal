@@ -1,9 +1,9 @@
 import React from "react";
-import productosAll from "../data/ProductosAll";
+import productosAl from "../data/productosAl";
 import TarjetaProducto from "../components/TarjetaProducto";
 
 function ProductosTodos() {
-  const productos = productosAll.flatMap((cat) =>
+  const productos = productosAl.flatMap((cat) =>
     cat.productos.map((prod) => ({
       ...prod,
       categoria: cat.categoria,

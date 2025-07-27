@@ -1,4 +1,4 @@
-const productosAll = [
+const productosAl = [
   {
     categoria: "Retro Consolas",
     productos: [
@@ -267,12 +267,12 @@ const productosAll = [
   {
     categoria: "Audífonos",
     productos: [
-
       {
         id: "ps4audio1",
         nombre: "Gaming Headphones con Micrófono para PS4",
         precio: 29.99,
-        descripcion: "Auriculares con micrófono de reducción de ruido, compatibles con PS4. Ideales para gaming online y chats en tiempo real.",
+        descripcion:
+          "Auriculares con micrófono de reducción de ruido, compatibles con PS4. Ideales para gaming online y chats en tiempo real.",
         imagen: "/productospcu/headphones.png",
         imagenes: ["/productospcu/headphones.png"],
         oferta: false,
@@ -284,7 +284,7 @@ const productosAll = [
           "Diseño cómodo y ajustable",
           "Micrófono con cancelación de ruido",
           "Sonido claro y nítido ideal para juegos online",
-          "Compatible con juegos, chats, Skype y más"
+          "Compatible con juegos, chats, Skype y más",
         ],
         variantes: [
           {
@@ -292,14 +292,12 @@ const productosAll = [
             imagen: "/productospcu/headphones.png",
             imagenes: [
               "/productospcu/headphones.png",
-              "/productospcu/headphones-back.png"
+              "/productospcu/headphones-back.png",
             ],
-            cantidad: 2
-          }
-        ]
+            cantidad: 2,
+          },
+        ],
       },
-
-
 
       {
         id: "p1",
@@ -331,31 +329,31 @@ const productosAll = [
       },
 
       {
-  id: "aud1",
-  nombre: "Audífonos Inalámbricos 771A",
-  precio: 34.99,
-  descripcion: "Audífonos inalámbricos con micrófono integrado y sonido HD para música sin interrupciones.",
-  imagen: "/productospcu/audifonos.png",
-  imagenes: ["/productospcu/audifonos.png"],
-  oferta: false,
-  estado: "Nuevo",
-  acerca: [
-    "Sonido de alta definición",
-    "Diseño cómodo para uso prolongado",
-    "Micrófono integrado para llamadas o juegos",
-    "Conexión inalámbrica Bluetooth",
-    "Diseñados para música, películas y gaming"
-  ],
-  variantes: [
-    {
-      color: "Negro",
-      imagen: "/productospcu/audifonos.png",
-      imagenes: ["/productospcu/audifonos.png"],
-      cantidad: 5
-    }
-  ]
-},
-
+        id: "aud1",
+        nombre: "Audífonos Inalámbricos 771A",
+        precio: 34.99,
+        descripcion:
+          "Audífonos inalámbricos con micrófono integrado y sonido HD para música sin interrupciones.",
+        imagen: "/productospcu/audifonos.png",
+        imagenes: ["/productospcu/audifonos.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Sonido de alta definición",
+          "Diseño cómodo para uso prolongado",
+          "Micrófono integrado para llamadas o juegos",
+          "Conexión inalámbrica Bluetooth",
+          "Diseñados para música, películas y gaming",
+        ],
+        variantes: [
+          {
+            color: "Negro",
+            imagen: "/productospcu/audifonos.png",
+            imagenes: ["/productospcu/audifonos.png"],
+            cantidad: 5,
+          },
+        ],
+      },
 
       {
         id: "p2",
@@ -569,7 +567,8 @@ const productosAll = [
         id: "mic1",
         nombre: "Micrófono de Grabación con Reducción de Ruido",
         precio: 29.99,
-        descripcion: "Micrófono ideal para grabar voces e instrumentos, con diseño especial para plataformas como YouTube y Twitch.",
+        descripcion:
+          "Micrófono ideal para grabar voces e instrumentos, con diseño especial para plataformas como YouTube y Twitch.",
         imagen: "/productospcu/microfono.png",
         imagenes: ["/productospcu/microfono.png"],
         oferta: false,
@@ -579,16 +578,16 @@ const productosAll = [
           "Ideal para grabar voz e instrumentos",
           "Compatible con YouTube, Skype, Twitch y más",
           "Perfecto para Home Studio y Oficina",
-          "Plug and Play (no requiere drivers)"
+          "Plug and Play (no requiere drivers)",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/productospcu/microfono.png",
             imagenes: ["/productospcu/microfono.png"],
-            cantidad: 4
-          }
-        ]
+            cantidad: 4,
+          },
+        ],
       },
 
       {
@@ -1897,34 +1896,35 @@ const productosAll = [
   {
     categoria: "Teclados",
     productos: [
-{
-  id: "acc1",
-  nombre: "Mini Teclado Inalámbrico con Touchpad",
-  precio: 24.99,
-  descripcion: "Mini teclado inalámbrico con touchpad integrado, ideal para controlar tu PC, Smart TV o consola desde el sofá.",
-  imagen: "/productospcu/miniteclado.png",
-  imagenes: ["/productospcu/miniteclado.png"],
-  oferta: false,
-  estado: "Nuevo",
-  acerca: [
-    "Touchpad con función DPI ajustable",
-    "Compatible con PC, Smart TV, Android TV Box, consolas y más",
-    "Portátil, elegante y fácil de usar",
-    "Rueda de mouse integrada para navegación fluida",
-    "Control multimedia remoto específico",
-    "Diseño compacto y recargable"
-  ],
-  variantes: [
-    {
-      imagen: "/productospcu/miniteclado.png",
-      imagenes: [
-        "/productospcu/miniteclado.png",
-        "/productospcu/tminieclado-back.png"
-      ],
-      cantidad: 3
-    }
-  ]
-},
+      {
+        id: "acc1",
+        nombre: "Mini Teclado Inalámbrico con Touchpad",
+        precio: 24.99,
+        descripcion:
+          "Mini teclado inalámbrico con touchpad integrado, ideal para controlar tu PC, Smart TV o consola desde el sofá.",
+        imagen: "/productospcu/miniteclado.png",
+        imagenes: ["/productospcu/miniteclado.png"],
+        oferta: false,
+        estado: "Nuevo",
+        acerca: [
+          "Touchpad con función DPI ajustable",
+          "Compatible con PC, Smart TV, Android TV Box, consolas y más",
+          "Portátil, elegante y fácil de usar",
+          "Rueda de mouse integrada para navegación fluida",
+          "Control multimedia remoto específico",
+          "Diseño compacto y recargable",
+        ],
+        variantes: [
+          {
+            imagen: "/productospcu/miniteclado.png",
+            imagenes: [
+              "/productospcu/miniteclado.png",
+              "/productospcu/tminieclado-back.png",
+            ],
+            cantidad: 3,
+          },
+        ],
+      },
 
       {
         id: "tk2",
@@ -2960,8 +2960,7 @@ const productosAll = [
             imagen: "/productospcu/cristal-protector.png",
             imagenes: [
               "/productospcu/cristal-protector.png",
-              "/productospcu/cristal-protector-back.png"
-
+              "/productospcu/cristal-protector-back.png",
             ],
             cantidad: 4,
           },
@@ -2972,7 +2971,8 @@ const productosAll = [
         id: "sw4",
         nombre: "Cargador Doble para Switch Joy-Con & Pro Controller",
         precio: 24.99,
-        descripcion: "Base de carga para 2 Joy-Con y un Pro Controller al mismo tiempo.",
+        descripcion:
+          "Base de carga para 2 Joy-Con y un Pro Controller al mismo tiempo.",
         imagen: "/productospcu/cargador-controles.png",
         imagenes: ["/productospcu/cargador-controles.png"],
         oferta: false,
@@ -2982,16 +2982,16 @@ const productosAll = [
           "Diseño compacto y resistente",
           "Luz LED de estado de carga",
           "Compatible con Nintendo Switch",
-          "Fabricado por DOBE / FOMIS Electronics"
+          "Fabricado por DOBE / FOMIS Electronics",
         ],
         variantes: [
           {
             color: "Negro",
             imagen: "/productospcu/cargador-controles.png",
             imagenes: ["/productospcu/cargador-controles.png"],
-            cantidad: 5
-          }
-        ]
+            cantidad: 5,
+          },
+        ],
       },
 
       {
@@ -3017,14 +3017,12 @@ const productosAll = [
             imagen: "/productospcu/n-switcg.png",
             imagenes: [
               "/productospcu/n-switch.png",
-              "/productospcu/n-switch-back.png"
-
+              "/productospcu/n-switch-back.png",
             ],
             cantidad: 6,
           },
         ],
       },
-
     ],
   },
   {
@@ -3110,7 +3108,6 @@ const productosAll = [
   {
     categoria: "Controles",
     productos: [
-
       {
         id: "p5",
         nombre: "Controlador Inalámbrico para Nintendo Switch",
@@ -3161,7 +3158,6 @@ const productosAll = [
             imagenes: [
               "/productospcu/control-pro.png",
               "/productospcu/control-pro-back.png",
-
             ],
             cantidad: 1,
           },
@@ -3275,62 +3271,62 @@ const productosAll = [
       },
 
       {
-  id: "ps2ctrl1",
-  nombre: "Control Sony DualShock 2 para PS2",
-  precio: 29.99,
-  descripcion: "Control original con vibración dual y sticks analógicos, compatible con todas las consolas PlayStation 2.",
-  imagen: "/productospcu/dualshock2.png",
-  imagenes: ["/productospcu/dualshock2.png"],
-  oferta: false,
-  estado: "Usado",
-  acerca: [
-    "Fabricado por Sony para PlayStation 2",
-    "Vibración dual para una experiencia inmersiva",
-    "Dos sticks analógicos con alta precisión",
-    "Diseño ergonómico clásico",
-    "Compatible con todos los modelos de PS2",
-    "Cable de conexión robusto"
-  ],
-  variantes: [
-    {
-      color: "Negro",
-      imagen: "/productospcu/dualshock2.png",
-      imagenes: ["/productospcu/dualshock2.png"],
-      cantidad: 1
-    }
-  ]
-},
+        id: "ps2ctrl1",
+        nombre: "Control Sony DualShock 2 para PS2",
+        precio: 29.99,
+        descripcion:
+          "Control original con vibración dual y sticks analógicos, compatible con todas las consolas PlayStation 2.",
+        imagen: "/productospcu/dualshock2.png",
+        imagenes: ["/productospcu/dualshock2.png"],
+        oferta: false,
+        estado: "Usado",
+        acerca: [
+          "Fabricado por Sony para PlayStation 2",
+          "Vibración dual para una experiencia inmersiva",
+          "Dos sticks analógicos con alta precisión",
+          "Diseño ergonómico clásico",
+          "Compatible con todos los modelos de PS2",
+          "Cable de conexión robusto",
+        ],
+        variantes: [
+          {
+            color: "Negro",
+            imagen: "/productospcu/dualshock2.png",
+            imagenes: ["/productospcu/dualshock2.png"],
+            cantidad: 1,
+          },
+        ],
+      },
 
-{
-  id: "xone2",
-  nombre: "Control Inalámbrico Cosaux FM08 para Xbox",
-  precio: 34.99,
-  descripcion: "Gamepad inalámbrico estilo Xbox, ideal para juegos casuales en PC o consola. *Producto sin probar (untested)*.",
-  imagen: "/productospcu/controlxbox.png",
-  imagenes: ["/productospcu/controlxbox.png"],
-  oferta: true,
-  estado: "Nuevo",
-  acerca: [
-    "Diseño ergonómico tipo Xbox",
-    "Botones responsivos y joystick doble",
-    "Conectividad inalámbrica",
-    "Compatible con PC y algunas consolas",
-    "Ideal como control secundario",
-    "*Nota: producto sin probar (untested)*"
-  ],
-  variantes: [
-    {
-      color: "Negro",
-      imagen: "/productospcu/controlxbox.png",
-      imagenes: ["/productospcu/controlxbox.png"],
-      cantidad: 1
-    }
-  ]
-},
-
-
+      {
+        id: "xone2",
+        nombre: "Control Inalámbrico Cosaux FM08 para Xbox",
+        precio: 34.99,
+        descripcion:
+          "Gamepad inalámbrico estilo Xbox, ideal para juegos casuales en PC o consola. *Producto sin probar (untested)*.",
+        imagen: "/productospcu/controlxbox.png",
+        imagenes: ["/productospcu/controlxbox.png"],
+        oferta: true,
+        estado: "Nuevo",
+        acerca: [
+          "Diseño ergonómico tipo Xbox",
+          "Botones responsivos y joystick doble",
+          "Conectividad inalámbrica",
+          "Compatible con PC y algunas consolas",
+          "Ideal como control secundario",
+          "*Nota: producto sin probar (untested)*",
+        ],
+        variantes: [
+          {
+            color: "Negro",
+            imagen: "/productospcu/controlxbox.png",
+            imagenes: ["/productospcu/controlxbox.png"],
+            cantidad: 1,
+          },
+        ],
+      },
     ],
   },
 ];
 
-export default productosAll;
+export default productosAl;

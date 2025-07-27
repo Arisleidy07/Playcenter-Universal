@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import productosAll from "../data/ProductosAll";
+import productosAl from "../data/productosAl";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -20,7 +20,7 @@ function PaginaBusqueda() {
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
 
   // TODOS los productos
-  const todosLosProductos = productosAll.flatMap((cat) => cat.productos);
+  const todosLosProductos = productosAl.flatMap((cat) => cat.productos);
 
   // Búsqueda
   const queryParams = new URLSearchParams(location.search);
