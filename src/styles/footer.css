@@ -8,7 +8,7 @@
 }
 
 .footer-link:hover {
-  color: #00b4d8; /* azul turquesa tech */
+  color: #00b4d8;
   text-decoration: underline;
   transform: translateX(3px);
 }
@@ -28,20 +28,29 @@
 .footer {
   background-color: #0c0f16;
   color: white;
-  padding: 40px 20px 100px; /* más padding abajo para que no corte en móvil */
+  padding: 40px 20px 100px;
   text-align: center;
   position: relative;
   z-index: 1;
-  overflow: visible; /* cambiado de hidden a visible para que no corte */
+  overflow: visible;
 }
 
 .footer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  align-items: center;
-  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columnas en desktop */
+  gap: 2rem;
+  text-align: left;
+  padding: 0 10px;
   z-index: 20;
+}
+
+/* ✅ SOLO para pantallas pequeñas: 2 columnas */
+@media (max-width: 640px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+  }
 }
 
 .footer-info h2 {
@@ -96,4 +105,3 @@
   transform: scale(1.05);
   opacity: 0.9;
 }
-

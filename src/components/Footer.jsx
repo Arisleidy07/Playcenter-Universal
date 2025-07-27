@@ -6,7 +6,6 @@ function Footer() {
   return (
     <div className="block">
       <footer className="relative bg-black text-gray-300 px-6 py-12 sm:px-10 lg:px-16">
-
         {/* Estrellas móviles para fondo */}
         <div className="sm:hidden">
           {["box-of-star1", "box-of-star2", "box-of-star3", "box-of-star4"].map((box) => (
@@ -28,8 +27,7 @@ function Footer() {
         </div>
 
         {/* Contenido de columnas */}
-        <div className="relative z-20 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-sm">
-
+        <div className="footer-content">
           {/* Empresa + contacto */}
           <div className="text-center sm:text-left">
             <h3 className="text-white text-lg font-bold mb-4">Playcenter Universal</h3>
