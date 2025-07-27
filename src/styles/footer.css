@@ -1,9 +1,8 @@
-/* FOOTER */
+/* FOOTER STYLES EXTRA */
 
 .footer-link {
   color: #d1d5db;
   transition: all 0.3s ease;
-  font-size: 16px;
   font-weight: 500;
 }
 
@@ -36,21 +35,12 @@
 }
 
 .footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 columnas en desktop */
-  gap: 2rem;
-  text-align: left;
-  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+  position: relative;
   z-index: 20;
-}
-
-/* ✅ SOLO para pantallas pequeñas: 2 columnas */
-@media (max-width: 640px) {
-  .footer-content {
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
-  }
 }
 
 .footer-info h2 {
@@ -71,37 +61,25 @@
   justify-content: center;
 }
 
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  color: white;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  font-size: 14px;
-}
+@media screen and (max-width: 640px) {
+  .footer-link {
+    font-size: 12px;
+  }
 
-.btn svg {
-  font-size: 18px;
-}
+  .footer-socials h3 {
+    font-size: 16px;
+  }
 
-.btn.fb {
-  background-color: #1877f2;
-}
-.btn.ig {
-  background: linear-gradient(45deg, #feda75, #d62976, #962fbf);
-}
-.btn.tk {
-  background-color: #000;
-}
-.btn.yt {
-  background-color: #ff0000;
-}
+  .social-icon {
+    width: 48px;
+    height: 48px;
+  }
 
-.btn:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
+  .footer-info h2 {
+    font-size: 20px;
+  }
+
+  .footer p, .footer a {
+    font-size: 12px;
+  }
 }
