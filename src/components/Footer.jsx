@@ -22,13 +22,15 @@ function Footer() {
   const cerrarModal = () => setModalAbierto(false);
   const irLogin = () => {
     cerrarModal();
-    navigate("/login"); // Ajusta la ruta si tu login está en otra
+    navigate("/login");
   };
 
   return (
     <div className="footer-block">
       <footer className="footer futuristic-footer relative bg-black text-gray-300 py-12 text-sm sm:text-base">
         <div className="footer-bg-animated" />
+
+        {/* Logo */}
         <div className="w-full flex justify-center mb-10 relative z-20">
           <img
             src="/Playlogo.png"
@@ -37,8 +39,10 @@ function Footer() {
           />
         </div>
 
-        <div className="relative z-20 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 lg:px-8">
+        {/* Contenido del Footer */}
+        <div className="footer-cols-wrapper relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-center sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
+          {/* Columna 1: Info */}
           <div className="footer-col">
             <h3 className="footer-title-neon text-base sm:text-lg font-bold mb-3">Playcenter Universal</h3>
             <p>Tu universo de tecnología y gaming en Santiago, R.D.</p>
@@ -56,6 +60,7 @@ function Footer() {
             </p>
           </div>
 
+          {/* Columna 2: Navegación */}
           <div className="footer-col">
             <h3 className="footer-title-neon text-base sm:text-lg font-semibold mb-3">Navegación</h3>
             <ul className="space-y-2">
@@ -89,6 +94,7 @@ function Footer() {
             </ul>
           </div>
 
+          {/* Columna 3: Horario */}
           <div className="footer-col">
             <h3 className="footer-title-neon text-base sm:text-lg font-semibold mb-3">Horario</h3>
             <p>Lunes a Viernes: 8:30am - 5:30pm</p>
@@ -96,6 +102,7 @@ function Footer() {
             <p>Domingos: Cerrado</p>
           </div>
 
+          {/* Columna 4: Redes Sociales */}
           <div className="footer-col">
             <h3 className="footer-title-neon text-base sm:text-lg font-bold mb-3">Conéctate con nosotros</h3>
             <div className="grid grid-cols-2 gap-4 justify-items-center sm:justify-items-start">
@@ -124,10 +131,12 @@ function Footer() {
 
         </div>
 
+        {/* Copyright */}
         <p className="footer-copyright text-center text-gray-500 text-[11px] sm:text-xs mt-10 relative z-20">
           © {new Date().getFullYear()} Playcenter Universal. Todos los derechos reservados.
         </p>
 
+        {/* Modal login */}
         <ModalLoginAlert
           isOpen={modalAbierto}
           onClose={cerrarModal}
