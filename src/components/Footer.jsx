@@ -3,15 +3,17 @@ import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "./ModalLoginAlert";
 import { useNavigate } from "react-router-dom";
+import { useAuthModal } from "../context/AuthModalContext"; // <-- asegúrate de tener esto
 import "./../styles/footer.css";
 
 function Footer() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
+  const { abrirModal } = useAuthModal(); // <-- usamos esto para abrir el modal real
   const [modalAbierto, setModalAbierto] = useState(false);
 
   const handleClick = (e, ruta) => {
-    if (!usuario) {
+    if (!usuario && (ruta === "/carrito" || ruta === "/Profile")) {
       e.preventDefault();
       setModalAbierto(true);
     } else {
@@ -20,9 +22,10 @@ function Footer() {
   };
 
   const cerrarModal = () => setModalAbierto(false);
+
   const irLogin = () => {
     cerrarModal();
-    navigate("/login");
+    abrirModal(); // <-- ahora abre el AuthModal como en NavBarInferior
   };
 
   return (
@@ -131,7 +134,7 @@ function Footer() {
         <ModalLoginAlert
           isOpen={modalAbierto}
           onClose={cerrarModal}
-          onIniciarSesion={irLogin}
+          onIniciarSesion={irLogin} // <-- ahora llama abrirModal()
         />
       </footer>
     </div>
