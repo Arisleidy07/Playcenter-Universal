@@ -20,6 +20,7 @@
 /* Glow logo */
 .footer-logo-glow {
   filter: drop-shadow(0 0 22px #0ff) drop-shadow(0 0 8px #0939ff);
+  z-index: 2;
 }
 
 /* Columna básica */
@@ -30,7 +31,7 @@
   min-width: 0;
 }
 
-/* Línea vertical separadora */
+/* Línea vertical separadora (solo escritorio) */
 .footer-divider {
   display: none;
 }
@@ -49,22 +50,43 @@
   }
 }
 
-/* Titulo neon */
+/* Título neon */
 .footer-title-neon {
   font-family: 'Orbitron', 'Montserrat', sans-serif;
   color: #fff;
   text-shadow: 0 0 8px #0ff, 0 0 2px #0939ff;
   letter-spacing: 1.5px;
   font-weight: 700;
+  font-size: 1rem;
+}
+@media (min-width: 640px) {
+  .footer-title-neon {
+    font-size: 1.125rem;
+  }
 }
 
-/* Links neon */
+/* Lista de navegación vertical */
+.footer-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.footer-nav-list li {
+  width: 100%;
+}
 .footer-link-neon {
   font-family: 'Montserrat', sans-serif;
   color: #d1d5db;
   transition: color 0.3s, text-shadow 0.3s, font-weight 0.3s;
   font-weight: 500;
   text-shadow: 0 0 2px #0ff8, 0 0 1px #0939ff8c;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
 }
 .footer-link-neon:hover {
   color: #00fff7;
@@ -74,7 +96,7 @@
   text-decoration: underline;
 }
 
-/* Iconos sociales neon */
+/* Íconos sociales neon */
 .footer-social-icon-neon {
   box-shadow: 0 0 10px #00fff7, 0 0 4px #0939ff;
   transition: box-shadow 0.3s, transform 0.3s, filter 0.3s;
@@ -90,28 +112,43 @@
 .footer-copyright {
   text-shadow: 0 0 6px #00fff766, 0 0 2px #0939ff55;
   letter-spacing: 1px;
+  font-size: 0.75rem;
+}
+@media (min-width: 640px) {
+  .footer-copyright {
+    font-size: 0.875rem;
+  }
 }
 
-/* Responsive adjustments for mobile */
+/* 📱 Estilos responsivos para móvil */
 @media screen and (max-width: 640px) {
   .footer-col {
     padding: 0 6px;
     margin-bottom: 6px;
   }
+
   .footer-title-neon {
-    font-size: 15px;
+    font-size: 14px;
   }
+
   .footer-link-neon {
-    font-size: 12px;
+    font-size: 11px;
+    text-align: center;
   }
+
   .footer-social-icon-neon {
     width: 44px;
     height: 44px;
   }
-  .footer-divider {
-    display: none;
-  }
+
   .footer-copyright {
-    font-size: 11px;
+    font-size: 10px;
+  }
+
+  /* 🔧 Enlaces de navegación en dos columnas */
+  .footer-nav-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 12px;
   }
 }
