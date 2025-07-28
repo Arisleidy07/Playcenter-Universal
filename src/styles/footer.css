@@ -32,10 +32,7 @@
   min-width: 0;
 }
 
-/* Línea vertical separadora (solo escritorio) */
-.footer-divider {
-  display: none;
-}
+
 
 @media (min-width: 1024px) {
   .footer-divider {
@@ -107,6 +104,7 @@
   box-shadow: 0 0 10px #00fff7, 0 0 4px #0939ff;
   transition: box-shadow 0.3s, transform 0.3s, filter 0.3s;
   background: #0c0f16;
+  border-radius: 50%;
 }
 
 .footer-social-icon-neon:hover {
@@ -130,7 +128,7 @@
 
 /* 📱 Estilos Responsivos para Móvil (Max-width: 640px) */
 @media screen and (max-width: 640px) {
-  /* Agrupador de columnas (HTML debe tener esta clase en el contenedor) */
+  /* Contenedor principal de las columnas para el footer */
   .footer-cols-wrapper {
     display: flex;
     flex-wrap: wrap;
@@ -139,11 +137,12 @@
     gap: 10px 0;
   }
 
+  /* Cada columna ocupará la mitad del ancho para hacer dos columnas por fila */
   .footer-col {
     padding: 0 10px;
     margin-bottom: 15px;
     text-align: center;
-    width: 50%; /* Dos columnas */
+    width: 50%; /* Aquí está la clave para dos columnas en móvil */
     box-sizing: border-box;
   }
 
@@ -175,9 +174,7 @@
     margin: 0 6px;
   }
 
-  .footer-divider {
-    display: none !important;
-  }
+
 
   .footer-copyright {
     font-size: 0.68rem;
