@@ -129,6 +129,20 @@
 /* 📱 Estilos Responsivos para Móvil (Max-width: 640px) */
 @media screen and (max-width: 640px) {
   /* Reorganiza el grid en dos columnas reales */
+
+    /* Aumentamos tamaño y alineamos texto de los links en Navegación */
+  .footer-col:nth-child(2) .footer-link-neon {
+    font-size: 1.1rem;      /* Más grande que antes */
+    text-align: left;        /* Alineado a la izquierda, igual que la columna izquierda */
+    white-space: normal;     /* Para que los textos largos hagan wrap */
+  }
+
+  /* Aseguramos que la columna navegación también tenga texto alineado a la izquierda */
+  .footer-col:nth-child(2) {
+    text-align: left;
+    padding-left: 12px; /* Pequeño margen para que no quede pegado */
+  }
+
   .footer-cols-wrapper {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
