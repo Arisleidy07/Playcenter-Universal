@@ -59,7 +59,7 @@ function ProductosPage() {
   }, [productosOriginales, filtros]);
 
   const handleCategoriaChange = (nombre, ruta) => {
-    navigate(`/Productos/${ruta}`);
+    navigate(`/productos/${ruta}`);
     setFiltrosVisible(false);
     setMostrarCategorias(false);
   };
@@ -72,55 +72,51 @@ function ProductosPage() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-white pt-1">
-      {/* Sidebar categorías SOLO en escritorio grande */}
-      <aside className="hidden xl:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
+    <div className="flex flex-col min-h-screen bg-white pt-1 pb-[96px]">
+      <div className="flex-1 flex flex-col lg:flex-row w-full">
+        {/* Sidebar categorías SOLO en escritorio grande */}
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
           onCategoriaClick={handleCategoriaChange}
         />
-      </aside>
 
-      {/* Contenido principal */}
-      <main className="flex-1 p-0 lg:p-4 overflow-y-auto relative">
-        {/* Botones Categorías y Filtros en móvil y tablet */}
-        <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
-          <button
-            onClick={() => setMostrarCategorias(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-          >
-            📂 Categorías
-          </button>
-          <BotonFiltro onClick={() => setFiltrosVisible(true)} />
-        </div>
-
-        <h1 className="text-2xl font-semibold mb-4 text-blue-800 px-4 lg:px-0">
-          {categoriaActiva === "Todos"
-            ? "Todos los productos"
-            : categoriaActiva}
-        </h1>
-
-        {productosFiltrados.length === 0 ? (
-          <p className="text-center text-gray-600 mt-10">
-            No hay productos que coincidan con tus filtros.
-          </p>
-        ) : (
-          <div className="productos-grid px-4 lg:px-0">
-            {productosFiltrados.map((producto) => (
-              <TarjetaProducto key={producto.id} producto={producto} />
-            ))}
+        {/* Contenido principal */}
+        <main className="flex-1 p-0 lg:p-4 relative pb-32">
+          {/* Botones Categorías y Filtros en móvil y tablet */}
+          <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
+            <button
+              onClick={() => setMostrarCategorias(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+            >
+              📂 Categorías
+            </button>
+            <BotonFiltro onClick={() => setFiltrosVisible(true)} />
           </div>
-        )}
-      </main>
 
-      {/* Sidebar filtros SOLO en escritorio grande */}
-      <aside className="hidden xl:block w-64 border-l border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto px-4 py-4">
+          <h1 className="text-2xl font-semibold mb-4 text-blue-800 px-4 lg:px-0">
+            {categoriaActiva === "Todos" ? "Todos los productos" : categoriaActiva}
+          </h1>
+
+          {productosFiltrados.length === 0 ? (
+            <p className="text-center text-gray-600 mt-10">
+              No hay productos que coincidan con tus filtros.
+            </p>
+          ) : (
+            <div className="productos-grid px-4 lg:px-0">
+              {productosFiltrados.map((producto) => (
+                <TarjetaProducto key={producto.id} producto={producto} />
+              ))}
+            </div>
+          )}
+        </main>
+
+        {/* Sidebar filtros SOLO en escritorio grande */}
         <SidebarFiltros
           filtros={filtros}
           setFiltros={setFiltros}
           productosOriginales={productosOriginales}
         />
-      </aside>
+      </div>
 
       {/* Sidebar categorías SOLO en móvil/tablet (modal/drawer) */}
       {mostrarCategorias && (

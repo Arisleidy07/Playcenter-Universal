@@ -42,54 +42,8 @@ function Inicio() {
         <SliderAnunciosMovil />
       </motion.div>
 
-      {/* BANNERS GRANDES - SOLO COMPUTADORA */}
-      <section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
-        {[
-          {
-            to: "/Productos/retro-consolas",
-            src: "/ads/retro.png",
-            alt: "Retro Consolas",
-          },
-          {
-            to: "/Productos/camaras",
-            src: "/ads/camaras.png",
-            alt: "Cámaras",
-          },
-        ].map((banner, idx) => (
-          <motion.div
-            key={idx}
-            className="overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition h-[220px] sm:h-[300px] md:h-[400px] group"
-            whileHover={{ scale: 1.01 }}
-          >
-            <Link to={banner.to} className="block w-full h-full">
-              <img
-                src={banner.src}
-                alt={banner.alt}
-                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-400"
-              />
-            </Link>
-          </motion.div>
-        ))}
-      </section>
 
-      {/* BANNER ESTAFETAS - SOLO DESKTOP */}
-      <motion.div
-        className="hidden lg:block max-w-[1600px] mx-auto px-4 mt-10"
-        variants={fadeIn}
-        initial="hidden"
-        animate="visible"
-      >
-        <Link
-          to="/estafetas"
-          className="block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition"
-        >
-          <img
-            src="/ads/Nuestrasestafetas.png"
-            alt="Ver Nuestras Estafetas"
-            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </Link>
-      </motion.div>
+
 
       {/* BLOQUES CUADRADOS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1600px] mx-auto px-4 mt-14">
@@ -227,6 +181,58 @@ function Inicio() {
         ))}
       </section>
 
+                        {/* BANNER afisionados - SOLO DESKTOP */}
+<motion.div
+  className="hidden lg:block max-w-[1600px] mx-auto px-4 mt-10"
+  variants={fadeIn}
+  initial="hidden"
+  animate="visible"
+>
+  <Link
+    to="/Productos/coleccionables"
+    className="block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition"
+  >
+    <img
+      src="/ads/aficionados.png"
+      alt="Ver Nuestras colecciones"
+      className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
+    />
+  </Link>
+</motion.div>
+
+
+            {/* BANNERS GRANDES - SOLO COMPUTADORA */}
+      <section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
+        {[
+          {
+            to: "/Productos/retro-consolas",
+            src: "/ads/retro.png",
+            alt: "Retro Consolas",
+          },
+          {
+            to: "/Productos/camaras",
+            src: "/ads/camaras.png",
+            alt: "Cámaras",
+          },
+        ].map((banner, idx) => (
+          <motion.div
+            key={idx}
+            className="overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition h-[220px] sm:h-[300px] md:h-[400px] group"
+            whileHover={{ scale: 1.01 }}
+          >
+            <Link to={banner.to} className="block w-full h-full">
+              <img
+                src={banner.src}
+                alt={banner.alt}
+                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-400"
+              />
+            </Link>
+          </motion.div>
+        ))}
+      </section>
+
+
+
       {/* CATEGORÍAS DESTACADAS */}
       <motion.section
         className="max-w-[1600px] mx-auto mt-20 px-4"
@@ -290,6 +296,25 @@ function Inicio() {
           </div>
         </div>
       </motion.section>
+
+                  {/* BANNER ESTAFETAS - SOLO DESKTOP */}
+      <motion.div
+        className="hidden lg:block max-w-[1600px] mx-auto px-4 mt-10"
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
+        <Link
+          to="/estafetas"
+          className="block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition"
+        >
+          <img
+            src="/ads/ESTAFETAS.png"
+            alt="Ver Nuestras Estafetas"
+            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
+          />
+        </Link>
+      </motion.div>
 
       {/* GALERÍA DESTACADA DE PRODUCTOS */}
       <motion.section

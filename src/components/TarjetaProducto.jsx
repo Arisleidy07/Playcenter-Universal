@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaShoppingCart, FaTrash } from "react-icons/fa";
+import { FaShoppingCart, FaTrash, FaShareAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,8 @@ function TarjetaProducto({ producto }) {
   const navigate = useNavigate();
 
   const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const estaEnCarrito = carrito.some((p) => p.id === producto.id);
 
@@ -33,6 +35,26 @@ function TarjetaProducto({ producto }) {
     navigate(`/producto/${producto.id}`, { state: { producto } });
   };
 
+  // Compartir
+  const handleShare = (e) => {
+    e.stopPropagation();
+    if (navigator.share) {
+      navigator.share({
+        title: producto.nombre,
+        text: producto.descripcion || "",
+        url: window.location.origin + `/producto/${producto.id}`,
+      });
+    } else {
+      setShowShare(true);
+    }
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(window.location.origin + `/producto/${producto.id}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
+
   return (
     <>
       <div
@@ -42,12 +64,21 @@ function TarjetaProducto({ producto }) {
         {/* Móvil / Tableta: fila */}
         <div className="flex flex-row lg:flex-col items-center lg:items-start gap-4 w-full">
           {/* Imagen */}
-          <div className="flex-shrink-0 w-24 h-24 lg:w-full lg:h-48 flex items-center justify-center">
+          <div className="flex-shrink-0 w-24 h-24 lg:w-full lg:h-48 flex items-center justify-center relative">
             <img
               src={producto.imagen || producto.imagenes?.[0]}
               alt={producto.nombre}
               className="object-contain max-h-full"
             />
+            <button
+              className="absolute top-1 right-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-full p-2 shadow border border-yellow-300 transition z-10"
+              onClick={handleShare}
+              onMouseDown={e => e.stopPropagation()}
+              aria-label="Compartir"
+              type="button"
+            >
+              <FaShareAlt size={16} />
+            </button>
           </div>
 
           {/* Contenido */}
@@ -84,6 +115,44 @@ function TarjetaProducto({ producto }) {
           )}
         </button>
       </div>
+
+      {/* Modal compartir (solo si el navegador no soporta navigator.share) */}
+      {showShare && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/30 flex items-center justify-center"
+          onClick={() => setShowShare(false)}
+        >
+          <div
+            className="bg-white p-5 rounded-xl shadow-2xl w-[95vw] max-w-xs flex flex-col gap-4 relative border border-gray-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 text-gray-400 text-xl hover:text-red-400"
+              onClick={() => setShowShare(false)}
+              aria-label="Cerrar"
+            >×</button>
+            <h3 className="font-bold text-lg text-gray-900 mb-2 text-center">
+              Compartir producto
+            </h3>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(
+                `${producto.nombre} ${window.location.origin}/producto/${producto.id}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg font-semibold transition border border-green-100 justify-center"
+            >
+              WhatsApp
+            </a>
+            <button
+              className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-semibold transition border border-gray-200 justify-center"
+              onClick={handleCopy}
+            >
+              {copied ? "¡Copiado!" : "Copiar link"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <ModalLoginAlert
         isOpen={modalAlertaAbierto}

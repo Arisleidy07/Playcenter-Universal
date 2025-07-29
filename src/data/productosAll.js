@@ -264,6 +264,83 @@ const productosAll = [
       },
     ],
   },
+
+  {
+  categoria: "coleccionables",
+  productos: [
+    {
+      id: "dc1",
+      nombre: "Funko Pop - Mario Bros",
+      precio: 25.0,
+      descripcion: "Figura coleccionable de Mario Bros en versión Funko Pop.",
+      imagen: "/Productos/funkopop-mario.jpeg",
+      imagenes: ["/Productos/funkopop-mario.jpeg"],
+      oferta: false,
+      estado: "Nuevo",
+      acerca: [
+        "Edición limitada",
+        "Aproximadamente 10 cm de altura",
+        "Ideal para fanáticos de Nintendo",
+        "Caja con ventana para exhibir",
+      ],
+      variantes: [
+        {
+          color: "Rojo",
+          imagen: "/Productos/funkopop-mario.jpeg",
+          imagenes: ["/Productos/funkopop-mario.jpeg"],
+          cantidad: 10,
+        },
+      ],
+    },
+    {
+      id: "dc2",
+      nombre: "Figura Coleccionable Zelda Link",
+      precio: 45.0,
+      descripcion: "Figura detallada de Link de The Legend of Zelda para coleccionistas.",
+      imagen: "/Productos/figura-link.jpeg",
+      imagenes: ["/Productos/figura-link.jpeg"],
+      oferta: true,
+      estado: "Nuevo",
+      acerca: [
+        "Alta calidad y detalle",
+        "Material PVC resistente",
+        "Perfecto para exhibir en vitrinas",
+      ],
+      variantes: [
+        {
+          color: "Verde",
+          imagen: "/Productos/figura-link.jpeg",
+          imagenes: ["/Productos/figura-link.jpeg"],
+          cantidad: 5,
+        },
+      ],
+    },
+    {
+      id: "dc3",
+      nombre: "Cartucho Retro Pokémon Edición Coleccionista",
+      precio: 80.0,
+      descripcion: "Cartucho original de Pokémon para Game Boy, edición de colección.",
+      imagen: "/Productos/cartucho-pokemon.jpeg",
+      imagenes: ["/Productos/cartucho-pokemon.jpeg"],
+      oferta: false,
+      estado: "Usado",
+      acerca: [
+        "Cartucho original y funcional",
+        "Perfecto para fans y coleccionistas",
+        "Compatible con Game Boy y Game Boy Color",
+      ],
+      variantes: [
+        {
+          color: "N/A",
+          imagen: "/Productos/cartucho-pokemon.jpeg",
+          imagenes: ["/Productos/cartucho-pokemon.jpeg"],
+          cantidad: 2,
+        },
+      ],
+    },
+  ],
+},
+
   {
     categoria: "Audífonos",
     productos: [

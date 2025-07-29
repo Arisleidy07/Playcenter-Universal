@@ -1,6 +1,12 @@
 import React from "react";
 
 const anuncios = [
+    {
+    id: 1,
+    img: "/ads/movil/aficionados-movil.png",
+    link: "/Productos/coleccionables",
+    isExternal: false,
+  },
   {
     id: 1,
     img: "/ads/movil/articulosads.png",
@@ -33,7 +39,7 @@ const anuncios = [
   },
   {
     id: 5,
-    img: "/ads/movil/Productosads.png",
+    img: "/ads/movil/productosads.png",
     link: "/Productos",
     isExternal: false,
   },
