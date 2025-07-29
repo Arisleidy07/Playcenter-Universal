@@ -16,7 +16,6 @@ const Header = () => {
   const navigate = useNavigate();
   let lastScroll = 0;
 
-  // Cerrar sesión
   const manejarLogout = async () => {
     try {
       await logout();
@@ -27,7 +26,6 @@ const Header = () => {
     }
   };
 
-  // Cerrar dropdown al click fuera
   useEffect(() => {
     function handleClickFuera(event) {
       if (
@@ -42,14 +40,12 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
 
-  // Autofocus buscador al renderizar
   useEffect(() => {
     if (buscarInputRef.current) {
       buscarInputRef.current.focus();
     }
   }, []);
 
-  // Mostrar/ocultar barra de envíos al hacer scroll
   useEffect(() => {
     function handleScroll() {
       const currentScroll = window.pageYOffset;
@@ -79,10 +75,7 @@ const Header = () => {
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full gap-3">
           {/* Buscador solo móvil/tablet */}
-          <div
-            id="search-bar-container"
-            className="flex-grow max-w-full px-2 lg:hidden"
-          >
+          <div id="search-bar-container" className="flex-grow max-w-full px-2 lg:hidden">
             <SearchBar
               onClose={() => {}}
               ref={buscarInputRef}
@@ -126,6 +119,7 @@ const Header = () => {
               <Link to="/contacto" className="nav-link hover:text-[#4FC3F7] transition">Contáctanos</Link>
               <Link to="/estafetas" className="nav-link hover:text-[#4FC3F7] transition">Estafetas</Link>
               <Link to="/carrito" className="nav-link text-xl hover:scale-110 transition">🛒</Link>
+
               {usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (
                 <Link to="/admin" className="px-3 py-2 rounded bg-[#4FC3F7] text-white hover:bg-[#3BB0F3] shadow transition">
                   Panel Admin
@@ -199,6 +193,19 @@ const Header = () => {
           <span>Envíos a TODO RD</span>
         </div>
       )}
+
+{/* Botón admin en móvil, arriba del banner de envío */}
+{usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (
+  <div className="lg:hidden fixed top-[60px] right-4 z-[9999]">
+    <Link
+      to="/admin"
+      className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white px-4 py-2 rounded-full shadow-xl font-semibold text-sm"
+    >
+      Panel Admin
+    </Link>
+  </div>
+)}
+
 
       {/* Espaciador debajo del header */}
       <div className="h-[100px] sm:h-[70px]" />
