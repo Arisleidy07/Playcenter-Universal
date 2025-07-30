@@ -191,3 +191,11 @@ header, .header-container {
 img:hover {
   transform: scale(1.02);
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

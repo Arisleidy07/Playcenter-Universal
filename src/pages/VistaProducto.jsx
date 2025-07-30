@@ -7,7 +7,8 @@ import productosAll from "../data/productosAll";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
-import ProductosRelacionados from "../components/ProductosRelacionados";
+import ProductosRelacionados from '../components/ProductosRelacionados'
+
 
 function VistaProducto() {
   const { carrito, agregarAlCarrito, quitarDelCarrito } = useCarrito();
