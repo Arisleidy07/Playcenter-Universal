@@ -26,9 +26,8 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
   const scrollBy = (dir) => {
     const el = scrollRef.current;
     if (el && el.firstChild) {
-      // Ancho tarjeta + gap (gap: 24px = 6*4, ajusta según tu gap)
       const cardWidth = el.firstChild.offsetWidth;
-      const gap = 24; 
+      const gap = 24;
       const scrollAmount = dir * (cardWidth + gap);
       el.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
@@ -42,7 +41,6 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
         </h2>
 
         <div className="relative">
-          {/* Flecha izquierda */}
           <button
             className="absolute top-1/2 -left-6 z-10 -translate-y-1/2 bg-white border border-gray-300 rounded-full shadow-lg p-3 hover:bg-gray-100 transition"
             onClick={() => scrollBy(-1)}
@@ -51,7 +49,6 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
             <FaChevronLeft size={24} className="text-[#232f3e]" />
           </button>
 
-          {/* Lista de productos */}
           <div
             ref={scrollRef}
             className="flex gap-6 overflow-x-auto pb-4 px-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 scroll-smooth"
@@ -66,7 +63,7 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
                 <motion.div
                   key={rel.id}
                   whileHover={{ scale: 1.06, boxShadow: "0 8px 36px #00000022" }}
-                  className="flex flex-col min-w-[250px] max-w-[320px] w-[80vw] sm:w-[260px] md:w-[270px] lg:w-[280px] bg-white rounded-2xl border border-gray-200 overflow-hidden shadow transition cursor-pointer scroll-snap-align-start"
+                  className="flex flex-col min-w-[180px] max-w-[220px] w-[65vw] sm:min-w-[220px] sm:w-[220px] md:w-[250px] lg:w-[270px] bg-white rounded-xl border border-gray-200 overflow-hidden shadow transition cursor-pointer scroll-snap-align-start"
                   onClick={() =>
                     onProductoClick
                       ? onProductoClick(rel.id)
@@ -74,11 +71,11 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
                   }
                   style={{ scrollSnapAlign: "start" }}
                 >
-                  <div className="relative w-full h-[180px] bg-gray-50 flex items-center justify-center">
+                  <div className="relative w-full h-[140px] sm:h-[160px] bg-gray-50 flex items-center justify-center">
                     <img
                       src={rel.imagen || rel.imagenes?.[0]}
                       alt={rel.nombre}
-                      className="max-w-full max-h-[160px] object-contain"
+                      className="max-w-full max-h-[140px] sm:max-h-[160px] object-contain"
                     />
                   </div>
                   <div className="flex flex-col px-5 pt-3 pb-5">
@@ -104,7 +101,6 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
             )}
           </div>
 
-          {/* Flecha derecha */}
           <button
             className="absolute top-1/2 -right-6 z-10 -translate-y-1/2 bg-white border border-gray-300 rounded-full shadow-lg p-3 hover:bg-gray-100 transition"
             onClick={() => scrollBy(1)}
