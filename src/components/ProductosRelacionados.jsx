@@ -41,6 +41,7 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
         </h2>
 
         <div className="relative">
+          {/* Flecha izquierda */}
           <button
             className="absolute top-1/2 -left-6 z-10 -translate-y-1/2 bg-white border border-gray-300 rounded-full shadow-lg p-3 hover:bg-gray-100 transition"
             onClick={() => scrollBy(-1)}
@@ -49,6 +50,7 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
             <FaChevronLeft size={24} className="text-[#232f3e]" />
           </button>
 
+          {/* Contenedor scroll horizontal */}
           <div
             ref={scrollRef}
             className="flex gap-6 overflow-x-auto pb-4 px-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 scroll-smooth"
@@ -101,6 +103,7 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
             )}
           </div>
 
+          {/* Flecha derecha */}
           <button
             className="absolute top-1/2 -right-6 z-10 -translate-y-1/2 bg-white border border-gray-300 rounded-full shadow-lg p-3 hover:bg-gray-100 transition"
             onClick={() => scrollBy(1)}
