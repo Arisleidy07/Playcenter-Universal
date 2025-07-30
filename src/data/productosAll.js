@@ -2841,11 +2841,11 @@ const productosAll = [
           },
         ],
 
-  videoUrl: "https://tulinkalvideo.mp4",
+  videoUrl: "https://m.media-amazon.com/images/S/aplus-media/vc/b2a112c2-80a7-4c42-92ed-6fe806ac6b0f.mp4",
   imagenesExtra: [
-    "/Productos/producto-x-1.jpg",
-    "/Productos/producto-x-2.jpg",
-    "/Productos/producto-x-3.jpg"
+    "/Productos/ps4-control.jpeg",
+    "/Productos/ps4-controll.jpeg",
+    "/Productos/control-ps4.jpeg"
   ],
         oferta: true,
         estado: "Usado",

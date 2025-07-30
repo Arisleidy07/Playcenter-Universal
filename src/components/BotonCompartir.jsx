@@ -38,27 +38,30 @@ export default function BotonCompartir({ producto }) {
         aria-label="Compartir"
         type="button"
       >
-        <FaShareAlt /> 
+        <FaShareAlt />
       </button>
 
-      {/* Modal fallback si no hay Web Share API */}
       {showFallback && (
         <div
-          className="fixed inset-0 bg-black/30 z-[9999] flex items-center justify-center"
+          className="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center"
           onClick={() => setShowFallback(false)}
         >
           <div
-            className="bg-white p-5 rounded-xl shadow-2xl w-[95vw] max-w-xs flex flex-col gap-4 relative border border-gray-200"
-            onClick={e => e.stopPropagation()}
+            className="bg-white p-5 rounded-xl shadow-2xl w-[90vw] max-w-sm flex flex-col gap-4 relative border border-gray-200"
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               className="absolute top-2 right-2 text-gray-400 text-xl hover:text-red-400"
               onClick={() => setShowFallback(false)}
               aria-label="Cerrar"
-            >×</button>
+            >
+              ×
+            </button>
+
             <h3 className="font-bold text-lg text-gray-900 mb-2 text-center">
               Compartir producto
             </h3>
+
             <a
               href={`https://wa.me/?text=${encodeURIComponent(
                 `${producto.nombre} ${window.location.href}`
@@ -69,20 +72,25 @@ export default function BotonCompartir({ producto }) {
             >
               <FaWhatsapp /> WhatsApp
             </a>
+
             <a
-              href={`mailto:?subject=${encodeURIComponent(producto.nombre)}&body=${encodeURIComponent(window.location.href)}`}
+              href={`mailto:?subject=${encodeURIComponent(
+                producto.nombre
+              )}&body=${encodeURIComponent(window.location.href)}`}
               className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-semibold transition border border-gray-200 justify-center"
             >
               <FaEnvelope /> Correo
             </a>
+
             <button
               className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-semibold transition border border-gray-200 justify-center"
               onClick={handleCopy}
             >
               <FaLink /> {copied ? "¡Copiado!" : "Copiar link"}
             </button>
+
             <p className="text-xs text-gray-400 text-center mt-2">
-              * Para AirDrop/Telegram/Mensajes usa el botón compartir de tu navegador si aparece.
+              * Usa el botón nativo de tu navegador si quieres AirDrop, Telegram, Mensajes, etc.
             </p>
           </div>
         </div>

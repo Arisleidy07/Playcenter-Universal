@@ -8,6 +8,7 @@ import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
 import ProductosRelacionados from "../components/ProductosRelacionados";
+import BotonCompartir from "../components/BotonCompartir";
 
 function VistaProducto() {
   const { carrito, agregarAlCarrito, quitarDelCarrito } = useCarrito();
@@ -79,8 +80,9 @@ function VistaProducto() {
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center w-full lg:w-1/2"
+            className="flex flex-col items-center w-full lg:w-1/2 relative"
           >
+            <BotonCompartir producto={producto} />
             <GaleriaImagenes
               imagenes={
                 varianteActiva?.imagenes?.length
