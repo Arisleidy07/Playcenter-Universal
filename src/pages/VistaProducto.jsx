@@ -7,8 +7,7 @@ import productosAll from "../data/productosAll";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
-import ProductosRelacionados from '../components/ProductosRelacionados'
-
+import ProductosRelacionados from "../components/ProductosRelacionados";
 
 function VistaProducto() {
   const { carrito, agregarAlCarrito, quitarDelCarrito } = useCarrito();
@@ -18,7 +17,6 @@ function VistaProducto() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
 
-  // Encontrar producto y su categoría
   let producto = null;
   let categoriaActual = null;
   for (const categoria of productosAll) {
@@ -180,37 +178,36 @@ function VistaProducto() {
               </p>
             )}
 
-        <button
-          onClick={handleAgregarCarrito}
-          disabled={varianteActiva?.cantidad === 0}
-          className={`w-full inline-flex justify-center items-center gap-3 px-6 py-3 rounded-2xl shadow-lg transition-transform hover:scale-105 font-semibold text-lg ${
-            estaEnCarrito
-              ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-yellow-400 hover:bg-yellow-500 text-black"
-          } ${
-            varianteActiva?.cantidad === 0
-              ? "opacity-50 cursor-not-allowed"
-              : ""
-          }`}
-        >
-          <FaShoppingCart className="text-2xl" />
-          {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
-        </button>
+            <button
+              onClick={handleAgregarCarrito}
+              disabled={varianteActiva?.cantidad === 0}
+              className={`w-full inline-flex justify-center items-center gap-3 px-6 py-3 rounded-2xl shadow-lg transition-transform hover:scale-105 font-semibold text-lg ${
+                estaEnCarrito
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-yellow-400 hover:bg-yellow-500 text-black"
+              } ${
+                varianteActiva?.cantidad === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+            >
+              <FaShoppingCart className="text-2xl" />
+              {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
+            </button>
 
-        <a
-          href={mensajeWhatsApp}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full inline-flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:scale-105 transition text-lg"
-        >
-          <FaWhatsapp className="text-2xl" />
-          Escribir por WhatsApp
-        </a>
-
+            <a
+              href={mensajeWhatsApp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:scale-105 transition text-lg"
+            >
+              <FaWhatsapp className="text-2xl" />
+              Escribir por WhatsApp
+            </a>
           </div>
         </section>
 
-        {/* Productos relacionados justo abajo de las tres columnas */}
+        {/* Productos relacionados */}
         <div className="flex justify-center w-full bg-transparent mt-8">
           <div className="max-w-7xl w-full">
             <ProductosRelacionados
@@ -218,6 +215,34 @@ function VistaProducto() {
               productosPorCategoria={productosAll}
               onProductoClick={(id) => navigate(`/producto/${id}`)}
             />
+          </div>
+        </div>
+
+        {/* Sección combinada: Video + imágenes */}
+        <div className="max-w-7xl w-full mt-12 px-4 text-center">
+          <h2 className="text-2xl font-bold mb-6">Más Información del Producto</h2>
+
+          {producto.videoUrl ? (
+            <video
+              src={producto.videoUrl}
+              controls
+              className="w-full max-w-5xl max-h-[480px] mx-auto rounded-lg shadow-md mb-8"
+            />
+          ) : (
+            <p className="text-gray-600 italic mb-8">
+              Este producto aún no tiene video disponible.
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 justify-items-center">
+            {producto.imagenesExtra?.slice(0, 3).map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                alt={`Vista extra ${i + 1}`}
+                className="w-full max-w-[300px] h-48 object-cover rounded shadow-md"
+              />
+            ))}
           </div>
         </div>
       </main>

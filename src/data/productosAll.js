@@ -5,7 +5,7 @@ const productosAll = [
       {
         id: "rc1",
         nombre: "Nintendo Entertainment System (NES)",
-        precio: 120.0,
+        precio: 1200.0,
         descripcion: "La consola que marcó el inicio de una generación gamer.",
         imagen: "/Productos/nintendoentertainment.jpeg",
         imagenes: ["/Productos/nintendoentertainment.jpeg"],
@@ -25,6 +25,14 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "/videos/nintendo(NES).mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
+        
       },
       {
         id: "rc2",
@@ -49,7 +57,16 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
+
       {
         id: "rc3",
         nombre: "Sega Genesis",
@@ -72,7 +89,16 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
+
       {
         id: "rc4",
         nombre: "PlayStation 1",
@@ -95,11 +121,18 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "rc5",
         nombre: "Game Boy Classic",
-        precio: 90.0,
+        precio: 900,
         descripcion: "Pokémon Red en tu bolsillo.",
         imagen: "/Productos/gameboy.jpg",
         imagenes: ["/Productos/gameboy.jpg"],
@@ -118,7 +151,15 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
       {
         id: "rc6",
         nombre: "Atari 2600",
@@ -141,6 +182,13 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -169,6 +217,13 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "rj2",
@@ -192,7 +247,15 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
       {
         id: "rj3",
         nombre: "Donkey Kong Country (SNES)",
@@ -215,7 +278,15 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
       {
         id: "rj4",
         nombre: "Crash Bandicoot (PS1)",
@@ -238,7 +309,15 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
       {
         id: "rj5",
         nombre: "Final Fantasy VII (PS1)",
@@ -261,6 +340,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -291,7 +377,15 @@ const productosAll = [
           cantidad: 10,
         },
       ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
     },
+
     {
       id: "dc2",
       nombre: "Figura Coleccionable Zelda Link",
@@ -314,7 +408,15 @@ const productosAll = [
           cantidad: 5,
         },
       ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
     },
+
     {
       id: "dc3",
       nombre: "Cartucho Retro Pokémon Edición Coleccionista",
@@ -337,6 +439,13 @@ const productosAll = [
           cantidad: 2,
         },
       ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
     },
   ],
 },
@@ -374,6 +483,13 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -403,6 +519,13 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -430,6 +553,13 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -457,6 +587,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -483,6 +620,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -513,6 +657,13 @@ const productosAll = [
             cantidad: 10,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cb2",
@@ -537,6 +688,13 @@ const productosAll = [
             cantidad: 7,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cb3",
@@ -561,6 +719,13 @@ const productosAll = [
             cantidad: 8,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cb4",
@@ -585,6 +750,13 @@ const productosAll = [
             cantidad: 6,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cb5",
@@ -609,6 +781,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -638,6 +817,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -665,6 +851,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -714,6 +907,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "rv4",
@@ -738,6 +938,13 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "rv5",
@@ -762,6 +969,13 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "rv6",
@@ -786,6 +1000,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "rv7",
@@ -810,6 +1031,13 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "rv8",
@@ -834,7 +1062,15 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
       {
         id: "rv9",
         nombre: "Luz LED Recargable para Bicicleta",
@@ -858,7 +1094,15 @@ const productosAll = [
             cantidad: 6,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
     ],
   },
   {
@@ -888,7 +1132,15 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
       {
         id: "cam2",
         nombre: "Cámara Dahua Bullet Full HD",
@@ -913,6 +1165,13 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cam3",
@@ -938,7 +1197,15 @@ const productosAll = [
             cantidad: 6,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
+
       {
         id: "cam4",
         nombre: "Cámara TP-Link Tapo C200",
@@ -963,6 +1230,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -993,6 +1267,13 @@ const productosAll = [
             cantidad: 8,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cg2",
@@ -1018,6 +1299,13 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cg3",
@@ -1042,6 +1330,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cg4",
@@ -1066,6 +1361,13 @@ const productosAll = [
             cantidad: 9,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -1101,91 +1403,16 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "cl2",
-        nombre: "Samsung Galaxy S22",
-        precio: 899.99,
-        descripcion: "Cámara profesional en formato móvil.",
-        imagen: "/Productos/galaxy-s22.jpg",
-        imagenes: ["/Productos/galaxy-s22.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla Dynamic AMOLED 2X",
-          "Cámara triple 50MP",
-          "5G Ready",
-          "Carga rápida e inalámbrica",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/galaxy-s22.jpg",
-            imagenes: ["/Productos/galaxy-s22.jpg"],
-            cantidad: 2,
-          },
-          {
-            color: "Negro",
-            imagen: "/Productos/galaxy-s22.jpg",
-            imagenes: ["/Productos/galaxy-s22.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "cl3",
-        nombre: "Google Pixel 7",
-        precio: 799.99,
-        descripcion: "Inteligencia artificial integrada al sistema.",
-        imagen: "/Productos/pixel7.jpg",
-        imagenes: ["/Productos/pixel7.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla AMOLED 90Hz",
-          "Cámara dual con IA",
-          "Android puro actualizable",
-          "Batería de larga duración",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/pixel7.jpg",
-            imagenes: ["/Productos/pixel7.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
-      {
-        id: "cl4",
-        nombre: "Motorola Edge 30",
-        precio: 699.99,
-        descripcion: "Pantalla OLED, 144Hz y gran batería.",
-        imagen: "/Productos/moto-edge30.jpg",
-        imagenes: ["/Productos/moto-edge30.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla OLED 144Hz",
-          "Cámara triple 50MP",
-          "Batería 4020 mAh",
-          "Carga turbo power",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/moto-edge30.jpg",
-            imagenes: ["/Productos/moto-edge30.jpg"],
-            cantidad: 2,
-          },
-          {
-            color: "Azul",
-            imagen: "/Productos/moto-edge30.jpg",
-            imagenes: ["/Productos/moto-edge30.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
+
+
     ],
   },
   {
@@ -1214,6 +1441,13 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cs2",
@@ -1238,6 +1472,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cs3",
@@ -1262,31 +1503,55 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "cs4",
-        nombre: "Steam Deck",
-        precio: 399.99,
-        descripcion: "Gaming portátil con rendimiento de PC.",
-        imagen: "/Productos/steam-deck.jpg",
-        imagenes: ["/Productos/steam-deck.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          'Pantalla táctil 7"',
-          "Procesador AMD personalizado",
-          "Controles integrados",
-          "Compatible con juegos de PC",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/steam-deck.jpg",
-            imagenes: ["/Productos/steam-deck.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
+{
+  id: "cs4",
+  nombre: "Nintendo Switch™ with Neon Blue and Neon Red Joy‑Con™",
+  precio: 17000,
+  descripcion: "Consola híbrida para jugar en casa o donde quieras.",
+  imagen: "/Productos/NS.jpg",
+  imagenes: ["/Productos/NS.jpg"],
+  oferta: false,
+  estado: "Usado",
+  acerca: [
+    'Pantalla de 6.2"',
+    "Incluye dos Joy-Con™ (uno azul neón y uno rojo neón)",
+    "Modo TV, sobremesa y portátil",
+    "Compatible con todos los juegos de Nintendo Switch",
+  ],
+  variantes: [
+    {
+      color: "Neón Azul/Rojo",
+      imagen: "/Productos/NS.jpg",
+      imagenes: [
+        "/Productos/NS.jpg",
+        "/Productos/NSSS.jpg",
+        "/Productos/NSS.jpg",
+        "/Productos/NSSSS.jpg",
+        "/Productos/N.jpg",
+
+      ],
+      cantidad: 1,
+    },
+  ],
+
+  // 🔽 Estas son las dos nuevas propiedades 🔽
+  videoUrl: "https://m.media-amazon.com/images/S/aplus-media/vc/a96a8282-9831-458d-9da9-673d8ae2b542.mp4", // o link a tu video .mp4
+  imagenesExtra: [
+    "/Productos/NSS.jpg",
+    "/Productos/NSSSS.jpg",
+    "/Productos/N.jpg",
+  ]
+},
+
+
       {
         id: "cs5",
         nombre: "PlayStation 4",
@@ -1310,6 +1575,13 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "cs6",
@@ -1335,6 +1607,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -1365,6 +1644,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "dd2",
@@ -1389,6 +1675,13 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "dd3",
@@ -1413,6 +1706,14 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
+
       },
       {
         id: "dd4",
@@ -1437,6 +1738,13 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "dd5",
@@ -1461,6 +1769,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -1490,79 +1805,16 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "ed2",
-        nombre: "Microondas Samsung 1000W",
-        precio: 129.99,
-        descripcion: "Moderno, rápido y eficiente.",
-        imagen: "/Productos/microondas.jpg",
-        imagenes: ["/Productos/microondas.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Potencia de 1000W",
-          "Panel digital",
-          "Capacidad 23L",
-          "Función de descongelado",
-        ],
-        variantes: [
-          {
-            color: "Plateado",
-            imagen: "/Productos/microondas.jpg",
-            imagenes: ["/Productos/microondas.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "ed3",
-        nombre: "Robot aspiradora Xiaomi",
-        precio: 199.99,
-        descripcion: "Limpieza automática vía app.",
-        imagen: "/Productos/xiaomi-aspiradora.jpg",
-        imagenes: ["/Productos/xiaomi-aspiradora.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Control desde app móvil",
-          "Sensores inteligentes",
-          "Batería de larga duración",
-          "Filtro HEPA lavable",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/xiaomi-aspiradora.jpg",
-            imagenes: ["/Productos/xiaomi-aspiradora.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "ed4",
-        nombre: "Freidora de aire Philips",
-        precio: 159.99,
-        descripcion: "Cocina sin aceite y más saludable.",
-        imagen: "/Productos/freidora.jpg",
-        imagenes: ["/Productos/freidora.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Capacidad 4L",
-          "Tecnología Rapid Air",
-          "Fácil de limpiar",
-          "Control de temperatura",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/freidora.jpg",
-            imagenes: ["/Productos/freidora.jpg"],
-            cantidad: 3,
-          },
-        ],
-      },
+
+
     ],
   },
   {
@@ -1591,79 +1843,16 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "gc2",
-        nombre: "Silla Ergonómica con cojines ajustables",
-        precio: 199.99,
-        descripcion: "Reposacabeza ajustable y respaldo reforzado.",
-        imagen: "/Productos/silla-gamer-cojines.jpg",
-        imagenes: ["/Productos/silla-gamer-cojines.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Cojines de soporte lumbar y cervical",
-          "Reposacabeza ajustable",
-          "Respaldo con refuerzo",
-          "Material transpirable",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/silla-gamer-cojines.jpg",
-            imagenes: ["/Productos/silla-gamer-cojines.jpg"],
-            cantidad: 4,
-          },
-        ],
-      },
-      {
-        id: "gc3",
-        nombre: "Silla barata Gamer negra",
-        precio: 129.99,
-        descripcion: "Diseño básico pero funcional.",
-        imagen: "/Productos/silla-gamer-barata.jpg",
-        imagenes: ["/Productos/silla-gamer-barata.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Diseño básico y ergonómico",
-          "Material resistente",
-          "Altura ajustable",
-          "Ruedas de desplazamiento suave",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/silla-gamer-barata.jpg",
-            imagenes: ["/Productos/silla-gamer-barata.jpg"],
-            cantidad: 5,
-          },
-        ],
-      },
-      {
-        id: "gc4",
-        nombre: "Silla Gaming con reposapiés",
-        precio: 189.99,
-        descripcion: "Máxima comodidad en sesiones largas.",
-        imagen: "/Productos/silla-reposapies.jpg",
-        imagenes: ["/Productos/silla-reposapies.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Reposapiés extensible",
-          "Respaldo reclinable",
-          "Soporte lumbar",
-          "Material PU premium",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/silla-reposapies.jpg",
-            imagenes: ["/Productos/silla-reposapies.jpg"],
-            cantidad: 3,
-          },
-        ],
-      },
+
+
     ],
   },
   {
@@ -1692,79 +1881,15 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "lp2",
-        nombre: "MacBook Air M2",
-        precio: 1199.99,
-        descripcion: "Ligera, elegante y veloz.",
-        imagen: "/Productos/macbook-air-m2.jpg",
-        imagenes: ["/Productos/macbook-air-m2.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Chip Apple M2",
-          "Pantalla Retina 13.6''",
-          "Batería hasta 18h",
-          "Teclado Magic Keyboard",
-        ],
-        variantes: [
-          {
-            color: "Gris espacial",
-            imagen: "/Productos/macbook-air-m2.jpg",
-            imagenes: ["/Productos/macbook-air-m2.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "lp3",
-        nombre: "ASUS ROG Gamer",
-        precio: 1499.99,
-        descripcion: "Tarjeta gráfica potente y diseño agresivo.",
-        imagen: "/Productos/asus-rog.jpg",
-        imagenes: ["/Productos/asus-rog.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Tarjeta gráfica RTX Series",
-          "Pantalla 144Hz",
-          "Teclado RGB",
-          "Almacenamiento SSD 1TB",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/asus-rog.jpg",
-            imagenes: ["/Productos/asus-rog.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "lp4",
-        nombre: "Lenovo IdeaPad 3",
-        precio: 649.99,
-        descripcion: "Perfecta para estudiantes y oficina.",
-        imagen: "/Productos/ideapad.jpg",
-        imagenes: ["/Productos/ideapad.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Procesador AMD Ryzen 5",
-          "SSD 512GB",
-          "Pantalla 15.6''",
-          "Windows 11 Home",
-        ],
-        variantes: [
-          {
-            color: "Gris",
-            imagen: "/Productos/ideapad.jpg",
-            imagenes: ["/Productos/ideapad.jpg"],
-            cantidad: 4,
-          },
-        ],
-      },
+
     ],
   },
 
@@ -1794,79 +1919,16 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "mn2",
-        nombre: "Samsung Curvo 32 pulgadas",
-        precio: 349.99,
-        descripcion: "Inmersión completa con su forma curva.",
-        imagen: "/Productos/monitor-samsung-curvo.jpg",
-        imagenes: ["/Productos/monitor-samsung-curvo.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla curva 32''",
-          "Resolución Full HD",
-          "Frecuencia de actualización 75Hz",
-          "Tecnología Flicker Free",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/monitor-samsung-curvo.jpg",
-            imagenes: ["/Productos/monitor-samsung-curvo.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "mn3",
-        nombre: "Acer 24 pulgadas Full HD",
-        precio: 199.99,
-        descripcion: "Rápido y eficiente para tareas cotidianas.",
-        imagen: "/Productos/monitor-acer-24.jpg",
-        imagenes: ["/Productos/monitor-acer-24.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Resolución Full HD",
-          "Tamaño 24''",
-          "Panel IPS de 60Hz",
-          "Conectividad HDMI y VGA",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/monitor-acer-24.jpg",
-            imagenes: ["/Productos/monitor-acer-24.jpg"],
-            cantidad: 3,
-          },
-        ],
-      },
-      {
-        id: "mn4",
-        nombre: "Monitor BenQ 144Hz 27”",
-        precio: 289.99,
-        descripcion: "Ideal para eSports.",
-        imagen: "/Productos/monitor-benq.jpg",
-        imagenes: ["/Productos/monitor-benq.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Frecuencia de actualización 144Hz",
-          "Pantalla 27''",
-          "Tecnología Low Blue Light",
-          "Compatible con HDMI y DisplayPort",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/monitor-benq.jpg",
-            imagenes: ["/Productos/monitor-benq.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
+
+
     ],
   },
   {
@@ -1895,79 +1957,15 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "tb2",
-        nombre: "Samsung Galaxy Tab S8",
-        precio: 799.99,
-        descripcion: "Ligera, potente y con pantalla AMOLED.",
-        imagen: "/Productos/galaxy-tab-s8.jpg",
-        imagenes: ["/Productos/galaxy-tab-s8.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla AMOLED 11''",
-          "Procesador Snapdragon 8 Gen 1",
-          "Soporte S Pen incluido",
-          "Android 12",
-        ],
-        variantes: [
-          {
-            color: "Gris",
-            imagen: "/Productos/galaxy-tab-s8.jpg",
-            imagenes: ["/Productos/galaxy-tab-s8.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
-      {
-        id: "tb3",
-        nombre: "Amazon Fire HD 10",
-        precio: 149.99,
-        descripcion: "Ideal para lectura y video.",
-        imagen: "/Productos/fire-hd10.jpg",
-        imagenes: ["/Productos/fire-hd10.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla Full HD 10''",
-          "Procesador octa-core",
-          "Alexa integrada",
-          "Batería hasta 12 horas",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/fire-hd10.jpg",
-            imagenes: ["/Productos/fire-hd10.jpg"],
-            cantidad: 3,
-          },
-        ],
-      },
-      {
-        id: "tb4",
-        nombre: "Huawei MatePad 10.4",
-        precio: 299.99,
-        descripcion: "Diseño delgado y pantalla nítida.",
-        imagen: "/Productos/huawei-matepad.jpg",
-        imagenes: ["/Productos/huawei-matepad.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla IPS 10.4''",
-          "Procesador Kirin 820A",
-          "4GB RAM, 64GB almacenamiento",
-          "Batería 7250mAh",
-        ],
-        variantes: [
-          {
-            color: "Gris",
-            imagen: "/Productos/huawei-matepad.jpg",
-            imagenes: ["/Productos/huawei-matepad.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
+
     ],
   },
   {
@@ -2001,85 +1999,22 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
-      {
-        id: "tk2",
-        nombre: "Teclado mecánico RGB gaming",
-        precio: 79.99,
-        descripcion: "Iluminación personalizable y switches táctiles.",
-        imagen: "/Productos/teclado-gamer-rgb.jpg",
-        imagenes: ["/Productos/teclado-gamer-rgb.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Switches mecánicos",
-          "Iluminación RGB personalizable",
-          "Teclas anti-ghosting",
-          "Reposamuñecas desmontable",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/teclado-gamer-rgb.jpg",
-            imagenes: ["/Productos/teclado-gamer-rgb.jpg"],
-            cantidad: 4,
-          },
-        ],
-      },
-      {
-        id: "tk3",
-        nombre: "Teclado ergonómico dividido Microsoft",
-        precio: 59.99,
-        descripcion: "Diseño para largas sesiones de escritura.",
-        imagen: "/Productos/teclado-ergonomico.jpg",
-        imagenes: ["/Productos/teclado-ergonomico.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Diseño dividido ergonómico",
-          "Soporte para muñecas acolchado",
-          "Teclas multimedia",
-          "Compatible con Windows y Mac",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/teclado-ergonomico.jpg",
-            imagenes: ["/Productos/teclado-ergonomico.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
+
     ],
   },
   {
     categoria: "Videojuegos",
     productos: [
-      {
-        id: "vj1",
-        nombre: "FIFA 23",
-        precio: 59.99,
-        descripcion: "Fútbol con mejoras gráficas y físicas.",
-        imagen: "/Productos/fifa23.jpg",
-        imagenes: ["/Productos/fifa23.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Modo carrera y multijugador",
-          "Plantillas actualizadas",
-          "Compatible con PS5/PS4/Xbox/PC",
-          "Nuevas físicas de balón",
-        ],
-        variantes: [
-          {
-            color: "Azul",
-            imagen: "/Productos/fifa23.jpg",
-            imagenes: ["/Productos/fifa23.jpg"],
-            cantidad: 5,
-          },
-        ],
-      },
+
       {
         id: "vj3",
         nombre: "The Legend of Zelda: Breath of the Wild",
@@ -2103,31 +2038,15 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "vj4",
-        nombre: "Gran Turismo 7",
-        precio: 69.99,
-        descripcion: "Simulación de autos realista.",
-        imagen: "/Productos/gt7.jpg",
-        imagenes: ["/Productos/gt7.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Más de 400 autos",
-          "Modo online y offline",
-          "Compatible con PS5/PS4",
-          "Gráficos ultra realistas",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/gt7.jpg",
-            imagenes: ["/Productos/gt7.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
+
       {
         id: "vj5",
         nombre: "Marvel's Spider-Man: Miles Morales (PS5)",
@@ -2151,6 +2070,13 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "vj6",
@@ -2175,6 +2101,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "vj7",
@@ -2199,6 +2132,13 @@ const productosAll = [
             cantidad: 6,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -2229,55 +2169,15 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "tv2",
-        nombre: "LG OLED 65 pulgadas",
-        precio: 1199.99,
-        descripcion: "Negros profundos y colores realistas.",
-        imagen: "/Productos/lg-oled65.jpg",
-        imagenes: ["/Productos/lg-oled65.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla OLED 65''",
-          "Resolución 4K",
-          "Dolby Vision y Atmos",
-          "ThinQ AI integrado",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/lg-oled65.jpg",
-            imagenes: ["/Productos/lg-oled65.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "tv3",
-        nombre: 'Hisense 43" FHD Smart TV',
-        precio: 299.99,
-        descripcion: "Compacta y con acceso rápido a streaming.",
-        imagen: "/Productos/hisense-43.jpg",
-        imagenes: ["/Productos/hisense-43.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla Full HD 43''",
-          "Smart TV con apps populares",
-          "Control remoto incluido",
-          "Conectividad HDMI y USB",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/hisense-43.jpg",
-            imagenes: ["/Productos/hisense-43.jpg"],
-            cantidad: 4,
-          },
-        ],
-      },
+
     ],
   },
   {
@@ -2306,6 +2206,13 @@ const productosAll = [
             cantidad: 10,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "usb2",
@@ -2330,6 +2237,13 @@ const productosAll = [
             cantidad: 8,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "usb3",
@@ -2354,6 +2268,13 @@ const productosAll = [
             cantidad: 12,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "usb4",
@@ -2378,31 +2299,15 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "usb5",
-        nombre: "Patriot Supersonic Rage 2 128GB",
-        precio: 39.99,
-        descripcion: "Transferencia ultrarrápida hasta 400MB/s.",
-        imagen: "/Productos/patriot-rage2.jpg",
-        imagenes: ["/Productos/patriot-rage2.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Capacidad 128GB",
-          "USB 3.1",
-          "Velocidad de transferencia hasta 400MB/s",
-          "Carcasa resistente",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/patriot-rage2.jpg",
-            imagenes: ["/Productos/patriot-rage2.jpg"],
-            cantidad: 5,
-          },
-        ],
-      },
+
     ],
   },
   {
@@ -2431,248 +2336,15 @@ const productosAll = [
             cantidad: 8,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "hi2",
-        nombre: "Enchufe inteligente TP-Link",
-        precio: 21.99,
-        descripcion: "Enciende o apaga tus dispositivos remotamente.",
-        imagen: "/Productos/enchufe-inteligente.jpg",
-        imagenes: ["/Productos/enchufe-inteligente.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Control remoto vía app",
-          "Medición de consumo energético",
-          "Programación de horarios",
-          "Compatible con Alexa y Google",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/enchufe-inteligente.jpg",
-            imagenes: ["/Productos/enchufe-inteligente.jpg"],
-            cantidad: 6,
-          },
-        ],
-      },
-      {
-        id: "hi4",
-        nombre: "Sensor de movimiento Wi-Fi",
-        precio: 19.99,
-        descripcion: "Detecta presencia y envía alertas a tu celular.",
-        imagen: "/Productos/sensor-movimiento.jpg",
-        imagenes: ["/Productos/sensor-movimiento.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Conexión Wi-Fi",
-          "Alertas instantáneas",
-          "Compatible con app móvil",
-          "Fácil instalación",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/sensor-movimiento.jpg",
-            imagenes: ["/Productos/sensor-movimiento.jpg"],
-            cantidad: 7,
-          },
-        ],
-      },
-      {
-        id: "hi5",
-        nombre: "Interruptor de pared inteligente",
-        precio: 29.99,
-        descripcion: "Convierte cualquier luz convencional en smart.",
-        imagen: "/Productos/interruptor-inteligente.jpg",
-        imagenes: ["/Productos/interruptor-inteligente.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Control remoto y por voz",
-          "Compatible con Alexa y Google",
-          "Fácil de instalar",
-          "Permite programar horarios",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/interruptor-inteligente.jpg",
-            imagenes: ["/Productos/interruptor-inteligente.jpg"],
-            cantidad: 5,
-          },
-        ],
-      },
-      {
-        id: "hi6",
-        nombre: "Sensor de puertas y ventanas",
-        precio: 17.99,
-        descripcion: "Recibe notificaciones cuando se abren o cierran.",
-        imagen: "/Productos/sensor-puerta.jpg",
-        imagenes: ["/Productos/sensor-puerta.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Notificación instantánea",
-          "Funciona por Wi-Fi",
-          "Compatible con Alexa y Google",
-          "Batería de larga duración",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/sensor-puerta.jpg",
-            imagenes: ["/Productos/sensor-puerta.jpg"],
-            cantidad: 4,
-          },
-        ],
-      },
-      {
-        id: "hi7",
-        nombre: "Humidificador inteligente con luz LED",
-        precio: 34.99,
-        descripcion: "Conéctalo a Alexa o Google Assistant y relájate.",
-        imagen: "/Productos/humidificador-smart.jpg",
-        imagenes: ["/Productos/humidificador-smart.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Iluminación LED",
-          "Control por voz y app",
-          "Capacidad de 300ml",
-          "Apagado automático",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/humidificador-smart.jpg",
-            imagenes: ["/Productos/humidificador-smart.jpg"],
-            cantidad: 5,
-          },
-        ],
-      },
-      {
-        id: "hi8",
-        nombre: "Amazon Echo Dot 4ta Generación",
-        precio: 49.99,
-        descripcion: "Altavoz inteligente con Alexa integrado.",
-        imagen: "/Productos/echo-dot.jpg",
-        imagenes: ["/Productos/echo-dot.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Control por voz con Alexa",
-          "Altavoz de alta calidad",
-          "Conectividad Bluetooth y Wi-Fi",
-          "Diseño compacto",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/echo-dot.jpg",
-            imagenes: ["/Productos/echo-dot.jpg"],
-            cantidad: 7,
-          },
-        ],
-      },
-      {
-        id: "hi9",
-        nombre: "Amazon Echo Show 8",
-        precio: 89.99,
-        descripcion:
-          "Pantalla inteligente para videollamadas y control del hogar.",
-        imagen: "/Productos/echo-show-8.jpg",
-        imagenes: ["/Productos/echo-show-8.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Pantalla HD 8''",
-          "Videollamadas y mensajes",
-          "Control de hogar inteligente",
-          "Cámara integrada",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/echo-show-8.jpg",
-            imagenes: ["/Productos/echo-show-8.jpg"],
-            cantidad: 5,
-          },
-        ],
-      },
-      {
-        id: "hi10",
-        nombre: "Echo Auto",
-        precio: 49.99,
-        descripcion: "Alexa para tu vehículo con manos libres.",
-        imagen: "/Productos/echo-auto.jpg",
-        imagenes: ["/Productos/echo-auto.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Control de voz para automóvil",
-          "Conexión por Bluetooth y jack 3.5mm",
-          "Compatible con Alexa",
-          "Instalación sencilla",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/echo-auto.jpg",
-            imagenes: ["/Productos/echo-auto.jpg"],
-            cantidad: 4,
-          },
-        ],
-      },
-      {
-        id: "hi11",
-        nombre: "Smart Plug compatible con Alexa",
-        precio: 19.99,
-        descripcion: "Controla cualquier aparato con comandos de voz.",
-        imagen: "/Productos/smart-plug-alexa.jpg",
-        imagenes: ["/Productos/smart-plug-alexa.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Funciona con Alexa",
-          "Control remoto por app",
-          "Programación de horarios",
-          "Fácil de configurar",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/smart-plug-alexa.jpg",
-            imagenes: ["/Productos/smart-plug-alexa.jpg"],
-            cantidad: 9,
-          },
-        ],
-      },
-      {
-        id: "hi12",
-        nombre: "Control remoto infrarrojo inteligente",
-        precio: 23.99,
-        descripcion: "Control universal de TV, aire y más vía Alexa.",
-        imagen: "/Productos/ir-remote.jpg",
-        imagenes: ["/Productos/ir-remote.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Compatible con múltiples dispositivos",
-          "Control vía app y Alexa",
-          "Fácil configuración",
-          "Transmisión IR de largo alcance",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/ir-remote.jpg",
-            imagenes: ["/Productos/ir-remote.jpg"],
-            cantidad: 6,
-          },
-        ],
-      },
+
     ],
   },
 
@@ -2703,135 +2375,20 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "imp002",
-        nombre: "HP DeskJet 4155e All-in-One",
-        precio: 119.99,
-        descripcion:
-          "Impresión inalámbrica, escaneo y copia desde tu celular con la app HP Smart.",
-        imagen: "/Productos/hp-deskjet.jpg",
-        imagenes: ["/Productos/hp-deskjet.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Multifuncional: imprime, copia y escanea",
-          "Conectividad WiFi y USB",
-          "Compatible con app HP Smart",
-          "Cartuchos económicos",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/hp-deskjet.jpg",
-            imagenes: ["/Productos/hp-deskjet.jpg"],
-            cantidad: 3,
-          },
-        ],
-      },
-      {
-        id: "imp003",
-        nombre: "Brother HL-L2350DW Láser monocromática",
-        precio: 179.99,
-        descripcion:
-          "Impresora láser rápida y compacta con Wi-Fi y auto dúplex.",
-        imagen: "/Productos/brother-hl.jpg",
-        imagenes: ["/Productos/brother-hl.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Impresora láser monocromática",
-          "WiFi y USB",
-          "Impresión automática a doble cara",
-          "Alta velocidad de impresión",
-        ],
-        variantes: [
-          {
-            color: "Gris",
-            imagen: "/Productos/brother-hl.jpg",
-            imagenes: ["/Productos/brother-hl.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
-      {
-        id: "imp004",
-        nombre: "Canon PIXMA G5020",
-        precio: 199.99,
-        descripcion:
-          "Tanques de tinta integrados, gran rendimiento por página, ideal para impresión masiva.",
-        imagen: "/Productos/canon-pixma-g5020.jpg",
-        imagenes: ["/Productos/canon-pixma-g5020.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Sistema de tinta continua",
-          "WiFi y Ethernet",
-          "Alta capacidad de impresión",
-          "Impresión sin bordes",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/canon-pixma-g5020.jpg",
-            imagenes: ["/Productos/canon-pixma-g5020.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
+
     ],
   },
   {
     categoria: "Nuevos Lanzamientos",
     productos: [
-      {
-        id: "nl1",
-        nombre: "PlayStation Portal",
-        precio: 199.99,
-        descripcion: "Juego remoto de PS5 en tus manos.",
-        imagen: "/Productos/playstation-portal.jpg",
-        imagenes: ["/Productos/playstation-portal.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Pantalla LCD de 8''",
-          "Streaming remoto de juegos PS5",
-          "Controles integrados",
-          "Conectividad WiFi",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/playstation-portal.jpg",
-            imagenes: ["/Productos/playstation-portal.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
-      {
-        id: "nl2",
-        nombre: "Apple Vision Pro",
-        precio: 3499.0,
-        descripcion: "Revoluciona tu espacio con realidad mixta.",
-        imagen: "/Productos/vision-pro.jpg",
-        imagenes: ["/Productos/vision-pro.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Realidad aumentada y virtual",
-          "Pantalla micro-OLED 4K",
-          "Procesador Apple M2",
-          "Control por gestos y voz",
-        ],
-        variantes: [
-          {
-            color: "Gris",
-            imagen: "/Productos/vision-pro.jpg",
-            imagenes: ["/Productos/vision-pro.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
       {
         id: "nl3",
         nombre: "Nintendo Switch 2",
@@ -2855,60 +2412,23 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
+
+
+
   {
     categoria: "Ofertas Especiales",
     productos: [
-      {
-        id: "of1",
-        nombre: "Combo: PS5 + 2 juegos",
-        precio: 549.99,
-        descripcion: "Incluye Spider-Man y God of War.",
-        imagen: "/Productos/combo-ps5.jpg",
-        imagenes: ["/Productos/combo-ps5.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "PlayStation 5 edición estándar",
-          "Incluye Spider-Man y God of War",
-          "2 controles DualSense",
-          "Listo para jugar",
-        ],
-        variantes: [
-          {
-            color: "Blanco",
-            imagen: "/Productos/combo-ps5.jpg",
-            imagenes: ["/Productos/combo-ps5.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "of2",
-        nombre: "Combo gamer: Silla + Mousepad RGB",
-        precio: 279.99,
-        descripcion: "Estilo, comodidad y precisión.",
-        imagen: "/Productos/combo-gamer.jpg",
-        imagenes: ["/Productos/combo-gamer.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Silla gamer ergonómica",
-          "Mousepad con iluminación RGB",
-          "Ajuste de altura y respaldo",
-          "Superficie antideslizante",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/combo-gamer.jpg",
-            imagenes: ["/Productos/combo-gamer.jpg"],
-            cantidad: 3,
-          },
-        ],
-      },
+
       {
         id: "of3",
         nombre: "Oferta Smart TV + Soporte",
@@ -2932,9 +2452,18 @@ const productosAll = [
             cantidad: 2,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
+
+
   {
     categoria: "Relojes Inteligentes",
     productos: [
@@ -2961,55 +2490,15 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
-      {
-        id: "rl2",
-        nombre: "Samsung Galaxy Watch 6",
-        precio: 299.99,
-        descripcion: "Diseño elegante y duración de batería sólida.",
-        imagen: "/Productos/galaxy-watch6.jpg",
-        imagenes: ["/Productos/galaxy-watch6.jpg"],
-        oferta: true,
-        estado: "Nuevo",
-        acerca: [
-          "Pantalla AMOLED",
-          "GPS integrado",
-          "Monitor de sueño y ritmo cardíaco",
-          "Duración batería hasta 40h",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/galaxy-watch6.jpg",
-            imagenes: ["/Productos/galaxy-watch6.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "rl3",
-        nombre: "Xiaomi Watch S1 Active",
-        precio: 169.99,
-        descripcion: "Resistente al agua y con más de 100 modos deportivos.",
-        imagen: "/Productos/xiaomi-watch.jpg",
-        imagenes: ["/Productos/xiaomi-watch.jpg"],
-        oferta: false,
-        estado: "Nuevo",
-        acerca: [
-          "Más de 100 modos deportivos",
-          "Resistente al agua 5ATM",
-          "GPS y monitor de oxígeno",
-          "Pantalla AMOLED de 1.43''",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/xiaomi-watch.jpg",
-            imagenes: ["/Productos/xiaomi-watch.jpg"],
-            cantidad: 5,
-          },
-        ],
-      },
+
     ],
   },
   {
@@ -3042,6 +2531,13 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -3069,6 +2565,13 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -3099,6 +2602,13 @@ const productosAll = [
             cantidad: 6,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
@@ -3129,57 +2639,16 @@ const productosAll = [
             cantidad: 4,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
-      {
-        id: "m2",
-        nombre: "Mouse Inalámbrico Razer Basilisk X",
-        precio: 49.99,
-        descripcion: "Conectividad inalámbrica Bluetooth y 16,000 DPI.",
-        imagen: "/Productos/razer-basilisk-x.jpg",
-        imagenes: ["/Productos/razer-basilisk-x.jpg"],
-        oferta: false,
-        estado: "Usado",
-        acerca: [
-          "Conectividad Bluetooth y 2.4GHz",
-          "Sensor 16,000 DPI",
-          "Hasta 450 horas de batería",
-          "6 botones programables",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/razer-basilisk-x.jpg",
-            imagenes: ["/Productos/razer-basilisk-x.jpg"],
-            cantidad: 2,
-          },
-        ],
-      },
-      {
-        id: "m3",
-        nombre: "Mouse Corsair M65 RGB Elite",
-        precio: 59.99,
-        descripcion:
-          "Carcasa de aluminio y peso ajustable para máxima precisión.",
-        imagen: "/Productos/corsair-m65.jpg",
-        imagenes: ["/Productos/corsair-m65.jpg"],
-        oferta: true,
-        estado: "Usado",
-        acerca: [
-          "Carcasa de aluminio",
-          "Peso ajustable",
-          "Sensor óptico de alta precisión",
-          "Retroiluminación RGB",
-        ],
-        variantes: [
-          {
-            color: "Negro",
-            imagen: "/Productos/corsair-m65.jpg",
-            imagenes: ["/Productos/corsair-m65.jpg"],
-            cantidad: 1,
-          },
-        ],
-      },
+
     ],
   },
   {
@@ -3210,6 +2679,13 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -3239,6 +2715,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -3265,6 +2748,13 @@ const productosAll = [
             cantidad: 3,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -3291,6 +2781,13 @@ const productosAll = [
             cantidad: 5,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
       {
         id: "c5",
@@ -3343,6 +2840,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ],
         oferta: true,
         estado: "Usado",
       },
@@ -3373,6 +2877,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
 
       {
@@ -3401,6 +2912,13 @@ const productosAll = [
             cantidad: 1,
           },
         ],
+
+  videoUrl: "https://tulinkalvideo.mp4",
+  imagenesExtra: [
+    "/Productos/producto-x-1.jpg",
+    "/Productos/producto-x-2.jpg",
+    "/Productos/producto-x-3.jpg"
+  ]
       },
     ],
   },
