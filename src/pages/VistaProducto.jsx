@@ -242,7 +242,7 @@ function VistaProducto() {
                 key={i}
                 src={img}
                 alt={`Vista extra ${i + 1}`}
-                className="w-full max-w-[300px] h-48 object-cover rounded shadow-md"
+                className="w-full max-w-[300px] h-48 object-contain rounded shadow-md"
               />
             ))}
           </div>

@@ -1516,7 +1516,7 @@ const productosAll = [
           cantidad: 1,
         },
       ],
-      videoUrl: "https://m.media-amazon.com/images/S/aplus-media/vc/a96a8282-9831-458d-9da9-673d8ae2b542.mp4",
+      videoUrl: "",
       imagenesExtra: [
         "/Productos/NSS.jpg",
         "/Productos/NSSSS.jpg",
@@ -1585,6 +1585,81 @@ const productosAll = [
         "/Productos/producto-x-3.jpg",
       ],
     },
+    {
+  id: "cs7",
+  nombre: "Nintendo Wii U Edición Mario Kart 8 + Nintendo Land",
+  empresa: "Nintendo",
+  precio: 8499,
+  descripcion: "Consola Wii U de 32GB edición especial que incluye Mario Kart 8 y Nintendo Land.",
+  imagen: "/productospcu/mariokart-wiiu.webp",
+  imagenes: ["/productospcu/mariokart-wiiu.webp"],
+  oferta: true,
+  estado: "Usado",
+  acerca: [
+    "Incluye Mario Kart 8",
+    "Incluye Nintendo Land",
+    "Almacenamiento interno de 32GB",
+    "Compatible con controles Wii y Wii U Pro",
+    "Compatible con juegos de Wii",
+  ],
+  variantes: [
+    {
+      color: "Negro",
+      imagen: "/productospcu/mariokart-wiiu.webp",
+      imagenes: [
+        "/productospcu/mariokart-wiiu.webp",
+        "/productospcu/mariokart-consola-wiiu.webp",
+        "/productospcu/consolawiiu.webp",
+        "/productospcu/consola-wiiu.webp",
+        "/productospcu/juegomariokart.webp",
+        "/productospcu/cables-wiiu.webp",
+
+      ],
+      cantidad: 1,
+    },
+  ],
+  videoUrl: "/videos/",
+  imagenesExtra: [
+    "/productospcu/mariokart-consola-wiiu.webp",
+    "/productospcu/consola-wiiu.webp",
+    "/productospcu/juegomariokart.webp",
+  ],
+},
+{
+  id: "cs8",
+  nombre: "Nintendo Wii + Wii Sports + Wii Sports Resort",
+  empresa: "Nintendo",
+  precio: 5999,
+  descripcion: "Consola Wii clásica con juegos Wii Sports, Wii Sports Resort y accesorio Motion Plus.",
+  imagen: "/productospcu/wii-black.webp",
+  imagenes: ["/productospcu/wii-black.webp"],
+  oferta: true,
+  estado: "Usado",
+  acerca: [
+    "Incluye Wii Motion Plus",
+    "Compatible con juegos y accesorios clásicos de Wii",
+    "Ideal para juegos familiares y de movimiento",
+  ],
+  variantes: [
+    {
+      color: "Blanco",
+      imagen: "/productospcu/wii-black.webp",
+      imagenes: [
+        "/productospcu/wii-black.webp",
+        "/productospcu/wii-console.jpg",
+        "/productospcu/wiii-pack.png",
+        
+      ],
+      cantidad: 1,
+    },
+  ],
+  videoUrl: "/videos/",
+  imagenesExtra: [
+        "/productospcu/wii-black.webp",
+        "/productospcu/wii-console.jpg",
+        "/productospcu/wiii-pack.png",
+  ],
+},
   ],
 },
 
@@ -2810,12 +2885,11 @@ const productosAll = [
           cantidad: 1,
         },
       ],
-      videoUrl:
-        "https://m.media-amazon.com/images/S/aplus-media/vc/b2a112c2-80a7-4c42-92ed-6fe806ac6b0f.mp4",
+      videoUrl:"",
       imagenesExtra: [
-        "/Productos/ps4-control.jpeg",
-        "/Productos/ps4-controll.jpeg",
-        "/Productos/control-ps4.jpeg",
+        "/Productos/",
+        "/Productos/",
+        "/Productos/",
       ],
       oferta: true,
       estado: "Nuevo",

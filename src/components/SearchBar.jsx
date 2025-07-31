@@ -2,7 +2,7 @@
     import { useNavigate } from "react-router-dom";
 
     const SearchBar = forwardRef(
-    ({ onClose, placeholder = "Buscar en Playcenter.do" }, ref) => {
+    ({ onClose, placeholder = "Buscar en pcu.com.do" }, ref) => {
         const [busqueda, setBusqueda] = useState("");
         const navigate = useNavigate();
 
