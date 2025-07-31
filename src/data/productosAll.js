@@ -2818,7 +2818,7 @@ const productosAll = [
         "/Productos/control-ps4.jpeg",
       ],
       oferta: true,
-      estado: "Usado",
+      estado: "Nuevo",
     },
 
     {
@@ -2831,7 +2831,7 @@ const productosAll = [
       imagen: "/productospcu/dualshock2.png",
       imagenes: ["/productospcu/dualshock2.png"],
       oferta: false,
-      estado: "Usado",
+      estado: "Nuevo",
       acerca: [
         "Fabricado por Sony para PlayStation 2",
         "Vibración dual para una experiencia inmersiva",
