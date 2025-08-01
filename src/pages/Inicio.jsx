@@ -20,6 +20,20 @@ const fadeIn = {
 function Inicio() {
   return (
     <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen">
+      
+      {/* VIDEO SOLO EN DESKTOP */}
+      <div className="hidden sm:block w-full">
+        <video
+          src="/videos/pcu-intro.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-auto object-cover"
+          style={{ marginTop: '0px' }}
+        />
+      </div>
+
       {/* SLIDER SOLO DESKTOP */}
       <motion.div
         className="hidden sm:block w-full max-w-[1600px] mx-auto px-4"
