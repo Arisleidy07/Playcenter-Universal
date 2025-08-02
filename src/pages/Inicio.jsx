@@ -141,22 +141,22 @@ function Inicio() {
             links: [
               {
                 to: "/producto/rj3",
-                img: "/Productos/donkeykongnretro.jpeg",
+                img: "/Productos/dk.jpg",
                 alt: "Donkey Kong Country",
               },
               {
                 to: "/producto/rj4",
-                img: "/Productos/crash-bandicoat-PS1.webp",
+                img: "/Productos/crash-retro.png",
                 alt: "Crash Bandicoot PS1",
               },
               {
                 to: "/producto/rj1",
-                img: "/Productos/mariobrosretro.jpg",
+                img: "/Productos/mario-bros-.png",
                 alt: "Super Mario Bros NES",
               },
               {
                 to: "/producto/rj2",
-                img: "/Productos/zeldaretro.jpg",
+                img: "/Productos/legen-of-zelda.png",
                 alt: "Zelda NES",
               },
             ],

@@ -196,8 +196,8 @@ const productosAll = [
       empresa: "Nintendo",
       precio: 35.0,
       descripcion: "El juego más icónico de plataformas 2D.",
-      imagen: "/Productos/mariobrosretro.jpg",
-      imagenes: ["/Productos/mariobrosretro.jpg"],
+      imagen: "/Productos/mario-bros-.png",
+      imagenes: ["/Productos/mario-bros-.png"],
       oferta: true,
       estado: "Nuevo",
       acerca: [
@@ -208,8 +208,8 @@ const productosAll = [
       variantes: [
         {
           color: "Rojo",
-          imagen: "/Productos/mariobrosretro.jpg",
-          imagenes: ["/Productos/mariobrosretro.jpg"],
+          imagen: "/Productos/mario-bros-.png",
+          imagenes: ["/Productos/mario-bros-.png"],
           cantidad: 2,
         },
       ],
@@ -226,8 +226,8 @@ const productosAll = [
       empresa: "Nintendo",
       precio: 40.0,
       descripcion: "Explora Hyrule en 8 bits.",
-      imagen: "/Productos/zeldaretro.jpg",
-      imagenes: ["/Productos/zeldaretro.jpg"],
+      imagen: "/Productos/legen-of-zelda.png",
+      imagenes: ["/Productos/legen-of-zelda.png"],
       oferta: false,
       estado: "Nuevo",
       acerca: [
@@ -238,8 +238,8 @@ const productosAll = [
       variantes: [
         {
           color: "Dorado",
-          imagen: "/Productos/zeldaretro.jpg",
-          imagenes: ["/Productos/zeldaretro.jpg"],
+          imagen: "/Productos/legen-of-zelda.png",
+          imagenes: ["/Productos/legen-of-zelda.png"],
           cantidad: 1,
         },
       ],
@@ -256,8 +256,8 @@ const productosAll = [
       empresa: "Nintendo",
       precio: 42.0,
       descripcion: "Gráficos renderizados pioneros.",
-      imagen: "/Productos/donkeykongnretro.jpeg",
-      imagenes: ["/Productos/donkeykongnretro.jpeg"],
+      imagen: "/Productos/dk.jpg",
+      imagenes: ["/Productos/dk.jpg"],
       oferta: true,
       estado: "Nuevo",
       acerca: [
@@ -268,8 +268,8 @@ const productosAll = [
       variantes: [
         {
           color: "Verde",
-          imagen: "/Productos/donkeykongnretro.jpeg",
-          imagenes: ["/Productos/donkeykongnretro.jpeg"],
+          imagen: "/Productos/dk.jpg",
+          imagenes: ["/Productos/dk.jpg"],
           cantidad: 2,
         },
       ],
@@ -286,8 +286,8 @@ const productosAll = [
       empresa: "PlayStation",
       precio: 38.0,
       descripcion: "Aventura en 3D de culto.",
-      imagen: "/Productos/crash-bandicoat-PS1.webp",
-      imagenes: ["/Productos/crash-bandicoat-PS1.webp"],
+      imagen: "/Productos/crash-retro.png",
+      imagenes: ["/Productos/crash-retro.png"],
       oferta: true,
       estado: "Nuevo",
       acerca: [
@@ -298,8 +298,8 @@ const productosAll = [
       variantes: [
         {
           color: "Naranja",
-          imagen: "/Productos/crash-bandicoat-PS1.webp",
-          imagenes: ["/Productos/crash-bandicoat-PS1.webp"],
+          imagen: "/Productos/crash-retro.png",
+          imagenes: ["/Productos/crash-retro.png"],
           cantidad: 1,
         },
       ],
