@@ -1,9 +1,9 @@
 .wave-background {
   position: absolute;
-  inset: 0; /* top:0; right:0; bottom:0; left:0 */
-  overflow: hidden;
+  inset: 0;
+  overflow: visible;
   z-index: 0;
-  pointer-events: none; /* para no interferir con clicks */
+  pointer-events: none;
 }
 
 .wave {
@@ -12,27 +12,33 @@
   height: 700px;
   border-radius: 40%;
   opacity: 0.15;
-  background: linear-gradient(744deg, #55a0fb, #04eaff 60%, #060afd);
-  top: -70%;
+  background: linear-gradient(744deg, #55a0fb, #04eaff 60%, #494cff);
   left: 50%;
-  margin-left: -270px; /* centrar horizontal */
+  margin-left: -270px;
   animation: wave 55s linear infinite;
 }
 
 .wave1 {
+  top: -80%;       /* arriba */
   animation-duration: 20s;
   opacity: 0.15;
 }
 
 .wave2 {
-  top: 210px;
-  animation-duration: 20s;
+  top: 20px;       /* arriba medio */
+  animation-duration: 23s;
   opacity: 0.12;
 }
 
 .wave3 {
-  top: 210px;
-  animation-duration: 25s;
+  top: 180px;      /* medio */
+  animation-duration: 27s;
+  opacity: 0.1;
+}
+
+.wave4 {
+  top: 350px;      /* abajo */
+  animation-duration: 30s;
   opacity: 0.1;
 }
 

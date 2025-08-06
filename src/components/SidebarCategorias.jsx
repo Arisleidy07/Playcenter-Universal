@@ -39,21 +39,21 @@ const buttonVariants = {
   initial: { scale: 1, boxShadow: "none" },
   hover: {
     scale: 1.04,
-    boxShadow: "0 4px 8px rgba(60, 80, 120, 0.3)",
+    boxShadow: "0 4px 8px rgba(60, 80, 120, 0.2)",
     transition: { type: "spring", stiffness: 200, damping: 20 },
   },
   tap: {
     scale: 0.97,
-    boxShadow: "0 0 6px rgba(60, 80, 120, 0.5)",
+    boxShadow: "0 0 4px rgba(60, 80, 120, 0.4)",
   },
 };
 
 const titleVariants = {
   animate: {
     textShadow: [
-      "0 0 4px rgba(80, 100, 140, 0.6)",
-      "0 0 10px rgba(80, 100, 140, 0.9)",
-      "0 0 4px rgba(80, 100, 140, 0.6)",
+      "0 0 4px rgba(80, 100, 140, 0.4)",
+      "0 0 10px rgba(80, 100, 140, 0.6)",
+      "0 0 4px rgba(80, 100, 140, 0.4)",
     ],
     transition: {
       repeat: Infinity,
@@ -78,34 +78,35 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
     <>
       {/* DESKTOP */}
       <aside
-        className="hidden lg:block w-56 flex-shrink-0 px-3 py-4 relative z-40"
+        className="hidden lg:flex flex-col w-56 px-2 relative z-40"
         style={{
-          height: "calc(100vh - 76px)",
-          overflow: "hidden",
+          height: "100vh",
           backgroundColor: "transparent",
           border: "none",
           boxShadow: "none",
         }}
         aria-label="Categorías"
       >
-        {/* Fondo extendido */}
+        {/* Fondo animado */}
         <div
-          className="absolute inset-0 z-0 overflow-hidden"
-          style={{ minHeight: "2000px", backgroundColor: "transparent" }}
+          className="absolute inset-0 z-0"
+          style={{
+            overflow: "visible",
+            minHeight: "2000px",
+            backgroundColor: "transparent",
+            pointerEvents: "none",
+          }}
         >
           <WaveBackground />
         </div>
 
-        {/* Contenedor scrollable sin fondo ni borde */}
+        {/* Lista scrollable */}
         <div
-          className="scrollbar-light relative z-10"
+          className="scrollbar-light relative z-10 flex-1"
           style={{
-            height: "100%",
             overflowY: "auto",
-            paddingRight: "0.5rem",
             backgroundColor: "transparent",
-            border: "none",
-            boxShadow: "none",
+            paddingRight: "0.25rem",
           }}
         >
           <motion.h2
@@ -126,13 +127,10 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
                   variants={buttonVariants}
                   className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
                     isActiva(cat.nombre)
-                      ? "bg-blue-200 text-blue-900"
+                      ? "bg-blue-100 text-blue-900 font-semibold"
                       : "bg-transparent text-blue-700 hover:bg-blue-100"
                   }`}
-                  style={{
-                    border: "none",
-                    boxShadow: "none",
-                  }}
+                  style={{ border: "none", boxShadow: "none" }}
                 >
                   {cat.nombre}
                 </motion.button>
@@ -142,7 +140,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
         </div>
       </aside>
 
-      {/* MOBILE DRAWER */}
+      {/* MOBILE */}
       <AnimatePresence>
         {mostrarEnMovil && (
           <>
@@ -185,13 +183,10 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
                         variants={buttonVariants}
                         className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
                           isActiva(cat.nombre)
-                            ? "bg-blue-200 text-blue-900 shadow-md"
+                            ? "bg-blue-100 text-blue-900 font-semibold"
                             : "bg-transparent text-blue-700 hover:bg-blue-100"
                         }`}
-                        style={{
-                          border: "none",
-                          boxShadow: "none",
-                        }}
+                        style={{ border: "none", boxShadow: "none" }}
                       >
                         {cat.nombre}
                       </motion.button>

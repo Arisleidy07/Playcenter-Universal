@@ -62,7 +62,6 @@ function ProductosPage() {
     });
   }, [productosOriginales, filtros, filtroEmpresa]);
 
-  // Cambio de categoría (desktop y móvil)
   const handleCategoriaChange = (nombre, ruta) => {
     navigate(`/productos/${ruta}`);
     setFiltrosVisible(false);
@@ -87,7 +86,6 @@ function ProductosPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pt-1 pb-[96px]">
       <div className="flex-1 flex flex-col lg:flex-row w-full">
-        {/* Sidebar de categorías (desktop) */}
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
           onCategoriaClick={handleCategoriaChange}
@@ -95,7 +93,6 @@ function ProductosPage() {
         />
 
         <main className="flex-1 p-0 lg:p-4 relative pb-32">
-          {/* Botones móviles: categorías y filtros */}
           <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
             <button
               onClick={() => setMostrarCategorias(true)}
@@ -106,25 +103,23 @@ function ProductosPage() {
             <BotonFiltro onClick={() => setFiltrosVisible(true)} />
           </div>
 
-          {/* Título animado */}
           <div className="px-4 lg:px-0 mb-6 animate-fadeIn">
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-gradient bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 text-transparent bg-clip-text drop-shadow-md">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-gradient bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 text-transparent bg-clip-text drop-shadow-md">
               {categoriaActiva === "Todos" ? "Todos los productos" : categoriaActiva}
             </h1>
             {categoriaActiva !== "Todos" && (
-              <p className="text-gray-500 text-lg mt-2">
+              <p className="text-gray-500 text-base sm:text-lg mt-2">
                 Encuentra lo mejor en <span className="font-semibold text-blue-700">{categoriaActiva}</span>
               </p>
             )}
           </div>
 
-          {/* Filtro por empresa */}
-          <div className="flex flex-wrap gap-5 px-4 lg:px-0 mb-10">
+          <div className="flex flex-wrap gap-4 sm:gap-5 px-4 lg:px-0 mb-10 justify-center sm:justify-start">
             {logosEmpresa.map((empresa) => (
               <button
                 key={empresa.nombre}
                 onClick={() => setFiltroEmpresa(empresa.nombre)}
-                className={`group relative w-20 h-20 rounded-full bg-white border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
+                className={`group relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
                   filtroEmpresa === empresa.nombre
                     ? "border-blue-700 ring-4 ring-offset-2 ring-blue-500 animate-spin-slow"
                     : "border-gray-300 hover:border-blue-400"
@@ -134,7 +129,7 @@ function ProductosPage() {
                 <img
                   src={empresa.imagen}
                   alt={empresa.nombre}
-                  className="w-10 h-10 object-contain z-10"
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain z-10"
                 />
                 {filtroEmpresa === empresa.nombre && (
                   <span className="absolute inset-0 rounded-full border-4 border-blue-500 animate-pulse z-0"></span>
@@ -144,14 +139,13 @@ function ProductosPage() {
 
             <button
               onClick={() => setFiltroEmpresa("")}
-              className="w-20 h-20 rounded-full border-4 flex items-center justify-center text-xl font-bold bg-gradient-to-br from-red-100 to-red-300 text-red-700 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 flex items-center justify-center text-lg sm:text-xl font-bold bg-gradient-to-br from-red-100 to-red-300 text-red-700 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
               title="Quitar filtro"
             >
               ❌
             </button>
           </div>
 
-          {/* Productos */}
           {productosFiltrados.length === 0 ? (
             <p className="text-center text-gray-600 mt-10">
               No hay productos que coincidan con tus filtros.
@@ -165,7 +159,6 @@ function ProductosPage() {
           )}
         </main>
 
-        {/* Sidebar filtros (desktop) */}
         <SidebarFiltros
           filtros={filtros}
           setFiltros={setFiltros}
@@ -174,7 +167,6 @@ function ProductosPage() {
         />
       </div>
 
-      {/* Sidebar categorías (solo móvil) */}
       {mostrarCategorias && (
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
@@ -185,7 +177,6 @@ function ProductosPage() {
         />
       )}
 
-      {/* Drawer de filtros (móvil) */}
       <div className="xl:hidden">
         <FiltroDrawer
           filtros={filtros}
