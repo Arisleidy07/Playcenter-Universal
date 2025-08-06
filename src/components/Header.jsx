@@ -194,18 +194,17 @@ const Header = () => {
         </div>
       )}
 
-{/* Botón admin en móvil, arriba del banner de envío */}
-{usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (
-  <div className="lg:hidden fixed top-[60px] right-4 z-[9999]">
-    <Link
-      to="/admin"
-      className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white px-4 py-2 rounded-full shadow-xl font-semibold text-sm"
-    >
-      Panel Admin
-    </Link>
-  </div>
-)}
-
+      {/* Botón admin en móvil, abajo derecha, arriba del navbar */}
+      {usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (
+        <div className="lg:hidden fixed bottom-[80px] right-4 z-[9999]">
+          <Link
+            to="/admin"
+            className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white px-5 py-3 rounded-full shadow-xl font-semibold text-base"
+          >
+            Panel Admin
+          </Link>
+        </div>
+      )}
 
       {/* Espaciador debajo del header */}
       <div className="h-[100px] sm:h-[70px]" />

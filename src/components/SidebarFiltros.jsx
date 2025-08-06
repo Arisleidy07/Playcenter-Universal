@@ -1,14 +1,41 @@
 import React, { useState, useEffect } from "react";
-import Slider from '@mui/material/Slider';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import { motion } from "framer-motion";
+import Slider from "@mui/material/Slider";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import WaveBackground from "./WaveBackground"; // Fondo animado
 import "../index.css";
 
-function SidebarFiltros({
-  filtros,
-  setFiltros,
-  productosOriginales,
-}) {
+const buttonVariants = {
+  initial: { scale: 1, boxShadow: "none" },
+  hover: {
+    scale: 1.04,
+    boxShadow: "0 4px 8px rgba(60, 80, 120, 0.3)",
+    transition: { type: "spring", stiffness: 200, damping: 20 },
+  },
+  tap: {
+    scale: 0.97,
+    boxShadow: "0 0 6px rgba(60, 80, 120, 0.5)",
+  },
+};
+
+const titleVariants = {
+  animate: {
+    textShadow: [
+      "0 0 4px rgba(80, 100, 140, 0.6)",
+      "0 0 10px rgba(80, 100, 140, 0.9)",
+      "0 0 4px rgba(80, 100, 140, 0.6)",
+    ],
+    transition: {
+      repeat: Infinity,
+      repeatType: "mirror",
+      duration: 3,
+      ease: "easeInOut",
+    },
+  },
+};
+
+function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
   const [productosFiltrados, setProductosFiltrados] = useState([]);
 
   useEffect(() => {
@@ -44,29 +71,41 @@ function SidebarFiltros({
     });
   };
 
-  // ALTURA HEADER: AJUSTA este valor si tu header es más alto o más bajo
   const HEADER_HEIGHT = 76;
 
   return (
     <aside
-      className="hidden lg:block w-56 max-w-[240px] p-4 border-l border-gray-200 bg-white shadow z-40"
+      className="hidden lg:block w-56 max-w-[240px] relative z-40"
       style={{
         height: `calc(100vh - ${HEADER_HEIGHT}px)`,
         overflow: "hidden",
+        backgroundColor: "transparent",
+        border: "none",
+        boxShadow: "none",
       }}
       aria-label="Filtros"
     >
+      <WaveBackground />
       <div
         style={{
-          position: "sticky",
-          top: 0,
-          maxHeight: `calc(100vh - ${HEADER_HEIGHT}px)`,
+          position: "relative",
+          zIndex: 1,
+          height: `calc(100vh - ${HEADER_HEIGHT}px)`,
           overflowY: "auto",
+          padding: "1rem",
+          backgroundColor: "transparent",
+          border: "none",
+          boxShadow: "none",
         }}
       >
-        <h2 className="text-lg font-semibold mb-4 text-blue-800">Filtros</h2>
-        {/* ...resto igual... */}
-        {/* Estado y filtro precio... */}
+        <motion.h2
+          className="text-lg font-semibold mb-4 text-blue-800"
+          variants={titleVariants}
+          animate="animate"
+        >
+          Filtros
+        </motion.h2>
+
         <div className="mb-6">
           <h3 className="font-medium mb-2">Estado</h3>
           <label className="switch-container">
@@ -101,33 +140,33 @@ function SidebarFiltros({
             <span className="ml-2">Usado</span>
           </label>
         </div>
-        {/* Precio */}
+
         <div className="mb-6">
           <Typography gutterBottom>Precio (RD$)</Typography>
           <Box
             sx={{
               px: 1,
-              '& .MuiSlider-thumb': {
+              "& .MuiSlider-thumb": {
                 width: 14,
                 height: 14,
-                bgcolor: '#1976d2',
-                border: '2px solid white',
-                '&:focus, &:hover, &.Mui-active': {
-                  boxShadow: '0 0 0 8px rgba(25, 118, 210, 0.16)',
+                bgcolor: "#1976d2",
+                border: "2px solid white",
+                "&:focus, &:hover, &.Mui-active": {
+                  boxShadow: "0 0 0 8px rgba(25, 118, 210, 0.16)",
                 },
               },
-              '& .MuiSlider-rail': {
+              "& .MuiSlider-rail": {
                 height: 6,
                 opacity: 0.5,
-                bgcolor: '#bfbfbf',
+                bgcolor: "#bfbfbf",
                 borderRadius: 3,
               },
-              '& .MuiSlider-track': {
+              "& .MuiSlider-track": {
                 height: 6,
                 borderRadius: 3,
               },
-              '& .MuiSlider-root': {
-                padding: '15px 0',
+              "& .MuiSlider-root": {
+                padding: "15px 0",
               },
             }}
           >
@@ -144,12 +183,18 @@ function SidebarFiltros({
             <span>RD${filtros.precio.max}</span>
           </div>
         </div>
-        <button
+
+        <motion.button
           onClick={onReset}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded transition w-full"
+          variants={buttonVariants}
+          initial="initial"
+          whileHover="hover"
+          whileTap="tap"
+          className="bg-blue-600 text-white text-sm px-3 py-2 rounded w-full"
         >
           Restablecer filtros
-        </button>
+        </motion.button>
+
         <p className="mt-4 text-sm text-gray-600">
           {productosFiltrados.length === 0
             ? "No hay productos que coincidan con los filtros."

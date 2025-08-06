@@ -70,15 +70,16 @@ function TarjetaProducto({ producto }) {
               alt={producto.nombre}
               className="object-contain max-h-full"
             />
-            <button
-              className="absolute top-1 right-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-full p-2 shadow border border-yellow-300 transition z-10"
-              onClick={handleShare}
-              onMouseDown={e => e.stopPropagation()}
-              aria-label="Compartir"
-              type="button"
-            >
-              <FaShareAlt size={16} />
-            </button>
+<button
+  className="absolute top-1 right-1.5 bg-blue hover:bg-blue-500 text-gray-900 rounded-full p-1.5 shadow-sm border border-blue-300 transition z-10 text-xs"
+  onClick={handleShare}
+  onMouseDown={(e) => e.stopPropagation()}
+  aria-label="Compartir"
+  type="button"
+>
+  <FaShareAlt className="w-2.5 h-2.5" />
+</button>
+
           </div>
 
           {/* Contenido */}
@@ -101,7 +102,7 @@ function TarjetaProducto({ producto }) {
           className={`mt-3 text-sm w-full px-4 py-2 rounded-md font-semibold transition flex items-center justify-center gap-2 ${
             estaEnCarrito
               ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-yellow-400 hover:bg-yellow-500 text-black"
+              : "bg-yellow-400 hover:bg--500 text-black"
           }`}
         >
           {estaEnCarrito ? (

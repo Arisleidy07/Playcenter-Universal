@@ -32,14 +32,15 @@ export default function BotonCompartir({ producto }) {
 
   return (
     <>
-      <button
-        className="flex items-center gap-2 bg-white hover:bg-yellow-500 text-gray-900 font-semibold rounded-full px-4 py-2 shadow border border-yellow-300 transition absolute top-2 right-2 z-10"
-        onClick={handleShare}
-        aria-label="Compartir"
-        type="button"
-      >
-        <FaShareAlt />
-      </button>
+<button
+  className="flex items-center gap-1 bg-white hover:bg-yellow-500 text-gray-900 font-semibold rounded-full px-2.5 py-1.5 shadow border border-yellow-300 transition text-sm absolute top-2 right-2 z-10"
+  onClick={handleShare}
+  aria-label="Compartir"
+  type="button"
+>
+  <FaShareAlt className="text-sm" />
+</button>
+
 
       {showFallback && (
         <div

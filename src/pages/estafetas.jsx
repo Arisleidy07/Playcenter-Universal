@@ -73,9 +73,9 @@ const estafetas = [
   },
   {
     id: 6,
-    nombre: "Estafeta en Sánchez Bermúdez",
+    nombre: "Estafeta Ensanche Bermúdez",
     descripcion: "St Electronics",
-    direccion: "Calle 11, número 27, Sánchez Bermúdez",
+    direccion: "Calle 11, número 27, Ensanche Bermúdez",
     telefono: "849-437-3100",
     ubicacionLink:
       "https://www.google.com/maps/place/Espailla,+51000+Santiago+de+los+Caballeros/@19.4717075,-70.7148707,964m/data=!3m2!1e3!4b1!4m6!3m5!1s0x8eb1c5e2c3c79d7d:0x3a75c6d5f2312708!8m2!3d19.4717075!4d-70.7148707",
@@ -147,7 +147,7 @@ export default function Estafetas() {
         Estafetas de Pago y Métodos de Pago
       </h1>
       <p className="text-center text-gray-600 mb-6">
-        Ahora puedes pagar tu factura en cualquiera de nuestros puntos autorizados
+        Puedes pagar tu factura en cualquiera de nuestros puntos autorizados
         o mediante transferencia bancaria.
       </p>
 
@@ -162,7 +162,7 @@ export default function Estafetas() {
           <span className="underline"> nombre completo</span> en la descripción del pago.
         </p>
         <p className="text-gray-700 mb-4 text-[15px]">
-          Es indispensable enviar el comprobante de pago por este medio para poder aplicarlo.<br />
+          Es indispensable enviar el comprobante de pago al 809-582-1212 para poder aplicarlo.<br />
           <span className="text-red-500 font-bold">
             Sin el comprobante no podremos procesar tu pago.
           </span>

@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import WaveBackground from "./WaveBackground";
 
 const categorias = [
   { nombre: "Todos", ruta: "" },
@@ -34,11 +35,36 @@ const categorias = [
   { nombre: "Tablets", ruta: "tablets" },
 ];
 
-function SidebarCategorias({
-  categoriaActiva,
-  mostrarEnMovil,
-  setMostrarEnMovil,
-}) {
+const buttonVariants = {
+  initial: { scale: 1, boxShadow: "none" },
+  hover: {
+    scale: 1.04,
+    boxShadow: "0 4px 8px rgba(60, 80, 120, 0.3)",
+    transition: { type: "spring", stiffness: 200, damping: 20 },
+  },
+  tap: {
+    scale: 0.97,
+    boxShadow: "0 0 6px rgba(60, 80, 120, 0.5)",
+  },
+};
+
+const titleVariants = {
+  animate: {
+    textShadow: [
+      "0 0 4px rgba(80, 100, 140, 0.6)",
+      "0 0 10px rgba(80, 100, 140, 0.9)",
+      "0 0 4px rgba(80, 100, 140, 0.6)",
+    ],
+    transition: {
+      repeat: Infinity,
+      repeatType: "mirror",
+      duration: 3,
+      ease: "easeInOut",
+    },
+  },
+};
+
+function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil }) {
   const navigate = useNavigate();
 
   const handleClick = (cat) => {
@@ -50,93 +76,126 @@ function SidebarCategorias({
 
   return (
     <>
-      {/* Desktop - Sticky debajo del header, con scroll interno, NO tapa footer */}
+      {/* DESKTOP */}
       <aside
-        className="hidden lg:block w-52 flex-shrink-0 bg-white border-r border-gray-200 shadow px-2 py-2 z-40"
+        className="hidden lg:block w-56 flex-shrink-0 px-3 py-4 relative z-40"
         style={{
-          height: "calc(100vh - 76px)", // 76px = altura de tu header
+          height: "calc(100vh - 76px)",
+          overflow: "hidden",
+          backgroundColor: "transparent",
+          border: "none",
+          boxShadow: "none",
         }}
         aria-label="Categorías"
       >
+        {/* Fondo extendido */}
         <div
+          className="absolute inset-0 z-0 overflow-hidden"
+          style={{ minHeight: "2000px", backgroundColor: "transparent" }}
+        >
+          <WaveBackground />
+        </div>
+
+        {/* Contenedor scrollable sin fondo ni borde */}
+        <div
+          className="scrollbar-light relative z-10"
           style={{
-            position: "sticky",
-            top: 76, // igual a la altura real de tu header
-            maxHeight: "calc(100vh - 76px)",
+            height: "100%",
             overflowY: "auto",
-            // Ajusta el maxHeight si tu header cambia de tamaño
+            paddingRight: "0.5rem",
+            backgroundColor: "transparent",
+            border: "none",
+            boxShadow: "none",
           }}
         >
-          <h2 className="text-sm font-bold text-blue-800 mb-3 text-center uppercase tracking-wide select-none">
+          <motion.h2
+            className="text-lg font-semibold mb-4 text-center tracking-wide text-blue-700 select-none"
+            variants={titleVariants}
+            animate="animate"
+          >
             Categorías
-          </h2>
-          <ul className="space-y-1 text-sm">
+          </motion.h2>
+          <ul className="space-y-2 text-sm">
             {categorias.map((cat, idx) => (
-              <li key={idx}>
-                <button
+              <motion.li key={idx} whileHover={{ scale: 1.02 }}>
+                <motion.button
                   onClick={() => handleClick(cat)}
-                  className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 focus:outline-none ${
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
+                  variants={buttonVariants}
+                  className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
                     isActiva(cat.nombre)
-                      ? "bg-blue-600 text-white shadow"
-                      : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
+                      ? "bg-blue-200 text-blue-900"
+                      : "bg-transparent text-blue-700 hover:bg-blue-100"
                   }`}
+                  style={{
+                    border: "none",
+                    boxShadow: "none",
+                  }}
                 >
                   {cat.nombre}
-                </button>
-              </li>
+                </motion.button>
+              </motion.li>
             ))}
           </ul>
         </div>
       </aside>
 
-      {/* Mobile drawer igual que FiltroDrawer */}
+      {/* MOBILE DRAWER */}
       <AnimatePresence>
         {mostrarEnMovil && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-[9998]"
+              className="fixed inset-0 bg-gray-200 bg-opacity-40 backdrop-blur-sm z-[9998]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMostrarEnMovil(false)}
             />
             <motion.nav
-              initial={{ x: -300 }}
+              initial={{ x: -280 }}
               animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-0 left-0 h-full w-72 bg-white border-r shadow-lg z-[9999] flex flex-col"
+              exit={{ x: -280 }}
+              transition={{ type: "spring", stiffness: 250, damping: 30 }}
+              className="fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-300 z-[9999] flex flex-col shadow-md"
             >
-              {/* Header con botón rojo para cerrar */}
-              <div className="flex justify-between items-center px-4 py-4 border-b">
-                <h2 className="text-lg font-semibold text-blue-800 uppercase tracking-wide">
+              <div className="flex justify-between items-center px-4 py-4 border-b border-gray-300">
+                <h2 className="text-lg font-semibold text-blue-700 tracking-wide select-none">
                   Categorías
                 </h2>
                 <button
                   onClick={() => setMostrarEnMovil(false)}
-                  className="text-red-600 font-bold text-xl hover:text-red-800"
+                  className="text-red-500 font-bold text-2xl hover:text-red-700"
                   aria-label="Cerrar categorías"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Lista categorías scroll */}
-              <nav className="flex-1 overflow-y-auto px-4 py-2">
+              <nav className="flex-1 overflow-y-auto px-4 py-2 scrollbar-light">
                 <ul className="space-y-2 text-sm">
                   {categorias.map((cat, idx) => (
-                    <li key={idx}>
-                      <button
+                    <motion.li key={idx} whileHover={{ scale: 1.02 }}>
+                      <motion.button
                         onClick={() => handleClick(cat)}
-                        className={`w-full text-left px-3 py-2 rounded-md font-medium transition duration-200 focus:outline-none ${
+                        initial="initial"
+                        whileHover="hover"
+                        whileTap="tap"
+                        variants={buttonVariants}
+                        className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
                           isActiva(cat.nombre)
-                            ? "bg-blue-600 text-white shadow"
-                            : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
+                            ? "bg-blue-200 text-blue-900 shadow-md"
+                            : "bg-transparent text-blue-700 hover:bg-blue-100"
                         }`}
+                        style={{
+                          border: "none",
+                          boxShadow: "none",
+                        }}
                       >
                         {cat.nombre}
-                      </button>
-                    </li>
+                      </motion.button>
+                    </motion.li>
                   ))}
                 </ul>
               </nav>
