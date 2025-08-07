@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import productosAll from "../data/ProductosAll";
+import ProductosAll from "../data/ProductosAll.js";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -19,32 +19,28 @@ function PaginaBusqueda() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
 
-  const todosLosProductos = productosAll.flatMap((cat) => cat.productos);
+  const todosLosProductos = ProductosAll.flatMap((cat) => cat.productos);
 
   const queryParams = new URLSearchParams(location.search);
   const queryOriginal = queryParams.get("q") || "";
   const query = normalizarTexto(queryOriginal);
-  const palabras = query.split(" ").filter(Boolean);
 
-  // Filtrar productos que contengan todas las palabras en nombre o descripción
   const productosFiltrados = todosLosProductos.filter((prod) => {
-    const texto = normalizarTexto(`${prod.nombre} ${prod.descripcion}`);
-    return palabras.every((palabra) => texto.includes(palabra));
+    const nombreNormalizado = normalizarTexto(prod.nombre);
+    return nombreNormalizado.includes(query) || query.includes(nombreNormalizado);
   });
 
-  // Ordenar para que el producto que contenga la búsqueda EXACTA en el nombre salga primero
   const productosOrdenados = productosFiltrados.sort((a, b) => {
     const nombreA = normalizarTexto(a.nombre);
     const nombreB = normalizarTexto(b.nombre);
     const contieneA = nombreA.includes(query);
     const contieneB = nombreB.includes(query);
 
-    if (contieneA && !contieneB) return -1; // a primero
-    if (!contieneA && contieneB) return 1;  // b primero
-    return 0; // igual
+    if (contieneA && !contieneB) return -1;
+    if (!contieneA && contieneB) return 1;
+    return 0;
   });
 
-  // Aplicar filtros de precio y estado
   const resultadosFiltrados = productosOrdenados.filter((p) => {
     const cumpleMin =
       filtros.precio.min === "" || p.precio >= Number(filtros.precio.min);

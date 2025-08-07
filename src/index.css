@@ -1,10 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Audiowide&display=swap');
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Audiowide&display=swap');
-@import "~slick-carousel/slick/slick.css";
-@import "~slick-carousel/slick/slick-theme.css";
 
 
 /* Forzar fondo blanco y texto negro siempre */

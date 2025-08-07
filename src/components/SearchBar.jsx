@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
-import productosAll from "../data/ProductosAll"; // Ajusta ruta si hace falta
+import ProductosAll from "../data/ProductosAll.js";
 
 const SearchBar = forwardRef(({ onClose, placeholder = "Buscar en Playcenter.do" }, ref) => {
   const [busqueda, setBusqueda] = useState("");
@@ -9,9 +9,8 @@ const SearchBar = forwardRef(({ onClose, placeholder = "Buscar en Playcenter.do"
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
 
-  const todosProductos = React.useMemo(() => {
-    return productosAll.flatMap(cat => cat.productos);
-  }, []);
+  // Usa directamente ProductosAll para generar todos los productos:
+  const todosProductos = ProductosAll.flatMap(cat => cat.productos);
 
   const filtrarProductos = (texto) => {
     if (!texto.trim()) return [];
@@ -61,12 +60,8 @@ const SearchBar = forwardRef(({ onClose, placeholder = "Buscar en Playcenter.do"
   };
 
   const handleClickResultado = (item) => {
-    // Aquí la clave: navegar con query exacta y ordenamos resultados para que item seleccionado quede primero
     const queryExacta = item.nombre.trim();
-
-    // Navega a la búsqueda con query exacta
     navigate(`/buscar?q=${encodeURIComponent(queryExacta)}`);
-
     setBusqueda("");
     setResultados([]);
     setMostrarResultados(false);
@@ -93,24 +88,23 @@ const SearchBar = forwardRef(({ onClose, placeholder = "Buscar en Playcenter.do"
         </button>
       </form>
 
-{mostrarResultados && resultados.length > 0 && (
-  <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-md max-h-72 overflow-y-auto">
-    {resultados.map((item) => (
-      <li
-        key={item.id}
-        onClick={() => handleClickResultado(item)}
-        className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-base break-words"
-        title={`${item.nombre} ${item.empresa ? "- " + item.empresa : ""}`}
-      >
-        <div className="font-semibold">{item.nombre}</div>
-        {item.empresa && (
-          <div className="text-xs text-gray-500">{item.empresa}</div>
-        )}
-      </li>
-    ))}
-  </ul>
-)}
-
+      {mostrarResultados && resultados.length > 0 && (
+        <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-md max-h-72 overflow-y-auto">
+          {resultados.map((item) => (
+            <li
+              key={item.id}
+              onClick={() => handleClickResultado(item)}
+              className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-base break-words"
+              title={`${item.nombre} ${item.empresa ? "- " + item.empresa : ""}`}
+            >
+              <div className="font-semibold">{item.nombre}</div>
+              {item.empresa && (
+                <div className="text-xs text-gray-500">{item.empresa}</div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 });
