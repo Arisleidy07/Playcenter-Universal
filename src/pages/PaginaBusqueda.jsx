@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import productosAll from "../data/productosAll";
+import productosAll from "../data/ProductosAll";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -19,23 +19,33 @@ function PaginaBusqueda() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
 
-  // TODOS los productos
   const todosLosProductos = productosAll.flatMap((cat) => cat.productos);
 
-  // Búsqueda
   const queryParams = new URLSearchParams(location.search);
   const queryOriginal = queryParams.get("q") || "";
   const query = normalizarTexto(queryOriginal);
   const palabras = query.split(" ").filter(Boolean);
 
-  // Resultados sin filtros
-  const resultadosOriginales = todosLosProductos.filter((prod) => {
+  // Filtrar productos que contengan todas las palabras en nombre o descripción
+  const productosFiltrados = todosLosProductos.filter((prod) => {
     const texto = normalizarTexto(`${prod.nombre} ${prod.descripcion}`);
     return palabras.every((palabra) => texto.includes(palabra));
   });
 
-  // Resultados con filtros
-  const resultadosFiltrados = resultadosOriginales.filter((p) => {
+  // Ordenar para que el producto que contenga la búsqueda EXACTA en el nombre salga primero
+  const productosOrdenados = productosFiltrados.sort((a, b) => {
+    const nombreA = normalizarTexto(a.nombre);
+    const nombreB = normalizarTexto(b.nombre);
+    const contieneA = nombreA.includes(query);
+    const contieneB = nombreB.includes(query);
+
+    if (contieneA && !contieneB) return -1; // a primero
+    if (!contieneA && contieneB) return 1;  // b primero
+    return 0; // igual
+  });
+
+  // Aplicar filtros de precio y estado
+  const resultadosFiltrados = productosOrdenados.filter((p) => {
     const cumpleMin =
       filtros.precio.min === "" || p.precio >= Number(filtros.precio.min);
     const cumpleMax =
@@ -56,7 +66,6 @@ function PaginaBusqueda() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white pt-0">
-      {/* Sidebar categorías escritorio */}
       <aside className="hidden lg:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
         <SidebarCategorias
           categoriaActiva={null}
@@ -64,9 +73,7 @@ function PaginaBusqueda() {
         />
       </aside>
 
-      {/* Contenido principal */}
       <main className="flex-1 p-4 overflow-y-auto relative">
-        {/* Botones Categorías y Filtros en móvil y tablet */}
         <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
           <button
             onClick={() => setMostrarCategorias(true)}
@@ -94,16 +101,14 @@ function PaginaBusqueda() {
         )}
       </main>
 
-      {/* Sidebar filtros escritorio */}
       <aside className="hidden lg:block w-64 border-l border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto px-4 py-4">
         <SidebarFiltros
           filtros={filtros}
           setFiltros={setFiltros}
-          productosOriginales={resultadosOriginales}
+          productosOriginales={productosFiltrados}
         />
       </aside>
 
-      {/* Sidebar categorías móvil */}
       {mostrarCategorias && (
         <SidebarCategorias
           categoriaActiva={null}
@@ -112,7 +117,6 @@ function PaginaBusqueda() {
         />
       )}
 
-      {/* Drawer filtros móvil */}
       <div className="lg:hidden">
         <FiltroDrawer
           filtros={filtros}
