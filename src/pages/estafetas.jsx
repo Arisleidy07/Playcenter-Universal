@@ -114,7 +114,7 @@ const cuentasBancarias = [
   },
   {
     banco: "SantaCruz",
-    numero: "1-114-201-001163-2",
+    numero: "11142010011632",
     tipo: "Cuenta Ahorro",
     titular: "PLAYCENTER",
   },
@@ -126,7 +126,7 @@ const cuentasBancarias = [
   },
   {
     banco: "ASOC. CIBAO",
-    numero: "10-009-023847-4",
+    numero: "100090238474",
     tipo: "Cuenta Ahorro",
     titular: "FRANKLYN SANTOS",
   },
