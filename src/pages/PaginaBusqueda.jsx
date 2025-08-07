@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import ProductosAll from "../data/ProductosAll.js";
+import productosAll from "../data/productosAll.js";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -19,7 +19,7 @@ function PaginaBusqueda() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
 
-  const todosLosProductos = ProductosAll.flatMap((cat) => cat.productos);
+  const todosLosProductos = productosAll.flatMap((cat) => cat.productos);
 
   const queryParams = new URLSearchParams(location.search);
   const queryOriginal = queryParams.get("q") || "";

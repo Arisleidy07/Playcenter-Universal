@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
-import ProductosAll from "../data/ProductosAll.js";
+import productosAll from "../data/productosAll.js";
+
 
 const SearchBar = forwardRef(({ onClose, placeholder = "Buscar en Playcenter.do" }, ref) => {
   const [busqueda, setBusqueda] = useState("");
@@ -10,7 +11,7 @@ const SearchBar = forwardRef(({ onClose, placeholder = "Buscar en Playcenter.do"
   const navigate = useNavigate();
 
   // Usa directamente ProductosAll para generar todos los productos:
-  const todosProductos = ProductosAll.flatMap(cat => cat.productos);
+  const todosProductos = productosAll.flatMap(cat => cat.productos);
 
   const filtrarProductos = (texto) => {
     if (!texto.trim()) return [];

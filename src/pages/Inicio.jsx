@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
-import productosAll from "../data/ProductosAll.js";
+import productosAll from "../data/productosAll.js";
 
 // Animación sutil para bloques y banners
 const fadeIn = {
