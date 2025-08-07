@@ -36,11 +36,7 @@
   opacity: 0.1;
 }
 
-.wave4 {
-  top: 350px;      /* abajo */
-  animation-duration: 30s;
-  opacity: 0.1;
-}
+
 
 @keyframes wave {
   from {
