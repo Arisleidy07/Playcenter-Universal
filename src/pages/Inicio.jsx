@@ -10,12 +10,16 @@ import {
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
 import productosAll from "../data/productosAll.js";
+import MouseTrail from "../components/mousetrail";
+
 
 // Animación sutil para bloques y banners
 const fadeIn = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7 } },
 };
+
+const trailImages = Array.from({ length: 17 }, (_, i) => `/animacion/${i + 1}.png`);
 
 function Inicio() {
   return (
@@ -728,6 +732,20 @@ function Inicio() {
           </Link>
         </motion.div>
       </section>
+
+
+
+    {/* Aquí inserta el rastro de imágenes */}
+      <div className="max-w-[1600px] mx-auto mt-20 px-4">
+        <MouseTrail
+          items={trailImages}
+          maxNumberOfImages={5}
+          distance={100}
+          imgClass="w-60 h-60"
+          fadeAnimation={true}
+        />
+      </div>
+
 
       {/* CONTACTO */}
       <motion.section

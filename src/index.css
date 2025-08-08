@@ -1,15 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Audiowide&display=swap');
 
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
-/* Forzar fondo blanco y texto negro siempre */
+/* Reset básico sin forzar fondo blanco para que se vea tu fondo animado */
 html, body {
-  background-color: white !important;
-  color: black !important;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -17,44 +13,26 @@ html, body {
   -webkit-text-size-adjust: 100%;
   overscroll-behavior-x: none;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #fff;
-  color: #1e293b;
 }
 
-/* También forzar para dispositivos en modo oscuro */
+/* Para modo oscuro (no forzar fondo blanco) */
 @media (prefers-color-scheme: dark) {
   html, body {
-    background-color: white !important;
-    color: black !important;
+    color: black;
   }
 }
 
-/* === ANIMACIONES Y UTILIDADES === */
-@layer utilities {
-  .animate-text-glow {
-    background: linear-gradient(270deg, #3b82f6, #8b5cf6, #22d3ee);
-    background-size: 600% 600%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: textGlow 3s ease infinite;
-  }
+.nosotros-container {
+  background: transparent !important;
 }
 
-@keyframes textGlow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease forwards;
 }
 
-/* === HEADER Y NAV === */
+/* === Header y navegación === */
 .header-container {
   @apply bg-[#e0e7ff] p-4 flex items-center gap-6;
 }
@@ -78,7 +56,7 @@ html, body {
   width: 100%;
 }
 
-/* === BUSCADOR === */
+/* === Buscador === */
 .search-form {
   @apply flex items-center px-4 bg-white border-2 border-[#3b82f6] rounded-full h-10;
 }
@@ -89,7 +67,7 @@ html, body {
   @apply bg-transparent border-none text-[#2563eb];
 }
 
-/* === SLIDER === */
+/* === Slider === */
 .slider-container {
   @apply w-full h-[520px] overflow-hidden rounded-2xl bg-white relative;
 }
@@ -104,14 +82,14 @@ html, body {
   @apply opacity-100 pointer-events-auto;
 }
 
-/* === SCROLLBAR === */
+/* === Scrollbar hide === */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* === BOTONES === */
+/* === Botones === */
 .button-glitch {
   color: #52688a;
   font-weight: 700;
@@ -134,7 +112,7 @@ html, body {
   object-fit: contain;
 }
 
-/* Toggle hermoso con animación suave */
+/* Toggle switch */
 .checkbox {
   display: none;
 }
@@ -191,30 +169,22 @@ header, .header-container {
   overflow: visible !important;
 }
 
-/* En tu CSS global */
+/* Hover zoom en imágenes */
 img:hover {
   transform: scale(1.02);
+  transition: transform 0.3s ease;
 }
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
 
 /* Título suave al cargar */
-@keyframes fadeIn {
+@keyframes fadeInSmooth {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fadeIn {
-  animation: fadeIn 0.8s ease-out forwards;
+  animation: fadeInSmooth 0.8s ease-out forwards;
 }
 
-/* Rotación suave para anillo */
+/* Rotación lenta */
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -230,12 +200,11 @@ img:hover {
   color: transparent;
 }
 
-/* Efecto de botón elevado */
+/* Botones focus */
 button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
 }
-
 
 
 

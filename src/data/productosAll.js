@@ -323,8 +323,8 @@ const productosAll = [
       empresa: "Funko",
       precio: 25.0,
       descripcion: "Figura coleccionable de Mario Bros en versión Funko Pop.",
-      imagen: "/Productos/funkopop-mario.jpeg",
-      imagenes: ["/Productos/funkopop-mario.jpeg"],
+      imagen: "/Productos/mario_pop.jpg",
+      imagenes: ["/Productos/mario_pop.jpg"],
       oferta: false,
       estado: "Nuevo",
       acerca: [
@@ -336,8 +336,8 @@ const productosAll = [
       variantes: [
         {
           color: "Rojo",
-          imagen: "/Productos/funkopop-mario.jpeg",
-          imagenes: ["/Productos/funkopop-mario.jpeg"],
+          imagen: "/Productos/mario_pop.jpg",
+          imagenes: ["/Productos/mario_pop.jpg"],
           cantidad: 10,
         },
       ],
@@ -355,8 +355,8 @@ const productosAll = [
       empresa: "Nintendo",
       precio: 45.0,
       descripcion: "Figura detallada de Link de The Legend of Zelda para coleccionistas.",
-      imagen: "/Productos/figura-link.jpeg",
-      imagenes: ["/Productos/figura-link.jpeg"],
+      imagen: "/Productos/zelda_toy.jpg",
+      imagenes: ["/Productos/zelda_toy.jpg"],
       oferta: true,
       estado: "Nuevo",
       acerca: [
@@ -367,8 +367,8 @@ const productosAll = [
       variantes: [
         {
           color: "Verde",
-          imagen: "/Productos/figura-link.jpeg",
-          imagenes: ["/Productos/figura-link.jpeg"],
+          imagen: "/Productos/zelda_toy.jpg",
+          imagenes: ["/Productos/zelda_toy.jpg"],
           cantidad: 5,
         },
       ],
@@ -386,8 +386,8 @@ const productosAll = [
       empresa: "Nintendo",
       precio: 80.0,
       descripcion: "Cartucho original de Pokémon para Game Boy, edición de colección.",
-      imagen: "/Productos/cartucho-pokemon.jpeg",
-      imagenes: ["/Productos/cartucho-pokemon.jpeg"],
+      imagen: "/Productos/poke_coleccion.jpg",
+      imagenes: ["/Productos/poke_coleccion.jpg"],
       oferta: false,
       estado: "Usado",
       acerca: [
@@ -398,8 +398,8 @@ const productosAll = [
       variantes: [
         {
           color: "N/A",
-          imagen: "/Productos/cartucho-pokemon.jpeg",
-          imagenes: ["/Productos/cartucho-pokemon.jpeg"],
+          imagen: "/Productos/poke_coleccion.jpg",
+          imagenes: ["/Productos/poke_coleccion.jpg"],
           cantidad: 2,
         },
       ],
