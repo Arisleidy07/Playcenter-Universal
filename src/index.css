@@ -26,6 +26,17 @@ html, body {
   background: transparent !important;
 }
 
+/* Ocultar en dispositivos menores a 1024px */
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .desktop-only {
+    display: block;
+  }
+}
+
 
 
 .animate-fadeIn {

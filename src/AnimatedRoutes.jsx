@@ -15,6 +15,8 @@ import ProductosPage from "./pages/ProductosPage";
 import Estafetas from "./pages/estafetas";
 import PrivateRoute from "./components/PrivateRoute";
 
+
+
 export default function AnimatedRoutes() {
   const location = useLocation();
   return (
@@ -112,6 +114,8 @@ export default function AnimatedRoutes() {
               </PageTransition>
             }
           />
+
+
         </Routes>
       </AnimatePresence>
     </AuthProvider>

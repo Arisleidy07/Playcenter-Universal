@@ -11,6 +11,9 @@ import SliderAnuncios from "../components/SliderAnuncios";
 import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
 import productosAll from "../data/productosAll.js";
 import MouseTrail from "../components/mousetrail";
+import Anim from '../components/anim';
+
+
 
 
 // Animación sutil para bloques y banners
@@ -218,6 +221,9 @@ function Inicio() {
   </Link>
 </motion.div>
 
+<div className="max-w-[1600px] mx-auto mt-10 px-4">
+  <Anim />
+</div>
 
             {/* BANNERS GRANDES - SOLO COMPUTADORA */}
       <section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
@@ -735,16 +741,10 @@ function Inicio() {
 
 
 
-    {/* Aquí inserta el rastro de imágenes */}
-      <div className="max-w-[1600px] mx-auto mt-20 px-4">
-        <MouseTrail
-          items={trailImages}
-          maxNumberOfImages={5}
-          distance={100}
-          imgClass="w-60 h-60"
-          fadeAnimation={true}
-        />
-      </div>
+
+<div className="max-w-[1600px] mx-auto mt-10 px-4">
+  <Anim />
+</div>
 
 
       {/* CONTACTO */}

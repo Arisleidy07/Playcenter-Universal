@@ -1,6 +1,6 @@
 'use client';
 import { cn } from '../../lib/utils';
-import { createRef, ReactNode, useRef, useEffect } from 'react';
+import { createRef, ReactNode, useRef, useEffect, useState } from 'react';
 
 interface ImageMouseTrailProps {
   items: string[];
@@ -24,7 +24,13 @@ export default function ImageMouseTrail({
   fadeAnimation = false,
 }: ImageMouseTrailProps) {
   const containerRef = useRef<HTMLElement | null>(null);
-  const refs = useRef(items.map(() => createRef<HTMLImageElement>()));
+  // refs se inicializan y actualizan cuando items cambia
+  const [refs, setRefs] = useState(() => items.map(() => createRef<HTMLImageElement>()));
+  
+  useEffect(() => {
+    setRefs(items.map(() => createRef<HTMLImageElement>()));
+  }, [items]);
+
   const currentZIndexRef = useRef(1);
   const globalIndex = useRef(0);
   const last = useRef({ x: 0, y: 0 });
@@ -62,10 +68,11 @@ export default function ImageMouseTrail({
 
   const handleOnMove = (e: Pointer) => {
     if (distanceFromLast(e.clientX, e.clientY) > distance) {
-      const lead = refs.current[globalIndex.current % refs.current.length].current;
-      const tail =
-        refs.current[(globalIndex.current - maxNumberOfImages + refs.current.length) % refs.current.length]
-          ?.current;
+      // Protección por si refs no están listos o vacíos
+      if (refs.length === 0) return;
+
+      const lead = refs[globalIndex.current % refs.length]?.current;
+      const tail = refs[(globalIndex.current - maxNumberOfImages + refs.length) % refs.length]?.current;
 
       if (lead) activate(lead, e.clientX, e.clientY);
       if (tail) deactivate(tail);
@@ -81,7 +88,7 @@ export default function ImageMouseTrail({
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
     };
-  }, []);
+  }, [refs]);
 
   return (
     <section
@@ -103,7 +110,7 @@ export default function ImageMouseTrail({
           data-status="inactive"
           src={item}
           alt={`image-${index}`}
-          ref={refs.current[index]}
+          ref={refs[index]}
           draggable={false}
         />
       ))}
