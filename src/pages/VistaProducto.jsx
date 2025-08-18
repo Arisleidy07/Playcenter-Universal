@@ -11,12 +11,13 @@ import ProductosRelacionados from "../components/ProductosRelacionados";
 import BotonCompartir from "../components/BotonCompartir";
 
 function VistaProducto() {
-  const { carrito, agregarAlCarrito, quitarDelCarrito } = useCarrito();
+  const { carrito, agregarAlCarrito, quitarDelCarrito, eliminarUnidadDelCarrito } = useCarrito();
   const { usuario } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
+  const [animacionFlecha, setAnimacionFlecha] = useState(null);
 
   let producto = null;
   let categoriaActual = null;
@@ -55,7 +56,7 @@ function VistaProducto() {
     `¡Hola! Estoy interesado/a en el producto "${producto.nombre}". ¿Sigue disponible?`
   )}`;
 
-  const handleAgregarCarrito = () => {
+  const handleAgregar = () => {
     if (!usuario) {
       setModalAbierto(true);
       return;
@@ -64,7 +65,21 @@ function VistaProducto() {
       quitarDelCarrito(producto.id);
     } else {
       agregarAlCarrito({ ...producto, cantidad: 1 });
+      setAnimacionFlecha("subir");
+      setTimeout(() => setAnimacionFlecha(null), 500);
     }
+  };
+
+  const handleIncremento = () => {
+    agregarAlCarrito(producto);
+    setAnimacionFlecha("subir");
+    setTimeout(() => setAnimacionFlecha(null), 500);
+  };
+
+  const handleDecremento = () => {
+    eliminarUnidadDelCarrito(producto.id);
+    setAnimacionFlecha("bajar");
+    setTimeout(() => setAnimacionFlecha(null), 500);
   };
 
   const variantesConColor = producto.variantes?.filter(
@@ -140,7 +155,7 @@ function VistaProducto() {
                 "Contáctanos para más detalles o para coordinar una compra en nuestra tienda física."}
             </motion.p>
 
-            <p className="text-2xl font-bold text-[#FF9900] mt-2">
+            <p className="text-2xl font-bold text-blue-500 mt-2">
               DOP {producto.precio.toFixed(2)}
             </p>
 
@@ -160,7 +175,7 @@ function VistaProducto() {
 
           {/* Columna Derecha: Compra */}
           <div className="w-full lg:w-[370px] bg-gray-50 rounded-xl border p-8 shadow-md flex flex-col gap-7 h-fit">
-            <p className="text-2xl font-bold text-[#FF9900]">
+            <p className="text-2xl font-bold text-blue-500">
               DOP {producto.precio.toFixed(2)}
             </p>
 
@@ -180,22 +195,57 @@ function VistaProducto() {
               </p>
             )}
 
-            <button
-              onClick={handleAgregarCarrito}
-              disabled={varianteActiva?.cantidad === 0}
-              className={`w-full inline-flex justify-center items-center gap-3 px-6 py-3 rounded-2xl shadow-lg transition-transform hover:scale-105 font-semibold text-lg ${
-                estaEnCarrito
-                  ? "bg-red-500 hover:bg-red-600 text-white"
-                  : "bg-yellow-400 hover:bg-yellow-500 text-black"
-              } ${
-                varianteActiva?.cantidad === 0
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-              }`}
-            >
-              <FaShoppingCart className="text-2xl" />
-              {estaEnCarrito ? "Quitar del carrito" : "Agregar al carrito"}
-            </button>
+            {estaEnCarrito ? (
+              <div className="flex items-center gap-3 mt-3 flex-wrap">
+                <button
+                  onClick={handleDecremento}
+                  className="px-3 py-1 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white rounded-lg text-lg font-bold transition relative overflow-hidden flex items-center justify-center"
+                >
+                  -
+                  {animacionFlecha === "bajar" && (
+                    <span className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white font-bold animate-bounce">
+                      ↓
+                    </span>
+                  )}
+                </button>
+                <span className="font-semibold">
+                  {carrito.find((item) => item.id === producto.id)?.cantidad || 0}
+                </span>
+                <button
+                  onClick={handleIncremento}
+                  className="px-3 py-1 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white rounded-lg text-lg font-bold transition relative overflow-hidden flex items-center justify-center"
+                  disabled={
+                    carrito.find((item) => item.id === producto.id)?.cantidad >= varianteActiva.cantidad
+                  }
+                >
+                  +
+                  {animacionFlecha === "subir" && (
+                    <span className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white font-bold animate-bounce">
+                      ↑
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => quitarDelCarrito(producto.id)}
+                  className="ml-4 text-red-500 hover:text-red-600 font-semibold transition flex items-center justify-center"
+                >
+                  🗑 Eliminar
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAgregar}
+                disabled={varianteActiva?.cantidad === 0}
+                className={`w-full Btn flex items-center justify-center gap-3 px-6 py-3 rounded-2xl shadow-lg transition font-semibold text-lg ${
+                  varianteActiva?.cantidad === 0
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                <FaShoppingCart className="text-2xl" />
+                Agregar al carrito
+              </button>
+            )}
 
             <a
               href={mensajeWhatsApp}
@@ -253,6 +303,41 @@ function VistaProducto() {
         isOpen={modalAbierto}
         onClose={() => setModalAbierto(false)}
       />
+
+      <style>{`
+        .Btn {
+          background: linear-gradient(to right, #22c55e, #3b82f6);
+          color: white;
+          transition: transform 0.2s, background 0.3s;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .Btn:hover {
+          animation: jello-horizontal 0.9s both;
+        }
+
+        @keyframes jello-horizontal {
+          0% { transform: scale3d(1,1,1); }
+          30% { transform: scale3d(1.25,0.75,1); }
+          40% { transform: scale3d(0.75,1.25,1); }
+          50% { transform: scale3d(1.15,0.85,1); }
+          65% { transform: scale3d(0.95,1.05,1); }
+          75% { transform: scale3d(1.05,0.95,1); }
+          100% { transform: scale3d(1,1,1); }
+        }
+
+        .animate-bounce {
+          animation: bounce 0.5s ease-out;
+        }
+
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+      `}</style>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaShoppingCart, FaTrash, FaShareAlt } from "react-icons/fa";
+import { FaShoppingCart, FaTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
@@ -7,87 +7,65 @@ import ModalLoginAlert from "./ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext";
 
 function TarjetaProducto({ producto }) {
-  const { carrito, agregarAlCarrito, quitarDelCarrito } = useCarrito();
+  const { carrito, agregarAlCarrito, eliminarUnidadDelCarrito, quitarDelCarrito } = useCarrito();
   const { usuario } = useAuth();
   const { abrirModal } = useAuthModal();
   const navigate = useNavigate();
 
   const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
-  const [showShare, setShowShare] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [animacionFlecha, setAnimacionFlecha] = useState(null);
 
-  const estaEnCarrito = carrito.some((p) => p.id === producto.id);
+  const enCarrito = carrito.find((p) => p.id === producto.id);
 
-  const handleBoton = (e) => {
+  const handleAgregar = (e) => {
     e.stopPropagation();
     if (!usuario) {
       setModalAlertaAbierto(true);
       return;
     }
-    if (estaEnCarrito) {
-      quitarDelCarrito(producto.id);
-    } else {
-      agregarAlCarrito(producto);
-    }
+    agregarAlCarrito(producto);
+    setAnimacionFlecha("subir");
+    setTimeout(() => setAnimacionFlecha(null), 500);
+  };
+
+  const handleEliminarUnidad = (e) => {
+    e.stopPropagation();
+    eliminarUnidadDelCarrito(producto.id);
+    setAnimacionFlecha("bajar");
+    setTimeout(() => setAnimacionFlecha(null), 500);
+  };
+
+  const handleQuitar = (e) => {
+    e.stopPropagation();
+    quitarDelCarrito(producto.id);
   };
 
   const irADetalle = () => {
     navigate(`/producto/${producto.id}`, { state: { producto } });
   };
 
-  // Compartir
-  const handleShare = (e) => {
-    e.stopPropagation();
-    if (navigator.share) {
-      navigator.share({
-        title: producto.nombre,
-        text: producto.descripcion || "",
-        url: window.location.origin + `/producto/${producto.id}`,
-      });
-    } else {
-      setShowShare(true);
-    }
-  };
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(window.location.origin + `/producto/${producto.id}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  };
-
   return (
     <>
       <div
-        onClick={irADetalle}
-        className="group flex flex-col lg:flex-col bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer p-4 h-full w-full"
+        onClick={(e) => {
+          if (!e.target.closest("button")) irADetalle();
+        }}
+        className="group flex flex-col lg:flex-col bg-white rounded-lg shadow-md hover:shadow-xl transition cursor-pointer p-4 h-full w-full"
       >
-        {/* Móvil / Tableta: fila */}
         <div className="flex flex-row lg:flex-col items-center lg:items-start gap-4 w-full">
-          {/* Imagen */}
           <div className="flex-shrink-0 w-24 h-24 lg:w-full lg:h-48 flex items-center justify-center relative">
             <img
               src={producto.imagen || producto.imagenes?.[0]}
               alt={producto.nombre}
               className="object-contain max-h-full"
             />
-<button
-  className="absolute top-1 right-1.5 bg-blue hover:bg-blue-500 text-gray-900 rounded-full p-1.5 shadow-sm border border-blue-300 transition z-10 text-xs"
-  onClick={handleShare}
-  onMouseDown={(e) => e.stopPropagation()}
-  aria-label="Compartir"
-  type="button"
->
-  <FaShareAlt className="w-2.5 h-2.5" />
-</button>
-
           </div>
 
-          {/* Contenido */}
           <div className="flex flex-col flex-1 w-full overflow-hidden gap-1">
-            <h2 className="font-semibold text-base text-gray-800 leading-tight line-clamp-2">
+            <h2 className="font-semibold text-base text-gray-900 leading-tight line-clamp-2">
               {producto.nombre}
             </h2>
-            <p className="text-sm text-gray-500 line-clamp-2">
+            <p className="text-sm text-gray-600 line-clamp-2">
               {producto.descripcion || "Descripción del producto."}
             </p>
             <p className="text-lg font-bold text-gray-900 mt-1">
@@ -96,64 +74,43 @@ function TarjetaProducto({ producto }) {
           </div>
         </div>
 
-        {/* Botón agregar/quitar carrito */}
-        <button
-          onClick={handleBoton}
-          className={`mt-3 text-sm w-full px-4 py-2 rounded-md font-semibold transition flex items-center justify-center gap-2 ${
-            estaEnCarrito
-              ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-yellow-400 hover:bg--500 text-black"
-          }`}
-        >
-          {estaEnCarrito ? (
-            <>
-              <FaTrash size={14} /> Quitar
-            </>
-          ) : (
-            <>
-              <FaShoppingCart size={14} /> Agregar
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Modal compartir (solo si el navegador no soporta navigator.share) */}
-      {showShare && (
-        <div
-          className="fixed inset-0 z-[9999] bg-black/30 flex items-center justify-center"
-          onClick={() => setShowShare(false)}
-        >
-          <div
-            className="bg-white p-5 rounded-xl shadow-2xl w-[95vw] max-w-xs flex flex-col gap-4 relative border border-gray-200"
-            onClick={e => e.stopPropagation()}
-          >
+        {enCarrito ? (
+          <div className="flex items-center gap-2 mt-3 relative">
             <button
-              className="absolute top-2 right-2 text-gray-400 text-xl hover:text-red-400"
-              onClick={() => setShowShare(false)}
-              aria-label="Cerrar"
-            >×</button>
-            <h3 className="font-bold text-lg text-gray-900 mb-2 text-center">
-              Compartir producto
-            </h3>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(
-                `${producto.nombre} ${window.location.origin}/producto/${producto.id}`
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg font-semibold transition border border-green-100 justify-center"
+              onClick={handleEliminarUnidad}
+              className="px-3 py-1 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white rounded-lg text-lg font-bold transition relative overflow-hidden"
             >
-              WhatsApp
-            </a>
+              -
+              {animacionFlecha === "bajar" && (
+                <span className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white font-bold animate-bounce">↓</span>
+              )}
+            </button>
+            <span className="font-semibold text-lg">{enCarrito.cantidad}</span>
             <button
-              className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-semibold transition border border-gray-200 justify-center"
-              onClick={handleCopy}
+              onClick={handleAgregar}
+              className="px-3 py-1 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white rounded-lg text-lg font-bold transition relative overflow-hidden"
             >
-              {copied ? "¡Copiado!" : "Copiar link"}
+              +
+              {animacionFlecha === "subir" && (
+                <span className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white font-bold animate-bounce">↑</span>
+              )}
+            </button>
+            <button
+              onClick={handleQuitar}
+              className="ml-2 text-red-600 hover:text-red-700 font-semibold transition"
+            >
+              <FaTrashAlt />
             </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <button
+            onClick={handleAgregar}
+            className="mt-3 Btn w-full flex items-center justify-center gap-2"
+          >
+            <FaShoppingCart size={16} /> Agregar
+          </button>
+        )}
+      </div>
 
       <ModalLoginAlert
         isOpen={modalAlertaAbierto}
@@ -163,6 +120,73 @@ function TarjetaProducto({ producto }) {
           abrirModal();
         }}
       />
+
+      <style>{`
+        .Btn {
+          position: relative;
+          width: 100%;
+          height: 55px;
+          border-radius: 45px;
+          border: none;
+          background: linear-gradient(to right, #22c55e, #3b82f6);
+          color: white;
+          box-shadow: 0px 10px 10px rgba(59, 130, 246, 0.3) inset,
+                      0px 5px 10px rgba(0,0,0,0.2),
+                      0px -10px 10px rgba(30, 64, 175, 0.3) inset;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-weight: 600;
+          overflow: hidden;
+        }
+
+        .Btn::before {
+          width: 70%;
+          height: 2px;
+          position: absolute;
+          background-color: rgba(255, 255, 255, 0.6);
+          content: "";
+          filter: blur(1px);
+          top: 7px;
+          border-radius: 50%;
+        }
+
+        .Btn::after {
+          width: 70%;
+          height: 2px;
+          position: absolute;
+          background-color: rgba(255, 255, 255, 0.15);
+          content: "";
+          filter: blur(1px);
+          bottom: 7px;
+          border-radius: 50%;
+        }
+
+        .Btn:hover {
+          animation: jello-horizontal 0.9s both;
+        }
+
+        @keyframes jello-horizontal {
+          0% { transform: scale3d(1, 1, 1); }
+          30% { transform: scale3d(1.25, 0.75, 1); }
+          40% { transform: scale3d(0.75, 1.25, 1); }
+          50% { transform: scale3d(1.15, 0.85, 1); }
+          65% { transform: scale3d(0.95, 1.05, 1); }
+          75% { transform: scale3d(1.05, 0.95, 1); }
+          100% { transform: scale3d(1, 1, 1); }
+        }
+
+        .animate-bounce {
+          animation: bounce 0.5s ease-out;
+        }
+
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+      `}</style>
     </>
   );
 }

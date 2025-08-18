@@ -1,94 +1,126 @@
     // src/pages/Carrito.jsx
     import React from "react";
     import { useCarrito } from "../context/CarritoContext";
-    import { FaPhone, FaEnvelope, FaWhatsapp } from "react-icons/fa";
-    import TarjetaProducto from "../components/TarjetaProducto";
-
-    function WhatsAppCTA() {
-    return (
-        <section className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded-xl shadow-lg text-center">
-        <p className="text-lg font-semibold text-[#1E40AF] mb-4">
-            Si te interesa algún producto o quieres más información, contáctanos directamente por WhatsApp 
-        </p>
-
-        <p className="flex items-center mb-3 text-blue-700 font-medium justify-center">
-            <FaPhone className="mr-2 text-blue-600" />
-            +1 (849)-635-7000 (Tienda)
-        </p>
-
-        <p className="flex items-center mb-3 text-red-700 font-medium justify-center">
-            <FaPhone className="mr-2 text-red-600" />
-            +1 (809)-582-1212 (Internet)
-        </p>
-
-        <p className="flex items-center mb-3 justify-center">
-            <FaEnvelope className="mr-2 text-green-600" />
-            playcenter121@gmail.com
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center">
-            <a
-            href="https://wa.me/18496357000?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-5 py-3 text-white bg-indigo-600 hover:bg-indigo-700 transition rounded-xl shadow-md w-full sm:w-auto"
-            >
-            <FaWhatsapp className="text-xl" />
-            WhatsApp Tienda
-            </a>
-
-            <a
-            href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-5 py-3 text-white bg-rose-500 hover:bg-rose-600 transition rounded-xl shadow-md w-full sm:w-auto"
-            >
-            <FaWhatsapp className="text-xl" />
-            WhatsApp Internet
-            </a>
-        </div>
-        </section>
-    );
-    }
+    import { useNavigate } from "react-router-dom";
+    import productosAll from "../data/productosAll";
+    import { FaTrash } from "react-icons/fa";
 
     export default function Carrito() {
-    const { carrito } = useCarrito();
+    const { carrito, agregarAlCarrito, eliminarUnidadDelCarrito, quitarDelCarrito } = useCarrito();
+    const navigate = useNavigate();
     const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
 
+    const getVarianteActiva = (producto) => {
+        let productoReal = null;
+        for (const categoria of productosAll) {
+        const encontrado = categoria.productos.find((p) => p.id === producto.id);
+        if (encontrado) {
+            productoReal = encontrado;
+            break;
+        }
+        }
+        if (!productoReal) return { cantidad: 0 };
+        return productoReal.variantes?.[0] || { cantidad: 0 };
+    };
+
     return (
-        <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 min-h-screen bg-white text-[#1E2A47]">
-        <h1
-            className="text-3xl sm:text-4xl font-bold text-center mb-10
-            bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-500 
-            bg-clip-text text-transparent animate-text-glow"
-        >
+        <main className="pt-24 px-4 sm:px-6 lg:px-12 pb-16 min-h-screen bg-gray-100 text-gray-900">
+        <h1 className="text-4xl font-extrabold mb-12 text-center bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-text-glow">
             Mi Carrito
         </h1>
 
         {carrito.length === 0 ? (
-            <p className="text-center text-[#4B5563] text-lg">Tu carrito está vacío.</p>
+            <p className="text-center text-gray-500 text-lg">Tu carrito está vacío.</p>
         ) : (
             <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-                {carrito.map((item) => (
-                <TarjetaProducto
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {carrito.map((item) => {
+                const varianteActiva = getVarianteActiva(item);
+
+                let colorTexto = "text-green-600";
+                let textoStock = `Disponible (${varianteActiva.cantidad})`;
+
+                if (varianteActiva.cantidad === 0) {
+                    colorTexto = "text-red-600";
+                    textoStock = "No disponible";
+                } else if (varianteActiva.cantidad <= 2) {
+                    colorTexto = "text-yellow-600";
+                    textoStock = `Casi agotado (${varianteActiva.cantidad})`;
+                }
+
+                return (
+                    <div
                     key={item.id}
-                    producto={item}
-                    enCarrito // esta prop le dice al componente que muestre el botón rojo
-                />
-                ))}
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-5 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer"
+                    onClick={() => navigate(`/producto/${item.id}`)}
+                    >
+                    {/* Imagen */}
+                    <img
+                        src={item.imagen || item.imagenes?.[0]}
+                        alt={item.nombre}
+                        className="w-full sm:w-32 h-32 object-contain rounded-xl"
+                    />
+
+                    {/* Información */}
+                    <div className="flex-1 sm:ml-6 mt-4 sm:mt-0">
+                        <h2 className="text-lg font-semibold leading-snug">{item.nombre}</h2>
+                        <p className={`text-sm mt-1 font-semibold ${colorTexto}`}>{textoStock}</p>
+
+                        {/* Cantidad y botones */}
+                        <div className="flex items-center gap-3 mt-3">
+                        <button
+                            onClick={(e) => {
+                            e.stopPropagation();
+                            eliminarUnidadDelCarrito(item.id);
+                            }}
+                            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-lg font-semibold transition"
+                            disabled={varianteActiva.cantidad === 0}
+                        >
+                            -
+                        </button>
+                        <span className="font-semibold">{item.cantidad}</span>
+                        <button
+                            onClick={(e) => {
+                            e.stopPropagation();
+                            if (item.cantidad < varianteActiva.cantidad) agregarAlCarrito(item);
+                            }}
+                            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-lg font-semibold transition"
+                            disabled={item.cantidad >= varianteActiva.cantidad}
+                        >
+                            +
+                        </button>
+                        <button
+                            onClick={(e) => {
+                            e.stopPropagation();
+                            quitarDelCarrito(item.id);
+                            }}
+                            className="ml-4 text-red-500 hover:text-red-600 font-semibold transition"
+                        >
+                            <FaTrash />
+                        </button>
+                        </div>
+                    </div>
+
+                    {/* Subtotal */}
+                    <div className="mt-4 sm:mt-0 text-right text-xl font-bold text-blue-600">
+                        ${(item.precio * item.cantidad).toFixed(2)}
+                    </div>
+                    </div>
+                );
+                })}
             </div>
 
-            <div className="mt-10 text-center">
-                <p className="text-lg font-semibold mb-3 text-[#2563EB]">
-                Total: ${total.toFixed(2)}
-                </p>
-
+            {/* Botón de pagar */}
+            <div className="mt-8 flex justify-center">
+                <button
+                onClick={() => alert("Redirigiendo a pago...")}
+                className="px-8 py-4 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white rounded-2xl font-bold text-lg shadow-lg transition-all transform hover:-translate-y-1 hover:scale-105"
+                >
+                Proceder al pago - ${total.toFixed(2)}
+                </button>
             </div>
             </>
         )}
-
-        <WhatsAppCTA />
         </main>
     );
     }

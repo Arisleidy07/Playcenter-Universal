@@ -1,19 +1,143 @@
+/* Contenedor principal */
 .nosotros-container {
   position: relative;
-  background-color: white;
+  background-color: #f8fafc; /* fondo muy claro */
   overflow: hidden;
+  min-height: 100vh;
+  padding-top: 7rem;
+  padding-bottom: 5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-family: 'Montserrat', sans-serif;
 }
 
+/* Fondo animado sutil: degradados suaves que se mueven */
 .animated-bg {
-  display: none; /* Desactivado si fondo es blanco */
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  background: radial-gradient(circle at 25% 25%, rgba(0,200,255,0.05), transparent 60%),
+              radial-gradient(circle at 75% 75%, rgba(0, 110, 255, 0.05), transparent 60%);
+  animation: bgMove 20s ease-in-out infinite alternate, bgPulse 8s ease-in-out infinite alternate;
+  display: block;
 }
 
+@keyframes bgMove {
+  0% { background-position: 25% 25%, 75% 75%; }
+  50% { background-position: 30% 30%, 70% 70%; }
+  100% { background-position: 25% 35%, 75% 65%; }
+}
+
+@keyframes bgPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* Título principal con degradado suave y animación */
+.animate-gradient {
+  background: linear-gradient(90deg, #cbd5e1, #e2e8f0); /* tonos claros */
+  background-size: 200% 200%;
+  -webkit-text-fill-color: transparent;
+  animation: gradientFlow 6s ease infinite alternate, titlePulse 3s ease-in-out infinite;
+  font-weight: 800;
+  text-align: center;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes titlePulse {
+  0% { transform: scale(1); opacity: 0.95; }
+  50% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.95; }
+}
+
+/* Párrafos con microinteracciones sutiles */
+.nosotros-container p {
+  color: #475569; /* gris suave */
+  line-height: 1.8;
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.nosotros-container p svg {
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.nosotros-container p:hover {
+  transform: translateY(-2px) scale(1.01);
+  color: #7dd3fc; /* cyan pastel al hover */
+}
+
+.nosotros-container p:hover svg {
+  transform: translateY(-3px) scale(1.05);
+  opacity: 0.85;
+}
+
+/* Botón contacto con animación elegante */
 .contacto-btn {
-  background: linear-gradient(to right, #4f46e5, #9333ea);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(to right, #e0f2fe, #bae6fd); /* tonos claros */
   padding: 0.75rem 2rem;
   border-radius: 9999px;
   font-size: 1.125rem;
-  color: white;
+  color: #1e293b;
   font-weight: 600;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0,112,255,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-position 1s ease;
+  background-size: 200% 200%;
+  animation: btnGradient 6s ease infinite alternate;
+}
+
+.contacto-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 30px rgba(0,112,255,0.2);
+}
+
+@keyframes btnGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Animaciones de entrada */
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+.animate-slideUp {
+  animation: slideUp 0.8s ease-out forwards;
+}
+.animate-slideUp.delay-100 { animation-delay: 0.1s; }
+.animate-slideUp.delay-200 { animation-delay: 0.2s; }
+.animate-slideUp.delay-300 { animation-delay: 0.3s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hover general: resalta con suavidad todo el contenedor */
+.nosotros-container:hover h1,
+.nosotros-container:hover p,
+.nosotros-container:hover .contacto-btn {
+  filter: brightness(1.05);
+}
+
+/* Responsividad */
+@media (min-width: 768px) {
+  .nosotros-container p { font-size: 1.25rem; }
+  .contacto-btn { font-size: 1.25rem; padding: 1rem 2.5rem; }
 }
