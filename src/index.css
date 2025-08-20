@@ -296,3 +296,19 @@ aside[aria-label="Categorías"] button:hover {
   color: #e0e7ff;
   box-shadow: none;
 }
+
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}

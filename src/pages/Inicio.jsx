@@ -221,9 +221,7 @@ function Inicio() {
   </Link>
 </motion.div>
 
-<div className="max-w-[1600px] mx-auto mt-10 px-4">
-  <Anim />
-</div>
+
 
             {/* BANNERS GRANDES - SOLO COMPUTADORA */}
       <section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
