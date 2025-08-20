@@ -7,7 +7,7 @@
   overflow: hidden;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(circle at 30% 30%, #ffbf36aa, transparent 70%),
-              radial-gradient(circle at 70% 70%, #ff2e2ee6, transparent 70%);
+  background: radial-gradient(circle at 30% 30%, #dec75eaa, transparent 70%),
+              radial-gradient(circle at 70% 70%, #ff3a3ae6, transparent 70%);
   backdrop-filter: blur(60px);
 }
