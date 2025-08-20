@@ -4,49 +4,42 @@ import Wave from "../components/wave";
 
 function Contacto() {
   return (
-    <div
-      className="relative min-h-screen flex flex-col items-center px-4 pt-12 pb-20 font-sans text-gray-800
-                 bg-transparent overflow-hidden"
-    >
-      {/* Fondo animado */}
+    <div className="relative min-h-screen flex flex-col items-center px-4 sm:px-8 pt-12 pb-20 font-sans text-gray-800 bg-transparent overflow-hidden">
       <Wave />
 
-      {/* Títulos */}
       <h1
-        className="text-5xl font-extrabold mb-4 text-center text-gray-800 z-10"
+        className="text-2xl sm:text-5xl font-extrabold mb-4 text-center text-gray-800 z-10"
         style={{ fontFamily: "'Orbitron', sans-serif" }}
       >
         CONTÁCTANOS
       </h1>
       <h2
-        className="text-2xl font-semibold mb-10 text-center text-gray-600 z-10"
+        className="text-lg sm:text-2xl font-semibold mb-10 text-center text-gray-600 z-10"
         style={{ fontFamily: "'Montserrat', sans-serif" }}
       >
         PlayCenter Universal
       </h2>
 
-      {/* Caja cristal */}
       <div
-        className="relative w-full max-w-3xl flex flex-col items-center gap-6 text-lg z-10"
+        className="relative w-full max-w-3xl flex flex-col items-center gap-4 sm:gap-6 text-sm sm:text-lg z-10 px-4 py-4 sm:px-8 sm:py-6"
         style={{
           background: "rgba(255, 255, 255, 0.25)",
           borderRadius: "1rem",
-          padding: "2rem",
           backdropFilter: "blur(30px)",
           WebkitBackdropFilter: "blur(30px)",
           boxShadow: "0 0 40px rgba(255, 255, 255, 0.2)",
           border: "1px solid rgba(255, 255, 255, 0.3)",
         }}
       >
-{/* Imagen asomándose afuera del cuadro (arriba derecha) */}
+        {/* Muñeco fijo al cristal, más pequeño en móvil */}
+{/* Muñeco fijo al cristal, oculto en móvil */}
 <img
   src="/toy/asoma.png"
   alt="Muñeco asomándose"
-  className="absolute z-20"
+  className="hidden sm:block absolute z-20 pointer-events-none w-[300px]"
   style={{
-    top: "-160px",     // más arriba
-    right: "-80px",   // menos fuera, más a la izquierda
-    width: "300px",   // más grande
+    top: "-160px",
+    right: "-80px",
     height: "auto",
   }}
 />
@@ -73,8 +66,7 @@ function Contacto() {
           text="playcenter121@gmail.com"
         />
 
-        {/* Botones WhatsApp */}
-        <div className="flex flex-col sm:flex-row gap-6 justify-center mt-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center mt-4 w-full">
           <WhatsAppButton href="https://wa.me/18496357000" text="WhatsApp Tienda" />
           <WhatsAppButton href="https://wa.me/18095821212" text="WhatsApp Internet" />
         </div>
@@ -84,11 +76,11 @@ function Contacto() {
 }
 
 const InfoItem = ({ icon, label, text }) => (
-  <div className="flex items-start gap-4 w-full z-10">
-    <div className="text-2xl text-gray-400">{icon}</div>
+  <div className="flex items-start gap-3 w-full z-10">
+    <div className="text-xl sm:text-2xl text-gray-400">{icon}</div>
     <div>
-      <p className="font-semibold text-gray-700">{label}:</p>
-      <p className="text-gray-600 break-words">{text}</p>
+      <p className="font-semibold text-sm sm:text-base text-gray-700">{label}:</p>
+      <p className="text-gray-600 text-sm sm:text-base break-words">{text}</p>
     </div>
   </div>
 );
@@ -98,8 +90,7 @@ const WhatsAppButton = ({ href, text }) => (
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="flex items-center justify-center gap-3 px-6 py-3 text-base font-bold
-               rounded-xl transition-transform z-10 animate-fade-in"
+    className="flex items-center justify-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-bold rounded-xl transition-transform z-10 w-full sm:w-auto"
     style={{
       background: "rgba(255, 255, 255, 0.25)",
       backdropFilter: "blur(20px)",
@@ -118,7 +109,7 @@ const WhatsAppButton = ({ href, text }) => (
       e.currentTarget.style.transform = "scale(1)";
     }}
   >
-    <FaWhatsapp className="text-xl text-cyan-500" />
+    <FaWhatsapp className="text-lg sm:text-xl text-cyan-500" />
     {text}
   </a>
 );

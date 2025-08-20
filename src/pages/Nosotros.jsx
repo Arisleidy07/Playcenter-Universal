@@ -40,18 +40,20 @@ function Nosotros() {
         }}
       >
         {/* Imagen asomándose afuera del cuadro (arriba a la derecha) */}
+{/* Imagen asomándose afuera del cuadro (arriba a la derecha) */}
 <img
   src="/toy/asoman.png"
   alt="Muñeco asomándose"
-  className="absolute -top-6 w-44 h-auto z-20"
-  style={{ 
-    right: "-135px",
+  className="hidden lg:block absolute z-20" // solo se muestra en desktop grande
+  style={{
     top: "-160px",
     right: "-230px",
     width: "300px",
     height: "auto",
   }}
 />
+
+
 
 
 
