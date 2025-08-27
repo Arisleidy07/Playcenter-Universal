@@ -6,6 +6,15 @@ import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "./ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext";
 
+/**
+ * Formatea precio en PESOS RD: sin decimales y con separador de miles.
+ * Ej: 12000 -> "12,000"
+ */
+function formatPriceRD(value) {
+  const pesos = Math.round(Number(value) || 0);
+  return new Intl.NumberFormat("es-DO").format(pesos);
+}
+
 function TarjetaProducto({ producto }) {
   const { carrito, agregarAlCarrito, eliminarUnidadDelCarrito, quitarDelCarrito } = useCarrito();
   const { usuario } = useAuth();
@@ -68,8 +77,9 @@ function TarjetaProducto({ producto }) {
             <p className="text-sm text-gray-600 line-clamp-2">
               {producto.descripcion || "Descripción del producto."}
             </p>
+            {/* MOSTRAR SOLO PESOS ENTEROS CON SEPARADOR DE MILES */}
             <p className="text-lg font-bold text-gray-900 mt-1">
-              {producto.precio.toFixed(2)} DOP
+              {formatPriceRD(producto.precio)} DOP
             </p>
           </div>
         </div>

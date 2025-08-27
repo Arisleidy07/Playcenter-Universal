@@ -8,8 +8,10 @@ export function useAuthModal() {
 
 export function AuthModalProvider({ children }) {
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [modo, setModo] = useState("login"); // Controla si es login o signup
 
-  function abrirModal() {
+  function abrirModal(modoInicial = "login") {
+    setModo(modoInicial); // Forzar "login" o "signup" al abrir
     setModalAbierto(true);
   }
 
@@ -18,7 +20,7 @@ export function AuthModalProvider({ children }) {
   }
 
   return (
-    <AuthModalContext.Provider value={{ modalAbierto, setModalAbierto, abrirModal, cerrarModal }}>
+    <AuthModalContext.Provider value={{ modalAbierto, setModalAbierto, abrirModal, cerrarModal, modo, setModo }}>
       {children}
     </AuthModalContext.Provider>
   );

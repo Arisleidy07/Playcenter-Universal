@@ -1,13 +1,14 @@
-// src/components/AuthModal.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { motion } from "framer-motion";
 import { FaUser, FaUserPlus } from "react-icons/fa";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function AuthModal() {
   const { modalAbierto, setModalAbierto, modo: modoGlobal, setModo } = useAuthModal();
-  const { login, signup } = useAuth();
+  const { login, signup, usuario } = useAuth();
 
   const [modo, setModoLocal] = useState(modoGlobal);
   const [email, setEmail] = useState("");
@@ -30,7 +31,25 @@ export default function AuthModal() {
       if (modo === "login") {
         await login(email, password);
       } else {
-        await signup(email, password, name);
+        // Registrarse
+        const nuevoUsuario = await signup(email, password);
+
+        // Guardar nombre y datos iniciales en Firestore
+        await setDoc(doc(db, "users", nuevoUsuario.uid), {
+          displayName: name || "Usuario",
+          email,
+          telefono: "",
+          direccion: "",
+          codigo: "",
+          metodoEntrega: "",
+          admin: false,
+          createdAt: new Date(),
+        });
+
+        // Actualizar displayName en Firebase Auth
+        if (name) {
+          await updateProfile(nuevoUsuario, { displayName: name });
+        }
       }
       setModalAbierto(false);
     } catch (e) {
@@ -79,7 +98,7 @@ export default function AuthModal() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {modo === "signup" && (
             <div>
-              <label className="block text-sm mb-1">Nombre</label>
+              <label className="block text-sm mb-1">Nombre de usuario</label>
               <input
                 type="text"
                 required

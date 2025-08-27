@@ -10,6 +10,15 @@ import ModalLoginAlert from "../components/ModalLoginAlert";
 import ProductosRelacionados from "../components/ProductosRelacionados";
 import BotonCompartir from "../components/BotonCompartir";
 
+/**
+ * Formatea precio en PESOS RD: sin decimales y con separador de miles.
+ * Ej: 12000 -> "12,000"
+ */
+function formatPriceRD(value) {
+  const pesos = Math.round(Number(value) || 0);
+  return new Intl.NumberFormat("es-DO").format(pesos);
+}
+
 function VistaProducto() {
   const { carrito, agregarAlCarrito, quitarDelCarrito, eliminarUnidadDelCarrito } = useCarrito();
   const { usuario } = useAuth();
@@ -156,7 +165,7 @@ function VistaProducto() {
             </motion.p>
 
             <p className="text-2xl font-bold text-blue-500 mt-2">
-              DOP {producto.precio.toFixed(2)}
+              DOP {formatPriceRD(producto.precio)}
             </p>
 
             {producto.acerca && (
@@ -176,7 +185,7 @@ function VistaProducto() {
           {/* Columna Derecha: Compra */}
           <div className="w-full lg:w-[370px] bg-gray-50 rounded-xl border p-8 shadow-md flex flex-col gap-7 h-fit">
             <p className="text-2xl font-bold text-blue-500">
-              DOP {producto.precio.toFixed(2)}
+              DOP {formatPriceRD(producto.precio)}
             </p>
 
             {varianteActiva?.cantidad !== undefined && (
