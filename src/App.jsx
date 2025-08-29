@@ -4,14 +4,16 @@ import Footer from "./components/Footer";
 import AnimatedRoutes from "./AnimatedRoutes";
 import NavbarInferior from "./components/NavbarInferior";
 import AuthModal from "./components/AuthModal";
-import ScrollToTop from "./ScrollToTop"; 
+import ScrollToTop from "./ScrollToTop";
+import TopBar from "./components/TopBar"; 
 
 function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <TopBar /> 
       <main className="flex-grow">
-        <ScrollToTop /> 
+        <ScrollToTop />
         <AnimatedRoutes />
         <NavbarInferior />
         <AuthModal />

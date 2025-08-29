@@ -1,3 +1,4 @@
+// src/pages/Profile.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "firebase/auth";
@@ -7,6 +8,17 @@ import { useNavigate } from "react-router-dom";
 import { collection, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
 import Entrega from "../components/Entrega";
+
+/* Playcenter fijo (se muestra siempre, no editable) */
+const TIENDA_PLAYCENTER = {
+  provincia: "Santiago",
+  ciudad: "Santiago de los Caballeros",
+  numeroCalle: "Av. Juan Pablo Duarte 68",
+  direccionCompleta:
+    "Playcenter Universal, Av. Juan Pablo Duarte 68, Santiago de los Caballeros 51000, República Dominicana",
+  ubicacion: "https://maps.app.goo.gl/kszSTHedLYWCby1E7",
+  metodoEntrega: "tienda",
+};
 
 export default function Profile() {
   const { usuario, usuarioInfo, actualizarUsuarioInfo, logout } = useAuth();
@@ -44,9 +56,10 @@ export default function Profile() {
 
   const fetchHistorial = async () => {
     try {
+      if (!usuario) return;
       const q = query(collection(db, "orders"), where("userId", "==", usuario.uid));
       const snap = await getDocs(q);
-      setHistorial(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setHistorial(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (err) {
       console.error("Error fetching historial:", err);
     }
@@ -54,9 +67,10 @@ export default function Profile() {
 
   const fetchDirecciones = async () => {
     try {
+      if (!usuario) return;
       const q = query(collection(db, "direcciones"), where("usuarioId", "==", usuario.uid));
       const snap = await getDocs(q);
-      setDirecciones(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setDirecciones(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (err) {
       console.error("Error fetching direcciones:", err);
     }
@@ -66,6 +80,7 @@ export default function Profile() {
     if (!usuario) return;
     fetchHistorial();
     fetchDirecciones();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario]);
 
   const handleChange = (e) => setFormData((old) => ({ ...old, [e.target.name]: e.target.value }));
@@ -78,17 +93,20 @@ export default function Profile() {
       let nuevaFotoURL = formData.fotoURL;
       if (imgFile) nuevaFotoURL = await subirImagenCloudinary(imgFile);
 
+      // actualizar datos en Firestore + estado local (AuthContext debe encargarse de persistir)
       await actualizarUsuarioInfo({
         telefono: formData.telefono,
         direccion: formData.direccion,
         metodoEntrega: formData.metodoEntrega,
       });
 
+      // actualizar displayName / photoURL en Firebase Auth si cambió
       const cambios = {};
       if (usuario.displayName !== formData.nombre) cambios.displayName = formData.nombre;
       if (usuario.photoURL !== nuevaFotoURL) cambios.photoURL = nuevaFotoURL;
       if (Object.keys(cambios).length > 0) await updateProfile(usuario, cambios);
 
+      // actualizar estado local del form
       setFormData((prev) => ({ ...prev, fotoURL: nuevaFotoURL }));
       setMensaje("✅ Perfil actualizado con éxito.");
       setModoEdicion(false);
@@ -117,6 +135,44 @@ export default function Profile() {
     }
   };
 
+  // igual que en Entrega.jsx: crea un resumen corto para mostrar en el top bar
+  const resumenDireccion = (direccion) => {
+    if (!direccion) return "";
+    return direccion.length > 40 ? direccion.slice(0, 37) + "..." : direccion;
+  };
+
+  /* === Lógica COPIADA EXACTA de Entrega.jsx para seleccionar ===
+     - Actualiza usuarioInfo via actualizarUsuarioInfo
+     - Cierra modal si viene de aquí
+     - Refresca la lista local (fetchDirecciones)
+  */
+  const handleSeleccionarDireccion = async (dir) => {
+    try {
+      // dir puede ser objeto (doc) o el objeto TIENDA_PLAYCENTER
+      const direccionCompleta = typeof dir === "string" ? dir : (dir?.direccionCompleta || "");
+      const metodo = (dir && dir.metodoEntrega) ? dir.metodoEntrega : "domicilio";
+
+      await actualizarUsuarioInfo({
+        direccion: resumenDireccion(direccionCompleta),
+        metodoEntrega: metodo,
+      });
+
+      // cerrar modal si está abierto desde profile
+      if (modalEntrega) setModalEntrega(false);
+
+      // refrescar lista igual que hace Entrega.jsx
+      await fetchDirecciones();
+
+      // actualizar UI local del perfil inmediatamente
+      setFormData((prev) => ({ ...prev, direccion: resumenDireccion(direccionCompleta), metodoEntrega: metodo }));
+
+      setMensaje("✅ Dirección seleccionada.");
+    } catch (err) {
+      console.error("handleSeleccionarDireccion error:", err);
+      alert(`Error seleccionando dirección: ${err?.message || err}`);
+    }
+  };
+
   if (!usuario || !usuarioInfo)
     return (
       <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-100 to-white">
@@ -129,6 +185,10 @@ export default function Profile() {
     { id: "historial", label: "Historial" },
     { id: "direcciones", label: "Direcciones" },
   ];
+
+  // separar Playcenter si el usuario la guardó también en la colección
+  const tiendaGuardada = direcciones.find(d => d.metodoEntrega === "tienda");
+  const direccionesUsuario = direcciones.filter(d => d.metodoEntrega !== "tienda");
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-100 to-white flex flex-col items-center px-6 py-12 font-sans">
@@ -220,7 +280,7 @@ export default function Profile() {
                       >
                         <option value="">Selecciona una opción</option>
                         <option value="domicilio">Domicilio</option>
-                        <option value="recoger">Recoger en tienda</option>
+                        <option value="tienda">Recoger en tienda</option>
                       </select>
                     </div>
                   </div>
@@ -280,19 +340,34 @@ export default function Profile() {
                 </motion.button>
               </h2>
               <div className="flex flex-col gap-3">
-                <div className="p-5 rounded-2xl bg-gradient-to-r from-white to-sky-50 shadow flex justify-between items-start opacity-80 cursor-not-allowed">
+
+                {/* Playcenter fijo (no editable) */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-white to-sky-50 shadow hover:shadow-md transition flex justify-between items-start">
                   <div>
-                    <p><strong>Dirección:</strong> Av. Salvador Estrella Sadhalá No. 55, Altos (Los Guandules), Santiago de los Caballeros, República Dominicana</p>
-                    <p><strong>Método:</strong> Tienda física Playcenter Universal</p>
+                    <p><strong>Recoger en:</strong> Playcenter Universal Santiago</p>
+                    <p className="text-sm">{TIENDA_PLAYCENTER.direccionCompleta}</p>
+                    <p className="text-sm"><a href={TIENDA_PLAYCENTER.ubicacion} target="_blank" rel="noreferrer" className="underline text-sky-700">Ver en Maps</a></p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => handleSeleccionarDireccion(TIENDA_PLAYCENTER)}
+                      className="px-3 py-1 bg-green-400 rounded hover:bg-green-500 font-semibold text-white"
+                    >
+                      Seleccionar
+                    </button>
+                    {/* No editar/eliminar para Playcenter */}
                   </div>
                 </div>
 
-                {direcciones.length === 0 ? <p className="text-gray-500 italic">No tienes direcciones guardadas.</p> :
-                  direcciones.map(dir => (
+                {/* Direcciones guardadas del usuario */}
+                {direccionesUsuario.length === 0 ? (
+                  <p className="text-gray-500 italic">No tienes direcciones guardadas.</p>
+                ) : (
+                  direccionesUsuario.map(dir => (
                     <div key={dir.id} className="p-5 rounded-2xl bg-gradient-to-r from-white to-sky-50 shadow hover:shadow-md transition flex justify-between items-start">
                       <div>
                         <p><strong>Dirección:</strong> {dir.direccionCompleta || `${dir.numeroCalle || ""} ${dir.numeroCasa ? "Casa "+dir.numeroCasa : ""}, ${dir.ciudad || ""}, ${dir.provincia || ""}`}</p>
-                        <p><strong>Método:</strong> {dir.metodoEntrega}</p>
+                        <p><strong>Método:</strong> {dir.metodoEntrega || "domicilio"}</p>
                         {dir.referencia && <p><strong>Ref:</strong> {dir.referencia}</p>}
                         {dir.ubicacion && (
                           <p className="mt-1">
@@ -303,17 +378,20 @@ export default function Profile() {
                       </div>
                       <div className="flex flex-col gap-2">
                         <button onClick={() => handleEditarDireccion(dir)} className="px-3 py-1 bg-yellow-300 rounded hover:bg-yellow-400 font-semibold">Editar</button>
+
+                        <button onClick={() => handleSeleccionarDireccion(dir)} className="px-3 py-1 bg-green-400 rounded hover:bg-green-500 font-semibold text-white">Seleccionar</button>
+
                         <button onClick={() => handleEliminarDireccion(dir.id)} className="px-3 py-1 bg-red-400 rounded hover:bg-red-500 font-semibold text-white">Eliminar</button>
                       </div>
                     </div>
                   ))
-                }
+                )}
               </div>
 
               {modalEntrega && (
                 <Entrega
                   abierto={modalEntrega}
-                  onClose={() => { setModalEntrega(false); }} // Profile ya no hace fetch extra al cerrar
+                  onClose={async () => { setModalEntrega(false); setDireccionEditar(null); await fetchDirecciones(); }}
                   usuarioId={usuario.uid}
                   direccionEditar={direccionEditar}
                   actualizarLista={fetchDirecciones}

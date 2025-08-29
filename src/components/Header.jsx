@@ -8,7 +8,6 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Header = () => {
   const [dropdownAbierto, setDropdownAbierto] = useState(false);
-  const [showEnvios, setShowEnvios] = useState(true);
   const { usuario, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
   const dropdownRef = useRef(null);
@@ -50,9 +49,9 @@ const Header = () => {
     function handleScroll() {
       const currentScroll = window.pageYOffset;
       if (currentScroll > lastScroll) {
-        setShowEnvios(false);
+        // antes ocultaba el banner de envíos en móvil
       } else {
-        setShowEnvios(true);
+        // antes lo mostraba
       }
       lastScroll = currentScroll;
     }
@@ -162,12 +161,6 @@ const Header = () => {
                         >
                           Mi Perfil
                         </Link>
-                        <button
-                          onClick={manejarLogout}
-                          className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-500 hover:text-white rounded-b-md transition"
-                        >
-                          Cerrar sesión
-                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -186,13 +179,6 @@ const Header = () => {
           </div>
         </div>
       </motion.header>
-
-      {showEnvios && (
-        <div className="sm:hidden flex items-center justify-center gap-1 bg-[#E8F6FF] text-[#4FC3F7] py-1 text-[11px] font-semibold select-none fixed top-[58px] left-0 right-0 z-[9998] shadow">
-          <FaMapMarkerAlt className="text-xs" />
-          <span>Envíos a TODO RD</span>
-        </div>
-      )}
 
       {/* Botón admin en móvil, abajo derecha, arriba del navbar */}
       {usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (

@@ -1,4 +1,3 @@
-// src/context/AuthContext.js
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   onAuthStateChanged,
@@ -7,12 +6,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth, db, storage } from "../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -26,10 +20,7 @@ function generarCodigoUnico() {
 }
 
 const AuthContext = createContext();
-
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export function useAuth() { return useContext(AuthContext); }
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
@@ -42,24 +33,9 @@ export function AuthProvider({ children }) {
 
       if (user) {
         const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
+        let docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-
-          if (!data.codigo) {
-            const nuevoCodigo = generarCodigoUnico();
-            await updateDoc(docRef, { codigo: nuevoCodigo });
-            data.codigo = nuevoCodigo;
-          }
-
-          setUsuarioInfo({
-            ...data,
-            displayName: user.displayName || data.displayName || "",
-            email: user.email || data.email || "",
-            isAdmin: data.admin === true,
-          });
-        } else {
+        if (!docSnap.exists()) {
           const nuevoCodigo = generarCodigoUnico();
           await setDoc(docRef, {
             telefono: "",
@@ -69,16 +45,23 @@ export function AuthProvider({ children }) {
             displayName: user.displayName || "",
             email: user.email || "",
           });
-          setUsuarioInfo({
-            telefono: "",
-            direccion: "",
-            admin: false,
-            codigo: nuevoCodigo,
-            displayName: user.displayName || "",
-            email: user.email || "",
-            isAdmin: false,
-          });
+          docSnap = await getDoc(docRef);
         }
+
+        let data = docSnap.data();
+        if (!data.codigo) {
+          const nuevoCodigo = generarCodigoUnico();
+          await updateDoc(docRef, { codigo: nuevoCodigo });
+          data = { ...data, codigo: nuevoCodigo };
+        }
+
+        setUsuarioInfo({
+          uid: user.uid,
+          ...data,
+          displayName: user.displayName || data.displayName || "",
+          email: user.email || data.email || "",
+          isAdmin: data.admin === true,
+        });
       } else {
         setUsuarioInfo(null);
       }
@@ -90,32 +73,27 @@ export function AuthProvider({ children }) {
 
   async function signup(email, password, name) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    try {
-      await updateProfile(userCredential.user, { displayName: name });
-    } catch (err) {
-      console.error("Error actualizando displayName:", err);
-    }
+    await updateProfile(userCredential.user, { displayName: name });
 
     const nuevoCodigo = generarCodigoUnico();
-
     await setDoc(doc(db, "users", userCredential.user.uid), {
       telefono: "",
       direccion: "",
       admin: false,
       codigo: nuevoCodigo,
       displayName: name,
-      email: email,
+      email,
     });
 
-    // Refrescar usuario actualizado
     setUsuario(auth.currentUser);
     setUsuarioInfo({
+      uid: userCredential.user.uid,
       telefono: "",
       direccion: "",
       admin: false,
       codigo: nuevoCodigo,
       displayName: name,
-      email: email,
+      email,
       isAdmin: false,
     });
   }
@@ -133,12 +111,25 @@ export function AuthProvider({ children }) {
     const docRef = doc(db, "users", usuario.uid);
     await updateDoc(docRef, data);
 
-    setUsuarioInfo((prev) => ({ ...prev, ...data }));
+    const updatedSnap = await getDoc(docRef);
+    const updatedData = updatedSnap.exists() ? updatedSnap.data() : {};
+
+    const merged = {
+      uid: usuario.uid,
+      ...updatedData,
+      displayName: usuario.displayName || updatedData.displayName || "",
+      email: usuario.email || updatedData.email || "",
+      isAdmin: updatedData.admin === true,
+    };
+
+    setUsuarioInfo(merged);
 
     if (data.displayName && usuario.displayName !== data.displayName) {
       await updateProfile(usuario, { displayName: data.displayName });
       setUsuario(auth.currentUser);
     }
+
+    return merged;
   }
 
   async function subirImagen(file) {
@@ -148,6 +139,7 @@ export function AuthProvider({ children }) {
     const photoURL = await getDownloadURL(fileRef);
     await updateProfile(usuario, { photoURL });
     setUsuario(auth.currentUser);
+    setUsuarioInfo((prev) => ({ ...prev, photoURL }));
     return photoURL;
   }
 

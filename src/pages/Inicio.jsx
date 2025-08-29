@@ -10,7 +10,6 @@ import {
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
 import productosAll from "../data/productosAll.js";
-import MouseTrail from "../components/mousetrail";
 import Anim from '../components/anim';
 
 
