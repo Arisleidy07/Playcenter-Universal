@@ -1,3 +1,4 @@
+// src/components/TopBar.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, ChevronDown } from "lucide-react";
 import Entrega from "./Entrega";
@@ -73,18 +74,28 @@ export default function TopBar() {
     left: 0,
     right: 0,
     top: `${headerHeight}px`,
-    zIndex: 40,
+    zIndex: 900,
     transform: visible ? "translateY(0)" : "translateY(-110%)",
     transition: "transform 220ms ease, opacity 220ms ease",
     pointerEvents: visible ? "auto" : "none",
+    background: "white",
   };
 
   return (
     <>
-      <div ref={topbarRef} style={topStyle} className="bg-white shadow-md px-4 py-2 flex justify-between items-center">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setModalEntrega(true)}>
+      <div
+        ref={topbarRef}
+        style={topStyle}
+        className="shadow-md px-4 py-2 flex justify-between items-center"
+      >
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => setModalEntrega(true)}
+        >
           <MapPin className="w-5 h-5 text-gray-700" />
-          <span className="font-semibold text-gray-800">{textoEntrega}</span>
+          <span className="font-semibold text-gray-800 max-w-[200px] truncate">
+            {textoEntrega}
+          </span>
           <ChevronDown className="w-5 h-5 text-gray-600" />
         </div>
       </div>

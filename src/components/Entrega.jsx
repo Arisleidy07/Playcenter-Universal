@@ -1,5 +1,6 @@
 // src/components/Entrega.jsx
 import React, { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "../firebase";
 import {
@@ -11,6 +12,8 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  setDoc,
+  getDoc,
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -22,11 +25,11 @@ import {
   Trash2,
   Pencil,
   Check,
+  ChevronDown,
 } from "lucide-react";
+import "../styles/Entrega.css";
 
-/* =====================
-   Provincias RD
-   ===================== */
+/* Provincias RD */
 const provinciasRD = [
   "Distrito Nacional", "Santo Domingo", "Santiago", "La Vega",
   "Puerto Plata", "San Cristóbal", "Duarte", "La Romana",
@@ -37,9 +40,6 @@ const provinciasRD = [
   "Elías Piña", "Dajabón", "Baoruco"
 ];
 
-/* =====================
-   Playcenter fijo
-   ===================== */
 const TIENDA_PLAYCENTER = {
   provincia: "Santiago",
   ciudad: "Santiago de los Caballeros",
@@ -50,138 +50,122 @@ const TIENDA_PLAYCENTER = {
   metodoEntrega: "tienda",
 };
 
-/* =====================
-   ProvinciaPicker (bottom sheet / slider)
-   ===================== */
+/* ============================
+   ProvinciaPicker (CENTRADO en viewport)
+   - Siempre aparece en el centro (vertical + horizontal)
+   - Usa portal y backdrop, z-index alto para que NADA lo tape
+   ============================ */
 function ProvinciaPicker({ abierto, onClose, onPick, valorActual }) {
   const [busqueda, setBusqueda] = useState("");
 
   const lista = useMemo(() => {
     if (!busqueda) return provinciasRD;
     const q = busqueda.toLowerCase();
-    return provinciasRD.filter(p => p.toLowerCase().includes(q));
+    return provinciasRD.filter((p) => p.toLowerCase().includes(q));
   }, [busqueda]);
 
-  return (
+  useEffect(() => {
+    if (!abierto) setBusqueda("");
+  }, [abierto]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {abierto && (
         <>
           <motion.div
-            className="fixed inset-0 bg-black/40 z-[100]"
+            className="prov-picker-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
           <motion.div
-            className="fixed z-[101] left-0 right-0 bottom-0 md:inset-0 md:m-auto md:max-w-xl"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 260, damping: 24 }}
+            className="prov-picker-modal"
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-xl p-4 max-h-[80vh] overflow-hidden">
-              <div className="h-1.5 w-14 bg-gray-300 rounded-full mx-auto mb-3 md:hidden" />
-              <div className="flex items-center justify-between">
-                <h4 className="text-base font-semibold">Seleccionar provincia</h4>
-                <button onClick={onClose} className="text-gray-600 hover:text-black text-xl">✕</button>
+            <div className="prov-dark-card">
+              <div className="prov-dark-header">
+                <h3 className="prov-dark-title">Seleccionar Provincia</h3>
+                <button onClick={onClose} className="prov-close-white">
+                  ✕
+                </button>
               </div>
-
-              <div className="mt-3">
+              <div className="prov-search-dark">
                 <input
-                  className="w-full px-3 py-2 border rounded-md"
+                  type="text"
                   placeholder="Buscar provincia..."
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
+                  className="prov-input-dark"
+                  autoFocus
                 />
               </div>
-
-              <div className="mt-3 overflow-y-auto" style={{ maxHeight: "60vh" }}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {lista.map((p) => {
-                    const activo = p === valorActual;
-                    return (
-                      <button
-                        key={p}
-                        onClick={() => { onPick(p); onClose(); }}
-                        className={`text-left px-4 py-3 rounded-xl border transition ${activo ? "border-sky-500 bg-sky-50" : "border-gray-200 hover:bg-gray-50"}`}
-                      >
-                        {p}
-                      </button>
-                    );
-                  })}
-                </div>
-                {lista.length === 0 && <p className="text-sm text-gray-500 mt-4">No hay coincidencias.</p>}
+              <div className="prov-list-dark">
+                {lista.length > 0 ? (
+                  lista.map((prov) => (
+                    <div
+                      key={prov}
+                      className={`prov-item-dark ${valorActual === prov ? 'active' : ''}`}
+                      onClick={() => {
+                        onPick(prov);
+                        onClose();
+                      }}
+                    >
+                      {prov}
+                    </div>
+                  ))
+                ) : (
+                  <div className="prov-empty-dark">No se encontraron provincias</div>
+                )}
               </div>
             </div>
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
-/* =====================
-   Componente principal Entrega
-   ===================== */
-/**
- * Props:
- * - abierto
- * - onClose
- * - usuarioId
- * - direccionEditar (opcional)
- * - actualizarLista (opcional)
- */
-export default function Entrega({
-  abierto,
-  onClose,
-  usuarioId: usuarioIdProp,
-  direccionEditar = null,
-  actualizarLista = null,
-}) {
-  const { usuario, actualizarUsuarioInfo } = useAuth();
-  const uid = usuarioIdProp || usuario?.uid;
-
-  // Estados
+export default function Entrega({ abierto, onClose, actualizarUsuarioInfo, actualizarLista }) {
+  const { uid, usuario } = useAuth();
+  
+  const [metodoEntrega, setMetodoEntrega] = useState("domicilio");
   const [direcciones, setDirecciones] = useState([]);
   const [loadingDirecciones, setLoadingDirecciones] = useState(false);
-
   const [editandoId, setEditandoId] = useState(null);
-  const [metodoEntrega, setMetodoEntrega] = useState("domicilio");
+  
   const [provincia, setProvincia] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [sector, setSector] = useState("");
   const [numeroCalle, setNumeroCalle] = useState("");
   const [numeroCasa, setNumeroCasa] = useState("");
+  
   const [referencia, setReferencia] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [showVanAnimation, setShowVanAnimation] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
-  // picker
   const [pickerAbierto, setPickerAbierto] = useState(false);
+  const formatoDireccionCompleta = (direccion) => direccion || "";
 
-  const resumenDireccion = (direccion) => {
-    if (!direccion) return "";
-    return direccion.length > 40 ? direccion.slice(0, 37) + "..." : direccion;
-  };
-
-  // geoloc (solo para UI)
   const [ubicacion, setUbicacion] = useState("");
+  const [coords, setCoords] = useState(null);
   const [geoLoading, setGeoLoading] = useState(false);
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-
-  // bandera para saber si pusimos los datos de la tienda para no "pegarlos" al volver a domicilio
   const [tiendaActiva, setTiendaActiva] = useState(false);
 
-  /* Fetch direcciones (todas del usuario) */
   const fetchDirecciones = async () => {
-    if (!uid) {
-      setDirecciones([]);
-      return;
-    }
+    const currentUid = uid || usuario?.uid;
+    if (!currentUid) { setDirecciones([]); return; }
     setLoadingDirecciones(true);
     try {
-      const q = query(collection(db, "direcciones"), where("usuarioId", "==", uid));
+      const q = query(collection(db, "direcciones"), where("usuarioId", "==", currentUid));
       const snap = await getDocs(q);
       const dirs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setDirecciones(dirs);
@@ -194,28 +178,13 @@ export default function Entrega({
   };
 
   useEffect(() => {
-    if (abierto && uid) fetchDirecciones();
+    const currentUid = uid || usuario?.uid;
+    if (abierto && currentUid) fetchDirecciones();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, uid]);
+  }, [abierto, uid, usuario]);
 
-  // Si se abre con direccionEditar, precargamos el formulario
   useEffect(() => {
-    if (direccionEditar && abierto) {
-      setEditandoId(direccionEditar.id || null);
-      setMetodoEntrega(direccionEditar.metodoEntrega || "domicilio");
-      setProvincia(direccionEditar.provincia || "");
-      setCiudad(direccionEditar.ciudad || "");
-      setSector(direccionEditar.sector || "");
-      setNumeroCalle(direccionEditar.numeroCalle || "");
-      setNumeroCasa(direccionEditar.numeroCasa || "");
-      setReferencia(direccionEditar.referencia || "");
-      setUbicacion(direccionEditar.ubicacion || "");
-      setLatitude(direccionEditar.latitude != null ? String(direccionEditar.latitude) : "");
-      setLongitude(direccionEditar.longitude != null ? String(direccionEditar.longitude) : "");
-      setTiendaActiva(direccionEditar.metodoEntrega === "tienda");
-    }
-    if (!direccionEditar && abierto) {
-      // limpiar formularios al abrir para crear nueva
+    if (abierto) {
       setEditandoId(null);
       setMetodoEntrega("domicilio");
       setProvincia("");
@@ -225,13 +194,11 @@ export default function Entrega({
       setNumeroCasa("");
       setReferencia("");
       setUbicacion("");
-      setLatitude("");
-      setLongitude("");
+      setCoords(null);
       setTiendaActiva(false);
     }
-  }, [direccionEditar, abierto]);
+  }, [abierto]);
 
-  /* Elegir método */
   const elegirMetodo = (m) => {
     if (m === "tienda") {
       setMetodoEntrega("tienda");
@@ -243,8 +210,7 @@ export default function Entrega({
       setReferencia("");
       setEditandoId(null);
       setUbicacion("");
-      setLatitude("");
-      setLongitude("");
+      setCoords(null);
       setTiendaActiva(true);
       return;
     }
@@ -268,40 +234,34 @@ export default function Entrega({
     setMetodoEntrega(m);
   };
 
-  /* Armar dirección de domicilio desde campos */
-  const armarDireccionDomicilio = () => {
-    return [
-      numeroCalle,
-      numeroCasa ? `Casa ${numeroCasa}` : "",
-      sector,
-      ciudad,
-      provincia,
-      referencia ? `Ref: ${referencia}` : ""
-    ].filter(Boolean).join(", ").trim();
-  };
+  const armarDireccionDomicilio = () =>
+    [numeroCalle, numeroCasa ? `Casa ${numeroCasa}` : "", sector, ciudad, provincia, referencia ? `Ref: ${referencia}` : ""].filter(Boolean).join(", ").trim();
 
-  /* Guardar o actualizar dirección */
   const handleGuardarDireccion = async () => {
-    if (!uid) {
-      alert("Usuario no detectado.");
-      return;
+    const currentUid = uid || usuario?.uid;
+    console.log("Auth check:", { uid, usuario: usuario?.uid, currentUid });
+    
+    if (!currentUid) { 
+      alert("Error de autenticación. Recarga la página e intenta de nuevo.");
+      return; 
     }
-
     setGuardando(true);
     try {
       if (metodoEntrega === "tienda") {
-        await actualizarUsuarioInfo({
-          direccion: resumenDireccion(TIENDA_PLAYCENTER.direccionCompleta),
-          metodoEntrega: "tienda",
-        });
+        if (typeof actualizarUsuarioInfo === "function") {
+          await actualizarUsuarioInfo({
+            direccion: formatoDireccionCompleta(TIENDA_PLAYCENTER.direccionCompleta),
+            metodoEntrega: "tienda",
+          });
+        }
         if (onClose) onClose();
         if (typeof actualizarLista === "function") actualizarLista();
         setGuardando(false);
         return;
       }
 
-      const tieneCoords = (latitude && longitude) || (ubicacion && /q=/.test(ubicacion));
-      if (!tieneCoords) {
+      const tieneUbicacion = !!coords;
+      if (!tieneUbicacion) {
         const dirFinalCheck = armarDireccionDomicilio();
         if (!provincia || !ciudad || !numeroCalle || !dirFinalCheck) {
           alert("Completa provincia, ciudad y calle/número.");
@@ -310,31 +270,7 @@ export default function Entrega({
         }
       }
 
-      let lat = latitude || null;
-      let lon = longitude || null;
-      if ((!lat || !lon) && ubicacion) {
-        const qMatch = ubicacion.match(/[?&]q=([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/);
-        const atMatch = ubicacion.match(/@([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/);
-        if (qMatch) {
-          lat = qMatch[1];
-          lon = qMatch[3];
-        } else if (atMatch) {
-          lat = atMatch[1];
-          lon = atMatch[3];
-        }
-      }
-
-      let dirFinal;
-      if (tieneCoords) {
-        const parts = [];
-        if (provincia) parts.push(provincia);
-        if (ciudad) parts.push(ciudad);
-        if (numeroCalle) parts.push(numeroCalle);
-        parts.push(`Coordenadas: ${lat || (ubicacion ? ubicacion : "ver ubicación")}`);
-        dirFinal = parts.join(", ");
-      } else {
-        dirFinal = armarDireccionDomicilio();
-      }
+      const dirFinal = tieneUbicacion ? `${armarDireccionDomicilio() ? armarDireccionDomicilio() + ", " : ""}Ubicación: ${ubicacion} (${coords?.lat}, ${coords?.lon})` : armarDireccionDomicilio();
 
       const payload = {
         metodoEntrega: "domicilio",
@@ -346,9 +282,8 @@ export default function Entrega({
         referencia: referencia || null,
         direccionCompleta: dirFinal,
         ubicacion: ubicacion || null,
-        latitude: lat ? Number(lat) : null,
-        longitude: lon ? Number(lon) : null,
-        usuarioId: uid,
+        coords: coords || null,
+        usuarioId: currentUid,
         updatedAt: new Date(),
       };
 
@@ -359,16 +294,37 @@ export default function Entrega({
         await addDoc(collection(db, "direcciones"), { ...payload, createdAt: new Date() });
       }
 
-      await actualizarUsuarioInfo({
-        direccion: resumenDireccion(dirFinal),
-        metodoEntrega: "domicilio",
-      });
+      if (typeof actualizarUsuarioInfo === "function") {
+        await actualizarUsuarioInfo({
+          direccion: formatoDireccionCompleta(dirFinal),
+          metodoEntrega: "domicilio",
+        });
+      }
+
+      // Show van animation like Profile.jsx
+      setShowVanAnimation(true);
+
+      // Same Firestore operations as Profile.jsx for saving
+      const savePayload = { direccion: formatoDireccionCompleta(dirFinal), metodoEntrega: "domicilio", updatedAt: new Date() };
+      try {
+        await setDoc(doc(db, "users", currentUid), savePayload, { merge: true });
+      } catch (err) {
+        console.warn("No se pudo escribir users/{uid}:", err);
+      }
+      try {
+        await setDoc(doc(db, "usuarios", currentUid), savePayload, { merge: true });
+      } catch (err) {
+        console.warn("No se pudo escribir usuarios/{uid}:", err);
+      }
 
       await fetchDirecciones();
       if (typeof actualizarLista === "function") actualizarLista();
 
       setEditandoId(null);
       if (onClose) onClose();
+      
+      // Reload page immediately - animation covers the reload
+      window.location.reload();
     } catch (err) {
       console.error("handleGuardarDireccion error:", err);
       alert(`Error guardando dirección: ${err?.message || err}`);
@@ -377,34 +333,98 @@ export default function Entrega({
     }
   };
 
-  /* Seleccionar dirección (refleja en perfil y cierra) */
   const handleSeleccionarDireccion = async (dir) => {
     try {
-      await actualizarUsuarioInfo({
-        direccion: resumenDireccion(dir.direccionCompleta),
-        metodoEntrega: dir.metodoEntrega || "domicilio",
-      });
-      if (onClose) onClose();
+      const direccionCompleta = typeof dir === "string" ? dir : dir?.direccionCompleta || "";
+      const metodo = dir && dir.metodoEntrega ? dir.metodoEntrega : "domicilio";
+      const currentUid = uid || usuario?.uid;
+
+      setShowVanAnimation(true);
+
+      if (typeof actualizarUsuarioInfo === "function") {
+        await actualizarUsuarioInfo({
+          direccion: direccionCompleta,
+          metodoEntrega: metodo,
+        });
+      }
+
+      // Same Firestore operations as Profile.jsx
+      const payload = { direccion: direccionCompleta, metodoEntrega: metodo, updatedAt: new Date() };
+      try {
+        await setDoc(doc(db, "users", currentUid), payload, { merge: true });
+      } catch (err) {
+        console.warn("No se pudo escribir users/{uid}:", err);
+      }
+      try {
+        await setDoc(doc(db, "usuarios", currentUid), payload, { merge: true });
+      } catch (err) {
+        console.warn("No se pudo escribir usuarios/{uid}:", err);
+      }
+
+      try {
+        let snap = await getDoc(doc(db, "users", currentUid));
+        if (!snap.exists()) snap = await getDoc(doc(db, "usuarios", currentUid));
+        if (snap && snap.exists()) {
+          const data = snap.data() || {};
+          if (typeof actualizarUsuarioInfo === "function") {
+            await actualizarUsuarioInfo({
+              direccion: data.direccion || direccionCompleta,
+              metodoEntrega: data.metodoEntrega || metodo,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("No se pudo releer documento de usuario:", err);
+      }
+
+      await fetchDirecciones();
       if (typeof actualizarLista === "function") actualizarLista();
+      
+      if (onClose) onClose();
+      
+      // Reload page immediately - animation covers the reload
+      window.location.reload();
     } catch (err) {
       console.error("handleSeleccionarDireccion error:", err);
+      setShowVanAnimation(false);
       alert(`Error seleccionando dirección: ${err?.message || err}`);
     }
   };
 
-  /* Borrar */
-  const handleEliminarDireccion = async (id) => {
+  const eliminarDireccion = async (id) => {
     try {
       await deleteDoc(doc(db, "direcciones", id));
       await fetchDirecciones();
       if (typeof actualizarLista === "function") actualizarLista();
+      alert("Dirección eliminada correctamente.");
     } catch (err) {
-      console.error("handleEliminarDireccion error:", err);
-      alert("Error al eliminar. Revisa la consola.");
+      console.error("eliminarDireccion:", err);
+      alert(`Error eliminando dirección: ${err?.message || err}`);
     }
   };
 
-  /* Comenzar a editar (carga campos en formulario) */
+  const confirmarEliminar = (id) => {
+    setDeleteTargetId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const cancelarEliminar = () => {
+    setShowDeleteConfirm(false);
+    setDeleteTargetId(null);
+  };
+
+  const procederEliminar = () => {
+    if (deleteTargetId) {
+      eliminarDireccion(deleteTargetId);
+      setShowDeleteConfirm(false);
+      setDeleteTargetId(null);
+    }
+  };
+
+  const handleEliminarDireccion = (id) => {
+    confirmarEliminar(id);
+  };
+
   const comenzarEditar = (dir) => {
     if (!dir || dir.metodoEntrega === "tienda") return;
     setEditandoId(dir.id);
@@ -416,238 +436,836 @@ export default function Entrega({
     setNumeroCasa(dir.numeroCasa || "");
     setReferencia(dir.referencia || "");
     setUbicacion(dir.ubicacion || "");
-    setLatitude(dir.latitude != null ? String(dir.latitude) : "");
-    setLongitude(dir.longitude != null ? String(dir.longitude) : "");
+    setCoords(dir.coords || null);
     setTiendaActiva(false);
   };
 
-  /* Geolocalización: set ubicacion y pone coordenadas en formulario */
   const agregarUbicacionActual = () => {
     if (!navigator.geolocation) {
       alert("Geolocalización no soportada en este navegador.");
       return;
     }
     setGeoLoading(true);
+    
+    // Clear any cached position and force fresh location
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        const link = `https://www.google.com/maps?q=${lat},${lon}`;
-        setUbicacion(link);
-        setLatitude(String(lat));
-        setLongitude(String(lon));
+        const lat = pos.coords.latitude.toFixed(6);
+        const lon = pos.coords.longitude.toFixed(6);
+        
+        // Create direct Google Maps link with coordinates
+        const googleMapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+        
+        // Set the location as the direct link
+        setUbicacion(googleMapsLink);
+        setCoords({ lat: lat, lon: lon });
+        
+        // Also update the street field with coordinates for easy reference
         setNumeroCalle(`${lat}, ${lon}`);
+        
         setGeoLoading(false);
       },
       (err) => {
         console.error("Error geolocalización:", err);
-        alert("No fue posible obtener la ubicación. Revisa permisos.");
+        let mensaje = "No se pudo obtener la ubicación.";
+        
+        switch(err.code) {
+          case err.PERMISSION_DENIED:
+            mensaje = "Permisos denegados. Haz clic en el candado 🔒 junto a la URL y permite la ubicación.";
+            break;
+          case err.POSITION_UNAVAILABLE:
+            mensaje = "Ubicación no disponible. Asegúrate de estar conectado a internet y tener servicios de ubicación activados.";
+            break;
+          case err.TIMEOUT:
+            mensaje = "Tiempo agotado. Intenta de nuevo.";
+            break;
+          default:
+            mensaje = "Error desconocido. Verifica permisos del navegador.";
+        }
+        
+        alert(mensaje);
         setGeoLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000,
+        maximumAge: 0  // Force fresh location, no cache
+      }
     );
   };
 
   const quitarUbicacion = () => {
     setUbicacion("");
-    setLatitude("");
-    setLongitude("");
+    setCoords(null);
     if (numeroCalle && /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(numeroCalle)) {
       setNumeroCalle("");
     }
   };
 
-  /* Render */
   if (!abierto) return null;
 
   const direccionesUsuario = direcciones.filter(d => d.metodoEntrega !== "tienda");
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-        <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl p-5 mx-4 overflow-auto max-h-[90vh]">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Método de entrega</h3>
-            <button onClick={onClose} className="text-gray-600 hover:text-black text-xl">✕</button>
+      {/* Fullscreen Modal */}
+      <motion.div
+        className="entrega-slider"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="entrega-slider-content" aria-labelledby="entrega-title">
+          {/* Drag Handle */}
+          <div className="entrega-drag-handle" />
+          <div className="entrega-header">
+            <div className="entrega-header-content">
+              <div className="entrega-icon-wrapper">
+                <div className="entrega-icon">🚚</div>
+              </div>
+              <div className="entrega-title-section">
+                <h3 id="entrega-title" className="entrega-title">Método de entrega</h3>
+                <p className="entrega-subtitle">Elige cómo quieres recibir tu pedido</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="entrega-close-btn" aria-label="Cerrar">
+              <XCircle className="w-6 h-6" />
+            </button>
           </div>
 
-          <div className="flex gap-3 mb-4">
-            <button
+          <div className="entrega-methods">
+            <motion.button
+              type="button"
               onClick={() => elegirMetodo("domicilio")}
-              className={`px-3 py-1.5 rounded-lg font-semibold ${metodoEntrega === "domicilio" ? "bg-sky-500 text-white" : "bg-gray-100"}`}
+              className={`method-card ${metodoEntrega === "domicilio" ? "active" : ""}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              aria-pressed={metodoEntrega === "domicilio"}
             >
-              <div className="flex items-center gap-2">
-                <Home className="w-4 h-4" />
-                <span>A domicilio</span>
+              <div className="method-icon domicilio-icon">
+                <Home className="w-6 h-6" />
               </div>
-            </button>
+              <div className="method-info">
+                <h4 className="method-title">A domicilio</h4>
+                <p className="method-desc">Entrega en tu dirección</p>
+              </div>
+              {metodoEntrega === "domicilio" && (
+                <motion.div
+                  className="method-check"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500 }}
+                >
+                  <Check className="w-5 h-5" />
+                </motion.div>
+              )}
+            </motion.button>
 
-            <button
+            <motion.button
+              type="button"
               onClick={() => elegirMetodo("tienda")}
-              className={`px-3 py-1.5 rounded-lg font-semibold ${metodoEntrega === "tienda" ? "bg-sky-500 text-white" : "bg-gray-100"}`}
+              className={`method-card ${metodoEntrega === "tienda" ? "active" : ""}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              aria-pressed={metodoEntrega === "tienda"}
             >
-              <div className="flex items-center gap-2">
-                <Store className="w-4 h-4" />
-                <span>Recoger en tienda</span>
+              <div className="method-icon tienda-icon">
+                <Store className="w-6 h-6" />
               </div>
-            </button>
+              <div className="method-info">
+                <h4 className="method-title">Recoger en tienda</h4>
+                <p className="method-desc">Playcenter Universal</p>
+              </div>
+              {metodoEntrega === "tienda" && (
+                <motion.div
+                  className="method-check"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500 }}
+                >
+                  <Check className="w-5 h-5" />
+                </motion.div>
+              )}
+            </motion.button>
           </div>
 
-          {/* Usar ubicación actual */}
-          <div className="mb-4">
-            <button
+          {metodoEntrega === "domicilio" && (
+            <motion.button
+              type="button"
               onClick={agregarUbicacionActual}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-800 font-medium"
-              disabled={geoLoading || guardando}
+              className={`location-btn ${geoLoading ? "loading" : ""}`}
+              disabled={geoLoading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
             >
-              {geoLoading ? (
+              <LocateFixed className={`w-5 h-5 ${geoLoading ? "animate-pulse" : ""}`} />
+              <span>{geoLoading ? "Obteniendo ubicación..." : "Usar mi ubicación actual"}</span>
+            </motion.button>
+          )}
+
+          <div className="entrega-form">
+            <AnimatePresence>
+              {coords && (
+                <motion.div
+                  className="coords-display"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="coords-header">
+                    <MapIcon className="w-5 h-5 text-green-600" />
+                    <span className="coords-title">Ubicación detectada</span>
+                    <button
+                      onClick={quitarUbicacion}
+                      className="coords-remove"
+                      aria-label="Quitar ubicación"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="coords-info">
+                    <div className="coord-item">
+                      <span className="coord-label">Lat:</span>
+                      <span className="coord-value">{coords.lat}</span>
+                    </div>
+                    <div className="coord-item">
+                      <span className="coord-label">Lng:</span>
+                      <span className="coord-value">{coords.lon}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence mode="wait">
+              {metodoEntrega === "domicilio" ? (
+                <motion.div
+                  key="domicilio-form"
+                  className="address-form"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="form-section">
+                    <label className="form-label">Provincia *</label>
+                    <button
+                      type="button"
+                      onClick={() => setPickerAbierto(true)}
+                      className="province-selector"
+                      aria-haspopup="dialog"
+                      aria-expanded={pickerAbierto}
+                    >
+                      <span className={`province-text ${!provincia ? 'placeholder' : ''}`}>
+                        {provincia || "Selecciona tu provincia"}
+                      </span>
+                      <ChevronDown className="province-chevron" />
+                    </button>
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label className="form-label">Ciudad *</label>
+                      <input
+                        placeholder="Ej: Santiago"
+                        value={ciudad}
+                        onChange={e => setCiudad(e.target.value)}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Sector</label>
+                      <input
+                        placeholder="Ej: Los Jardines"
+                        value={sector}
+                        onChange={e => setSector(e.target.value)}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Calle y número *</label>
+                    <input
+                      placeholder="Ej: Av. Juan Pablo Duarte #123"
+                      value={numeroCalle}
+                      onChange={e => setNumeroCalle(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label className="form-label">Número de casa</label>
+                      <input
+                        placeholder="Ej: 45-B"
+                        value={numeroCasa}
+                        onChange={e => setNumeroCasa(e.target.value)}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Referencia</label>
+                      <input
+                        placeholder="Ej: Casa azul"
+                        value={referencia}
+                        onChange={e => setReferencia(e.target.value)}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  {!coords && (
+                    <div className="form-note">
+                      💡 <strong>Tip:</strong> Usa "Mi ubicación actual" para completar automáticamente las coordenadas
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="tienda-info"
+                  className="store-info"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="store-header">
+                    <Store className="w-6 h-6 text-orange-500" />
+                    <h4 className="store-title">Playcenter Universal</h4>
+                  </div>
+                  <p className="store-address">{TIENDA_PLAYCENTER.direccionCompleta}</p>
+                  <a
+                    href={TIENDA_PLAYCENTER.ubicacion}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="store-map-link"
+                  >
+                    <MapIcon className="w-4 h-4" />
+                    Ver en Google Maps
+                  </a>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              onClick={handleGuardarDireccion}
+              disabled={guardando}
+              className={`save-btn ${guardando ? 'loading' : ''}`}
+              whileHover={{ scale: guardando ? 1 : 1.02 }}
+              whileTap={{ scale: guardando ? 1 : 0.98 }}
+            >
+              {guardando ? (
                 <>
-                  <LocateFixed className="w-5 h-5 animate-pulse" />
-                  Obteniendo ubicación...
+                  <div className="loading-spinner" />
+                  <span>Guardando...</span>
                 </>
               ) : (
                 <>
-                  <LocateFixed className="w-5 h-5" />
-                  Usar ubicación actual
+                  <Check className="w-5 h-5" />
+                  <span>
+                    {metodoEntrega === "tienda"
+                      ? "Seleccionar Playcenter"
+                      : editandoId
+                      ? "Actualizar dirección"
+                      : "Guardar dirección"}
+                  </span>
                 </>
               )}
-            </button>
-
-            {ubicacion && (
-              <div className="flex gap-2 mt-2">
-                <a
-                  href={ubicacion}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-700 font-medium"
-                >
-                  <MapIcon className="w-4 h-4" />
-                  Ver en Maps
-                </a>
-                <button
-                  onClick={quitarUbicacion}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-700"
-                >
-                  <XCircle className="w-4 h-4" />
-                  Quitar
-                </button>
-              </div>
-            )}
+            </motion.button>
           </div>
 
-          {/* Formulario o info de tienda */}
-          <div className="mb-3">
-            {metodoEntrega === "domicilio" ? (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPickerAbierto(true)}
-                  className="col-span-2 px-3 py-3 border rounded text-left font-medium"
-                >
-                  {provincia ? `Provincia: ${provincia}` : "Selecciona provincia"}
-                </button>
-
-                <input placeholder="Ciudad" value={ciudad} onChange={e => setCiudad(e.target.value)} className="px-3 py-2 border rounded" />
-                <input placeholder="Sector / Barrio" value={sector} onChange={e => setSector(e.target.value)} className="px-3 py-2 border rounded" />
-                <input placeholder="Calle / Av. y número" value={numeroCalle} onChange={e => setNumeroCalle(e.target.value)} className="px-3 py-2 border rounded" />
-                <input placeholder="Número de casa" value={numeroCasa} onChange={e => setNumeroCasa(e.target.value)} className="px-3 py-2 border rounded" />
-                <input placeholder="Referencia (opcional)" value={referencia} onChange={e => setReferencia(e.target.value)} className="col-span-2 px-3 py-2 border rounded" />
-
-                <input readOnly placeholder="Latitud" value={latitude} className="px-3 py-2 border rounded" />
-                <input readOnly placeholder="Longitud" value={longitude} className="px-3 py-2 border rounded" />
-
-                <div className="col-span-2 text-sm text-gray-500">
-                  Nota: si usas "Usar ubicación actual" las coordenadas se completan automáticamente y puedes guardar incluso si no completas provincia/ciudad/calle.
-                </div>
-              </div>
-            ) : (
-              <div className="p-3 bg-gray-50 rounded text-sm">
-                <p className="font-medium">Recoger en:</p>
-                <p className="text-sm">{TIENDA_PLAYCENTER.direccionCompleta}</p>
-                <a href={TIENDA_PLAYCENTER.ubicacion} target="_blank" rel="noreferrer" className="text-sky-600 underline text-sm">Ver en Maps</a>
-              </div>
-            )}
-          </div>
-
-          {/* Acción principal */}
-          <div className="mb-4">
-            <button
-              onClick={handleGuardarDireccion}
-              disabled={guardando}
-              className="w-full bg-sky-600 text-white py-2 rounded-lg font-semibold disabled:opacity-60"
-            >
-              {metodoEntrega === "tienda" ? "Seleccionar Playcenter (Recoger en tienda)" : (editandoId ? "Actualizar dirección" : "Guardar dirección")}
-            </button>
-          </div>
-
-          {/* Lista de direcciones guardadas */}
-          <div>
-            <h4 className="font-bold mb-2">Direcciones guardadas</h4>
+          <div className="saved-addresses">
+            <h4 className="saved-title">Direcciones guardadas</h4>
 
             {loadingDirecciones ? (
-              <p className="text-gray-600">Cargando direcciones...</p>
+              <div className="loading-state">
+                <div className="loading-spinner" />
+                <span>Cargando direcciones...</span>
+              </div>
             ) : (
               <>
-                {/* Mostrar Playcenter fijo (no editable) */}
-                <div className="mt-2 p-3 rounded-lg border bg-white flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Recoger en: Playcenter Universal</p>
-                    <p className="text-sm">{TIENDA_PLAYCENTER.direccionCompleta}</p>
-                    <a href={TIENDA_PLAYCENTER.ubicacion} target="_blank" rel="noreferrer" className="text-sky-600 underline text-sm">Ver en Maps</a>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={async () => {
-                        await actualizarUsuarioInfo({
-                          direccion: resumenDireccion(TIENDA_PLAYCENTER.direccionCompleta),
-                          metodoEntrega: "tienda",
-                        });
-                        if (onClose) onClose();
-                        if (typeof actualizarLista === "function") actualizarLista();
-                      }}
-                      className="px-3 py-1 bg-green-600 text-white rounded text-sm"
+                {/* Playcenter Option */}
+                <motion.div
+                  className="address-card store-card"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <div className="address-info">
+                    <div className="address-header">
+                      <Store className="w-5 h-5 text-orange-500" />
+                      <span className="address-type">Recoger en tienda</span>
+                    </div>
+                    <p className="address-name">Playcenter Universal</p>
+                    <p className="address-details">{TIENDA_PLAYCENTER.direccionCompleta}</p>
+                    <a
+                      href={TIENDA_PLAYCENTER.ubicacion}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="address-map-link"
                     >
-                      Seleccionar
-                    </button>
+                      <MapIcon className="w-4 h-4" />
+                      Ver ubicación
+                    </a>
                   </div>
-                </div>
+                  <button
+                    onClick={() => handleSeleccionarDireccion(TIENDA_PLAYCENTER)}
+                    className="address-select-btn store-select"
+                  >
+                    <Check className="w-4 h-4" />
+                    Seleccionar
+                  </button>
+                </motion.div>
 
-                {/* Direcciones del usuario (editable/selectable) */}
-                {direccionesUsuario.length === 0 ? (
-                  <p className="text-gray-500 italic mt-3">No tienes direcciones guardadas.</p>
-                ) : (
-                  <div className="flex flex-col gap-2 mt-3">
-                    {direccionesUsuario.map(dir => (
-                      <div key={dir.id} className="p-3 rounded-lg border bg-gray-50 flex justify-between items-center gap-3">
-                        <div className="min-w-0">
-                          <p className="font-medium truncate">Entregar en: {resumenDireccion(dir.direccionCompleta)}</p>
-                          {dir.ubicacion && (
-                            <a href={dir.ubicacion} target="_blank" rel="noreferrer" className="text-sky-600 underline text-sm">Ver en Maps</a>
-                          )}
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 shrink-0">
-                          <button onClick={() => comenzarEditar(dir)} className="px-2 py-1 bg-yellow-500 text-white rounded text-sm inline-flex items-center gap-1">
-                            <Pencil className="w-4 h-4" /> Editar
-                          </button>
-
-                          <button onClick={() => handleSeleccionarDireccion(dir)} className="px-2 py-1 bg-green-600 text-white rounded text-sm inline-flex items-center gap-1">
-                            <Check className="w-4 h-4" /> Seleccionar
-                          </button>
-
-                          <button onClick={() => handleEliminarDireccion(dir.id)} className="px-2 py-1 bg-red-500 text-white rounded text-sm inline-flex items-center gap-1">
-                            <Trash2 className="w-4 h-4" /> Eliminar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* User Addresses */}
+                <AnimatePresence>
+                  {direccionesUsuario.length === 0 ? (
+                    <motion.div
+                      className="empty-state"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <Home className="w-12 h-12 text-gray-300" />
+                      <p className="empty-text">No tienes direcciones guardadas</p>
+                      <p className="empty-subtext">Agrega una dirección para entregas futuras</p>
+                    </motion.div>
+                  ) : (
+                    <div className="addresses-list">
+                      {direccionesUsuario.map((dir, index) => (
+                        <motion.div
+                          key={dir.id}
+                          className="address-card"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: index * 0.1 }}
+                          whileHover={{ scale: 1.01 }}
+                        >
+                          <div className="address-info">
+                            <div className="address-header">
+                              <Home className="w-5 h-5 text-blue-500" />
+                              <span className="address-type">Domicilio</span>
+                            </div>
+                            <p className="address-details">{dir.direccionCompleta}</p>
+                            {dir.ubicacion && (
+                              <a
+                                href={dir.ubicacion}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="address-map-link"
+                              >
+                                <MapIcon className="w-4 h-4" />
+                                Ver ubicación
+                              </a>
+                            )}
+                          </div>
+                          <div className="address-actions">
+                            <button
+                              onClick={() => comenzarEditar(dir)}
+                              className="address-action-btn edit-btn"
+                              aria-label="Editar dirección"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleSeleccionarDireccion(dir)}
+                              className="address-action-btn select-btn"
+                              aria-label="Seleccionar dirección"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => confirmarEliminar(dir.id)}
+                              className="address-action-btn delete-btn"
+                              aria-label="Eliminar dirección"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </AnimatePresence>
               </>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Van Animation - Profile.jsx Style */}
+      <AnimatePresence>
+        {showVanAnimation && (
+          <div className="loaderOverlay" role="status" aria-live="polite">
+            <div className="loaderInner">
+              <div className="loader">
+                <div className="truckWrapper">
+                  <div className="truckBody">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 198 93"
+                      className="trucksvg"
+                    >
+                      <path
+                        strokeWidth="3"
+                        stroke="#282828"
+                        fill="#F83D3D"
+                        d="M135 22.5H177.264C178.295 22.5 179.22 23.133 179.594 24.0939L192.33 56.8443C192.442 57.1332 192.5 57.4404 192.5 57.7504V89C192.5 90.3807 191.381 91.5 190 91.5H135C133.619 91.5 132.5 90.3807 132.5 89V25C132.5 23.6193 133.619 22.5 135 22.5Z"
+                      ></path>
+                      <path
+                        strokeWidth="3"
+                        stroke="#282828"
+                        fill="#7D7C7C"
+                        d="M146 33.5H181.741C182.779 33.5 183.709 34.1415 184.078 35.112L190.538 52.112C191.16 53.748 189.951 55.5 188.201 55.5H146C144.619 55.5 143.5 54.3807 143.5 53V36C143.5 34.6193 144.619 33.5 146 33.5Z"
+                      ></path>
+                      <path
+                        strokeWidth="2"
+                        stroke="#282828"
+                        fill="#282828"
+                        d="M150 65C150 65.39 149.763 65.8656 149.127 66.2893C148.499 66.7083 147.573 67 146.5 67C145.427 67 144.501 66.7083 143.873 66.2893C143.237 65.8656 143 65.39 143 65C143 64.61 143.237 64.1344 143.873 63.7107C144.501 63.2917 145.427 63 146.5 63C147.573 63 148.499 63.2917 149.127 63.7107C149.763 64.1344 150 64.61 150 65Z"
+                      ></path>
+                      <rect
+                        strokeWidth="2"
+                        stroke="#282828"
+                        fill="#FFFCAB"
+                        rx="1"
+                        height="7"
+                        width="5"
+                        y="63"
+                        x="187"
+                      ></rect>
+                      <rect
+                        strokeWidth="2"
+                        stroke="#282828"
+                        fill="#282828"
+                        rx="1"
+                        height="11"
+                        width="4"
+                        y="81"
+                        x="193"
+                      ></rect>
+                      <rect
+                        strokeWidth="3"
+                        stroke="#282828"
+                        fill="#DFDFDF"
+                        rx="2.5"
+                        height="90"
+                        width="121"
+                        y="1.5"
+                        x="6.5"
+                      ></rect>
+                      <rect
+                        strokeWidth="2"
+                        stroke="#282828"
+                        fill="#DFDFDF"
+                        rx="2"
+                        height="4"
+                        width="6"
+                        y="84"
+                        x="1"
+                      ></rect>
+                    </svg>
+                  </div>
+                  <div className="truckTires">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 30 30"
+                      className="tiresvg"
+                    >
+                      <circle
+                        strokeWidth="3"
+                        stroke="#282828"
+                        fill="#282828"
+                        r="13.5"
+                        cy="15"
+                        cx="15"
+                      ></circle>
+                      <circle fill="#DFDFDF" r="7" cy="15" cx="15"></circle>
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 30 30"
+                      className="tiresvg"
+                    >
+                      <circle
+                        strokeWidth="3"
+                        stroke="#282828"
+                        fill="#282828"
+                        r="13.5"
+                        cy="15"
+                        cx="15"
+                      ></circle>
+                      <circle fill="#DFDFDF" r="7" cy="15" cx="15"></circle>
+                    </svg>
+                  </div>
+                  <div className="road"></div>
+                  <svg
+                    xmlSpace="preserve"
+                    viewBox="0 0 453.459 453.459"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="lampPost"
+                    fill="#000000"
+                  >
+                    <path
+                      d="M252.882,0c-37.781,0-68.686,29.953-70.245,67.358h-6.917v8.954c-26.109,2.163-45.463,10.011-45.463,19.366h9.993
+c-1.65,5.146-2.507,10.54-2.507,16.017c0,28.956,23.558,52.514,52.514,52.514c28.956,0,52.514-23.558,52.514-52.514
+c0-5.478-0.856-10.872-2.506-16.017h9.992c0-9.354-19.352-17.204-45.463-19.366v-8.954h-6.149C200.189,38.779,223.924,16,252.882,16
+c29.952,0,54.32,24.368,54.32,54.32c0,28.774-11.078,37.009-25.105,47.437c-17.444,12.968-37.216,27.667-37.216,78.884v113.914
+h-0.797c-5.068,0-9.174,4.108-9.174,9.177c0,2.844,1.293,5.383,3.321,7.066c-3.432,27.933-26.851,95.744-8.226,115.459v11.202h45.75
+v-11.202c18.625-19.715-4.794-87.527-8.227-115.459c2.029-1.683,3.322-4.223,3.322-7.066c0-5.068-4.107-9.177-9.176-9.177h-0.795
+V196.641c0-43.174,14.942-54.283,30.762-66.043c14.793-10.997,31.559-23.461,31.559-60.277C323.202,31.545,291.656,0,252.882,0z
+M232.77,111.694c0,23.442-19.071,42.514-42.514,42.514c-23.442,0-42.514-19.072-42.514-42.514c0-5.531,1.078-10.957,3.141-16.017
+h78.747C231.693,100.736,232.77,106.162,232.77,111.694z"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+              <div className="loaderText">¡Dirección seleccionada!</div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 999999
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              style={{
+                backgroundColor: 'white',
+                padding: '2rem',
+                borderRadius: '12px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                maxWidth: '400px',
+                width: '90%',
+                textAlign: 'center',
+                zIndex: 9999999
+              }}
+            >
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '1rem'
+              }}>
+                ¿Eliminar dirección?
+              </h3>
+              <p style={{
+                color: '#6b7280',
+                marginBottom: '2rem',
+                lineHeight: '1.5'
+              }}>
+                ¿Estás seguro que quieres eliminar esta dirección? Esta acción no se puede deshacer.
+              </p>
+              <div style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'center'
+              }}>
+                <button
+                  onClick={cancelarEliminar}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    border: '2px solid #e5e7eb',
+                    backgroundColor: 'white',
+                    color: '#374151',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#f9fafb'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={procederEliminar}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Truck Loading Animation */}
+      {showVanAnimation && (
+        <div className="truck-loader-overlay">
+          <div className="truck-loader-inner">
+            <div className="loader">
+              <div className="truckWrapper">
+                <div className="truckBody">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 198 93"
+                    className="trucksvg"
+                  >
+                    <path
+                      strokeWidth="3"
+                      stroke="#282828"
+                      fill="#F83D3D"
+                      d="M135 22.5H177.264C178.295 22.5 179.22 23.133 179.594 24.0939L192.33 56.8443C192.442 57.1332 192.5 57.4404 192.5 57.7504V89C192.5 90.3807 191.381 91.5 190 91.5H135C133.619 91.5 132.5 90.3807 132.5 89V25C132.5 23.6193 133.619 22.5 135 22.5Z"
+                    ></path>
+                    <path
+                      strokeWidth="3"
+                      stroke="#282828"
+                      fill="#7D7C7C"
+                      d="M146 33.5H181.741C182.779 33.5 183.709 34.1415 184.078 35.112L190.538 52.112C191.16 53.748 189.951 55.5 188.201 55.5H146C144.619 55.5 143.5 54.3807 143.5 53V36C143.5 34.6193 144.619 33.5 146 33.5Z"
+                    ></path>
+                    <path
+                      strokeWidth="2"
+                      stroke="#282828"
+                      fill="#282828"
+                      d="M150 65C150 65.39 149.763 65.8656 149.127 66.2893C148.499 66.7083 147.573 67 146.5 67C145.427 67 144.501 66.7083 143.873 66.2893C143.237 65.8656 143 65.39 143 65C143 64.61 143.237 64.1344 143.873 63.7107C144.501 63.2917 145.427 63 146.5 63C147.573 63 148.499 63.2917 149.127 63.7107C149.763 64.1344 150 64.61 150 65Z"
+                    ></path>
+                    <rect
+                      strokeWidth="2"
+                      stroke="#282828"
+                      fill="#FFFCAB"
+                      rx="1"
+                      height="7"
+                      width="5"
+                      y="63"
+                      x="187"
+                    ></rect>
+                    <rect
+                      strokeWidth="2"
+                      stroke="#282828"
+                      fill="#282828"
+                      rx="1"
+                      height="11"
+                      width="4"
+                      y="81"
+                      x="193"
+                    ></rect>
+                    <rect
+                      strokeWidth="3"
+                      stroke="#282828"
+                      fill="#DFDFDF"
+                      rx="2.5"
+                      height="90"
+                      width="121"
+                      y="1.5"
+                      x="6.5"
+                    ></rect>
+                    <rect
+                      strokeWidth="2"
+                      stroke="#282828"
+                      fill="#DFDFDF"
+                      rx="2"
+                      height="4"
+                      width="6"
+                      y="84"
+                      x="1"
+                    ></rect>
+                  </svg>
+                </div>
+                <div className="truckTires">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 30 30"
+                    className="tiresvg"
+                  >
+                    <circle
+                      strokeWidth="3"
+                      stroke="#282828"
+                      fill="#282828"
+                      r="13.5"
+                      cy="15"
+                      cx="15"
+                    ></circle>
+                    <circle fill="#DFDFDF" r="7" cy="15" cx="15"></circle>
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 30 30"
+                    className="tiresvg"
+                  >
+                    <circle
+                      strokeWidth="3"
+                      stroke="#282828"
+                      fill="#282828"
+                      r="13.5"
+                      cy="15"
+                      cx="15"
+                    ></circle>
+                    <circle fill="#DFDFDF" r="7" cy="15" cx="15"></circle>
+                  </svg>
+                </div>
+                <div className="road"></div>
+                <svg
+                  xmlSpace="preserve"
+                  viewBox="0 0 453.459 453.459"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="lampPost"
+                  fill="#000000"
+                >
+                  <path
+                    d="M252.882,0c-37.781,0-68.686,29.953-70.245,67.358h-6.917v8.954c-26.109,2.163-45.463,10.011-45.463,19.366h9.993
+c-1.65,5.146-2.507,10.54-2.507,16.017c0,28.956,23.558,52.514,52.514,52.514c28.956,0,52.514-23.558,52.514-52.514
+c0-5.478-0.856-10.872-2.506-16.017h9.992c0-9.354-19.352-17.204-45.463-19.366v-8.954h-6.149C200.189,38.779,223.924,16,252.882,16
+c29.952,0,54.32,24.368,54.32,54.32c0,28.774-11.078,37.009-25.105,47.437c-17.444,12.968-37.216,27.667-37.216,78.884v113.914
+h-0.797c-5.068,0-9.174,4.108-9.174,9.177c0,2.844,1.293,5.383,3.321,7.066c-3.432,27.933-26.851,95.744-8.226,115.459v11.202h45.75
+v-11.202c18.625-19.715-4.794-87.527-8.227-115.459c2.029-1.683,3.322-4.223,3.322-7.066c0-5.068-4.107-9.177-9.176-9.177h-0.795
+V196.641c0-43.174,14.942-54.283,30.762-66.043c14.793-10.997,31.559-23.461,31.559-60.277C323.202,31.545,291.656,0,252.882,0z
+M232.77,111.694c0,23.442-19.071,42.514-42.514,42.514c-23.442,0-42.514-19.072-42.514-42.514c0-5.531,1.078-10.957,3.141-16.017
+h78.747C231.693,100.736,232.77,106.162,232.77,111.694z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+            <div className="truck-loader-text">Guardando dirección...</div>
+          </div>
+        </div>
+      )}
 
       <ProvinciaPicker abierto={pickerAbierto} onClose={() => setPickerAbierto(false)} onPick={(p) => setProvincia(p)} valorActual={provincia} />
     </>

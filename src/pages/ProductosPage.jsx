@@ -1,3 +1,4 @@
+// src/pages/ProductosPage.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -84,7 +85,13 @@ function ProductosPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-white pt-1 pb-[96px]">
+    // Aquí es donde se controla el espacio superior:
+    // - pt-28 lg:pt-32 (Tailwind): ajusta directamente (7rem / 8rem)
+    // - style paddingTop usa la variable CSS --topbar-height con fallback 112px
+    <div
+      className="flex flex-col min-h-screen bg-white pt-28 lg:pt-32 pb-[96px]"
+      style={{ paddingTop: "var(--topbar-height, 112px)" }}
+    >
       <div className="flex-1 flex flex-col lg:flex-row w-full">
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
