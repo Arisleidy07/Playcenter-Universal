@@ -3,14 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Header = () => {
-  const [dropdownAbierto, setDropdownAbierto] = useState(false);
   const { usuario, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
-  const dropdownRef = useRef(null);
   const buscarInputRef = useRef(null);
   const navigate = useNavigate();
   let lastScroll = 0;
@@ -18,26 +16,11 @@ const Header = () => {
   const manejarLogout = async () => {
     try {
       await logout();
-      setDropdownAbierto(false);
       navigate("/");
     } catch (error) {
       console.error("Error cerrando sesión", error);
     }
   };
-
-  useEffect(() => {
-    function handleClickFuera(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target) &&
-        !event.target.closest("#search-bar-container")
-      ) {
-        setDropdownAbierto(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickFuera);
-    return () => document.removeEventListener("mousedown", handleClickFuera);
-  }, []);
 
   useEffect(() => {
     if (buscarInputRef.current) {
@@ -78,7 +61,7 @@ const Header = () => {
             <SearchBar
               onClose={() => {}}
               ref={buscarInputRef}
-              placeholder="Buscar en Playcenter.do"
+              placeholder="Buscar en pcu.com.do"
             />
           </div>
 
@@ -107,7 +90,7 @@ const Header = () => {
               <SearchBar
                 onClose={() => {}}
                 ref={buscarInputRef}
-                placeholder="Buscar en Playcenter.do"
+                placeholder="Buscar en pcu.com.do"
               />
             </div>
 
@@ -128,42 +111,23 @@ const Header = () => {
               {usuario ? (
                 <motion.div
                   className="relative"
-                  ref={dropdownRef}
-                  onClick={() => setDropdownAbierto(!dropdownAbierto)}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer bg-white">
-                    {usuario.photoURL ? (
-                      <img
-                        src={usuario.photoURL}
-                        alt="Perfil"
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-base">
-                        {usuario.displayName?.charAt(0).toUpperCase() || "U"}
-                      </div>
-                    )}
-                  </div>
-                  <AnimatePresence>
-                    {dropdownAbierto && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl ring-1 ring-black ring-opacity-5 z-[10000]"
-                      >
-                        <Link
-                          to="/profile"
-                          className="block px-4 py-2 text-gray-700 hover:bg-[#4FC3F7] hover:text-white rounded-t-md transition"
-                          onClick={() => setDropdownAbierto(false)}
-                        >
-                          Mi Perfil
-                        </Link>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <Link to="/profile">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer bg-white">
+                      {usuario.photoURL ? (
+                        <img
+                          src={usuario.photoURL}
+                          alt="Perfil"
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-base">
+                          {usuario.displayName?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
                 </motion.div>
               ) : (
                 <motion.button
@@ -180,7 +144,7 @@ const Header = () => {
         </div>
       </motion.header>
 
-      {/* Botón admin en móvil, abajo derecha, arriba del navbar */}
+      {/* Botón admin en móvil */}
       {usuario?.uid === "ZeiFzBgosCd0apv9cXL6aQZCYyu2" && (
         <div className="lg:hidden fixed bottom-[80px] right-4 z-[9999]">
           <Link

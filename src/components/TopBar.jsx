@@ -3,10 +3,15 @@ import React, { useState, useEffect, useRef } from "react";
 import { MapPin, ChevronDown } from "lucide-react";
 import Entrega from "./Entrega";
 import { useAuth } from "../context/AuthContext";
+import ModalLoginAlert from "./ModalLoginAlert"; // 🔹 Igual que en TarjetaProducto
+import { useAuthModal } from "../context/AuthModalContext"; // 🔹 Para abrir el modal de login
 
 export default function TopBar() {
   const { usuarioInfo } = useAuth();
+  const { abrirModal } = useAuthModal();
+
   const [modalEntrega, setModalEntrega] = useState(false);
+  const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false); // 🔹 Nuevo
   const [textoEntrega, setTextoEntrega] = useState("Selecciona método de entrega");
   const [headerHeight, setHeaderHeight] = useState(0);
   const topbarRef = useRef(null);
@@ -15,8 +20,13 @@ export default function TopBar() {
   const lastScrollY = useRef(typeof window !== "undefined" ? window.scrollY : 0);
   const ticking = useRef(false);
 
+  /* --- Ajustar el texto según la info del usuario --- */
   useEffect(() => {
-    if (!usuarioInfo) return;
+    if (!usuarioInfo) {
+      setTextoEntrega("Selecciona método de entrega");
+      return;
+    }
+
     if (usuarioInfo.metodoEntrega === "tienda") {
       setTextoEntrega("Recoger en: Playcenter Universal Santiago");
     } else if (usuarioInfo.metodoEntrega === "domicilio" && usuarioInfo.direccion) {
@@ -26,6 +36,7 @@ export default function TopBar() {
     }
   }, [usuarioInfo]);
 
+  /* --- Detectar altura del header dinámicamente --- */
   useEffect(() => {
     const measure = () => {
       const headerEl = document.querySelector("header");
@@ -46,6 +57,7 @@ export default function TopBar() {
     };
   }, []);
 
+  /* --- Mostrar / ocultar al hacer scroll --- */
   useEffect(() => {
     const onScroll = () => {
       if (ticking.current) return;
@@ -56,8 +68,8 @@ export default function TopBar() {
         const delta = currentY - lastY;
 
         if (currentY <= 0) setVisible(true);
-        else if (Math.abs(delta) < 5) {}
-        else if (delta > 0 && currentY > 60) setVisible(false);
+        else if (Math.abs(delta) < 5) {
+        } else if (delta > 0 && currentY > 60) setVisible(false);
         else if (delta < 0) setVisible(true);
 
         lastScrollY.current = currentY;
@@ -81,6 +93,15 @@ export default function TopBar() {
     background: "white",
   };
 
+  /* --- Manejo de click según login --- */
+  const handleClickEntrega = () => {
+    if (!usuarioInfo) {
+      setModalAlertaAbierto(true); // 🔹 Mostrar alerta si no hay sesión
+    } else {
+      setModalEntrega(true); // 🔹 Abrir modal de entrega si hay sesión
+    }
+  };
+
   return (
     <>
       <div
@@ -90,17 +111,19 @@ export default function TopBar() {
       >
         <div
           className="flex items-center gap-2 cursor-pointer"
-          onClick={() => setModalEntrega(true)}
+          onClick={handleClickEntrega}
         >
           <MapPin className="w-5 h-5 text-gray-700" />
-          <span className="font-semibold text-gray-800 max-w-[200px] truncate">
+          {/* 🔹 Texto con tamaño responsivo (más pequeño en móvil/tablet) */}
+          <span className="font-semibold text-gray-800 max-w-[220px] sm:max-w-[280px] md:max-w-[350px] truncate text-sm sm:text-base">
             {textoEntrega}
           </span>
           <ChevronDown className="w-5 h-5 text-gray-600" />
         </div>
       </div>
 
-      {modalEntrega && (
+      {/* Modal de entrega */}
+      {modalEntrega && usuarioInfo && (
         <Entrega
           abierto={modalEntrega}
           onClose={() => setModalEntrega(false)}
@@ -109,6 +132,16 @@ export default function TopBar() {
           actualizarLista={() => {}}
         />
       )}
+
+      {/* Modal de login (alerta + opción abrir AuthModal) */}
+      <ModalLoginAlert
+        isOpen={modalAlertaAbierto}
+        onClose={() => setModalAlertaAbierto(false)}
+        onIniciarSesion={() => {
+          setModalAlertaAbierto(false);
+          abrirModal(); // 🔹 Abre el AuthModal
+        }}
+      />
     </>
   );
 }
