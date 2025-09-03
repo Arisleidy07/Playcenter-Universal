@@ -1,4 +1,3 @@
-// src/pages/ProductosPage.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -23,6 +22,25 @@ function ProductosPage() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
+  const [topbarHeight, setTopbarHeight] = useState(0);
+
+  // SOLO usa la altura de la TopBar, NO sumes el top del header
+  useEffect(() => {
+    function measure() {
+      const el = document.querySelector(".shadow-md.px-4.py-2.flex.justify-between.items-center");
+      const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0;
+      setTopbarHeight(h);
+      document.documentElement.style.setProperty('--topbar-height', `${h}px`);
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    const observer = new MutationObserver(measure);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (!categoria || categoria === "todos") {
@@ -85,12 +103,15 @@ function ProductosPage() {
   ];
 
   return (
-    // Aquí es donde se controla el espacio superior:
-    // - pt-28 lg:pt-32 (Tailwind): ajusta directamente (7rem / 8rem)
-    // - style paddingTop usa la variable CSS --topbar-height con fallback 112px
     <div
-      className="flex flex-col min-h-screen bg-white pt-28 lg:pt-32 pb-[96px]"
-      style={{ paddingTop: "var(--topbar-height, 112px)" }}
+      className="flex flex-col min-h-screen bg-white pb-[96px]"
+      style={{
+        position: "relative",
+        marginTop: 0,
+        paddingTop: `${topbarHeight}px`,
+        transition: "padding-top 0.2s",
+        boxSizing: "border-box",
+      }}
     >
       <div className="flex-1 flex flex-col lg:flex-row w-full">
         <SidebarCategorias

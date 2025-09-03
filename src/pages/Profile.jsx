@@ -104,6 +104,7 @@ function Loader({ visible, text = "Cargando..." }) {
         <div className="loader">
           <div className="truckWrapper">
             <div className="truckBody">
+              {/* NO TOCAR EL SVG DEL CAMIÓN */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"

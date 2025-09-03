@@ -321,7 +321,7 @@ const productosAll = [
       id: "dc1",
       nombre: "Funko Pop - Mario Bros",
       empresa: "Funko",
-      precio: 25.0,
+      precio: 1000,
       descripcion: "Figura coleccionable de Mario Bros en versión Funko Pop.",
       imagen: "/Productos/mario_pop.jpg",
       imagenes: ["/Productos/mario_pop.jpg"],

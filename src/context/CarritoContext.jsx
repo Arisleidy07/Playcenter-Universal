@@ -1,80 +1,103 @@
-    import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-    export const CarritoContext = createContext();
+export const CarritoContext = createContext();
 
-    export const CarritoProvider = ({ children }) => {
-    const [carrito, setCarrito] = useState(() => {
-        const guardado = localStorage.getItem("carrito");
-        return guardado ? JSON.parse(guardado) : [];
-    });
+export const CarritoProvider = ({ children }) => {
+  const [carrito, setCarrito] = useState(() => {
+    const guardado = localStorage.getItem("carrito");
+    return guardado ? JSON.parse(guardado) : [];
+  });
 
-    const [favoritos, setFavoritos] = useState(() => {
-        const guardado = localStorage.getItem("favoritos");
-        return guardado ? JSON.parse(guardado) : [];
-    });
+  const [favoritos, setFavoritos] = useState(() => {
+    const guardado = localStorage.getItem("favoritos");
+    return guardado ? JSON.parse(guardado) : [];
+  });
 
-    useEffect(() => {
-        localStorage.setItem("carrito", JSON.stringify(carrito));
-    }, [carrito]);
+  // Guardar carrito en localStorage
+  useEffect(() => {
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+  }, [carrito]);
 
-    useEffect(() => {
-        localStorage.setItem("favoritos", JSON.stringify(favoritos));
-    }, [favoritos]);
+  // Guardar favoritos en localStorage
+  useEffect(() => {
+    localStorage.setItem("favoritos", JSON.stringify(favoritos));
+  }, [favoritos]);
 
-    const agregarAlCarrito = (producto) => {
-        setCarrito((prev) => {
-        const existe = prev.find((item) => item.id === producto.id);
-        if (existe) {
-            return prev.map((item) =>
-            item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
-            );
+  // 🚨 Validación con stock máximo
+  const agregarAlCarrito = (producto) => {
+    setCarrito((prev) => {
+      const existe = prev.find((item) => item.id === producto.id);
+
+      // Buscar stock disponible: primero en variante, luego en producto.cantidad
+      const stockDisponible =
+        producto.cantidad ??
+        producto.variantes?.[0]?.cantidad ??
+        Infinity;
+
+      if (existe) {
+        // Si ya existe en carrito, verificar que no pase del stock
+        if (existe.cantidad < stockDisponible) {
+          return prev.map((item) =>
+            item.id === producto.id
+              ? { ...item, cantidad: item.cantidad + 1 }
+              : item
+          );
         }
+        return prev; // No sumar más si llegó al límite
+      }
+
+      // Si no existe en carrito, agregar solo si hay stock
+      if (stockDisponible > 0) {
         return [...prev, { ...producto, cantidad: 1 }];
-        });
-    };
+      }
 
-    const eliminarUnidadDelCarrito = (productoId) => {
-        setCarrito((prev) =>
-        prev
-            .map((item) =>
-            item.id === productoId ? { ...item, cantidad: item.cantidad - 1 } : item
-            )
-            .filter((item) => item.cantidad > 0)
-        );
-    };
+      return prev; // No agregar si no hay stock
+    });
+  };
 
-    const quitarDelCarrito = (productoId) => {
-        setCarrito((prev) => prev.filter((item) => item.id !== productoId));
-    };
+  const eliminarUnidadDelCarrito = (productoId) => {
+    setCarrito((prev) =>
+      prev
+        .map((item) =>
+          item.id === productoId
+            ? { ...item, cantidad: item.cantidad - 1 }
+            : item
+        )
+        .filter((item) => item.cantidad > 0)
+    );
+  };
 
-    const toggleCarrito = (producto) => {
-        setCarrito((prev) => {
-        const existe = prev.find((item) => item.id === producto.id);
-        if (existe) {
-            return prev.filter((item) => item.id !== producto.id);
-        }
-        return [...prev, { ...producto, cantidad: 1 }];
-        });
-    };
+  const quitarDelCarrito = (productoId) => {
+    setCarrito((prev) => prev.filter((item) => item.id !== productoId));
+  };
 
-    const agregarAFavoritos = (producto) => {
-        setFavoritos((prev) =>
-        prev.find((p) => p.id === producto.id) ? prev : [...prev, producto]
-        );
-    };
+  const toggleCarrito = (producto) => {
+    setCarrito((prev) => {
+      const existe = prev.find((item) => item.id === producto.id);
+      if (existe) {
+        return prev.filter((item) => item.id !== producto.id);
+      }
+      return [...prev, { ...producto, cantidad: 1 }];
+    });
+  };
 
-    const eliminarDeFavoritos = (id) => {
-        setFavoritos((prev) => prev.filter((item) => item.id !== id));
-    };
+  const agregarAFavoritos = (producto) => {
+    setFavoritos((prev) =>
+      prev.find((p) => p.id === producto.id) ? prev : [...prev, producto]
+    );
+  };
 
-    // *** FUNCIÓN NUEVA PARA VACIAR EL CARRITO ***
-    const vaciarCarrito = () => {
-        setCarrito([]);
-    };
+  const eliminarDeFavoritos = (id) => {
+    setFavoritos((prev) => prev.filter((item) => item.id !== id));
+  };
 
-    return (
+  const vaciarCarrito = () => {
+    setCarrito([]);
+  };
+
+  return (
     <CarritoContext.Provider
-        value={{
+      value={{
         carrito,
         favoritos,
         agregarAlCarrito,
@@ -83,12 +106,12 @@
         toggleCarrito,
         agregarAFavoritos,
         eliminarDeFavoritos,
-        vaciarCarrito, // <--- exportamos aquí
-        }}
+        vaciarCarrito,
+      }}
     >
-        {children}
+      {children}
     </CarritoContext.Provider>
-    );
+  );
 };
 
 export const useCarrito = () => useContext(CarritoContext);

@@ -15,10 +15,10 @@ function App() {
       <main className="flex-grow">
         <ScrollToTop />
         <AnimatedRoutes />
-        <NavbarInferior />
-        <AuthModal />
       </main>
       <Footer />
+      <NavbarInferior />
+      <AuthModal />
     </div>
   );
 }

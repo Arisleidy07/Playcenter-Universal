@@ -12,9 +12,6 @@ import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
 import productosAll from "../data/productosAll.js";
 import Anim from '../components/anim';
 
-
-
-
 // Animación sutil para bloques y banners
 const fadeIn = {
   hidden: { opacity: 0, y: 40 },
