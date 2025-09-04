@@ -140,10 +140,12 @@ export default function Carrito() {
 
           {/* Botón pagar con CardNet */}
           <div className="carrito-footer">
-            <BotonCardnet
-              className="carrito-pay-btn"
-              label={`Proceder al pago — DOP ${formatPriceRD(total)}`}
-            />
+          <BotonCardnet
+            className="carrito-pay-btn"
+            label={`Proceder al pago — DOP ${formatPriceRD(total)}`}
+            total={total * 100}
+          />
+
           </div>
         </>
       )}

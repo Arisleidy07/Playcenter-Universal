@@ -1,25 +1,36 @@
 import { useState } from "react";
 import "../styles/BotonCardnet.css";
 
-export default function BotonCardnet({ className }) {
+export default function BotonCardnet({ className, total, label }) {
   const [session, setSession] = useState(null);
 
   const iniciarPago = async () => {
-    const res = await fetch("http://localhost:5000/cardnet/create-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await res.json();
-    setSession(data.SESSION);
-    setTimeout(() => {
-      document.getElementById("cardnetForm").submit();
-    }, 500);
+    try {
+      const res = await fetch("/cardnet/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ total })
+      });
+
+      const data = await res.json();
+      if (!data.SESSION) {
+        alert("❌ No se pudo crear la sesión de pago");
+        return;
+      }
+
+      setSession(data.SESSION);
+      setTimeout(() => {
+        document.getElementById("cardnetForm").submit();
+      }, 300);
+    } catch (error) {
+      alert("❌ No se pudo conectar al backend");
+    }
   };
 
   return (
     <>
       <button onClick={iniciarPago} className={`pay-btn ${className || ""}`}>
-        <span className="btn-text">Comprar ahora </span>
+        <span className="btn-text">{label || "Comprar ahora"}</span>
         <div className="icon-container">
           <svg viewBox="0 0 24 24" className="icon card-icon"><path d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18C2,19.11 2.89,20 4,20H20C21.11,20 22,19.11 22,18V6C22,4.89 21.11,4 20,4Z" fill="currentColor" /></svg>
           <svg viewBox="0 0 24 24" className="icon payment-icon"><path d="M2,17H22V21H2V17M6.25,7H9V6H6V3H18V6H15V7H17.75L19,17H5L6.25,7M9,10H15V8H9V10M9,13H15V11H9V13Z" fill="currentColor" /></svg>

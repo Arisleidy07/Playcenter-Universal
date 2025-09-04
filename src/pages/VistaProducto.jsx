@@ -48,9 +48,6 @@ function VistaProducto() {
       <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
         <p className="text-center text-lg sm:text-xl font-semibold">
           Producto no encontrado.
-          <button onClick={onBack} className="text-blue-500 underline ml-2">
-            Volver
-          </button>
         </p>
       </div>
     );
@@ -192,7 +189,7 @@ function VistaProducto() {
                 )}
 
                 {/* 👇 Nuevo botón CardNet */}
-                <BotonCardnet className="w-full sm:w-1/2" />
+                <BotonCardnet className="w-full sm:w-1/2" total={producto.precio * 100} />
               </div>
             </div>
 
@@ -237,7 +234,7 @@ function VistaProducto() {
                 )}
 
                 {/* 👇 Nuevo botón CardNet */}
-                <BotonCardnet className="w-full" />
+                <BotonCardnet className="w-full" total={producto.precio * 100} />
               </div>
             </div>
           </aside>
