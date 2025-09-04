@@ -1,9 +1,10 @@
 import { useState } from "react";
 import "../styles/BotonCardnet.css";
 
+// 👉 Detecta si estás en localhost o en producción
 const API_BASE = import.meta.env.DEV 
   ? "http://localhost:5000" 
-  : "https://api.pcu.com.do";
+  : "https://playcenter-universal.onrender.com";
 
 export default function BotonCardnet({ className, total, label }) {
   const [session, setSession] = useState(null);

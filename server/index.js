@@ -17,6 +17,9 @@ app.use((req, res, next) => {
 // Rutas CardNet
 app.use("/cardnet", cardnetRoutes);
 
-app.listen(5000, () => {
-  console.log("Servidor backend corriendo en puerto 5000 🚀");
+// Render usa process.env.PORT, en local usamos 5000
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor backend corriendo en puerto ${PORT} 🚀`);
 });
