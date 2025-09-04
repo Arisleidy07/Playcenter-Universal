@@ -6,8 +6,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/cardnet": {
-        target: "http://localhost:5000", // en dev
+        target: "http://localhost:4000",
         changeOrigin: true,
+        secure: false,
       },
     },
   },
