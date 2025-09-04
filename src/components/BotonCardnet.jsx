@@ -1,12 +1,16 @@
 import { useState } from "react";
 import "../styles/BotonCardnet.css";
 
+const API_BASE = import.meta.env.DEV 
+  ? "http://localhost:5000" 
+  : "https://api.pcu.com.do";
+
 export default function BotonCardnet({ className, total, label }) {
   const [session, setSession] = useState(null);
 
   const iniciarPago = async () => {
     try {
-      const res = await fetch("/cardnet/create-session", {
+      const res = await fetch(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ total })

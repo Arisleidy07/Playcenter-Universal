@@ -4,6 +4,7 @@ import cardnetRoutes from "./cardnetRoutes.js";
 
 const app = express();
 
+// Permitir llamadas desde frontend
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
@@ -16,7 +17,6 @@ app.use((req, res, next) => {
 // Rutas CardNet
 app.use("/cardnet", cardnetRoutes);
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Servidor backend corriendo en puerto ${PORT} 🚀`);
+app.listen(5000, () => {
+  console.log("Servidor backend corriendo en puerto 5000 🚀");
 });

@@ -2,6 +2,8 @@ import express from "express";
 import fetch from "node-fetch";
 
 const router = express.Router();
+
+// Guardar SESSION → session-key
 const sessions = {};
 
 // Crear sesión
@@ -60,7 +62,7 @@ router.post("/create-session", async (req, res) => {
   }
 });
 
-// Obtener session-key
+// Obtener session-key guardado
 router.get("/get-sk/:session", (req, res) => {
   const sk = sessions[req.params.session];
   if (sk) {
