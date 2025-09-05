@@ -1,7 +1,37 @@
 import { Link } from "react-router-dom";
 import { XCircle } from "lucide-react";
+import { db } from "../firebase";
+import { useAuth } from "../context/AuthContext";
+import { useCarrito } from "../context/CarritoContext";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useEffect } from "react";
 
 export default function PaymentCancel() {
+  const { usuarioInfo } = useAuth();
+  const { carrito, vaciarCarrito } = useCarrito();
+
+  useEffect(() => {
+    const guardarCancelada = async () => {
+      if (usuarioInfo && carrito.length > 0) {
+        try {
+          await addDoc(collection(db, "orders"), {
+            userId: usuarioInfo.uid,
+            userEmail: usuarioInfo.email,
+            userName: usuarioInfo.displayName,
+            productos: carrito,
+            total: carrito.reduce((acc, p) => acc + (p.precio || 0) * p.cantidad, 0),
+            estado: "cancelado",
+            fecha: serverTimestamp(),
+          });
+          vaciarCarrito();
+        } catch (err) {
+          console.error("Error guardando orden cancelada:", err);
+        }
+      }
+    };
+    guardarCancelada();
+  }, [usuarioInfo, carrito, vaciarCarrito]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-red-50 px-6">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full text-center">
