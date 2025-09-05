@@ -9,10 +9,16 @@ export default function PaymentCancel() {
         <h1 className="text-3xl font-extrabold text-red-600 mb-4">
           Pago cancelado
         </h1>
-        <p className="text-gray-600 mb-6">El proceso de pago no se completó.</p>
+        <p className="text-gray-600 mb-6">
+          El proceso de pago no se completó. Puedes intentar nuevamente.
+        </p>
         <div className="flex flex-col sm:flex-row sm:justify-center gap-3">
-          <Link to="/carrito" className="px-6 py-3 rounded-xl bg-red-600 text-white">Volver al carrito</Link>
-          <Link to="/" className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700">Ir a la tienda</Link>
+          <Link to="/carrito" className="px-6 py-3 rounded-xl bg-red-600 text-white font-bold">
+            Volver al carrito
+          </Link>
+          <Link to="/" className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold">
+            Ir a la tienda
+          </Link>
         </div>
       </div>
     </div>

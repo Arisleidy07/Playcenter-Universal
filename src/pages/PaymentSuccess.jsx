@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
 
+const API_BASE = import.meta.env.DEV 
+  ? ""   // usa el proxy de Vite en localhost
+  : "https://playcenter-universal.onrender.com"; // en producción usa Render
+
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState(null);
@@ -10,15 +14,17 @@ export default function PaymentSuccess() {
     const session = searchParams.get("session");
 
     if (session) {
-      fetch(`/cardnet/get-sk/${session}`)
+      fetch(`${API_BASE}/cardnet/get-sk/${session}`)
         .then(res => res.json())
         .then(({ sk }) => {
           if (sk) {
-            fetch(`/cardnet/verify/${session}/${sk}`)
+            fetch(`${API_BASE}/cardnet/verify/${session}/${sk}`)
               .then(res => res.json())
-              .then(data => setStatus(data));
+              .then(data => setStatus(data))
+              .catch(err => console.error("Error verificando transacción:", err));
           }
-        });
+        })
+        .catch(err => console.error("Error obteniendo SK:", err));
     }
   }, [searchParams]);
 
@@ -37,8 +43,12 @@ export default function PaymentSuccess() {
           <p className="text-gray-500">Verificando transacción...</p>
         )}
         <div className="mt-6 flex flex-col sm:flex-row sm:justify-center gap-3">
-          <Link to="/" className="px-6 py-3 rounded-xl bg-green-600 text-white">Seguir comprando</Link>
-          <Link to="/carrito" className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700">Ver mi carrito</Link>
+          <Link to="/" className="px-6 py-3 rounded-xl bg-green-600 text-white font-bold">
+            Seguir comprando
+          </Link>
+          <Link to="/carrito" className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold">
+            Ver mi carrito
+          </Link>
         </div>
       </div>
     </div>

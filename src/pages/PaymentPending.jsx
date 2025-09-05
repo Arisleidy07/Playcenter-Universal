@@ -2,6 +2,10 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
+const API_BASE = import.meta.env.DEV 
+  ? ""   // usa el proxy en localhost
+  : "https://playcenter-universal.onrender.com"; // producción
+
 export default function PaymentPending() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -11,11 +15,11 @@ export default function PaymentPending() {
 
     const verificar = async () => {
       try {
-        const skRes = await fetch(`/cardnet/get-sk/${session}`);
+        const skRes = await fetch(`${API_BASE}/cardnet/get-sk/${session}`);
         const { sk } = await skRes.json();
 
         if (sk) {
-          const res = await fetch(`/cardnet/verify/${session}/${sk}`);
+          const res = await fetch(`${API_BASE}/cardnet/verify/${session}/${sk}`);
           const data = await res.json();
 
           if (data && data.ResponseCode === "00") {
@@ -26,7 +30,8 @@ export default function PaymentPending() {
         } else {
           navigate("/payment/cancel");
         }
-      } catch {
+      } catch (err) {
+        console.error("Error verificando transacción:", err);
         navigate("/payment/cancel");
       }
     };

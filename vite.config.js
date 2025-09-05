@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/cardnet": {
-        target: "http://localhost:5000",
+        target: "http://localhost:5000", // tu backend local
         changeOrigin: true,
         secure: false,
       },

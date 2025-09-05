@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/cardnet/(.*)",
+      "destination": "https://playcenter-universal.onrender.com/cardnet/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
