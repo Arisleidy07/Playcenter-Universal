@@ -5,6 +5,10 @@
       "destination": "https://playcenter-universal.onrender.com/cardnet/$1"
     },
     {
+      "source": "/payment/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
