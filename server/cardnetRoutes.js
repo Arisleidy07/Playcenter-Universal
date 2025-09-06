@@ -25,9 +25,9 @@ router.post("/create-session", async (req, res) => {
         MerchantTerminal: "58585858",
         MerchantTerminal_amex: "00000001",
 
-        // 👉 Ahora apuntan a tu backend, no al frontend directo
-        ReturnUrl: "https://playcenter-universal.onrender.com/cardnet/return",
-        CancelUrl: "https://playcenter-universal.onrender.com/cardnet/cancel",
+        // 👉 Ahora CardNet redirige directo a tu frontend (Vercel/pcu.com.do)
+        ReturnUrl: "https://pcu.com.do/payment/pending",
+        CancelUrl: "https://pcu.com.do/payment/cancel",
 
         PageLanguaje: "ESP",
         OrdenId: "ORD12345",
@@ -88,18 +88,6 @@ router.get("/verify/:session/:sk", async (req, res) => {
     console.error("Error verificando transacción:", error);
     res.status(500).json({ error: "Error verificando transacción" });
   }
-});
-
-
-// ✅ Nuevos endpoints: reciben POST de CardNet y redirigen al frontend
-router.post("/return", (req, res) => {
-  console.log(">> Return de CardNet:", req.body);
-  res.redirect("/payment/success");
-});
-
-router.post("/cancel", (req, res) => {
-  console.log(">> Cancel de CardNet:", req.body);
-  res.redirect("/payment/cancel");
 });
 
 export default router;
