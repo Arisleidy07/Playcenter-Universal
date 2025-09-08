@@ -1,4 +1,3 @@
-// api/cardnet-return.js
 export default async function handler(req, res) {
   try {
     let session = null;
@@ -16,11 +15,10 @@ export default async function handler(req, res) {
 
     if (session) {
       res.writeHead(302, { Location: `/payment/pending?session=${session}` });
-      res.end();
     } else {
       res.writeHead(302, { Location: "/payment/cancel" });
-      res.end();
     }
+    res.end();
   } catch (err) {
     console.error("❌ Error en cardnet-return:", err);
     res.writeHead(302, { Location: "/payment/cancel" });
