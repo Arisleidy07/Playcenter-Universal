@@ -3,10 +3,14 @@ import express from "express";
 import fetch from "node-fetch";
 
 const router = express.Router();
-const sessions = {}; // Guardar SESSION → session-key
 
-// Crear sesión
+// Guardar SESSION → session-key
+const sessions = {};
+
+// Crear sesión con CardNet
 router.post("/create-session", async (req, res) => {
+  console.log(">> Recibí petición a /cardnet/create-session", req.body);
+
   try {
     const { total } = req.body;
 
@@ -21,8 +25,11 @@ router.post("/create-session", async (req, res) => {
         MerchantNumber: "349000000",
         MerchantTerminal: "58585858",
         MerchantTerminal_amex: "00000001",
-        ReturnUrl: "https://www.pcu.com.do/cardnet/return",
-        CancelUrl: "https://www.pcu.com.do/cardnet/cancel",
+
+        // 👉 Ahora van al backend, no al frontend directo
+        ReturnUrl: "https://playcenter-universal.onrender.com/cardnet/return",
+        CancelUrl: "https://playcenter-universal.onrender.com/cardnet/cancel",
+
         PageLanguaje: "ESP",
         OrdenId: "ORD12345",
         TransactionId: "TX1234",
@@ -30,10 +37,23 @@ router.post("/create-session", async (req, res) => {
         MerchantName: "PLAYCENTER UNIVERSAL DO",
         AVS: "SANTO DOMINGO DO",
         Amount: String(total),
-      }),
+        "3DS_email": "cliente@correo.com",
+        "3DS_mobilePhone": "8090000000",
+        "3DS_workPhone": "8090000001",
+        "3DS_homePhone": "8090000002",
+        "3DS_billAddr_line1": "Direccion 1",
+        "3DS_billAddr_line2": "Direccion 2",
+        "3DS_billAddr_line3": "Direccion 3",
+        "3DS_billAddr_city": "Santo Domingo",
+        "3DS_billAddr_state": "DO",
+        "3DS_billAddr_country": "DO",
+        "3DS_billAddr_postCode": "10101"
+      })
     });
 
     const data = await response.json();
+    console.log("Respuesta CardNet:", data);
+
     if (data.SESSION && data["session-key"]) {
       sessions[data.SESSION] = data["session-key"];
       res.json({ SESSION: data.SESSION });
@@ -49,11 +69,14 @@ router.post("/create-session", async (req, res) => {
 // Obtener session-key guardado
 router.get("/get-sk/:session", (req, res) => {
   const sk = sessions[req.params.session];
-  if (sk) res.json({ sk });
-  else res.status(404).json({ error: "Session-key no encontrado" });
+  if (sk) {
+    res.json({ sk });
+  } else {
+    res.status(404).json({ error: "Session-key no encontrado" });
+  }
 });
 
-// Verificar transacción
+// Verificar transacción en CardNet
 router.get("/verify/:session/:sk", async (req, res) => {
   try {
     const { session, sk } = req.params;
@@ -68,18 +91,15 @@ router.get("/verify/:session/:sk", async (req, res) => {
   }
 });
 
-// ✅ Nuevos endpoints
+// ✅ Nuevos endpoints: reciben POST de CardNet y redirigen al frontend
 router.post("/return", (req, res) => {
-  const session = req.body.SESSION || req.query.SESSION;
-  if (session) {
-    res.redirect(`https://www.pcu.com.do/payment/pending?session=${session}`);
-  } else {
-    res.redirect("https://www.pcu.com.do/payment/cancel");
-  }
+  console.log(">> Return de CardNet:", req.body);
+  res.redirect("https://pcu.com.do/payment/pending");
 });
 
 router.post("/cancel", (req, res) => {
-  res.redirect("https://www.pcu.com.do/payment/cancel");
+  console.log(">> Cancel de CardNet:", req.body);
+  res.redirect("https://pcu.com.do/payment/cancel");
 });
 
 export default router;
