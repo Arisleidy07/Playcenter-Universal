@@ -1,25 +1,18 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { CheckCircle, ShoppingBag, ShoppingCart } from "lucide-react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs,
-} from "firebase/firestore";
+import { CheckCircle } from "lucide-react";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
-import { motion } from "framer-motion";
 
 const API_BASE = import.meta.env.DEV
-  ? "" // usa proxy en localhost
+  ? "" // proxy en localhost
   : "https://playcenter-universal.onrender.com"; // producción
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState(null);
+  const [timeoutReached, setTimeoutReached] = useState(false);
 
   useEffect(() => {
     const session = searchParams.get("session");
@@ -50,97 +43,86 @@ export default function PaymentSuccess() {
       }
     };
 
-    if (session) fetchData();
+    if (session) {
+      fetchData();
+      const timer = setTimeout(() => setTimeoutReached(true), 5000);
+      return () => clearTimeout(timer);
+    }
   }, [searchParams]);
 
+  if (timeoutReached && !order) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-yellow-50 px-6">
+        <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-lg w-full text-center">
+          <h1 className="text-2xl font-bold text-yellow-700 mb-4">
+            No pudimos confirmar tu pago
+          </h1>
+          <p className="text-gray-600 mb-6">
+            El tiempo de verificación expiró. Si el monto fue descontado, revisa tu correo o
+            inténtalo nuevamente.
+          </p>
+          <Link
+            to="/carrito"
+            className="px-6 py-3 rounded-xl bg-yellow-600 text-white font-bold shadow hover:bg-yellow-700 transition"
+          >
+            Volver al carrito
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-6"
-    >
-      <motion.div
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white rounded-3xl shadow-2xl p-10 max-w-2xl w-full text-center"
-      >
-        <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6 drop-shadow" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-6">
+      <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-2xl w-full text-center">
+        <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
         <h1 className="text-3xl font-extrabold text-green-600 mb-4">
           Pago realizado con éxito
         </h1>
         <p className="text-gray-600 mb-6">
           Tu transacción fue procesada correctamente.<br />
-          Gracias por tu compra en{" "}
-          <span className="font-semibold">PlayCenter Universal</span>.
+          Gracias por tu compra en <span className="font-semibold">PlayCenter Universal</span>.
         </p>
 
+        {/* Orden */}
         {order ? (
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="bg-gray-50 rounded-xl shadow-inner p-6 mb-6 text-left"
-          >
-            <h3 className="font-bold text-lg text-gray-800 mb-4">
-              Detalles de la Orden
-            </h3>
+          <div className="bg-gray-50 rounded-xl shadow-inner p-6 mb-6 text-left">
+            <h3 className="font-bold text-lg text-gray-800 mb-4">Detalles de la Orden</h3>
             <p><strong>ID:</strong> {order.id}</p>
             <p><strong>Email:</strong> {order.userEmail}</p>
             <p><strong>Estado:</strong> {order.estado}</p>
             <p><strong>Total:</strong> DOP ${order.total}</p>
             <p><strong>Fecha:</strong> {order.fecha?.toDate?.().toLocaleString()}</p>
-
-            {order.productos?.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-semibold text-gray-700 mb-2">Productos</h4>
-                <ul className="space-y-2">
-                  {order.productos.map((p, i) => (
-                    <li
-                      key={i}
-                      className="flex justify-between bg-white rounded-lg p-3 border"
-                    >
-                      <span>{p.nombre} (x{p.cantidad})</span>
-                      <span className="font-bold">RD${p.precio}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </motion.div>
+          </div>
         ) : (
           <p className="text-gray-500">Cargando información de la orden...</p>
         )}
 
+        {/* CardNet */}
         {status && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-xl border mt-4 p-4 text-sm text-left max-h-64 overflow-y-auto"
-          >
+          <div className="bg-white rounded-xl border mt-4 p-4 text-sm text-left max-h-64 overflow-y-auto">
             <p className="font-bold text-gray-700 mb-2">Respuesta de CardNet:</p>
             <pre className="whitespace-pre-wrap text-gray-600 text-xs">
               {JSON.stringify(status, null, 2)}
             </pre>
-          </motion.div>
+          </div>
         )}
 
         <div className="mt-8 flex flex-col sm:flex-row sm:justify-center gap-3">
           <Link
             to="/"
-            className="px-6 py-3 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition flex items-center justify-center gap-2"
+            className="px-6 py-3 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition"
           >
-            <ShoppingBag className="w-5 h-5" /> Seguir comprando
+            Seguir comprando
           </Link>
           <Link
             to="/carrito"
-            className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold shadow hover:bg-gray-300 transition flex items-center justify-center gap-2"
+            className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold shadow hover:bg-gray-300 transition"
           >
-            <ShoppingCart className="w-5 h-5" /> Ver mi carrito
+            Ver mi carrito
           </Link>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
