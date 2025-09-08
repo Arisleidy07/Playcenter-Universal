@@ -7,7 +7,7 @@ import { useCarrito } from "../context/CarritoContext";
 import "../styles/PaymentLoader.css";
 
 const API_BASE = import.meta.env.DEV
-  ? "" // usa proxy en localhost
+  ? "" // proxy en localhost
   : "https://playcenter-universal.onrender.com"; // producción
 
 export default function PaymentPending() {
@@ -70,14 +70,13 @@ export default function PaymentPending() {
     };
 
     if (session) {
-      // Espera máximo 5 segundos antes de redirigir
-      const timer = setTimeout(verificar, 5000);
+      const timer = setTimeout(verificar, 5000); // máximo 5s
       return () => clearTimeout(timer);
     }
   }, [searchParams, navigate, usuario, usuarioInfo, carrito, vaciarCarrito]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-6">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-6 z-50">
       {/* Loader */}
       <div className="loader mb-6">
         <div className="loader__bar"></div>
@@ -88,10 +87,10 @@ export default function PaymentPending() {
         <div className="loader__ball"></div>
       </div>
 
-      <h1 className="text-2xl font-extrabold text-blue-700 mb-2 animate-pulse">
+      <h1 className="text-2xl md:text-3xl font-extrabold text-blue-700 mb-2 animate-pulse text-center">
         Procesando tu pago...
       </h1>
-      <p className="text-gray-600 text-center max-w-md">
+      <p className="text-gray-600 text-center max-w-md text-sm md:text-base">
         Estamos verificando tu transacción con <b>CardNet</b>. <br />
         Esto puede tardar unos segundos.
       </p>

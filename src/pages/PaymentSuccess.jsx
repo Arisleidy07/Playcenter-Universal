@@ -52,7 +52,7 @@ export default function PaymentSuccess() {
 
   if (timeoutReached && !order) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-yellow-50 px-6">
+      <div className="fixed inset-0 flex items-center justify-center bg-yellow-50 px-6 z-50">
         <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-lg w-full text-center">
           <h1 className="text-2xl font-bold text-yellow-700 mb-4">
             No pudimos confirmar tu pago
@@ -73,7 +73,7 @@ export default function PaymentSuccess() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-6">
+    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-6 z-50 overflow-y-auto">
       <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-2xl w-full text-center">
         <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
         <h1 className="text-3xl font-extrabold text-green-600 mb-4">
@@ -81,10 +81,10 @@ export default function PaymentSuccess() {
         </h1>
         <p className="text-gray-600 mb-6">
           Tu transacción fue procesada correctamente.<br />
-          Gracias por tu compra en <span className="font-semibold">PlayCenter Universal</span>.
+          Gracias por tu compra en{" "}
+          <span className="font-semibold">PlayCenter Universal</span>.
         </p>
 
-        {/* Orden */}
         {order ? (
           <div className="bg-gray-50 rounded-xl shadow-inner p-6 mb-6 text-left">
             <h3 className="font-bold text-lg text-gray-800 mb-4">Detalles de la Orden</h3>
@@ -98,7 +98,6 @@ export default function PaymentSuccess() {
           <p className="text-gray-500">Cargando información de la orden...</p>
         )}
 
-        {/* CardNet */}
         {status && (
           <div className="bg-white rounded-xl border mt-4 p-4 text-sm text-left max-h-64 overflow-y-auto">
             <p className="font-bold text-gray-700 mb-2">Respuesta de CardNet:</p>

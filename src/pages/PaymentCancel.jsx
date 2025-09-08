@@ -35,12 +35,12 @@ export default function PaymentCancel() {
       }
     };
 
-    const timer = setTimeout(guardarCancelada, 3000); // máximo espera 3s
+    const timer = setTimeout(guardarCancelada, 3000);
     return () => clearTimeout(timer);
   }, [usuarioInfo, carrito, vaciarCarrito, saved]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-red-50 px-6">
+    <div className="fixed inset-0 flex items-center justify-center bg-red-50 px-6 z-50">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full text-center">
         <XCircle className="w-20 h-20 text-red-500 mx-auto mb-4" />
         <h1 className="text-3xl font-extrabold text-red-600 mb-4">
