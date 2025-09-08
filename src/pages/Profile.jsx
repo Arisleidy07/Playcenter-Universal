@@ -646,31 +646,57 @@ export default function Profile() {
                 </motion.section>
               )}
 
-              {vista === "historial" && (
-                <motion.section key="historial" variants={itemFade} initial="hidden" animate="show" exit="hidden">
-                  <h2 className="section-title large">Historial de compras</h2>
-                  <div className="cards-list">
-                    {historial.length === 0 ? (
-                      <div className="empty">No hay compras registradas.</div>
-                    ) : (
-                      historial.map((h) => (
-                        <div key={h.id} className="order-card large">
-                          <div className="order-left">
-                            <div className="order-status">{h.estado || "Pendiente"}</div>
-                            <div className="muted">
-                              {h.fecha?.seconds ? new Date(h.fecha.seconds * 1000).toLocaleDateString() : "Sin fecha"}
-                            </div>
-                          </div>
-                          <div className="order-right">
-                            <div className="order-total">RD${h.total ?? "?"}</div>
-                            <div className="muted">{h.productos?.length ?? 0} items</div>
-                          </div>
+
+{vista === "historial" && (
+  <motion.section key="historial" variants={itemFade} initial="hidden" animate="show" exit="hidden">
+    <h2 className="section-title large">Historial de compras</h2>
+    <div className="cards-list">
+      {historial.length === 0 ? (
+        <div className="empty">No hay compras registradas.</div>
+      ) : (
+        historial
+          .sort((a, b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0))
+          .map((h, index) => (
+            <div key={h.id} className="order-card large">
+              <div className="order-left">
+                <div className="order-status">{h.estado || "Pendiente"}</div>
+                <div className="muted">
+                  {h.fecha?.seconds ? new Date(h.fecha.seconds * 1000).toLocaleString() : "Sin fecha"}
+                </div>
+                {h.checkoutMode && <div className="muted small">Modo: {h.checkoutMode}</div>}
+                {h.raw?.SESSION && <div className="muted small">Session: {h.raw.SESSION}</div>}
+              </div>
+
+              <div className="order-right">
+                <div className="order-total">RD${h.total ?? "?"}</div>
+                <div className="muted">{h.productos?.length ?? 0} items</div>
+              </div>
+
+              {h.productos?.length > 0 && (
+                <div className="bg-white rounded-lg p-4 border mt-3 w-full">
+                  <h5 className="font-bold text-blue-900 mb-3">Productos</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {h.productos.map((p, i) => (
+                      <div key={i} className="flex items-center justify-between bg-blue-50 rounded-lg p-3">
+                        <div>
+                          <p className="font-medium text-blue-900">{p.nombre || "Producto"}</p>
+                          <p className="text-sm text-blue-800">Cantidad: {p.cantidad || 1}</p>
                         </div>
-                      ))
-                    )}
+                        <div className="text-right">
+                          <p className="font-bold text-blue-900">RD${p.precio || 0}</p>
+                          <p className="text-xs text-blue-800">c/u</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </motion.section>
+                </div>
               )}
+            </div>
+          ))
+      )}
+    </div>
+  </motion.section>
+)}
 
               {vista === "direcciones" && (
                 <motion.section key="direcciones" variants={itemFade} initial="hidden" animate="show" exit="hidden">

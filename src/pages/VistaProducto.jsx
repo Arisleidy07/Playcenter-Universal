@@ -8,14 +8,20 @@ import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
 import ProductosRelacionados from "../components/ProductosRelacionados";
-import BotonCompartir from "../components/BotonCompartir";
-import BotonCardnet from "../components/BotonCardnet"; // 👈 nuevo
-
+import BotonCardnet from "../components/BotonCardnet"; // se mantiene
 import "../styles/VistaProducto.css";
 
 function formatPriceRD(value) {
   const pesos = Math.round(Number(value) || 0);
   return new Intl.NumberFormat("es-DO").format(pesos);
+}
+
+// 👉 guarda en sessionStorage el payload de checkout (modo e items)
+function setCheckoutPayload(mode, items, total) {
+  try {
+    const payload = { mode, items, total, at: Date.now() };
+    sessionStorage.setItem("checkoutPayload", JSON.stringify(payload));
+  } catch { /* ignore */ }
 }
 
 function VistaProducto() {
@@ -36,19 +42,14 @@ function VistaProducto() {
   }
 
   const onBack = () => {
-    if (window.history && window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/productos");
-    }
+    if (window.history && window.history.length > 1) navigate(-1);
+    else navigate("/productos");
   };
 
   if (!producto) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
-        <p className="text-center text-lg sm:text-xl font-semibold">
-          Producto no encontrado.
-        </p>
+        <p className="text-center text-lg sm:text-xl font-semibold">Producto no encontrado.</p>
       </div>
     );
   }
@@ -61,55 +62,43 @@ function VistaProducto() {
   const cantidadEnCarrito = enCarrito?.cantidad || 0;
 
   const handleAgregar = () => {
-    if (!usuario) {
-      setModalAbierto(true);
-      return;
-    }
-    if (!enCarrito) {
-      agregarAlCarrito({ ...producto, cantidad: 1 });
-    }
+    if (!usuario) { setModalAbierto(true); return; }
+    if (!enCarrito) agregarAlCarrito({ ...producto, cantidad: 1 });
   };
   const handleIncremento = () => {
-    if (!usuario) {
-      setModalAbierto(true);
-      return;
-    }
+    if (!usuario) { setModalAbierto(true); return; }
     agregarAlCarrito(producto);
   };
   const handleDecremento = () => {
-    if (!usuario) {
-      setModalAbierto(true);
-      return;
-    }
+    if (!usuario) { setModalAbierto(true); return; }
     eliminarUnidadDelCarrito(producto.id);
   };
   const handleQuitar = () => {
-    if (!usuario) {
-      setModalAbierto(true);
-      return;
-    }
+    if (!usuario) { setModalAbierto(true); return; }
     quitarDelCarrito(producto.id);
   };
 
-  const variantesConColor = producto.variantes?.filter(
-    (v) => v.color && v.color.trim() !== ""
-  );
+  const variantesConColor = producto.variantes?.filter((v) => v.color && v.color.trim() !== "");
   const disponible =
     varianteActiva?.cantidad === undefined || varianteActiva?.cantidad > 0;
+
+  const precioProducto = Number(producto.precio) || 0;
+  const itemsBuyNow = [
+    {
+      id: producto.id,
+      nombre: producto.nombre,
+      precio: precioProducto,
+      cantidad: 1,
+    },
+  ];
 
   return (
     <>
       {/* Barra superior */}
       <div className="vp-mobile-topbar">
-        <button className="vp-icon-btn" onClick={onBack} aria-label="Volver">
-          <FaArrowLeft />
-        </button>
-        <div className="vp-topbar-title" title={producto.nombre}>
-          {producto.nombre}
-        </div>
-        <button className="vp-icon-btn" onClick={onBack} aria-label="Cerrar">
-          <FaTimes />
-        </button>
+        <button className="vp-icon-btn" onClick={onBack} aria-label="Volver"><FaArrowLeft /></button>
+        <div className="vp-topbar-title" title={producto.nombre}>{producto.nombre}</div>
+        <button className="vp-icon-btn" onClick={onBack} aria-label="Cerrar"><FaTimes /></button>
       </div>
 
       <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-16 lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
@@ -117,7 +106,7 @@ function VistaProducto() {
           {/* Columna Izquierda */}
           <motion.div className="relative flex flex-col items-center w-full lg:w-1/2 overflow-visible">
             <div className="absolute right-2 top-2 z-10">
-              <BotonCompartir producto={producto} />
+              {/* comparte */}
             </div>
 
             <button onClick={onBack} aria-label="Volver" className="vp-back-fab">
@@ -137,9 +126,7 @@ function VistaProducto() {
             {variantesConColor && variantesConColor.length > 1 && (
               <div className="vp-variants">
                 {variantesConColor.map((variante, i) => {
-                  const activa = colorSeleccionado
-                    ? colorSeleccionado === variante.color
-                    : i === 0;
+                  const activa = colorSeleccionado ? colorSeleccionado === variante.color : i === 0;
                   return (
                     <button
                       key={i}
@@ -159,18 +146,13 @@ function VistaProducto() {
           <motion.div className="flex flex-col gap-4 sm:gap-5 w-full lg:w-1/2 overflow-visible">
             <h1 className="vp-title">{producto.nombre}</h1>
             <p className="vp-desc">{producto.descripcion || "Contáctanos para más detalles."}</p>
-            <p className="vp-price">DOP {formatPriceRD(producto.precio)}</p>
+            <p className="vp-price">DOP {formatPriceRD(precioProducto)}</p>
 
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL */}
             <div className="lg:hidden flex flex-col gap-3 overflow-visible">
               {varianteActiva?.cantidad !== undefined && (
-                <div className={`vp-stock ${
-                  varianteActiva.cantidad === 0 ? "vp-stock-out" :
-                  varianteActiva.cantidad <= 2 ? "vp-stock-low" : "vp-stock-ok"
-                }`}>
-                  {varianteActiva.cantidad === 0
-                    ? "No disponible"
-                    : `Quedan ${varianteActiva.cantidad} disponibles`}
+                <div className={`vp-stock ${varianteActiva.cantidad === 0 ? "vp-stock-out" : varianteActiva.cantidad <= 2 ? "vp-stock-low" : "vp-stock-ok"}`}>
+                  {varianteActiva.cantidad === 0 ? "No disponible" : `Quedan ${varianteActiva.cantidad} disponibles`}
                 </div>
               )}
 
@@ -188,8 +170,13 @@ function VistaProducto() {
                   </button>
                 )}
 
-                {/* 👇 Nuevo botón CardNet */}
-                <BotonCardnet className="w-full sm:w-1/2" total={producto.precio * 100} />
+                {/* 👇 “Comprar ahora” SOLO este producto */}
+                <div
+                  className="w-full sm:w-1/2"
+                  onClick={() => setCheckoutPayload("single", itemsBuyNow, precioProducto)}
+                >
+                  <BotonCardnet className="w-full" total={precioProducto * 100} label="Comprar ahora" />
+                </div>
               </div>
             </div>
 
@@ -206,16 +193,11 @@ function VistaProducto() {
           {/* Columna Derecha */}
           <aside className="vp-buy-card w-full lg:w-[360px] hidden lg:block">
             <div className="vp-buy-inner">
-              <div className="vp-buy-price">DOP {formatPriceRD(producto.precio)}</div>
+              <div className="vp-buy-price">DOP {formatPriceRD(precioProducto)}</div>
 
               {varianteActiva?.cantidad !== undefined && (
-                <div className={`vp-stock ${
-                  varianteActiva.cantidad === 0 ? "vp-stock-out" :
-                  varianteActiva.cantidad <= 2 ? "vp-stock-low" : "vp-stock-ok"
-                }`}>
-                  {varianteActiva.cantidad === 0
-                    ? "No disponible"
-                    : `Quedan ${varianteActiva.cantidad} disponibles`}
+                <div className={`vp-stock ${varianteActiva.cantidad === 0 ? "vp-stock-out" : varianteActiva.cantidad <= 2 ? "vp-stock-low" : "vp-stock-ok"}`}>
+                  {varianteActiva.cantidad === 0 ? "No disponible" : `Quedan ${varianteActiva.cantidad} disponibles`}
                 </div>
               )}
 
@@ -233,8 +215,12 @@ function VistaProducto() {
                   </button>
                 )}
 
-                {/* 👇 Nuevo botón CardNet */}
-                <BotonCardnet className="w-full" total={producto.precio * 100} />
+                {/* “Comprar ahora” */}
+                <div
+                  onClick={() => setCheckoutPayload("single", itemsBuyNow, precioProducto)}
+                >
+                  <BotonCardnet className="w-full" total={precioProducto * 100} label="Comprar ahora" />
+                </div>
               </div>
             </div>
           </aside>

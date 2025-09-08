@@ -3,7 +3,7 @@ import { useCarrito } from "../context/CarritoContext";
 import { useNavigate } from "react-router-dom";
 import productosAll from "../data/productosAll";
 import { FaTrashAlt } from "react-icons/fa";
-import BotonCardnet from "../components/BotonCardnet"; // 👈 NEW
+import BotonCardnet from "../components/BotonCardnet";
 import "../styles/Carrito.css";
 
 function formatPriceRD(value) {
@@ -11,20 +11,24 @@ function formatPriceRD(value) {
   return new Intl.NumberFormat("es-DO").format(pesos);
 }
 
-// Stock real desde productosAll (root cantidad o primera variante)
 function getStockDisponible(itemCarrito) {
   let real = null;
   for (const cat of productosAll) {
     const e = cat.productos.find((p) => p.id === itemCarrito.id);
-    if (e) {
-      real = e;
-      break;
-    }
+    if (e) { real = e; break; }
   }
   if (!real) return Number.POSITIVE_INFINITY;
   if (typeof real.cantidad === "number") return real.cantidad;
   if (real.variantes?.[0]?.cantidad !== undefined) return real.variantes[0].cantidad;
   return Number.POSITIVE_INFINITY;
+}
+
+// 👉 helper: guardar payload de carrito
+function setCheckoutPayloadCart(items, total) {
+  try {
+    const payload = { mode: "cart", items, total, at: Date.now() };
+    sessionStorage.setItem("checkoutPayload", JSON.stringify(payload));
+  } catch { /* ignore */ }
 }
 
 export default function Carrito() {
@@ -35,6 +39,13 @@ export default function Carrito() {
     (acc, item) => acc + (Number(item.precio) || 0) * item.cantidad,
     0
   );
+
+  const cartItemsForPayload = carrito.map((item) => ({
+    id: item.id,
+    nombre: item.nombre,
+    precio: Number(item.precio) || 0,
+    cantidad: item.cantidad,
+  }));
 
   return (
     <main className="carrito-page">
@@ -54,14 +65,12 @@ export default function Carrito() {
                   className="carrito-card"
                   onClick={() => navigate(`/producto/${item.id}`)}
                 >
-                  {/* Imagen */}
                   <img
                     src={item.imagen || item.imagenes?.[0]}
                     alt={item.nombre}
                     className="carrito-img"
                   />
 
-                  {/* Info */}
                   <div className="carrito-info">
                     <h2 className="carrito-nombre">{item.nombre}</h2>
 
@@ -77,17 +86,11 @@ export default function Carrito() {
                         : `Disponible (${stock})`}
                     </p>
 
-                    {/* Cantidad */}
                     <div className="carrito-actions">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          eliminarUnidadDelCarrito(item.id);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); eliminarUnidadDelCarrito(item.id); }}
                         className="vp-qty-btn"
-                      >
-                        −
-                      </button>
+                      >−</button>
 
                       <span className="vp-qty">{item.cantidad}</span>
 
@@ -97,30 +100,18 @@ export default function Carrito() {
                           if (item.cantidad < stock) {
                             let productoReal = null;
                             for (const categoria of productosAll) {
-                              const encontrado = categoria.productos.find(
-                                (p) => p.id === item.id
-                              );
-                              if (encontrado) {
-                                productoReal = encontrado;
-                                break;
-                              }
+                              const encontrado = categoria.productos.find((p) => p.id === item.id);
+                              if (encontrado) { productoReal = encontrado; break; }
                             }
-                            if (productoReal) {
-                              agregarAlCarrito(productoReal);
-                            }
+                            if (productoReal) agregarAlCarrito(productoReal);
                           }
                         }}
                         className="vp-qty-btn"
                         disabled={item.cantidad >= stock}
-                      >
-                        +
-                      </button>
+                      >+</button>
 
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          quitarDelCarrito(item.id);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); quitarDelCarrito(item.id); }}
                         className="vp-remove"
                         title="Quitar"
                       >
@@ -129,7 +120,6 @@ export default function Carrito() {
                     </div>
                   </div>
 
-                  {/* Subtotal */}
                   <div className="carrito-subtotal">
                     DOP {formatPriceRD((Number(item.precio) || 0) * item.cantidad)}
                   </div>
@@ -138,14 +128,18 @@ export default function Carrito() {
             })}
           </div>
 
-          {/* Botón pagar con CardNet */}
+          {/* Pagar carrito completo */}
           <div className="carrito-footer">
-          <BotonCardnet
-            className="carrito-pay-btn"
-            label={`Proceder al pago — DOP ${formatPriceRD(total)}`}
-            total={total * 100}
-          />
-
+            <div
+              className="carrito-pay-btn w-full"
+              onClick={() => setCheckoutPayloadCart(cartItemsForPayload, total)}
+            >
+              <BotonCardnet
+                className="carrito-pay-btn w-full"
+                label={`Proceder al pago — DOP ${formatPriceRD(total)}`}
+                total={total * 100}
+              />
+            </div>
           </div>
         </>
       )}

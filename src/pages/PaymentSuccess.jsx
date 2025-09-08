@@ -4,9 +4,7 @@ import { CheckCircle } from "lucide-react";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
-const API_BASE = import.meta.env.DEV
-  ? "" // proxy en localhost
-  : "https://playcenter-universal.onrender.com"; // producción
+const API_BASE = import.meta.env.DEV ? "" : "https://playcenter-universal.onrender.com";
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -25,13 +23,10 @@ export default function PaymentSuccess() {
           limit(1)
         );
         const snap = await getDocs(q);
-        if (!snap.empty) {
-          setOrder({ id: snap.docs[0].id, ...snap.docs[0].data() });
-        }
+        if (!snap.empty) setOrder({ id: snap.docs[0].id, ...snap.docs[0].data() });
 
         const skRes = await fetch(`${API_BASE}/cardnet/get-sk/${session}`);
         const { sk } = await skRes.json();
-
         if (sk) {
           const res = await fetch(`${API_BASE}/cardnet/verify/${session}/${sk}`);
           const data = await res.json();
@@ -54,8 +49,7 @@ export default function PaymentSuccess() {
         </h1>
         <p className="text-gray-600 mb-6">
           Tu transacción fue procesada correctamente.<br />
-          Gracias por tu compra en{" "}
-          <span className="font-semibold">PlayCenter Universal</span>.
+          ¡Gracias por tu compra en <span className="font-semibold">PlayCenter Universal</span>!
         </p>
 
         {order ? (
@@ -64,8 +58,22 @@ export default function PaymentSuccess() {
             <p><strong>ID:</strong> {order.id}</p>
             <p><strong>Email:</strong> {order.userEmail}</p>
             <p><strong>Estado:</strong> {order.estado}</p>
-            <p><strong>Total:</strong> DOP ${order.total}</p>
+            <p><strong>Total:</strong> RD$ {order.total}</p>
             <p><strong>Fecha:</strong> {order.fecha?.toDate?.().toLocaleString()}</p>
+
+            {order.productos?.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-semibold text-gray-700 mb-2">Productos:</h4>
+                <ul className="space-y-2">
+                  {order.productos.map((p, i) => (
+                    <li key={i} className="flex justify-between bg-white rounded-lg p-3 border">
+                      <span>{p.nombre} (x{p.cantidad})</span>
+                      <span className="font-bold">RD${p.precio}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-gray-500">Cargando información de la orden...</p>
@@ -81,16 +89,10 @@ export default function PaymentSuccess() {
         )}
 
         <div className="mt-8 flex flex-col sm:flex-row sm:justify-center gap-3">
-          <Link
-            to="/"
-            className="px-6 py-3 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition"
-          >
+          <Link to="/" className="px-6 py-3 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition">
             Seguir comprando
           </Link>
-          <Link
-            to="/carrito"
-            className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold shadow hover:bg-gray-300 transition"
-          >
+          <Link to="/carrito" className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold shadow hover:bg-gray-300 transition">
             Ver mi carrito
           </Link>
         </div>
