@@ -1,11 +1,12 @@
-// src/pages/PaymentPending.jsx
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import { useCarrito } from "../context/CarritoContext";
-import "../styles/PaymentLoader.css"; // 👈 tu animación existente
+import "../styles/PaymentLoader.css";
+import { CreditCard } from "lucide-react";
+import { motion } from "framer-motion";
 
 const API_BASE = import.meta.env.DEV
   ? "" // usa proxy en localhost
@@ -26,14 +27,13 @@ export default function PaymentPending() {
         const { sk } = await skRes.json();
 
         if (!sk) {
-          navigate("/payment/cancel");
+          navigate("/payment/cancel?session=" + session);
           return;
         }
 
         const res = await fetch(`${API_BASE}/cardnet/verify/${session}/${sk}`);
         const data = await res.json();
 
-        // 💾 Guardar la orden en Firestore
         const orderData = {
           userId: usuario?.uid || null,
           userEmail: usuarioInfo?.email || usuario?.email || null,
@@ -41,7 +41,7 @@ export default function PaymentPending() {
           productos: carrito.map((p) => ({
             id: p.id,
             nombre: p.nombre,
-            precio: p.precio,
+            precio: Number(p.precio) || 0,
             cantidad: p.cantidad,
           })),
           total: carrito.reduce(
@@ -50,38 +50,46 @@ export default function PaymentPending() {
           ),
           estado: data?.ResponseCode === "00" ? "completado" : "cancelado",
           fecha: serverTimestamp(),
-          raw: data,
+          raw: { ...data, SESSION: session },
         };
 
         try {
           await addDoc(collection(db, "orders"), orderData);
-          console.log("✅ Orden guardada en Firestore");
         } catch (err) {
           console.error("❌ Error guardando orden:", err);
         }
 
-        // 👉 Redirección según respuesta
         if (data?.ResponseCode === "00") {
           vaciarCarrito();
           navigate(`/payment/success?session=${session}`);
         } else {
-          navigate("/payment/cancel");
+          navigate(`/payment/cancel?session=${session}`);
         }
       } catch (err) {
         console.error("Error verificando transacción:", err);
-        navigate("/payment/cancel");
+        navigate(`/payment/cancel?session=${session}`);
       }
     };
 
     if (session) {
-      // Espera 2 segundos para que se vea la animación y luego verifica
       setTimeout(verificar, 2000);
     }
   }, [searchParams, navigate, usuario, usuarioInfo, carrito, vaciarCarrito]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-6">
-      {/* 👇 Tu animación loader */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-6"
+    >
+      <motion.div
+        initial={{ scale: 0.5 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.6 }}
+      >
+        <CreditCard className="w-20 h-20 text-blue-600 mb-6 drop-shadow-lg" />
+      </motion.div>
+
       <div className="loader mb-6">
         <div className="loader__bar"></div>
         <div className="loader__bar"></div>
@@ -91,13 +99,18 @@ export default function PaymentPending() {
         <div className="loader__ball"></div>
       </div>
 
-      <h1 className="text-2xl font-extrabold text-blue-700 mb-2 animate-pulse">
+      <motion.h1
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="text-2xl font-extrabold text-blue-700 mb-2 animate-pulse"
+      >
         Procesando tu pago...
-      </h1>
+      </motion.h1>
       <p className="text-gray-600 text-center max-w-md">
-        Estamos verificando tu transacción con <b>CardNet</b>.<br />
+        Estamos verificando tu transacción con <b>CardNet</b>. <br />
         Por favor, espera unos segundos.
       </p>
-    </div>
+    </motion.div>
   );
 }
