@@ -12,7 +12,6 @@ export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState(null);
-  const [timeoutReached, setTimeoutReached] = useState(false);
 
   useEffect(() => {
     const session = searchParams.get("session");
@@ -43,34 +42,8 @@ export default function PaymentSuccess() {
       }
     };
 
-    if (session) {
-      fetchData();
-      const timer = setTimeout(() => setTimeoutReached(true), 5000);
-      return () => clearTimeout(timer);
-    }
+    if (session) fetchData();
   }, [searchParams]);
-
-  if (timeoutReached && !order) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-yellow-50 px-6 z-50">
-        <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-lg w-full text-center">
-          <h1 className="text-2xl font-bold text-yellow-700 mb-4">
-            No pudimos confirmar tu pago
-          </h1>
-          <p className="text-gray-600 mb-6">
-            El tiempo de verificación expiró. Si el monto fue descontado, revisa tu correo o
-            inténtalo nuevamente.
-          </p>
-          <Link
-            to="/carrito"
-            className="px-6 py-3 rounded-xl bg-yellow-600 text-white font-bold shadow hover:bg-yellow-700 transition"
-          >
-            Volver al carrito
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-6 z-50 overflow-y-auto">

@@ -77,7 +77,6 @@ export default function PaymentPending() {
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-6 z-50">
-      {/* Loader */}
       <div className="loader mb-6">
         <div className="loader__bar"></div>
         <div className="loader__bar"></div>

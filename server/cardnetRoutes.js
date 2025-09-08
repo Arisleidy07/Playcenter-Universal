@@ -1,16 +1,13 @@
-// server/cardnetRoutes.js
 import express from "express";
 import fetch from "node-fetch";
 
 const router = express.Router();
 
-// Guardar SESSION → session-key
+// Guardar SESSION → session-key (esto es en memoria, si quieres persistencia real usa Firestore o Redis)
 const sessions = {};
 
 // Crear sesión con CardNet
 router.post("/create-session", async (req, res) => {
-  console.log(">> Recibí petición a /cardnet/create-session", req.body);
-
   try {
     const { total } = req.body;
 
@@ -26,9 +23,8 @@ router.post("/create-session", async (req, res) => {
         MerchantTerminal: "58585858",
         MerchantTerminal_amex: "00000001",
 
-        // 👉 Ahora van al backend, no al frontend directo
-        ReturnUrl: "https://playcenter-universal.onrender.com/cardnet/return",
-        CancelUrl: "https://playcenter-universal.onrender.com/cardnet/cancel",
+        ReturnUrl: "https://playcenter-universal.onrender.com/api/cardnet-return",
+        CancelUrl: "https://playcenter-universal.onrender.com/api/cardnet-cancel",
 
         PageLanguaje: "ESP",
         OrdenId: "ORD12345",
@@ -37,6 +33,7 @@ router.post("/create-session", async (req, res) => {
         MerchantName: "PLAYCENTER UNIVERSAL DO",
         AVS: "SANTO DOMINGO DO",
         Amount: String(total),
+
         "3DS_email": "cliente@correo.com",
         "3DS_mobilePhone": "8090000000",
         "3DS_workPhone": "8090000001",
@@ -52,7 +49,6 @@ router.post("/create-session", async (req, res) => {
     });
 
     const data = await response.json();
-    console.log("Respuesta CardNet:", data);
 
     if (data.SESSION && data["session-key"]) {
       sessions[data.SESSION] = data["session-key"];
@@ -89,17 +85,6 @@ router.get("/verify/:session/:sk", async (req, res) => {
     console.error("Error verificando transacción:", error);
     res.status(500).json({ error: "Error verificando transacción" });
   }
-});
-
-// ✅ Nuevos endpoints: reciben POST de CardNet y redirigen al frontend
-router.post("/return", (req, res) => {
-  console.log(">> Return de CardNet:", req.body);
-  res.redirect("https://pcu.com.do/payment/pending");
-});
-
-router.post("/cancel", (req, res) => {
-  console.log(">> Cancel de CardNet:", req.body);
-  res.redirect("https://pcu.com.do/payment/cancel");
 });
 
 export default router;
