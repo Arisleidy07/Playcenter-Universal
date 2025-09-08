@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 
 const router = express.Router();
 
-// Guardar SESSION → session-key (esto es en memoria, si quieres persistencia real usa Firestore o Redis)
+// Guardar SESSION → session-key en memoria (⚠️ se borra si Render reinicia el server)
 const sessions = {};
 
 // Crear sesión con CardNet
@@ -23,8 +23,9 @@ router.post("/create-session", async (req, res) => {
         MerchantTerminal: "58585858",
         MerchantTerminal_amex: "00000001",
 
-        ReturnUrl: "https://playcenter-universal.onrender.com/api/cardnet-return",
-        CancelUrl: "https://playcenter-universal.onrender.com/api/cardnet-cancel",
+        // 👉 Render maneja estos endpoints
+        ReturnUrl: "https://playcenter-universal.onrender.com/cardnet/return",
+        CancelUrl: "https://playcenter-universal.onrender.com/cardnet/cancel",
 
         PageLanguaje: "ESP",
         OrdenId: "ORD12345",
@@ -33,19 +34,7 @@ router.post("/create-session", async (req, res) => {
         MerchantName: "PLAYCENTER UNIVERSAL DO",
         AVS: "SANTO DOMINGO DO",
         Amount: String(total),
-
-        "3DS_email": "cliente@correo.com",
-        "3DS_mobilePhone": "8090000000",
-        "3DS_workPhone": "8090000001",
-        "3DS_homePhone": "8090000002",
-        "3DS_billAddr_line1": "Direccion 1",
-        "3DS_billAddr_line2": "Direccion 2",
-        "3DS_billAddr_line3": "Direccion 3",
-        "3DS_billAddr_city": "Santo Domingo",
-        "3DS_billAddr_state": "DO",
-        "3DS_billAddr_country": "DO",
-        "3DS_billAddr_postCode": "10101"
-      })
+      }),
     });
 
     const data = await response.json();
@@ -84,6 +73,29 @@ router.get("/verify/:session/:sk", async (req, res) => {
   } catch (error) {
     console.error("Error verificando transacción:", error);
     res.status(500).json({ error: "Error verificando transacción" });
+  }
+});
+
+// ✅ Endpoints que CardNet llama (Render → redirige al frontend en Vercel)
+router.post("/return", express.urlencoded({ extended: true }), (req, res) => {
+  const session = req.body.SESSION || req.query.SESSION;
+  console.log("<< Return de CardNet:", req.body);
+
+  if (session) {
+    res.redirect(`https://pcu.com.do/payment/pending?session=${session}`);
+  } else {
+    res.redirect("https://pcu.com.do/payment/cancel");
+  }
+});
+
+router.post("/cancel", express.urlencoded({ extended: true }), (req, res) => {
+  const session = req.body.SESSION || req.query.SESSION;
+  console.log("<< Cancel de CardNet:", req.body);
+
+  if (session) {
+    res.redirect(`https://pcu.com.do/payment/cancel?session=${session}`);
+  } else {
+    res.redirect("https://pcu.com.do/payment/cancel");
   }
 });
 

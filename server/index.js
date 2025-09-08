@@ -7,6 +7,7 @@ const app = express();
 // Permitir llamadas desde frontend
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // 👈 FIX para CardNet
 
 // LOG global
 app.use((req, res, next) => {
