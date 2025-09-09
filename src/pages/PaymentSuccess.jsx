@@ -395,29 +395,6 @@ export default function PaymentSuccess() {
             </motion.div>
           </motion.div>
 
-          {/* Additional actions */}
-          <motion.div
-            className="flex flex-col sm:flex-row gap-3 justify-center items-center text-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.6 }}
-          >
-            <motion.button
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-              whileHover={{ scale: 1.05 }}
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Compartir compra</span>
-            </motion.button>
-            <span className="hidden sm:block text-gray-300">•</span>
-            <motion.button
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-              whileHover={{ scale: 1.05 }}
-            >
-              <Download className="w-4 h-4" />
-              <span>Descargar recibo</span>
-            </motion.button>
-          </motion.div>
 
           {/* Technical details (collapsed by default) */}
           {status && (

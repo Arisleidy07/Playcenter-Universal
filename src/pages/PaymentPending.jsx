@@ -138,8 +138,8 @@ export default function PaymentPending() {
     };
 
     if (session) {
-      // máximo 5s para mostrar loader antes de verificar
-      const timer = setTimeout(verificar, 2500);
+      // máximo 10s para mostrar loader antes de verificar
+      const timer = setTimeout(verificar, 10000);
       return () => {
         clearTimeout(timer);
         clearInterval(progressTimer);
@@ -266,11 +266,7 @@ export default function PaymentPending() {
           </div>
 
           {/* Main loader */}
-          <motion.div 
-            className="mb-8"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          >
+          <div className="mb-8">
             <div className="loader mx-auto">
               <div className="loader__bar"></div>
               <div className="loader__bar"></div>
@@ -279,7 +275,7 @@ export default function PaymentPending() {
               <div className="loader__bar"></div>
               <div className="loader__ball"></div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Title and description */}
           <motion.h1 

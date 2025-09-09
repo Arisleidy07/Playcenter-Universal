@@ -31,6 +31,7 @@ function VistaProducto() {
   const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
+  const [cargandoPago, setCargandoPago] = useState(false);
 
   let producto = null;
   for (const categoria of productosAll) {
@@ -63,11 +64,21 @@ function VistaProducto() {
 
   const handleAgregar = () => {
     if (!usuario) { setModalAbierto(true); return; }
-    if (!enCarrito) agregarAlCarrito({ ...producto, cantidad: 1 });
+    if (!enCarrito) {
+      setCargandoPago(true);
+      setTimeout(() => {
+        agregarAlCarrito({ ...producto, cantidad: 1 });
+        setCargandoPago(false);
+      }, 300);
+    }
   };
   const handleIncremento = () => {
     if (!usuario) { setModalAbierto(true); return; }
-    agregarAlCarrito(producto);
+    setCargandoPago(true);
+    setTimeout(() => {
+      agregarAlCarrito(producto);
+      setCargandoPago(false);
+    }, 200);
   };
   const handleDecremento = () => {
     if (!usuario) { setModalAbierto(true); return; }
@@ -231,9 +242,12 @@ function VistaProducto() {
                   </button>
                 )}
 
-                {/* “Comprar ahora” */}
+                {/* "Comprar ahora" */}
                 <div
-                  onClick={() => setCheckoutPayload("single", itemsBuyNow, precioProducto)}
+                  onClick={() => {
+                    setCargandoPago(true);
+                    setCheckoutPayload("single", itemsBuyNow, precioProducto);
+                  }}
                 >
                   <BotonCardnet className="w-full" total={precioProducto * 100} label="Comprar ahora" />
                 </div>
@@ -280,6 +294,21 @@ function VistaProducto() {
       </main>
 
       <ModalLoginAlert isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
+      
+      {/* Loader de pantalla completa */}
+      {cargandoPago && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[100] flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm mx-4 text-center">
+            <div className="mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Redirigiendo a CardNet</h3>
+            <p className="text-gray-600 text-sm">Espera unos segundos mientras procesamos tu solicitud...</p>
+          </div>
+        </div>
+      )}
     </>
   );
 }
