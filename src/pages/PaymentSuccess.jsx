@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Star, Gift, Sparkles, Home, ShoppingCart, Download, Share2, Trophy, Zap } from "lucide-react";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE = import.meta.env.DEV ? "" : "https://playcenter-universal.onrender.com";
 
@@ -10,6 +11,8 @@ export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(true);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     const session = searchParams.get("session");
@@ -38,65 +41,404 @@ export default function PaymentSuccess() {
     };
 
     if (session) fetchData();
+
+    // Hide confetti after animation
+    const confettiTimer = setTimeout(() => setShowConfetti(false), 3000);
+    return () => clearTimeout(confettiTimer);
   }, [searchParams]);
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("es-DO", {
+      style: "currency",
+      currency: "DOP",
+      minimumFractionDigits: 2,
+    }).format(amount || 0);
+  };
+
+  const formatDate = (fecha) => {
+    if (!fecha) return "Fecha no disponible";
+    let date;
+    if (typeof fecha === "object" && fecha.seconds) {
+      date = new Date(fecha.seconds * 1000);
+    } else {
+      date = new Date(fecha);
+    }
+    return date.toLocaleDateString("es-DO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-6 z-50 overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-2xl w-full text-center">
-        <CheckCircle className="w-24 h-24 text-green-500 mx-auto mb-6" />
-        <h1 className="text-3xl font-extrabold text-green-600 mb-4">
-          Pago realizado con éxito
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Tu transacción fue procesada correctamente.<br />
-          ¡Gracias por tu compra en <span className="font-semibold">PlayCenter Universal</span>!
-        </p>
-
-        {order ? (
-          <div className="bg-gray-50 rounded-xl shadow-inner p-6 mb-6 text-left">
-            <h3 className="font-bold text-lg text-gray-800 mb-4">Detalles de la Orden</h3>
-            <p><strong>ID:</strong> {order.id}</p>
-            <p><strong>Email:</strong> {order.userEmail}</p>
-            <p><strong>Estado:</strong> {order.estado}</p>
-            <p><strong>Total:</strong> RD$ {order.total}</p>
-            <p><strong>Fecha:</strong> {order.fecha?.toDate?.().toLocaleString()}</p>
-
-            {order.productos?.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-semibold text-gray-700 mb-2">Productos:</h4>
-                <ul className="space-y-2">
-                  {order.productos.map((p, i) => (
-                    <li key={i} className="flex justify-between bg-white rounded-lg p-3 border">
-                      <span>{p.nombre} (x{p.cantidad})</span>
-                      <span className="font-bold">RD${p.precio}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p className="text-gray-500">Cargando información de la orden...</p>
-        )}
-
-        {status && (
-          <div className="bg-white rounded-xl border mt-4 p-4 text-sm text-left max-h-64 overflow-y-auto">
-            <p className="font-bold text-gray-700 mb-2">Respuesta de CardNet:</p>
-            <pre className="whitespace-pre-wrap text-gray-600 text-xs">
-              {JSON.stringify(status, null, 2)}
-            </pre>
+    <motion.div 
+      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-6 z-50 overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Confetti animation */}
+      <AnimatePresence>
+        {showConfetti && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(50)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: ['#10b981', '#059669', '#34d399', '#6ee7b7', '#a7f3d0'][Math.floor(Math.random() * 5)],
+                  left: Math.random() * 100 + '%',
+                  top: -10
+                }}
+                animate={{
+                  y: window.innerHeight + 50,
+                  x: [0, Math.random() * 200 - 100, Math.random() * 200 - 100],
+                  rotate: [0, 360, 720],
+                  scale: [1, 0.5, 1]
+                }}
+                transition={{
+                  duration: Math.random() * 3 + 2,
+                  ease: "easeOut",
+                  delay: Math.random() * 2
+                }}
+                exit={{ opacity: 0 }}
+              />
+            ))}
           </div>
         )}
+      </AnimatePresence>
 
-        <div className="mt-8 flex flex-col sm:flex-row sm:justify-center gap-3">
-          <Link to="/" className="px-6 py-3 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition">
-            Seguir comprando
-          </Link>
-          <Link to="/carrito" className="px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold shadow hover:bg-gray-300 transition">
-            Ver mi carrito
-          </Link>
-        </div>
+      {/* Floating elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-green-200 rounded-full opacity-30"
+            animate={{
+              x: [Math.random() * window.innerWidth, Math.random() * window.innerWidth],
+              y: [Math.random() * window.innerHeight, Math.random() * window.innerHeight],
+            }}
+            transition={{
+              duration: Math.random() * 15 + 15,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            style={{
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%'
+            }}
+          />
+        ))}
       </div>
-    </div>
+
+      <motion.div 
+        className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 max-w-3xl w-full text-center relative overflow-hidden border border-white/30"
+        initial={{ scale: 0.8, y: 50 }}
+        animate={{ scale: 1, y: 0 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+      >
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-3xl"></div>
+        
+        {/* Content */}
+        <div className="relative z-10">
+          {/* Success icon with celebration */}
+          <motion.div
+            className="mb-8"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ 
+              type: "spring", 
+              damping: 15, 
+              stiffness: 300,
+              delay: 0.2 
+            }}
+          >
+            <motion.div
+              className="relative inline-block"
+              animate={{ 
+                y: [0, -10, 0],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ 
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <CheckCircle className="w-28 h-28 text-green-500 mx-auto drop-shadow-lg" />
+              <motion.div
+                className="absolute -top-3 -right-3 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center"
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  rotate: [0, 15, -15, 0]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Trophy className="w-5 h-5 text-yellow-600" />
+              </motion.div>
+              <motion.div
+                className="absolute -bottom-2 -left-2 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+              >
+                <Sparkles className="w-4 h-4 text-green-600" />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+
+          {/* Title with celebration */}
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <motion.h1 
+              className="text-5xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-4"
+              animate={{ 
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              ¡Pago exitoso!
+            </motion.h1>
+            <motion.div
+              className="flex items-center justify-center gap-2 mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.8 + i * 0.1, type: "spring" }}
+                >
+                  <Star className="w-6 h-6 text-yellow-400 fill-current" />
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.p 
+              className="text-gray-700 text-lg leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+            >
+              Tu transacción fue procesada correctamente.<br />
+              ¡Gracias por tu compra en <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">PlayCenter Universal</span>!
+            </motion.p>
+          </motion.div>
+
+          {/* Order summary card */}
+          {order ? (
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 }}
+            >
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <Gift className="w-6 h-6 text-green-600" />
+                    Resumen de tu compra
+                  </h3>
+                  <motion.div
+                    className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    ✓ Completado
+                  </motion.div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Orden ID:</span>
+                      <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                        {order.numeroOrden || order.id?.slice(-8)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Email:</span>
+                      <span className="font-medium">{order.userEmail}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Fecha:</span>
+                      <span className="font-medium">{formatDate(order.fecha)}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Método de pago:</span>
+                      <span className="font-medium flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-blue-500" />
+                        CardNet
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total:</span>
+                      <span className="text-2xl font-bold text-green-600">
+                        {formatCurrency(order.total)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {order.productos?.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setShowDetails(!showDetails)}
+                      className="flex items-center gap-2 text-green-600 hover:text-green-800 font-medium mb-4 transition-colors"
+                    >
+                      <span>Ver productos ({order.productos.length})</span>
+                      <motion.div
+                        animate={{ rotate: showDetails ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        ▼
+                      </motion.div>
+                    </button>
+
+                    <AnimatePresence>
+                      {showDetails && (
+                        <motion.div
+                          className="space-y-3"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          {order.productos.map((p, i) => (
+                            <motion.div
+                              key={i}
+                              className="flex items-center justify-between bg-white rounded-xl p-4 border border-green-100"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.1 }}
+                              whileHover={{ scale: 1.02, backgroundColor: "#f8fafc" }}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                                  🎮
+                                </div>
+                                <div>
+                                  <span className="font-semibold text-gray-800">{p.nombre}</span>
+                                  <div className="text-sm text-gray-600">
+                                    Cantidad: {p.cantidad} × {formatCurrency(p.precio)}
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="font-bold text-green-600">
+                                {formatCurrency(p.cantidad * p.precio)}
+                              </span>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="mb-8 p-6 bg-gray-50 rounded-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2 }}
+            >
+              <div className="flex items-center justify-center gap-3">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                >
+                  <Sparkles className="w-6 h-6 text-green-500" />
+                </motion.div>
+                <span className="text-gray-600">Cargando información de la orden...</span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Action buttons */}
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.4 }}
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                to="/"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Home className="w-5 h-5" />
+                <span>Seguir comprando</span>
+              </Link>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                to="/profile"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-700 rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
+              >
+                <Download className="w-5 h-5" />
+                <span>Ver historial</span>
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Additional actions */}
+          <motion.div
+            className="flex flex-col sm:flex-row gap-3 justify-center items-center text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.6 }}
+          >
+            <motion.button
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Compartir compra</span>
+            </motion.button>
+            <span className="hidden sm:block text-gray-300">•</span>
+            <motion.button
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Download className="w-4 h-4" />
+              <span>Descargar recibo</span>
+            </motion.button>
+          </motion.div>
+
+          {/* Technical details (collapsed by default) */}
+          {status && (
+            <motion.details
+              className="mt-8 text-left"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2 }}
+            >
+              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium mb-4">
+                Detalles técnicos de la transacción
+              </summary>
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 max-h-64 overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-gray-600 text-xs font-mono">
+                  {JSON.stringify(status, null, 2)}
+                </pre>
+              </div>
+            </motion.details>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

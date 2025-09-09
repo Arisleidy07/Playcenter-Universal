@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Entrega from "../components/Entrega";
+import { Pencil, Check, Trash2 } from "lucide-react";
 import "../styles/Profile.css";
 
 /* =========================
@@ -49,7 +50,9 @@ const avatarDataUrl = (seed = "", size = 512) => {
   const initial = nameToInitial(seed);
   const bg = stringToHexColor(seed || initial);
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'>
-    <rect width='100%' height='100%' fill='${bg}' rx='${Math.floor(size * 0.12)}' />
+    <rect width='100%' height='100%' fill='${bg}' rx='${Math.floor(
+    size * 0.12
+  )}' />
     <text x='50%' y='50%' dy='.04em' font-family='Inter, system-ui, Arial' font-size='${Math.floor(
       size * 0.42
     )}' fill='#fff' text-anchor='middle' alignment-baseline='middle'>${initial}</text>
@@ -59,33 +62,635 @@ const avatarDataUrl = (seed = "", size = 512) => {
 
 const pageVariant = {
   hidden: { opacity: 0, y: 10 },
-  enter: { opacity: 1, y: 0, transition: { duration: 0.36, ease: [0.2, 0.8, 0.2, 1] } },
+  enter: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.36, ease: [0.2, 0.8, 0.2, 1] },
+  },
   exit: { opacity: 0, y: -8, transition: { duration: 0.25 } },
 };
-const itemFade = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.26 } } };
+
+const itemFade = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.26 } },
+};
+
+/* Historial de compras mejorado con UI/UX hermoso */
+function HistorialSection({ historial }) {
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [filter, setFilter] = useState("all");
+
+  if (!historial?.length) {
+    return (
+      <motion.div
+        variants={itemFade}
+        className="empty-state-beautiful"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="empty-illustration">
+          <motion.div
+            className="empty-box"
+            animate={{
+              y: [0, -10, 0],
+              rotateY: [0, 5, 0, -5, 0],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            📦
+          </motion.div>
+          <motion.div
+            className="empty-sparkles"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            ✨
+          </motion.div>
+        </div>
+        <motion.h3
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          ¡Tu historial está esperando!
+        </motion.h3>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          Cuando realices tu primera compra, aparecerá aquí como por arte de magia.
+        </motion.p>
+        <motion.div
+          className="empty-cta"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.7 }}
+        >
+          <button className="btn-beautiful-primary">
+            Explorar productos
+          </button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("es-DO", {
+      style: "currency",
+      currency: "DOP",
+      minimumFractionDigits: 2,
+    }).format(amount || 0);
+  };
+
+  const getStatusConfig = (estado) => {
+    switch (estado) {
+      case "completado":
+        return {
+          color: "status-completed",
+          icon: "✓",
+          text: "Completado",
+          gradient: "linear-gradient(135deg, #10b981, #059669)",
+        };
+      case "cancelado":
+        return {
+          color: "status-cancelled",
+          icon: "✗",
+          text: "Cancelado",
+          gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
+        };
+      case "pendiente":
+        return {
+          color: "status-pending",
+          icon: "⏳",
+          text: "Pendiente",
+          gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
+        };
+      default:
+        return {
+          color: "status-pending",
+          icon: "⏳",
+          text: "Pendiente",
+          gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
+        };
+    }
+  };
+
+  const filteredHistorial = historial.filter((order) => {
+    if (filter === "all") return true;
+    return order.estado === filter;
+  });
+
+  return (
+    <>
+      {/* Filtros hermosos */}
+      <motion.div
+        className="history-filters"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="filter-tabs">
+          {[
+            { key: "all", label: "Todas", icon: "📋" },
+            { key: "completado", label: "Completadas", icon: "✅" },
+            { key: "pendiente", label: "Pendientes", icon: "⏳" },
+            { key: "cancelado", label: "Canceladas", icon: "❌" },
+          ].map((tab, index) => (
+            <motion.button
+              key={tab.key}
+              className={`filter-tab ${filter === tab.key ? "active" : ""}`}
+              onClick={() => setFilter(tab.key)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <span className="tab-icon">{tab.icon}</span>
+              <span className="tab-label">{tab.label}</span>
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Contenedor de órdenes hermoso */}
+      <motion.div
+        variants={itemFade}
+        className="orders-container-beautiful"
+        layout
+      >
+        <AnimatePresence>
+          {filteredHistorial.map((order, index) => {
+            const statusConfig = getStatusConfig(order.estado);
+            return (
+              <motion.div
+                key={order.id}
+                className="order-card-beautiful"
+                onClick={() => setSelectedOrder(order)}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{
+                  duration: 0.4,
+                  delay: index * 0.1,
+                  type: "spring",
+                  stiffness: 100,
+                }}
+                whileHover={{ scale: 1.02, y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+                whileTap={{ scale: 0.98 }}
+                layout
+              >
+                <div
+                  className="order-card-glow"
+                  style={{ background: statusConfig.gradient }}
+                ></div>
+
+                <div className="order-header-beautiful">
+                  <div className="order-info-beautiful">
+                    <motion.h4
+                      className="order-number-beautiful"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      {order.numeroOrden || `Orden #${order.id.slice(-8)}`}
+                    </motion.h4>
+                    <motion.p
+                      className="order-date-beautiful"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      {formatOrderDate(order.fecha)}
+                    </motion.p>
+                  </div>
+
+                  <div className="order-status-beautiful">
+                    <motion.div
+                      className={`status-badge-beautiful ${statusConfig.color}`}
+                      style={{ background: statusConfig.gradient }}
+                      whileHover={{ scale: 1.1 }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.4, type: "spring" }}
+                    >
+                      <span className="status-icon">{statusConfig.icon}</span>
+                      <span className="status-text">{statusConfig.text}</span>
+                    </motion.div>
+                    <motion.div
+                      className="order-total-beautiful"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      {formatCurrency(order.total)}
+                    </motion.div>
+                  </div>
+                </div>
+
+                <motion.div
+                  className="order-products-preview-beautiful"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <div className="products-grid">
+                    {order.productos?.slice(0, 3).map((producto, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="product-preview-beautiful"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.7 + idx * 0.1 }}
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <div className="product-image-placeholder">
+                          🎮
+                        </div>
+                        <div className="product-preview-info-beautiful">
+                          <span className="product-name-beautiful">
+                            {producto.nombre}
+                          </span>
+                          <span className="product-details-beautiful">
+                            {producto.cantidad}x • {formatCurrency(producto.precio)}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {order.productos?.length > 3 && (
+                    <motion.div
+                      className="more-products-beautiful"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      <span className="more-count">
+                        +{order.productos.length - 3}
+                      </span>
+                      <span className="more-text">más productos</span>
+                    </motion.div>
+                  )}
+                </motion.div>
+
+                <motion.div
+                  className="order-card-footer"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <div className="view-details-hint">
+                    <span>Toca para ver detalles</span>
+                    <motion.span
+                      className="arrow-icon"
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      →
+                    </motion.span>
+                  </div>
+                </motion.div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Modal de detalles hermoso */}
+      <AnimatePresence>
+        {selectedOrder && (
+          <motion.div
+            className="order-modal-overlay-beautiful"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedOrder(null)}
+          >
+            <motion.div
+              className="order-modal-beautiful"
+              initial={{ scale: 0.8, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 50 }}
+              onClick={(e) => e.stopPropagation()}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            >
+              <motion.div
+                className="modal-header-beautiful"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="modal-title-section">
+                  <h3 className="modal-title">
+                    {selectedOrder.numeroOrden ||
+                      `Orden #${selectedOrder.id.slice(-8)}`}
+                  </h3>
+                  <div className="modal-subtitle">
+                    Detalles de tu compra
+                  </div>
+                </div>
+                <motion.button
+                  className="close-modal-beautiful"
+                  onClick={() => setSelectedOrder(null)}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  ✕
+                </motion.button>
+              </motion.div>
+
+              <motion.div
+                className="modal-content-beautiful"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="order-summary-beautiful">
+                  <div className="summary-card">
+                    <div className="summary-item">
+                      <span className="summary-label">📅 Fecha</span>
+                      <span className="summary-value">
+                        {formatOrderDate(selectedOrder.fecha)}
+                      </span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-label">📊 Estado</span>
+                      <span
+                        className={`summary-status ${getStatusConfig(
+                          selectedOrder.estado
+                        ).color}`}
+                      >
+                        {getStatusConfig(selectedOrder.estado).icon}{" "}
+                        {getStatusConfig(selectedOrder.estado).text}
+                      </span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-label">💰 Total</span>
+                      <span className="summary-total">
+                        {formatCurrency(selectedOrder.total)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <motion.div
+                  className="products-list-beautiful"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <h4 className="products-title">🛍️ Productos comprados</h4>
+                  <div className="products-grid-modal">
+                    {selectedOrder.productos?.map((producto, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="product-item-beautiful"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 + idx * 0.1 }}
+                        whileHover={{ scale: 1.02, backgroundColor: "#f8fafc" }}
+                      >
+                        <div className="product-image-modal">🎮</div>
+                        <div className="product-info-modal">
+                          <span className="product-name-modal">
+                            {producto.nombre}
+                          </span>
+                          <span className="product-details-modal">
+                            {producto.cantidad} × {formatCurrency(producto.precio)}
+                          </span>
+                        </div>
+                        <div className="product-subtotal-beautiful">
+                          {formatCurrency(producto.cantidad * producto.precio)}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+/* Modal de detalles de orden */
+function OrderDetailsModal({
+  order,
+  onClose,
+  formatCurrency,
+  formatOrderDate,
+  getStatusColor,
+  getStatusText,
+}) {
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      className="modal-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="order-details-modal"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <div>
+            <h2>{order.numeroOrden || `Orden #${order.id.slice(-8)}`}</h2>
+            <p className="order-date-detail">{formatOrderDate(order.fecha)}</p>
+          </div>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        <div className="modal-content">
+          <div className="order-status-section">
+            <span
+              className={`status-badge large ${getStatusColor(order.estado)}`}
+            >
+              {getStatusText(order.estado)}
+            </span>
+            {order.estadoPago && (
+              <span className="payment-status">
+                Pago: {order.estadoPago === "pagado" ? "✓ Pagado" : "✗ Fallido"}
+              </span>
+            )}
+          </div>
+
+          <div className="order-summary">
+            <h3>Resumen de la orden</h3>
+            <div className="summary-row total">
+              <span>Total pagado:</span>
+              <span>{formatCurrency(order.total)}</span>
+            </div>
+          </div>
+
+          <div className="products-section">
+            <h3>Productos ({order.productos?.length || 0})</h3>
+            <div className="products-list">
+              {order.productos?.map((producto, idx) => (
+                <div key={idx} className="product-detail-item">
+                  <div className="product-detail-info">
+                    <h4>{producto.nombre}</h4>
+                    <p className="product-company">
+                      {producto.empresa || "N/A"}
+                    </p>
+                    <div className="product-pricing">
+                      <span className="quantity">
+                        Cantidad: {producto.cantidad}
+                      </span>
+                      <span className="price">
+                        Precio unitario: {formatCurrency(producto.precio)}
+                      </span>
+                      <span className="subtotal">
+                        Subtotal:{" "}
+                        {formatCurrency(
+                          producto.subtotal ||
+                            producto.precio * producto.cantidad
+                        )}
+                      </span>
+                    </div>
+                    <button
+                      className="btn-view-product-modal"
+                      onClick={() =>
+                        (window.location.href = `/producto/${producto.id}`)
+                      }
+                      title="Ver producto"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      Ver producto
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {order.direccionEntrega && (
+            <div className="delivery-section">
+              <h3>Información de entrega</h3>
+              <p>{order.direccionEntrega}</p>
+              {order.telefonoContacto && (
+                <p>Teléfono: {order.telefonoContacto}</p>
+              )}
+            </div>
+          )}
+
+          {order.metodoPago && (
+            <div className="payment-section">
+              <h3>Información de pago</h3>
+              <p>Método: {order.metodoPago}</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 function Icon({ name }) {
   const icons = {
     perfil: (
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
       </svg>
     ),
     historial: (
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
         <path d="M21 12a9 9 0 1 1-3-6.7L21 7"></path>
         <path d="M12 7v6l4 2"></path>
       </svg>
     ),
     direcciones: (
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
         <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"></path>
         <circle cx="12" cy="10" r="3"></circle>
       </svg>
     ),
     logout: (
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
         <path d="M16 17l5-5-5-5"></path>
         <path d="M21 12H9"></path>
@@ -102,147 +707,58 @@ function Loader({ visible, text = "Cargando..." }) {
     <div className="loaderOverlay" role="status" aria-live="polite">
       <div className="loaderInner">
         <div className="loader">
-          <div className="truckWrapper">
-            <div className="truckBody">
-              {/* NO TOCAR EL SVG DEL CAMIÓN */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 198 93"
-                className="trucksvg"
-              >
-                <path
-                  strokeWidth="3"
-                  stroke="#282828"
-                  fill="#F83D3D"
-                  d="M135 22.5H177.264C178.295 22.5 179.22 23.133 179.594 24.0939L192.33 56.8443C192.442 57.1332 192.5 57.4404 192.5 57.7504V89C192.5 90.3807 191.381 91.5 190 91.5H135C133.619 91.5 132.5 90.3807 132.5 89V25C132.5 23.6193 133.619 22.5 135 22.5Z"
-                ></path>
-                <path
-                  strokeWidth="3"
-                  stroke="#282828"
-                  fill="#7D7C7C"
-                  d="M146 33.5H181.741C182.779 33.5 183.709 34.1415 184.078 35.112L190.538 52.112C191.16 53.748 189.951 55.5 188.201 55.5H146C144.619 55.5 143.5 54.3807 143.5 53V36C143.5 34.6193 144.619 33.5 146 33.5Z"
-                ></path>
-                <path
-                  strokeWidth="2"
-                  stroke="#282828"
-                  fill="#282828"
-                  d="M150 65C150 65.39 149.763 65.8656 149.127 66.2893C148.499 66.7083 147.573 67 146.5 67C145.427 67 144.501 66.7083 143.873 66.2893C143.237 65.8656 143 65.39 143 65C143 64.61 143.237 64.1344 143.873 63.7107C144.501 63.2917 145.427 63 146.5 63C147.573 63 148.499 63.2917 149.127 63.7107C149.763 64.1344 150 64.61 150 65Z"
-                ></path>
-                <rect
-                  strokeWidth="2"
-                  stroke="#282828"
-                  fill="#FFFCAB"
-                  rx="1"
-                  height="7"
-                  width="5"
-                  y="63"
-                  x="187"
-                ></rect>
-                <rect
-                  strokeWidth="2"
-                  stroke="#282828"
-                  fill="#282828"
-                  rx="1"
-                  height="11"
-                  width="4"
-                  y="81"
-                  x="193"
-                ></rect>
-                <rect
-                  strokeWidth="3"
-                  stroke="#282828"
-                  fill="#DFDFDF"
-                  rx="2.5"
-                  height="90"
-                  width="121"
-                  y="1.5"
-                  x="6.5"
-                ></rect>
-                <rect
-                  strokeWidth="2"
-                  stroke="#282828"
-                  fill="#DFDFDF"
-                  rx="2"
-                  height="4"
-                  width="6"
-                  y="84"
-                  x="1"
-                ></rect>
-              </svg>
-            </div>
-            <div className="truckTires">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 30 30"
-                className="tiresvg"
-              >
-                <circle
-                  strokeWidth="3"
-                  stroke="#282828"
-                  fill="#282828"
-                  r="13.5"
-                  cy="15"
-                  cx="15"
-                ></circle>
-                <circle fill="#DFDFDF" r="7" cy="15" cx="15"></circle>
-              </svg>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 30 30"
-                className="tiresvg"
-              >
-                <circle
-                  strokeWidth="3"
-                  stroke="#282828"
-                  fill="#282828"
-                  r="13.5"
-                  cy="15"
-                  cx="15"
-                ></circle>
-                <circle fill="#DFDFDF" r="7" cy="15" cx="15"></circle>
-              </svg>
-            </div>
-            <div className="road"></div>
-            <svg
-              xmlSpace="preserve"
-              viewBox="0 0 453.459 453.459"
-              xmlns="http://www.w3.org/2000/svg"
-              className="lampPost"
-              fill="#000000"
-            >
-              <path
-                d="M252.882,0c-37.781,0-68.686,29.953-70.245,67.358h-6.917v8.954c-26.109,2.163-45.463,10.011-45.463,19.366h9.993
-c-1.65,5.146-2.507,10.54-2.507,16.017c0,28.956,23.558,52.514,52.514,52.514c28.956,0,52.514-23.558,52.514-52.514
-c0-5.478-0.856-10.872-2.506-16.017h9.992c0-9.354-19.352-17.204-45.463-19.366v-8.954h-6.149C200.189,38.779,223.924,16,252.882,16
-c29.952,0,54.32,24.368,54.32,54.32c0,28.774-11.078,37.009-25.105,47.437c-17.444,12.968-37.216,27.667-37.216,78.884v113.914
-h-0.797c-5.068,0-9.174,4.108-9.174,9.177c0,2.844,1.293,5.383,3.321,7.066c-3.432,27.933-26.851,95.744-8.226,115.459v11.202h45.75
-v-11.202c18.625-19.715-4.794-87.527-8.227-115.459c2.029-1.683,3.322-4.223,3.322-7.066c0-5.068-4.107-9.177-9.176-9.177h-0.795
-V196.641c0-43.174,14.942-54.283,30.762-66.043c14.793-10.997,31.559-23.461,31.559-60.277C323.202,31.545,291.656,0,252.882,0z
-M232.77,111.694c0,23.442-19.071,42.514-42.514,42.514c-23.442,0-42.514-19.072-42.514-42.514c0-5.531,1.078-10.957,3.141-16.017
-h78.747C231.693,100.736,232.77,106.162,232.77,111.694z"
-              ></path>
-            </svg>
+          <div className="spinner">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
           </div>
         </div>
-        <div className="loaderText">{text}</div>
+        <p className="loaderText">{text}</p>
       </div>
     </div>
   );
 }
 
-function ConfirmModal({ abierto, titulo, descripcion, onCancel, onConfirm, dangerText = "Confirmar" }) {
+function ConfirmModal({
+  abierto,
+  titulo,
+  descripcion,
+  onCancel,
+  onConfirm,
+  dangerText = "Confirmar",
+}) {
   if (!abierto) return null;
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <motion.div className="modal-card card" initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.98, opacity: 0 }}>
-        <h3 id="modal-title" className="modal-title">{titulo}</h3>
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <motion.div
+        className="modal-card card"
+        initial={{ scale: 0.98, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.98, opacity: 0 }}
+      >
+        <h3 id="modal-title" className="modal-title">
+          {titulo}
+        </h3>
         <p className="modal-desc">{descripcion}</p>
         <div className="modal-actions">
-          <button className="btn btn-ghost" onClick={onCancel}>Cancelar</button>
-          <button className="btn btn-danger" onClick={onConfirm}>{dangerText}</button>
+          <button className="btn btn-ghost" onClick={onCancel}>
+            Cancelar
+          </button>
+          <button className="btn btn-danger" onClick={onConfirm}>
+            {dangerText}
+          </button>
         </div>
       </motion.div>
     </div>
@@ -306,7 +822,10 @@ export default function Profile() {
 
   const fetchHistorial = async () => {
     try {
-      const q = query(collection(db, "orders"), where("userId", "==", usuario.uid));
+      const q = query(
+        collection(db, "orders"),
+        where("userId", "==", usuario.uid)
+      );
       const snap = await getDocs(q);
       setHistorial(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
@@ -316,7 +835,10 @@ export default function Profile() {
 
   const fetchDirecciones = async () => {
     try {
-      const q = query(collection(db, "direcciones"), where("usuarioId", "==", usuario.uid));
+      const q = query(
+        collection(db, "direcciones"),
+        where("usuarioId", "==", usuario.uid)
+      );
       const snap = await getDocs(q);
       setDirecciones(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
@@ -354,7 +876,8 @@ export default function Profile() {
     }
   };
 
-  const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleFile = (e) => {
     const f = e.target.files?.[0];
@@ -391,18 +914,39 @@ export default function Profile() {
   const saveProfile = async () => {
     setLoading(true);
     try {
-      // Actualizar información en Firestore incluyendo displayName
-      await actualizarUsuarioInfo({ 
-        telefono: form.telefono, 
+      // Actualizar información en Firestore incluyendo displayName y teléfono
+      await actualizarUsuarioInfo({
+        telefono: form.telefono,
         direccion: form.direccion,
-        displayName: form.nombre  // Agregar displayName a Firestore
+        displayName: form.nombre,
       });
+
+      // Guardar también en las colecciones users y usuarios para Entrega.jsx
+      const payload = {
+        telefono: form.telefono,
+        direccion: form.direccion,
+        displayName: form.nombre,
+        updatedAt: new Date(),
+      };
       
+      try {
+        await setDoc(doc(db, "users", usuario.uid), payload, { merge: true });
+      } catch (err) {
+        console.warn("No se pudo escribir users/{uid}:", err);
+      }
+      
+      try {
+        await setDoc(doc(db, "usuarios", usuario.uid), payload, { merge: true });
+      } catch (err) {
+        console.warn("No se pudo escribir usuarios/{uid}:", err);
+      }
+
       // Actualizar displayName en Firebase Auth si cambió
       const cambios = {};
-      if (usuario.displayName !== form.nombre) cambios.displayName = form.nombre;
+      if (usuario.displayName !== form.nombre)
+        cambios.displayName = form.nombre;
       if (Object.keys(cambios).length) await updateProfile(usuario, cambios);
-      
+
       setEditMode(false);
       toast("Perfil guardado.", "success");
     } catch (err) {
@@ -432,7 +976,8 @@ export default function Profile() {
 
   const handleSeleccionarDireccion = async (dir) => {
     try {
-      const direccionCompleta = typeof dir === "string" ? dir : dir?.direccionCompleta || "";
+      const direccionCompleta =
+        typeof dir === "string" ? dir : dir?.direccionCompleta || "";
       const metodo = dir && dir.metodoEntrega ? dir.metodoEntrega : "domicilio";
 
       setShowFullLoader(true);
@@ -442,21 +987,28 @@ export default function Profile() {
         metodoEntrega: metodo,
       });
 
-      const payload = { direccion: direccionCompleta, metodoEntrega: metodo, updatedAt: new Date() };
+      const payload = {
+        direccion: direccionCompleta,
+        metodoEntrega: metodo,
+        updatedAt: new Date(),
+      };
       try {
         await setDoc(doc(db, "users", usuario.uid), payload, { merge: true });
       } catch (err) {
         console.warn("No se pudo escribir users/{uid}:", err);
       }
       try {
-        await setDoc(doc(db, "usuarios", usuario.uid), payload, { merge: true });
+        await setDoc(doc(db, "usuarios", usuario.uid), payload, {
+          merge: true,
+        });
       } catch (err) {
         console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
       try {
         let snap = await getDoc(doc(db, "users", usuario.uid));
-        if (!snap.exists()) snap = await getDoc(doc(db, "usuarios", usuario.uid));
+        if (!snap.exists())
+          snap = await getDoc(doc(db, "usuarios", usuario.uid));
         if (snap && snap.exists()) {
           const data = snap.data() || {};
           await actualizarUsuarioInfo({
@@ -473,7 +1025,7 @@ export default function Profile() {
       setForm((p) => ({ ...p, direccion: direccionCompleta }));
 
       toast("Dirección seleccionada y guardada.", "success");
-      
+
       // Reload page immediately - animation covers the reload
       window.location.reload();
     } catch (err) {
@@ -486,6 +1038,25 @@ export default function Profile() {
   const eliminarDireccion = async (id) => {
     try {
       await deleteDoc(doc(db, "direcciones", id));
+      
+      // Check if the deleted address was the currently selected one
+      if (usuario?.direccion) {
+        const deletedAddress = direccionesUsuario.find(dir => dir.id === id);
+        if (deletedAddress && usuario.direccion === deletedAddress.direccionCompleta) {
+          // Clear the address from user profile and reset delivery method selection
+          await actualizarUsuarioInfo({
+            direccion: "",
+            metodoEntrega: "",
+            selectedDeliveryMethod: ""
+          });
+          
+          // Force page reload to reset topbar to "Seleccionar método de entrega"
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      }
+      
       await fetchDirecciones();
       toast("Dirección eliminada correctamente.", "success");
     } catch (err) {
@@ -521,7 +1092,13 @@ export default function Profile() {
   }
 
   return (
-    <motion.main className="profile-page" variants={pageVariant} initial="hidden" animate="enter" exit="exit">
+    <motion.main
+      className="profile-page"
+      variants={pageVariant}
+      initial="hidden"
+      animate="enter"
+      exit="exit"
+    >
       {/* NAVEGACIÓN SEPARADA */}
       <div className="navigation-container">
         <nav className="profile-dock" aria-label="Navegación de perfil">
@@ -566,10 +1143,15 @@ export default function Profile() {
       {/* CONTENIDO SEPARADO */}
       <main className="main-content">
         <div className="main-card">
-
           <AnimatePresence mode="wait">
             {vista === "perfil" && (
-              <motion.section key="perfil" variants={itemFade} initial="hidden" animate="show" exit="hidden">
+              <motion.section
+                key="perfil"
+                variants={itemFade}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+              >
                 <div className="profile-header big">
                   <div className="avatar-block large">
                     <img src={avatarSrc} alt="Avatar" className="avatar-img" />
@@ -601,10 +1183,17 @@ export default function Profile() {
                       </button>
                       {localPreview && (
                         <>
-                          <button className="btn btn-success" onClick={uploadLocalImage} disabled={loading}>
+                          <button
+                            className="btn btn-success"
+                            onClick={uploadLocalImage}
+                            disabled={loading}
+                          >
                             Guardar foto
                           </button>
-                          <button className="btn btn-outline" onClick={cancelLocalPreview}>
+                          <button
+                            className="btn btn-outline"
+                            onClick={cancelLocalPreview}
+                          >
                             Cancelar
                           </button>
                         </>
@@ -616,7 +1205,12 @@ export default function Profile() {
                 <div className="form-grid big">
                   <div className="form-row">
                     <label>Nombre</label>
-                    <input name="nombre" value={form.nombre} onChange={handleChange} disabled={!editMode} />
+                    <input
+                      name="nombre"
+                      value={form.nombre}
+                      onChange={handleChange}
+                      disabled={!editMode}
+                    />
                   </div>
                   <div className="form-row">
                     <label>Email</label>
@@ -624,142 +1218,203 @@ export default function Profile() {
                   </div>
                   <div className="form-row">
                     <label>Teléfono</label>
-                    <input name="telefono" value={form.telefono} onChange={handleChange} disabled={!editMode} />
+                    <input
+                      name="telefono"
+                      value={form.telefono}
+                      onChange={handleChange}
+                      disabled={!editMode}
+                    />
                   </div>
                   <div className="form-row full">
                     <label>Dirección completa</label>
-                    <textarea name="direccion" value={form.direccion} onChange={handleChange} disabled={!editMode} rows={4} />
+                    <textarea
+                      name="direccion"
+                      value={form.direccion}
+                      onChange={handleChange}
+                      disabled={!editMode}
+                      rows={4}
+                    />
                     <p className="muted hint">Pulsa "Editar" para modificar.</p>
                   </div>
 
                   <div className="form-actions">
                     {!editMode ? (
-                      <button onClick={() => setEditMode(true)} className="btn btn-primary">Editar perfil</button>
+                      <button
+                        onClick={() => setEditMode(true)}
+                        className="btn btn-primary"
+                      >
+                        Editar perfil
+                      </button>
                     ) : (
                       <>
-                        <button onClick={saveProfile} className="btn btn-success" disabled={loading}>Guardar</button>
-                        <button onClick={() => { setEditMode(false); cancelLocalPreview(); }} className="btn btn-ghost">Cancelar</button>
+                        <button
+                          onClick={saveProfile}
+                          className="btn btn-success"
+                          disabled={loading}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditMode(false);
+                            cancelLocalPreview();
+                          }}
+                          className="btn btn-ghost"
+                        >
+                          Cancelar
+                        </button>
                       </>
                     )}
                   </div>
                 </div>
-                </motion.section>
-              )}
+              </motion.section>
+            )}
 
+            {vista === "historial" && (
+              <motion.section
+                key="historial"
+                variants={itemFade}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+              >
+                <h2 className="section-title large">Historial de compras</h2>
+                <HistorialSection historial={historial} />
+              </motion.section>
+            )}
 
-{vista === "historial" && (
-  <motion.section key="historial" variants={itemFade} initial="hidden" animate="show" exit="hidden">
-    <h2 className="section-title large">Historial de compras</h2>
-    <div className="cards-list">
-      {historial.length === 0 ? (
-        <div className="empty">No hay compras registradas.</div>
-      ) : (
-        historial
-          .sort((a, b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0))
-          .map((h, index) => (
-            <div key={h.id} className="order-card large">
-              <div className="order-left">
-                <div className="order-status">{h.estado || "Pendiente"}</div>
-                <div className="muted">
-                  {h.fecha?.seconds ? new Date(h.fecha.seconds * 1000).toLocaleString() : "Sin fecha"}
-                </div>
-                {h.checkoutMode && <div className="muted small">Modo: {h.checkoutMode}</div>}
-                {h.raw?.SESSION && <div className="muted small">Session: {h.raw.SESSION}</div>}
-              </div>
-
-              <div className="order-right">
-                <div className="order-total">RD${h.total ?? "?"}</div>
-                <div className="muted">{h.productos?.length ?? 0} items</div>
-              </div>
-
-              {h.productos?.length > 0 && (
-                <div className="bg-white rounded-lg p-4 border mt-3 w-full">
-                  <h5 className="font-bold text-blue-900 mb-3">Productos</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {h.productos.map((p, i) => (
-                      <div key={i} className="flex items-center justify-between bg-blue-50 rounded-lg p-3">
-                        <div>
-                          <p className="font-medium text-blue-900">{p.nombre || "Producto"}</p>
-                          <p className="text-sm text-blue-800">Cantidad: {p.cantidad || 1}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-blue-900">RD${p.precio || 0}</p>
-                          <p className="text-xs text-blue-800">c/u</p>
-                        </div>
-                      </div>
-                    ))}
+            {vista === "direcciones" && (
+              <motion.section
+                key="direcciones"
+                variants={itemFade}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+              >
+                <div className="direcciones-head">
+                  <h2 className="section-title large">Direcciones</h2>
+                  <div>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setDireccionEditar(null);
+                        setModalEntregaOpen(true);
+                      }}
+                    >
+                      Añadir dirección
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
-          ))
-      )}
-    </div>
-  </motion.section>
-)}
 
-              {vista === "direcciones" && (
-                <motion.section key="direcciones" variants={itemFade} initial="hidden" animate="show" exit="hidden">
-                  <div className="direcciones-head">
-                    <h2 className="section-title large">Direcciones</h2>
-                    <div>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => { setDireccionEditar(null); setModalEntregaOpen(true); }}
+                <div className="cards-list">
+                  <div className="address-card large">
+                    <div className="address-content">
+                      <div className="address-title">
+                        Recoger en: Playcenter Universal Santiago
+                      </div>
+                      <div className="muted break-words">
+                        {TIENDA_PLAYCENTER.direccionCompleta}
+                      </div>
+                      <a
+                        href={TIENDA_PLAYCENTER.ubicacion}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="link"
                       >
-                        Añadir dirección
+                        Ver en Maps
+                      </a>
+                    </div>
+                    <div className="address-actions">
+                      <button
+                        onClick={() =>
+                          handleSeleccionarDireccion(TIENDA_PLAYCENTER)
+                        }
+                        className="btn btn-success"
+                      >
+                        Seleccionar
                       </button>
                     </div>
                   </div>
 
-                  <div className="cards-list">
-                    <div className="address-card large">
-                      <div className="address-content">
-                        <div className="address-title">Recoger en: Playcenter Universal Santiago</div>
-                        <div className="muted break-words">{TIENDA_PLAYCENTER.direccionCompleta}</div>
-                        <a href={TIENDA_PLAYCENTER.ubicacion} target="_blank" rel="noreferrer" className="link">Ver en Maps</a>
-                      </div>
-                      <div className="address-actions">
-                        <button onClick={() => handleSeleccionarDireccion(TIENDA_PLAYCENTER)} className="btn btn-success">Seleccionar</button>
-                      </div>
+                  {direcciones.length === 0 ? (
+                    <div className="empty">
+                      No tienes direcciones guardadas.
                     </div>
-
-                    {direcciones.length === 0 ? (
-                      <div className="empty">No tienes direcciones guardadas.</div>
-                    ) : (
-                      direcciones.map((d) => (
-                        <div key={d.id} className="address-card large">
-                          <div className="address-content">
-                            <div className="address-title break-words">
-                              {d.direccionCompleta || `${d.numeroCalle || ""} ${d.numeroCasa ? "Casa " + d.numeroCasa : ""}, ${d.ciudad || ""}, ${d.provincia || ""}`}
-                            </div>
-                            <div className="muted">Método: {d.metodoEntrega || "domicilio"}</div>
-                            {d.referencia && <div className="muted">Ref: {d.referencia}</div>}
-                            {d.ubicacion && <a href={d.ubicacion} target="_blank" rel="noreferrer" className="link">Ver en Maps</a>}
+                  ) : (
+                    direcciones.map((d) => (
+                      <div key={d.id} className="address-card large">
+                        <div className="address-content">
+                          <div className="address-title break-words">
+                            {d.direccionCompleta ||
+                              `${d.numeroCalle || ""} ${
+                                d.numeroCasa ? "Casa " + d.numeroCasa : ""
+                              }, ${d.ciudad || ""}, ${d.provincia || ""}`}
                           </div>
-
-                          <div className="address-actions">
-                            <button onClick={() => { setDireccionEditar(d); setModalEntregaOpen(true); }} className="btn btn-ghost">Editar</button>
-                            <button onClick={() => handleSeleccionarDireccion(d)} className="btn btn-success">Seleccionar</button>
-                            <button onClick={() => confirmarEliminar(d.id)} className="btn btn-danger">Eliminar</button>
+                          <div className="muted">
+                            Método: {d.metodoEntrega || "domicilio"}
                           </div>
+                          {d.referencia && (
+                            <div className="muted">Ref: {d.referencia}</div>
+                          )}
+                          {d.ubicacion && (
+                            <a
+                              href={d.ubicacion}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="link"
+                            >
+                              Ver en Maps
+                            </a>
+                          )}
                         </div>
-                      ))
-                    )}
-                  </div>
 
-                  {modalEntregaOpen && (
-                    <Entrega
-                      abierto={modalEntregaOpen}
-                      onClose={async () => { setModalEntregaOpen(false); setDireccionEditar(null); await fetchDirecciones(); }}
-                      usuarioId={usuario.uid}
-                      direccionEditar={direccionEditar}
-                      actualizarLista={fetchDirecciones}
-                    />
+                        <div className="address-actions">
+                          <button
+                            onClick={() => {
+                              setDireccionEditar(d);
+                              setModalEntregaOpen(true);
+                            }}
+                            className="address-action-btn edit-btn"
+                            aria-label="Editar dirección"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleSeleccionarDireccion(d)}
+                            className="address-action-btn select-btn"
+                            aria-label="Seleccionar dirección"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmarEliminar(d.id)}
+                            className="address-action-btn delete-btn"
+                            aria-label="Eliminar dirección"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
                   )}
-                </motion.section>
-              )}
-            </AnimatePresence>
+                </div>
+
+                {modalEntregaOpen && (
+                  <Entrega
+                    abierto={modalEntregaOpen}
+                    onClose={async () => {
+                      setModalEntregaOpen(false);
+                      setDireccionEditar(null);
+                      await fetchDirecciones();
+                    }}
+                    usuarioId={usuario.uid}
+                    direccionEditar={direccionEditar}
+                    actualizarLista={fetchDirecciones}
+                  />
+                )}
+              </motion.section>
+            )}
+          </AnimatePresence>
         </div>
       </main>
 
@@ -793,16 +1448,16 @@ export default function Profile() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              position: 'fixed',
+              position: "fixed",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 999999
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 999999,
             }}
           >
             <motion.div
@@ -810,67 +1465,81 @@ export default function Profile() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               style={{
-                backgroundColor: 'white',
-                padding: '2rem',
-                borderRadius: '12px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                maxWidth: '400px',
-                width: '90%',
-                textAlign: 'center',
-                zIndex: 9999999
+                backgroundColor: "white",
+                padding: "2rem",
+                borderRadius: "12px",
+                boxShadow:
+                  "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                maxWidth: "400px",
+                width: "90%",
+                textAlign: "center",
+                zIndex: 9999999,
               }}
             >
-              <h3 style={{
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '1rem'
-              }}>
+              <h3
+                style={{
+                  fontSize: "1.25rem",
+                  fontWeight: "600",
+                  color: "#1f2937",
+                  marginBottom: "1rem",
+                }}
+              >
                 ¿Eliminar dirección?
               </h3>
-              <p style={{
-                color: '#6b7280',
-                marginBottom: '2rem',
-                lineHeight: '1.5'
-              }}>
-                ¿Estás seguro que quieres eliminar esta dirección? Esta acción no se puede deshacer.
+              <p
+                style={{
+                  color: "#6b7280",
+                  marginBottom: "2rem",
+                  lineHeight: "1.5",
+                }}
+              >
+                ¿Estás seguro que quieres eliminar esta dirección? Esta acción
+                no se puede deshacer.
               </p>
-              <div style={{
-                display: 'flex',
-                gap: '1rem',
-                justifyContent: 'center'
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1rem",
+                  justifyContent: "center",
+                }}
+              >
                 <button
                   onClick={cancelarEliminar}
                   style={{
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '8px',
-                    border: '2px solid #e5e7eb',
-                    backgroundColor: 'white',
-                    color: '#374151',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "8px",
+                    border: "2px solid #e5e7eb",
+                    backgroundColor: "white",
+                    color: "#374151",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#f9fafb'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#f9fafb")
+                  }
+                  onMouseOut={(e) => (e.target.style.backgroundColor = "white")}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={procederEliminar}
                   style={{
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#dc2626")
+                  }
+                  onMouseOut={(e) =>
+                    (e.target.style.backgroundColor = "#ef4444")
+                  }
                 >
                   Eliminar
                 </button>
@@ -885,7 +1554,11 @@ export default function Profile() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           className={`toast ${
-            mensaje.tipo === "success" ? "toast-success" : mensaje.tipo === "error" ? "toast-error" : "toast-info"
+            mensaje.tipo === "success"
+              ? "toast-success"
+              : mensaje.tipo === "error"
+              ? "toast-error"
+              : "toast-info"
           }`}
         >
           {mensaje.text}

@@ -260,6 +260,119 @@
   }
 }
 
+/* ----------- Móvil: layout horizontal optimizado ----------- */
+@media (max-width: 768px) {
+  .tarjeta-producto {
+    flex-direction: row;
+    min-height: 120px;
+    max-height: 130px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .tarjeta-img-zone {
+    width: 100px;
+    min-width: 100px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 6px;
+    border: none;
+  }
+
+  .tarjeta-img {
+    max-width: 88px;
+    max-height: 88px;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: none;
+  }
+
+  .tarjeta-info-zone {
+    flex: 1;
+    padding: 12px 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    background: transparent;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .tarjeta-nombre {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+    font-weight: 600;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 2.4em;
+  }
+
+  .tarjeta-descripcion {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    line-height: 1.3;
+    color: #666;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tarjeta-precio {
+    font-size: 1rem;
+    color: #006bb3;
+    margin-bottom: 6px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  .botones-wrapper {
+    margin-top: auto;
+    min-height: 32px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+  }
+
+  .carrito-main-btn {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    gap: 6px;
+    min-width: 80px;
+    height: 32px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    border-radius: 6px;
+  }
+
+  .carrito-btn {
+    font-size: 0.9rem;
+    width: 28px;
+    height: 28px;
+    margin: 0 1px;
+    border-radius: 4px;
+  }
+
+  .carrito-quitar {
+    padding: 4px;
+    font-size: 0.8rem;
+  }
+}
+
 /* ----------- Grid padre: una columna en móvil/tableta ----------- */
 @media (max-width: 900px) {
   .productos-grid {

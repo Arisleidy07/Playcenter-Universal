@@ -9,10 +9,64 @@
 @media (min-width: 1024px) { .vp-price { font-size: 1.5rem; } }
 
 /* Topbar móvil */
-.vp-mobile-topbar { position: fixed; inset: 0 auto auto 0; height: 52px; width: 100%; z-index: 40; display: flex; padding: 0 10px; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.9); backdrop-filter: saturate(180%) blur(10px); border-bottom: 1px solid rgba(0,0,0,0.06); }
-.vp-topbar-title { font-size: 0.9rem; font-weight: 700; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
-.vp-icon-btn { width: 38px; height: 38px; border-radius: 9999px; background: #fff; border: 1px solid rgba(0,0,0,0.07); box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: grid; place-items: center; color: #111827; }
-.vp-icon-btn:active { transform: scale(0.96); }
+.vp-mobile-topbar { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  height: 56px; 
+  width: 100%; 
+  z-index: 50; 
+  display: flex; 
+  padding: 0 16px; 
+  align-items: center; 
+  justify-content: space-between; 
+  background: rgba(255,255,255,0.95); 
+  backdrop-filter: saturate(180%) blur(8px); 
+  border-bottom: 1px solid rgba(0,0,0,0.08); 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  -webkit-backdrop-filter: saturate(180%) blur(8px);
+  will-change: transform;
+}
+@media (min-width: 1024px) {
+  .vp-mobile-topbar { display: none; }
+}
+.vp-topbar-title { 
+  font-size: 1rem; 
+  font-weight: 700; 
+  color: #111827; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  max-width: 60%; 
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.vp-icon-btn { 
+  width: 42px; 
+  height: 42px; 
+  border-radius: 9999px; 
+  background: #fff; 
+  border: 1px solid rgba(0,0,0,0.07); 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: #111827; 
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.vp-icon-btn:hover { 
+  background: #f3f4f6; 
+  transform: scale(1.05); 
+}
+.vp-icon-btn:active { 
+  transform: scale(0.96); 
+}
 
 /* Variantes */
 .vp-variants { display: flex; gap: 10px; margin-top: 14px; width: 100%; overflow-x: auto; padding-bottom: 6px; -ms-overflow-style: none; scrollbar-width: none; }

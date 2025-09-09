@@ -101,17 +101,33 @@ function VistaProducto() {
         <button className="vp-icon-btn" onClick={onBack} aria-label="Cerrar"><FaTimes /></button>
       </div>
 
-      <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-16 lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
+      {/* Botón de regreso móvil debajo del topbar */}
+      <div className="lg:hidden w-full px-4 pt-4 pb-2">
+        <button 
+          className="vp-icon-btn" 
+          onClick={onBack} 
+          aria-label="Volver"
+        >
+          <FaArrowLeft size={16} />
+        </button>
+      </div>
+
+      <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-0 lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
         <section className="max-w-7xl w-full flex flex-col lg:flex-row gap-8 lg:gap-12 overflow-visible">
           {/* Columna Izquierda */}
           <motion.div className="relative flex flex-col items-center w-full lg:w-1/2 overflow-visible">
+            {/* Botón de regreso para desktop */}
+            <button 
+              className="vp-back-fab hidden lg:block" 
+              onClick={onBack} 
+              aria-label="Volver"
+            >
+              <FaArrowLeft size={16} />
+            </button>
             <div className="absolute right-2 top-2 z-10">
               {/* comparte */}
             </div>
 
-            <button onClick={onBack} aria-label="Volver" className="vp-back-fab">
-              <FaArrowLeft />
-            </button>
 
             <GaleriaImagenes
               imagenes={

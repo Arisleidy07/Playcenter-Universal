@@ -12,6 +12,13 @@ export default function BotonCardnet({ className, total, label }) {
 
   const iniciarPago = async () => {
     try {
+      // Immediate visual feedback like Amazon
+      const button = document.querySelector('.pay-btn');
+      if (button) {
+        button.disabled = true;
+        button.classList.add('loading');
+      }
+
       const res = await fetch(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -21,15 +28,23 @@ export default function BotonCardnet({ className, total, label }) {
       const data = await res.json();
       if (!data.SESSION) {
         alert("❌ No se pudo crear la sesión de pago");
+        if (button) {
+          button.disabled = false;
+          button.classList.remove('loading');
+        }
         return;
       }
 
       setSession(data.SESSION);
-      setTimeout(() => {
-        document.getElementById("cardnetForm").submit();
-      }, 300);
+      // Immediate submission - no delay like Amazon
+      document.getElementById("cardnetForm").submit();
     } catch (error) {
       alert("❌ No se pudo conectar al backend");
+      const button = document.querySelector('.pay-btn');
+      if (button) {
+        button.disabled = false;
+        button.classList.remove('loading');
+      }
     }
   };
 
