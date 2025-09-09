@@ -38,6 +38,8 @@ function VistaProducto() {
   const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
+  const [imagenModalAbierta, setImagenModalAbierta] = useState(false);
+  const [imagenActualIndex, setImagenActualIndex] = useState(0);
 
   let producto = null;
   for (const categoria of productosAll) {
@@ -115,6 +117,31 @@ function VistaProducto() {
     },
   ];
 
+  // Get all images for the gallery - show variant images when color is selected
+  const imagenesParaGaleria = varianteActiva?.imagenes || producto.imagenes || [producto.imagen].filter(Boolean);
+  const todasLasImagenes = producto.imagenes || [producto.imagen].filter(Boolean);
+
+  const abrirImagenModal = (index) => {
+    setImagenActualIndex(index);
+    setImagenModalAbierta(true);
+  };
+
+  const cerrarImagenModal = () => {
+    setImagenModalAbierta(false);
+  };
+
+  const siguienteImagen = () => {
+    setImagenActualIndex((prev) => 
+      prev === imagenesParaGaleria.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const anteriorImagen = () => {
+    setImagenActualIndex((prev) => 
+      prev === 0 ? imagenesParaGaleria.length - 1 : prev - 1
+    );
+  };
+
   return (
     <>
       {/* Barra superior */}
@@ -131,13 +158,13 @@ function VistaProducto() {
       </div>
 
       {/* Botón de regreso móvil debajo del topbar */}
-      <div className="lg:hidden w-full px-4 pt-4 pb-2">
+      <div className="lg:hidden w-full px-4 pt-2 pb-1">
         <button className="vp-icon-btn" onClick={onBack} aria-label="Volver">
           <FaArrowLeft size={16} />
         </button>
       </div>
 
-      <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-0 lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
+      <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-1 lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
         <section className="max-w-7xl w-full flex flex-col lg:flex-row gap-8 lg:gap-12 overflow-visible">
           {/* Columna Izquierda */}
           <motion.div className="relative flex flex-col items-center w-full lg:w-1/2 overflow-visible">
@@ -151,15 +178,13 @@ function VistaProducto() {
             </button>
             <div className="absolute right-2 top-2 z-10">{/* comparte */}</div>
 
-            <GaleriaImagenes
-              imagenes={
-                varianteActiva?.imagenes?.length
-                  ? varianteActiva.imagenes
-                  : producto.imagenes || [producto.imagen]
-              }
-              imagenPrincipalClassName="max-h-[420px] min-h-[260px] w-auto"
-              miniaturaClassName="w-16 h-16 sm:w-20 sm:h-20"
-            />
+            <div className="vp-gallery">
+              <GaleriaImagenes
+                imagenes={imagenesParaGaleria}
+                alt={producto.nombre}
+                onImageClick={abrirImagenModal}
+              />
+            </div>
 
             {variantesConColor && variantesConColor.length > 1 && (
               <div className="vp-variants">
@@ -381,9 +406,79 @@ function VistaProducto() {
       </main>
 
       <ModalLoginAlert
-        isOpen={modalAbierto}
-        onClose={() => setModalAbierto(false)}
+        abierto={modalAbierto}
+        onCerrar={() => setModalAbierto(false)}
       />
+
+      {/* Modal de imagen fullscreen */}
+      {imagenModalAbierta && (
+        <div className="imagen-modal-overlay" onClick={cerrarImagenModal}>
+          <div className="imagen-modal-container">
+            {/* Botón cerrar */}
+            <button 
+              className="imagen-modal-close"
+              onClick={cerrarImagenModal}
+              aria-label="Cerrar"
+            >
+              <FaTimes size={24} />
+            </button>
+
+            {/* Imagen principal */}
+            <div className="imagen-modal-main">
+              <img 
+                src={imagenesParaGaleria[imagenActualIndex]}
+                alt={producto.nombre}
+                className="imagen-modal-img"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {/* Galería de miniaturas */}
+            {imagenesParaGaleria.length > 1 && (
+              <div className="imagen-modal-thumbnails">
+                {imagenesParaGaleria.map((imagen, index) => (
+                  <button
+                    key={index}
+                    className={`thumbnail-btn ${index === imagenActualIndex ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImagenActualIndex(index);
+                    }}
+                  >
+                    <img src={imagen} alt={`${producto.nombre} ${index + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Navegación con flechas */}
+            {imagenesParaGaleria.length > 1 && (
+              <>
+                <button 
+                  className="imagen-modal-nav prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    anteriorImagen();
+                  }}
+                  aria-label="Imagen anterior"
+                >
+                  ‹
+                </button>
+                <button 
+                  className="imagen-modal-nav next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    siguienteImagen();
+                  }}
+                  aria-label="Siguiente imagen"
+                >
+                  ›
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

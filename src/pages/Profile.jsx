@@ -16,7 +16,20 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Entrega from "../components/Entrega";
-import { Pencil, Check, Trash2 } from "lucide-react";
+import {
+  Pencil,
+  Check,
+  Trash2,
+  Eye,
+  Package,
+  Calendar,
+  ShoppingBag,
+  CircleDollarSign,
+  XCircle,
+  CheckCircle,
+  Hourglass,
+  ArrowRight,
+} from "lucide-react";
 import "../styles/Profile.css";
 
 /* =========================
@@ -51,8 +64,8 @@ const avatarDataUrl = (seed = "", size = 512) => {
   const bg = stringToHexColor(seed || initial);
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'>
     <rect width='100%' height='100%' fill='${bg}' rx='${Math.floor(
-    size * 0.12
-  )}' />
+      size * 0.12
+    )}' />
     <text x='50%' y='50%' dy='.04em' font-family='Inter, system-ui, Arial' font-size='${Math.floor(
       size * 0.42
     )}' fill='#fff' text-anchor='middle' alignment-baseline='middle'>${initial}</text>
@@ -80,6 +93,9 @@ function HistorialSection({ historial }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filter, setFilter] = useState("all");
 
+  // Mantengo tabs pero ocultas (no se borran).
+  const SHOW_FILTERS = false;
+
   if (!historial?.length) {
     return (
       <motion.div
@@ -92,31 +108,11 @@ function HistorialSection({ historial }) {
         <div className="empty-illustration">
           <motion.div
             className="empty-box"
-            animate={{
-              y: [0, -10, 0],
-              rotateY: [0, 5, 0, -5, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            animate={{ y: [0, -10, 0], rotateY: [0, 5, 0, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            aria-hidden
           >
-            📦
-          </motion.div>
-          <motion.div
-            className="empty-sparkles"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            ✨
+            <Package size={56} />
           </motion.div>
         </div>
         <motion.h3
@@ -131,7 +127,7 @@ function HistorialSection({ historial }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          Cuando realices tu primera compra, aparecerá aquí como por arte de magia.
+          Cuando realices tu primera compra, aparecerá aquí.
         </motion.p>
         <motion.div
           className="empty-cta"
@@ -139,20 +135,32 @@ function HistorialSection({ historial }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.7 }}
         >
-          <button className="btn-beautiful-primary">
-            Explorar productos
-          </button>
+          <button className="btn-beautiful-primary">Explorar productos</button>
         </motion.div>
       </motion.div>
     );
   }
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("es-DO", {
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("es-DO", {
       style: "currency",
       currency: "DOP",
       minimumFractionDigits: 2,
     }).format(amount || 0);
+
+  const formatOrderDate = (fecha) => {
+    if (!fecha) return "—";
+    let d;
+    if (fecha?.seconds) d = new Date(fecha.seconds * 1000);
+    else d = new Date(fecha);
+    if (isNaN(d)) return "—";
+    return d.toLocaleString("es-DO", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const getStatusConfig = (estado) => {
@@ -160,105 +168,123 @@ function HistorialSection({ historial }) {
       case "completado":
         return {
           color: "status-completed",
-          icon: "✓",
+          Icon: CheckCircle,
           text: "Completado",
           gradient: "linear-gradient(135deg, #10b981, #059669)",
         };
       case "cancelado":
         return {
           color: "status-cancelled",
-          icon: "✗",
+          Icon: XCircle,
           text: "Cancelado",
           gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
         };
       case "pendiente":
-        return {
-          color: "status-pending",
-          icon: "⏳",
-          text: "Pendiente",
-          gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
-        };
       default:
         return {
           color: "status-pending",
-          icon: "⏳",
+          Icon: Hourglass,
           text: "Pendiente",
           gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
         };
     }
   };
 
-  const filteredHistorial = historial.filter((order) => {
-    if (filter === "all") return true;
-    return order.estado === filter;
-  });
+  const filteredHistorial = historial.filter((order) =>
+    filter === "all" ? true : order.estado === filter
+  );
 
   return (
     <>
-      {/* Filtros hermosos */}
-      <motion.div
-        className="history-filters"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="filter-tabs">
-          {[
-            { key: "all", label: "Todas", icon: "📋" },
-            { key: "completado", label: "Completadas", icon: "✅" },
-            { key: "pendiente", label: "Pendientes", icon: "⏳" },
-            { key: "cancelado", label: "Canceladas", icon: "❌" },
-          ].map((tab, index) => (
-            <motion.button
-              key={tab.key}
-              className={`filter-tab ${filter === tab.key ? "active" : ""}`}
-              onClick={() => setFilter(tab.key)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <span className="tab-icon">{tab.icon}</span>
-              <span className="tab-label">{tab.label}</span>
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
+      {/* Ajustes compact/responsive (inline para no tocar tu CSS base) */}
+      <style>{`
+        .history-compact { --fs-1:.95rem; --fs-2:.9rem; --fs-3:.85rem; --pad-1:.55rem; --pad-2:.8rem; --radius:12px; }
+        .history-compact .order-card-beautiful { padding: var(--pad-2); border-radius: var(--radius); }
+        .history-compact .order-number-beautiful { font-size: var(--fs-1); }
+        .history-compact .order-date-beautiful { font-size: var(--fs-3); opacity:.8; }
+        .history-compact .status-badge-beautiful { padding:.35rem .55rem; border-radius:999px; font-size: var(--fs-3); }
+        .history-compact .order-total-beautiful { font-size: var(--fs-1); }
+        .history-compact .products-grid { gap:.5rem; }
+        .history-compact .product-preview-beautiful { padding: var(--pad-1); border-radius:10px; }
+        .history-compact .product-name-beautiful { font-size: var(--fs-2); }
+        .history-compact .product-details-beautiful { font-size: var(--fs-3); opacity:.85; }
+      `}</style>
 
-      {/* Contenedor de órdenes hermoso */}
+      {SHOW_FILTERS && (
+        <motion.div
+          className="history-filters"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="filter-tabs">
+            {[
+              { key: "all", label: "Todas" },
+              { key: "completado", label: "Completadas" },
+              { key: "pendiente", label: "Pendientes" },
+              { key: "cancelado", label: "Canceladas" },
+            ].map((tab, index) => (
+              <motion.button
+                key={tab.key}
+                className={`filter-tab ${filter === tab.key ? "active" : ""}`}
+                onClick={() => setFilter(tab.key)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <span className="tab-label">{tab.label}</span>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Contenedor de órdenes (compacto) */}
       <motion.div
         variants={itemFade}
-        className="orders-container-beautiful"
+        className="orders-container-beautiful history-compact"
         layout
       >
         <AnimatePresence>
           {filteredHistorial.map((order, index) => {
             const statusConfig = getStatusConfig(order.estado);
+            const StatusIcon = statusConfig.Icon;
             return (
               <motion.div
                 key={order.id}
                 className="order-card-beautiful"
                 onClick={() => setSelectedOrder(order)}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 20, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                exit={{ opacity: 0, y: -20, scale: 0.98 }}
                 transition={{
-                  duration: 0.4,
-                  delay: index * 0.1,
+                  duration: 0.35,
+                  delay: index * 0.05,
                   type: "spring",
-                  stiffness: 100,
+                  stiffness: 120,
                 }}
-                whileHover={{ scale: 1.02, y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{
+                  scale: 1.01,
+                  y: -3,
+                  boxShadow: "0 16px 32px rgba(0,0,0,0.08)",
+                }}
+                whileTap={{ scale: 0.99 }}
                 layout
               >
                 <div
                   className="order-card-glow"
                   style={{ background: statusConfig.gradient }}
-                ></div>
-
-                <div className="order-header-beautiful">
+                />
+                <div
+                  className="order-header-beautiful"
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "0.6rem",
+                  }}
+                >
                   <div className="order-info-beautiful">
                     <motion.h4
                       className="order-number-beautiful"
@@ -274,27 +300,47 @@ function HistorialSection({ historial }) {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.3 }}
                     >
-                      {formatOrderDate(order.fecha)}
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <Calendar size={14} /> {formatOrderDate(order.fecha)}
+                      </span>
                     </motion.p>
                   </div>
 
-                  <div className="order-status-beautiful">
+                  <div
+                    className="order-status-beautiful"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: ".5rem",
+                    }}
+                  >
                     <motion.div
                       className={`status-badge-beautiful ${statusConfig.color}`}
-                      style={{ background: statusConfig.gradient }}
-                      whileHover={{ scale: 1.1 }}
+                      style={{
+                        background: statusConfig.gradient,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                      whileHover={{ scale: 1.05 }}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ delay: 0.4, type: "spring" }}
+                      transition={{ delay: 0.35, type: "spring" }}
                     >
-                      <span className="status-icon">{statusConfig.icon}</span>
+                      <StatusIcon size={14} />
                       <span className="status-text">{statusConfig.text}</span>
                     </motion.div>
                     <motion.div
                       className="order-total-beautiful"
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 12 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 }}
+                      transition={{ delay: 0.4 }}
                     >
                       {formatCurrency(order.total)}
                     </motion.div>
@@ -305,28 +351,56 @@ function HistorialSection({ historial }) {
                   className="order-products-preview-beautiful"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
+                  transition={{ delay: 0.45 }}
                 >
                   <div className="products-grid">
                     {order.productos?.slice(0, 3).map((producto, idx) => (
                       <motion.div
                         key={idx}
                         className="product-preview-beautiful"
-                        initial={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.7 + idx * 0.1 }}
-                        whileHover={{ scale: 1.05 }}
+                        transition={{ delay: 0.5 + idx * 0.08 }}
+                        whileHover={{ scale: 1.03 }}
                       >
-                        <div className="product-image-placeholder">
-                          🎮
+                        <div
+                          className="product-image-placeholder"
+                          aria-hidden
+                          style={{ display: "flex", alignItems: "center" }}
+                        >
+                          <Package size={18} />
                         </div>
                         <div className="product-preview-info-beautiful">
                           <span className="product-name-beautiful">
                             {producto.nombre}
                           </span>
                           <span className="product-details-beautiful">
-                            {producto.cantidad}x • {formatCurrency(producto.precio)}
+                            {producto.cantidad}x •{" "}
+                            {formatCurrency(producto.precio)}
                           </span>
+
+                          {/* Botón/enlace tipo "Toque para ver detalles" */}
+                          {producto?.id && (
+                            <button
+                              className="product-view-link"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.location.href = `/producto/${producto.id}`;
+                              }}
+                              title="Ver producto"
+                              aria-label={`Ver producto ${producto.nombre}`}
+                            >
+                              <Eye size={14} />
+                              Ver producto
+                              <motion.span
+                                className="pv-arrow"
+                                animate={{ x: [0, 4, 0] }}
+                                transition={{ duration: 1.6, repeat: Infinity }}
+                              >
+                                <ArrowRight size={14} />
+                              </motion.span>
+                            </button>
+                          )}
                         </div>
                       </motion.div>
                     ))}
@@ -337,8 +411,8 @@ function HistorialSection({ historial }) {
                       className="more-products-beautiful"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 1 }}
-                      whileHover={{ scale: 1.1 }}
+                      transition={{ delay: 0.9 }}
+                      whileHover={{ scale: 1.06 }}
                     >
                       <span className="more-count">
                         +{order.productos.length - 3}
@@ -352,16 +426,17 @@ function HistorialSection({ historial }) {
                   className="order-card-footer"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
+                  transition={{ delay: 0.6 }}
                 >
                   <div className="view-details-hint">
-                    <span>Toca para ver detalles</span>
+                    <span>Toque para ver detalles</span>
                     <motion.span
                       className="arrow-icon"
                       animate={{ x: [0, 5, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
+                      aria-hidden
                     >
-                      →
+                      <ArrowRight size={16} />
                     </motion.span>
                   </div>
                 </motion.div>
@@ -371,7 +446,7 @@ function HistorialSection({ historial }) {
         </AnimatePresence>
       </motion.div>
 
-      {/* Modal de detalles hermoso */}
+      {/* Modal de detalles */}
       <AnimatePresence>
         {selectedOrder && (
           <motion.div
@@ -400,17 +475,16 @@ function HistorialSection({ historial }) {
                     {selectedOrder.numeroOrden ||
                       `Orden #${selectedOrder.id.slice(-8)}`}
                   </h3>
-                  <div className="modal-subtitle">
-                    Detalles de tu compra
-                  </div>
+                  <div className="modal-subtitle">Detalles de tu compra</div>
                 </div>
                 <motion.button
                   className="close-modal-beautiful"
                   onClick={() => setSelectedOrder(null)}
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
+                  aria-label="Cerrar"
                 >
-                  ✕
+                  ×
                 </motion.button>
               </motion.div>
 
@@ -423,24 +497,39 @@ function HistorialSection({ historial }) {
                 <div className="order-summary-beautiful">
                   <div className="summary-card">
                     <div className="summary-item">
-                      <span className="summary-label">📅 Fecha</span>
+                      <span className="summary-label">
+                        <Calendar size={14} /> Fecha
+                      </span>
                       <span className="summary-value">
                         {formatOrderDate(selectedOrder.fecha)}
                       </span>
                     </div>
                     <div className="summary-item">
-                      <span className="summary-label">📊 Estado</span>
+                      <span className="summary-label">
+                        <ShoppingBag size={14} /> Estado
+                      </span>
                       <span
-                        className={`summary-status ${getStatusConfig(
-                          selectedOrder.estado
-                        ).color}`}
+                        className={`summary-status ${
+                          getStatusConfig(selectedOrder.estado).color
+                        }`}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
                       >
-                        {getStatusConfig(selectedOrder.estado).icon}{" "}
+                        {(() => {
+                          const SIcon =
+                            getStatusConfig(selectedOrder.estado).Icon;
+                          return <SIcon size={14} />;
+                        })()}
                         {getStatusConfig(selectedOrder.estado).text}
                       </span>
                     </div>
                     <div className="summary-item">
-                      <span className="summary-label">💰 Total</span>
+                      <span className="summary-label">
+                        <CircleDollarSign size={14} /> Total
+                      </span>
                       <span className="summary-total">
                         {formatCurrency(selectedOrder.total)}
                       </span>
@@ -454,7 +543,7 @@ function HistorialSection({ historial }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
-                  <h4 className="products-title">🛍️ Productos comprados</h4>
+                  <h4 className="products-title">Productos comprados</h4>
                   <div className="products-grid-modal">
                     {selectedOrder.productos?.map((producto, idx) => (
                       <motion.div
@@ -463,20 +552,40 @@ function HistorialSection({ historial }) {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 + idx * 0.1 }}
-                        whileHover={{ scale: 1.02, backgroundColor: "#f8fafc" }}
+                        whileHover={{
+                          scale: 1.02,
+                          backgroundColor: "#f8fafc",
+                        }}
                       >
-                        <div className="product-image-modal">🎮</div>
+                        <div className="product-image-modal" aria-hidden>
+                          <Package size={20} />
+                        </div>
                         <div className="product-info-modal">
                           <span className="product-name-modal">
                             {producto.nombre}
                           </span>
                           <span className="product-details-modal">
-                            {producto.cantidad} × {formatCurrency(producto.precio)}
+                            {producto.cantidad} ×{" "}
+                            {formatCurrency(producto.precio)}
                           </span>
                         </div>
                         <div className="product-subtotal-beautiful">
-                          {formatCurrency(producto.cantidad * producto.precio)}
+                          {formatCurrency(
+                            producto.cantidad * producto.precio
+                          )}
                         </div>
+                        {producto?.id && (
+                          <button
+                            className="btn-view-product-modal"
+                            onClick={() =>
+                              (window.location.href = `/producto/${producto.id}`)
+                            }
+                            title="Ver producto"
+                          >
+                            <Eye size={16} />
+                            Ver producto
+                          </button>
+                        )}
                       </motion.div>
                     ))}
                   </div>
@@ -490,7 +599,7 @@ function HistorialSection({ historial }) {
   );
 }
 
-/* Modal de detalles de orden */
+/* Modal de detalles de orden (versión alternativa aún presente, no se borra) */
 function OrderDetailsModal({
   order,
   onClose,
@@ -527,21 +636,19 @@ function OrderDetailsModal({
             <h2>{order.numeroOrden || `Orden #${order.id.slice(-8)}`}</h2>
             <p className="order-date-detail">{formatOrderDate(order.fecha)}</p>
           </div>
-          <button className="close-btn" onClick={onClose}>
+          <button className="close-btn" onClick={onClose} aria-label="Cerrar">
             ×
           </button>
         </div>
 
         <div className="modal-content">
           <div className="order-status-section">
-            <span
-              className={`status-badge large ${getStatusColor(order.estado)}`}
-            >
+            <span className={`status-badge large ${getStatusColor(order.estado)}`}>
               {getStatusText(order.estado)}
             </span>
             {order.estadoPago && (
               <span className="payment-status">
-                Pago: {order.estadoPago === "pagado" ? "✓ Pagado" : "✗ Fallido"}
+                Pago: {order.estadoPago === "pagado" ? "Pagado" : "Fallido"}
               </span>
             )}
           </div>
@@ -561,44 +668,25 @@ function OrderDetailsModal({
                 <div key={idx} className="product-detail-item">
                   <div className="product-detail-info">
                     <h4>{producto.nombre}</h4>
-                    <p className="product-company">
-                      {producto.empresa || "N/A"}
-                    </p>
+                    <p className="product-company">{producto.empresa || "N/A"}</p>
                     <div className="product-pricing">
-                      <span className="quantity">
-                        Cantidad: {producto.cantidad}
-                      </span>
+                      <span className="quantity">Cantidad: {producto.cantidad}</span>
                       <span className="price">
                         Precio unitario: {formatCurrency(producto.precio)}
                       </span>
                       <span className="subtotal">
                         Subtotal:{" "}
                         {formatCurrency(
-                          producto.subtotal ||
-                            producto.precio * producto.cantidad
+                          producto.subtotal || producto.precio * producto.cantidad
                         )}
                       </span>
                     </div>
                     <button
                       className="btn-view-product-modal"
-                      onClick={() =>
-                        (window.location.href = `/producto/${producto.id}`)
-                      }
+                      onClick={() => (window.location.href = `/producto/${producto.id}`)}
                       title="Ver producto"
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
+                      <Eye size={16} />
                       Ver producto
                     </button>
                   </div>
@@ -611,9 +699,7 @@ function OrderDetailsModal({
             <div className="delivery-section">
               <h3>Información de entrega</h3>
               <p>{order.direccionEntrega}</p>
-              {order.telefonoContacto && (
-                <p>Teléfono: {order.telefonoContacto}</p>
-              )}
+              {order.telefonoContacto && <p>Teléfono: {order.telefonoContacto}</p>}
             </div>
           )}
 
@@ -700,7 +786,7 @@ function Icon({ name }) {
   return <span className="icon">{icons[name]}</span>;
 }
 
-/* Loader: truck animation */
+/* Loader */
 function Loader({ visible, text = "Cargando..." }) {
   if (!visible) return null;
   return (
@@ -708,16 +794,8 @@ function Loader({ visible, text = "Cargando..." }) {
       <div className="loaderInner">
         <div className="loader">
           <div className="spinner">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+            <div></div><div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div><div></div>
           </div>
         </div>
         <p className="loaderText">{text}</p>
@@ -914,34 +992,31 @@ export default function Profile() {
   const saveProfile = async () => {
     setLoading(true);
     try {
-      // Actualizar información en Firestore incluyendo displayName y teléfono
       await actualizarUsuarioInfo({
         telefono: form.telefono,
         direccion: form.direccion,
         displayName: form.nombre,
       });
 
-      // Guardar también en las colecciones users y usuarios para Entrega.jsx
       const payload = {
         telefono: form.telefono,
         direccion: form.direccion,
         displayName: form.nombre,
         updatedAt: new Date(),
       };
-      
+
       try {
         await setDoc(doc(db, "users", usuario.uid), payload, { merge: true });
       } catch (err) {
         console.warn("No se pudo escribir users/{uid}:", err);
       }
-      
+
       try {
         await setDoc(doc(db, "usuarios", usuario.uid), payload, { merge: true });
       } catch (err) {
         console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
-      // Actualizar displayName en Firebase Auth si cambió
       const cambios = {};
       if (usuario.displayName !== form.nombre)
         cambios.displayName = form.nombre;
@@ -978,7 +1053,8 @@ export default function Profile() {
     try {
       const direccionCompleta =
         typeof dir === "string" ? dir : dir?.direccionCompleta || "";
-      const metodo = dir && dir.metodoEntrega ? dir.metodoEntrega : "domicilio";
+      const metodo =
+        dir && dir.metodoEntrega ? dir.metodoEntrega : "domicilio";
 
       setShowFullLoader(true);
 
@@ -998,17 +1074,14 @@ export default function Profile() {
         console.warn("No se pudo escribir users/{uid}:", err);
       }
       try {
-        await setDoc(doc(db, "usuarios", usuario.uid), payload, {
-          merge: true,
-        });
+        await setDoc(doc(db, "usuarios", usuario.uid), payload, { merge: true });
       } catch (err) {
         console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
       try {
         let snap = await getDoc(doc(db, "users", usuario.uid));
-        if (!snap.exists())
-          snap = await getDoc(doc(db, "usuarios", usuario.uid));
+        if (!snap.exists()) snap = await getDoc(doc(db, "usuarios", usuario.uid));
         if (snap && snap.exists()) {
           const data = snap.data() || {};
           await actualizarUsuarioInfo({
@@ -1026,7 +1099,6 @@ export default function Profile() {
 
       toast("Dirección seleccionada y guardada.", "success");
 
-      // Reload page immediately - animation covers the reload
       window.location.reload();
     } catch (err) {
       console.error("handleSeleccionarDireccion error:", err);
@@ -1038,25 +1110,24 @@ export default function Profile() {
   const eliminarDireccion = async (id) => {
     try {
       await deleteDoc(doc(db, "direcciones", id));
-      
-      // Check if the deleted address was the currently selected one
+
       if (usuario?.direccion) {
-        const deletedAddress = direccionesUsuario.find(dir => dir.id === id);
-        if (deletedAddress && usuario.direccion === deletedAddress.direccionCompleta) {
-          // Clear the address from user profile and reset delivery method selection
+        const deletedAddress = direcciones.find((dir) => dir.id === id);
+        if (
+          deletedAddress &&
+          usuario.direccion === deletedAddress.direccionCompleta
+        ) {
           await actualizarUsuarioInfo({
             direccion: "",
             metodoEntrega: "",
-            selectedDeliveryMethod: ""
+            selectedDeliveryMethod: "",
           });
-          
-          // Force page reload to reset topbar to "Seleccionar método de entrega"
           setTimeout(() => {
             window.location.reload();
           }, 1000);
         }
       }
-      
+
       await fetchDirecciones();
       toast("Dirección eliminada correctamente.", "success");
     } catch (err) {

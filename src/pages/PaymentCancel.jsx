@@ -101,7 +101,7 @@ export default function PaymentCancel() {
 
   return (
     <motion.div 
-      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-red-50 via-pink-50 to-orange-50 px-6 z-50 overflow-hidden"
+      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 px-3 sm:px-6 z-50 overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -131,7 +131,7 @@ export default function PaymentCancel() {
       </div>
 
       <motion.div 
-        className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 max-w-2xl w-full text-center relative overflow-hidden border border-white/30"
+        className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-2xl w-full text-center relative overflow-hidden border border-white/30 my-4"
         initial={{ scale: 0.8, y: 50 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}

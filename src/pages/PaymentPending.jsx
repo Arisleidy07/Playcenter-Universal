@@ -160,7 +160,7 @@ export default function PaymentPending() {
 
   return (
     <motion.div 
-      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-6 z-50 overflow-hidden"
+      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-3 sm:px-6 z-50 overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -189,13 +189,13 @@ export default function PaymentPending() {
       </div>
 
       <motion.div 
-        className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-10 max-w-lg w-full text-center relative overflow-hidden border border-white/20"
+        className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-2xl w-full text-center relative overflow-hidden border border-white/30 my-4"
         initial={{ scale: 0.8, y: 50 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
       >
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl sm:rounded-3xl"></div>
         
         {/* Content */}
         <div className="relative z-10">

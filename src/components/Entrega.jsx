@@ -226,6 +226,7 @@ export default function Entrega({
 
   useEffect(() => {
     if (abierto) {
+      fetchDirecciones();
       if (direccionEditar) {
         // Pre-fill form when editing
         setEditandoId(direccionEditar.id);
@@ -256,6 +257,26 @@ export default function Entrega({
       }
     }
   }, [abierto, direccionEditar]);
+
+  // Handle Escape key to close modal and prevent body scroll
+  useEffect(() => {
+    if (!abierto) return;
+    
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleEscape);
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [abierto, onClose]);
 
   const elegirMetodo = (m) => {
     if (m === "tienda") {
@@ -634,8 +655,17 @@ export default function Entrega({
     (d) => d.metodoEntrega !== "tienda"
   );
 
-  return (
+  return createPortal(
     <>
+      {/* Backdrop */}
+      <motion.div
+        className="entrega-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
+      
       {/* Fullscreen Modal */}
       <motion.div
         className="entrega-slider"
@@ -645,6 +675,7 @@ export default function Entrega({
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="entrega-slider-content" aria-labelledby="entrega-title">
           {/* Drag Handle */}
@@ -1387,6 +1418,7 @@ h78.747C231.693,100.736,232.77,106.162,232.77,111.694z"
         onPick={(p) => setProvincia(p)}
         valorActual={provincia}
       />
-    </>
+    </>,
+    document.body
   );
 }

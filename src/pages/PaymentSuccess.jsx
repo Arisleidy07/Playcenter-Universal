@@ -74,7 +74,7 @@ export default function PaymentSuccess() {
 
   return (
     <motion.div 
-      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-6 z-50 overflow-hidden"
+      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-3 sm:px-6 z-50 overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -134,7 +134,7 @@ export default function PaymentSuccess() {
       </div>
 
       <motion.div 
-        className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 max-w-3xl w-full text-center relative overflow-hidden border border-white/30"
+        className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-3xl w-full text-center relative overflow-hidden border border-white/30 my-4"
         initial={{ scale: 0.8, y: 50 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
@@ -323,7 +323,7 @@ export default function PaymentSuccess() {
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.1 }}
-                              whileHover={{ scale: 1.02, backgroundColor: "#f8fafc" }}
+                              whileHover={{ scale: 1.02 }}
                             >
                               <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
@@ -348,24 +348,7 @@ export default function PaymentSuccess() {
                 )}
               </div>
             </motion.div>
-          ) : (
-            <motion.div
-              className="mb-8 p-6 bg-gray-50 rounded-2xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2 }}
-            >
-              <div className="flex items-center justify-center gap-3">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
-                  <Sparkles className="w-6 h-6 text-green-500" />
-                </motion.div>
-                <span className="text-gray-600">Cargando información de la orden...</span>
-              </div>
-            </motion.div>
-          )}
+          ) : null}
 
           {/* Action buttons */}
           <motion.div 

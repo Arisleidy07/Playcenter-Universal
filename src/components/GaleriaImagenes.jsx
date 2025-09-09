@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-function GaleriaImagenes({ imagenes }) {
+function GaleriaImagenes({ imagenes, onImageClick }) {
   const [imagenActiva, setImagenActiva] = useState(0);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [zoomVisible, setZoomVisible] = useState(false);
@@ -30,23 +30,27 @@ function GaleriaImagenes({ imagenes }) {
 
   return (
     <>
-      <div className="w-full flex flex-col lg:flex-col gap-6 relative">
+      <div className="w-full flex flex-col gap-6 relative">
         {/* Imagen principal */}
         <div
           className="relative w-full"
           ref={zoomRef}
-          onClick={() => isMobile && setModalAbierto(true)}
+          onClick={() => {
+            if (onImageClick) {
+              onImageClick(imagenActiva);
+            } else if (isMobile) {
+              setModalAbierto(true);
+            }
+          }}
           onMouseMove={!isMobile ? handleMouseMove : null}
           onMouseEnter={!isMobile ? handleMouseEnter : null}
           onMouseLeave={!isMobile ? handleMouseLeave : null}
         >
-          <div className="overflow-hidden rounded-xl shadow-md bg-gray-100 cursor-zoom-in">
-            <img
-              src={imagenes[imagenActiva]}
-              alt={`Imagen ${imagenActiva + 1}`}
-              className="w-full h-[400px] object-contain"
-            />
-          </div>
+          <img
+            src={imagenes[imagenActiva]}
+            alt={`Imagen ${imagenActiva + 1}`}
+            className="w-full h-[400px] lg:h-[450px] object-contain cursor-zoom-in"
+          />
 
           {/* Imagen de zoom flotante (solo visible en hover en escritorio) */}
           {!isMobile && zoomVisible && (
@@ -63,21 +67,27 @@ function GaleriaImagenes({ imagenes }) {
           )}
         </div>
 
-        {/* Miniaturas con slider */}
+        {/* Miniaturas */}
         <div className="overflow-x-auto mt-4">
-          <div className="flex gap-3 justify-start w-max px-1">
+          <div className="flex gap-4 justify-center lg:justify-start w-max mx-auto lg:mx-0 px-2">
             {imagenes.map((img, idx) => (
-              <motion.img
+              <motion.div
                 key={img}
-                src={img}
-                alt={`Miniatura ${idx + 1}`}
-                className={`w-16 h-16 object-contain rounded cursor-pointer border-2 ${
-                  idx === imagenActiva ? "border-pink-500" : "border-transparent"
+                className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer ${
+                  idx === imagenActiva 
+                    ? "opacity-100" 
+                    : "opacity-70 hover:opacity-90"
                 }`}
                 onClick={() => setImagenActiva(idx)}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
-              />
+              >
+                <img
+                  src={img}
+                  alt={`Miniatura ${idx + 1}`}
+                  className="w-full h-full object-contain"
+                />
+              </motion.div>
             ))}
           </div>
         </div>

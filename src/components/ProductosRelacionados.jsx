@@ -2,7 +2,11 @@ import React, { useRef } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-function ProductosRelacionados({ productoActual, productosPorCategoria, onProductoClick }) {
+function ProductosRelacionados({
+  productoActual,
+  productosPorCategoria,
+  onProductoClick,
+}) {
   const productosPlanos = productosPorCategoria.flatMap((grupo) =>
     grupo.productos.map((p) => ({
       ...p,
@@ -36,10 +40,9 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
   return (
     <section className="w-full pt-6 pb-12 bg-white border-t border-gray-200 mt-6 overflow-visible">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      <h2 className="text-xl sm:text-2xl font-semibold text-[#232f3e] mb-4 pl-1 tracking-tight">
-        Productos relacionados
-      </h2>
-
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#232f3e] mb-4 pl-1 tracking-tight">
+          Productos relacionados
+        </h2>
 
         <div className="relative overflow-visible">
           {/* Flecha izquierda (solo desktop) */}
@@ -63,7 +66,7 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
                   key={rel.id}
                   whileHover={{
                     scale: 1.03, // más sutil
-                    y: -4,       // sube poquito
+                    y: -4, // sube poquito
                     boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
                     zIndex: 20,
                     position: "relative",
@@ -95,7 +98,11 @@ function ProductosRelacionados({ productoActual, productosPorCategoria, onProduc
                       tabIndex={-1}
                     >
                       Ver producto
-                      <svg className="icon w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <svg
+                        className="icon w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
                         <path
                           fillRule="evenodd"
                           d="M12 2.25c-5.385 0-9.75 4.365-9.75 
