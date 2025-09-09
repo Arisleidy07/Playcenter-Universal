@@ -21,17 +21,23 @@ function setCheckoutPayload(mode, items, total) {
   try {
     const payload = { mode, items, total, at: Date.now() };
     sessionStorage.setItem("checkoutPayload", JSON.stringify(payload));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function VistaProducto() {
-  const { carrito, agregarAlCarrito, quitarDelCarrito, eliminarUnidadDelCarrito } = useCarrito();
+  const {
+    carrito,
+    agregarAlCarrito,
+    quitarDelCarrito,
+    eliminarUnidadDelCarrito,
+  } = useCarrito();
   const { usuario } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
-  const [cargandoPago, setCargandoPago] = useState(false);
 
   let producto = null;
   for (const categoria of productosAll) {
@@ -50,7 +56,9 @@ function VistaProducto() {
   if (!producto) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
-        <p className="text-center text-lg sm:text-xl font-semibold">Producto no encontrado.</p>
+        <p className="text-center text-lg sm:text-xl font-semibold">
+          Producto no encontrado.
+        </p>
       </div>
     );
   }
@@ -63,33 +71,37 @@ function VistaProducto() {
   const cantidadEnCarrito = enCarrito?.cantidad || 0;
 
   const handleAgregar = () => {
-    if (!usuario) { setModalAbierto(true); return; }
-    if (!enCarrito) {
-      setCargandoPago(true);
-      setTimeout(() => {
-        agregarAlCarrito({ ...producto, cantidad: 1 });
-        setCargandoPago(false);
-      }, 300);
+    if (!usuario) {
+      setModalAbierto(true);
+      return;
     }
+    if (!enCarrito) agregarAlCarrito({ ...producto, cantidad: 1 });
   };
   const handleIncremento = () => {
-    if (!usuario) { setModalAbierto(true); return; }
-    setCargandoPago(true);
-    setTimeout(() => {
-      agregarAlCarrito(producto);
-      setCargandoPago(false);
-    }, 200);
+    if (!usuario) {
+      setModalAbierto(true);
+      return;
+    }
+    agregarAlCarrito(producto);
   };
   const handleDecremento = () => {
-    if (!usuario) { setModalAbierto(true); return; }
+    if (!usuario) {
+      setModalAbierto(true);
+      return;
+    }
     eliminarUnidadDelCarrito(producto.id);
   };
   const handleQuitar = () => {
-    if (!usuario) { setModalAbierto(true); return; }
+    if (!usuario) {
+      setModalAbierto(true);
+      return;
+    }
     quitarDelCarrito(producto.id);
   };
 
-  const variantesConColor = producto.variantes?.filter((v) => v.color && v.color.trim() !== "");
+  const variantesConColor = producto.variantes?.filter(
+    (v) => v.color && v.color.trim() !== ""
+  );
   const disponible =
     varianteActiva?.cantidad === undefined || varianteActiva?.cantidad > 0;
 
@@ -107,18 +119,20 @@ function VistaProducto() {
     <>
       {/* Barra superior */}
       <div className="vp-mobile-topbar">
-        <button className="vp-icon-btn" onClick={onBack} aria-label="Volver"><FaArrowLeft /></button>
-        <div className="vp-topbar-title" title={producto.nombre}>{producto.nombre}</div>
-        <button className="vp-icon-btn" onClick={onBack} aria-label="Cerrar"><FaTimes /></button>
+        <button className="vp-icon-btn" onClick={onBack} aria-label="Volver">
+          <FaArrowLeft />
+        </button>
+        <div className="vp-topbar-title" title={producto.nombre}>
+          {producto.nombre}
+        </div>
+        <button className="vp-icon-btn" onClick={onBack} aria-label="Cerrar">
+          <FaTimes />
+        </button>
       </div>
 
       {/* Botón de regreso móvil debajo del topbar */}
       <div className="lg:hidden w-full px-4 pt-4 pb-2">
-        <button 
-          className="vp-icon-btn" 
-          onClick={onBack} 
-          aria-label="Volver"
-        >
+        <button className="vp-icon-btn" onClick={onBack} aria-label="Volver">
           <FaArrowLeft size={16} />
         </button>
       </div>
@@ -128,17 +142,14 @@ function VistaProducto() {
           {/* Columna Izquierda */}
           <motion.div className="relative flex flex-col items-center w-full lg:w-1/2 overflow-visible">
             {/* Botón de regreso para desktop */}
-            <button 
-              className="vp-back-fab hidden lg:block" 
-              onClick={onBack} 
+            <button
+              className="vp-back-fab hidden lg:block"
+              onClick={onBack}
               aria-label="Volver"
             >
               <FaArrowLeft size={16} />
             </button>
-            <div className="absolute right-2 top-2 z-10">
-              {/* comparte */}
-            </div>
-
+            <div className="absolute right-2 top-2 z-10">{/* comparte */}</div>
 
             <GaleriaImagenes
               imagenes={
@@ -153,14 +164,20 @@ function VistaProducto() {
             {variantesConColor && variantesConColor.length > 1 && (
               <div className="vp-variants">
                 {variantesConColor.map((variante, i) => {
-                  const activa = colorSeleccionado ? colorSeleccionado === variante.color : i === 0;
+                  const activa = colorSeleccionado
+                    ? colorSeleccionado === variante.color
+                    : i === 0;
                   return (
                     <button
                       key={i}
                       onClick={() => setColorSeleccionado(variante.color)}
                       className={`vp-variant-chip ${activa ? "is-active" : ""}`}
                     >
-                      <img src={variante.imagen} alt={variante.color} className="vp-variant-thumb" />
+                      <img
+                        src={variante.imagen}
+                        alt={variante.color}
+                        className="vp-variant-thumb"
+                      />
                       <span className="vp-variant-label">{variante.color}</span>
                     </button>
                   );
@@ -172,27 +189,49 @@ function VistaProducto() {
           {/* Columna Centro */}
           <motion.div className="flex flex-col gap-4 sm:gap-5 w-full lg:w-1/2 overflow-visible">
             <h1 className="vp-title">{producto.nombre}</h1>
-            <p className="vp-desc">{producto.descripcion || "Contáctanos para más detalles."}</p>
+            <p className="vp-desc">
+              {producto.descripcion || "Contáctanos para más detalles."}
+            </p>
             <p className="vp-price">DOP {formatPriceRD(precioProducto)}</p>
 
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL */}
             <div className="lg:hidden flex flex-col gap-3 overflow-visible">
               {varianteActiva?.cantidad !== undefined && (
-                <div className={`vp-stock ${varianteActiva.cantidad === 0 ? "vp-stock-out" : varianteActiva.cantidad <= 2 ? "vp-stock-low" : "vp-stock-ok"}`}>
-                  {varianteActiva.cantidad === 0 ? "No disponible" : `Quedan ${varianteActiva.cantidad} disponibles`}
+                <div
+                  className={`vp-stock ${
+                    varianteActiva.cantidad === 0
+                      ? "vp-stock-out"
+                      : varianteActiva.cantidad <= 2
+                      ? "vp-stock-low"
+                      : "vp-stock-ok"
+                  }`}
+                >
+                  {varianteActiva.cantidad === 0
+                    ? "No disponible"
+                    : `Quedan ${varianteActiva.cantidad} disponibles`}
                 </div>
               )}
 
               <div className="flex flex-col sm:flex-row gap-3 overflow-visible">
                 {enCarrito ? (
                   <div className="vp-qty-row w-full sm:w-1/2">
-                    <button onClick={handleDecremento} className="vp-qty-btn">−</button>
+                    <button onClick={handleDecremento} className="vp-qty-btn">
+                      −
+                    </button>
                     <span className="vp-qty">{cantidadEnCarrito}</span>
-                    <button onClick={handleIncremento} className="vp-qty-btn">+</button>
-                    <button onClick={handleQuitar} className="vp-remove"><FaTrash /></button>
+                    <button onClick={handleIncremento} className="vp-qty-btn">
+                      +
+                    </button>
+                    <button onClick={handleQuitar} className="vp-remove">
+                      <FaTrash />
+                    </button>
                   </div>
                 ) : (
-                  <button className="button w-full sm:w-1/2" onClick={handleAgregar} disabled={!disponible}>
+                  <button
+                    className="button w-full sm:w-1/2"
+                    onClick={handleAgregar}
+                    disabled={!disponible}
+                  >
                     Agregar al carrito
                   </button>
                 )}
@@ -200,9 +239,15 @@ function VistaProducto() {
                 {/* 👇 “Comprar ahora” SOLO este producto */}
                 <div
                   className="w-full sm:w-1/2"
-                  onClick={() => setCheckoutPayload("single", itemsBuyNow, precioProducto)}
+                  onClick={() =>
+                    setCheckoutPayload("single", itemsBuyNow, precioProducto)
+                  }
                 >
-                  <BotonCardnet className="w-full" total={precioProducto * 100} label="Comprar ahora" />
+                  <BotonCardnet
+                    className="w-full"
+                    total={precioProducto * 100}
+                    label="Comprar ahora"
+                  />
                 </div>
               </div>
             </div>
@@ -211,7 +256,9 @@ function VistaProducto() {
               <div>
                 <h3 className="vp-subtitle">Acerca de este artículo</h3>
                 <ul className="vp-bullets">
-                  {producto.acerca.map((detalle, i) => <li key={i}>{detalle}</li>)}
+                  {producto.acerca.map((detalle, i) => (
+                    <li key={i}>{detalle}</li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -220,36 +267,61 @@ function VistaProducto() {
           {/* Columna Derecha */}
           <aside className="vp-buy-card w-full lg:w-[360px] hidden lg:block">
             <div className="vp-buy-inner">
-              <div className="vp-buy-price">DOP {formatPriceRD(precioProducto)}</div>
+              <div className="vp-buy-price">
+                DOP {formatPriceRD(precioProducto)}
+              </div>
 
               {varianteActiva?.cantidad !== undefined && (
-                <div className={`vp-stock ${varianteActiva.cantidad === 0 ? "vp-stock-out" : varianteActiva.cantidad <= 2 ? "vp-stock-low" : "vp-stock-ok"}`}>
-                  {varianteActiva.cantidad === 0 ? "No disponible" : `Quedan ${varianteActiva.cantidad} disponibles`}
+                <div
+                  className={`vp-stock ${
+                    varianteActiva.cantidad === 0
+                      ? "vp-stock-out"
+                      : varianteActiva.cantidad <= 2
+                      ? "vp-stock-low"
+                      : "vp-stock-ok"
+                  }`}
+                >
+                  {varianteActiva.cantidad === 0
+                    ? "No disponible"
+                    : `Quedan ${varianteActiva.cantidad} disponibles`}
                 </div>
               )}
 
               <div className="flex flex-col gap-3">
                 {enCarrito ? (
                   <div className="vp-qty-row">
-                    <button onClick={handleDecremento} className="vp-qty-btn">−</button>
+                    <button onClick={handleDecremento} className="vp-qty-btn">
+                      −
+                    </button>
                     <span className="vp-qty">{cantidadEnCarrito}</span>
-                    <button onClick={handleIncremento} className="vp-qty-btn">+</button>
-                    <button onClick={handleQuitar} className="vp-remove"><FaTrash /></button>
+                    <button onClick={handleIncremento} className="vp-qty-btn">
+                      +
+                    </button>
+                    <button onClick={handleQuitar} className="vp-remove">
+                      <FaTrash />
+                    </button>
                   </div>
                 ) : (
-                  <button className="button w-full" onClick={handleAgregar} disabled={!disponible}>
+                  <button
+                    className="button w-full"
+                    onClick={handleAgregar}
+                    disabled={!disponible}
+                  >
                     Agregar al carrito
                   </button>
                 )}
 
-                {/* "Comprar ahora" */}
+                {/* “Comprar ahora” */}
                 <div
-                  onClick={() => {
-                    setCargandoPago(true);
-                    setCheckoutPayload("single", itemsBuyNow, precioProducto);
-                  }}
+                  onClick={() =>
+                    setCheckoutPayload("single", itemsBuyNow, precioProducto)
+                  }
                 >
-                  <BotonCardnet className="w-full" total={precioProducto * 100} label="Comprar ahora" />
+                  <BotonCardnet
+                    className="w-full"
+                    total={precioProducto * 100}
+                    label="Comprar ahora"
+                  />
                 </div>
               </div>
             </div>
@@ -273,42 +345,45 @@ function VistaProducto() {
             <div className="vp-video-carousel">
               {producto.videoUrls.map((url, i) => (
                 <div key={i} className="vp-video-card">
-                  <video src={url} controls className="vp-video" preload="metadata" />
+                  <video
+                    src={url}
+                    controls
+                    className="vp-video"
+                    preload="metadata"
+                  />
                 </div>
               ))}
             </div>
           ) : producto.videoUrl ? (
             <div className="vp-video-single">
-              <video src={producto.videoUrl} controls className="vp-video" preload="metadata" />
+              <video
+                src={producto.videoUrl}
+                controls
+                className="vp-video"
+                preload="metadata"
+              />
             </div>
           ) : null}
 
           {producto.imagenesExtra?.length > 0 && (
             <div className="vp-extras-grid">
               {producto.imagenesExtra.slice(0, 3).map((img, i) => (
-                <img key={i} src={img} alt={`Vista extra ${i + 1}`} className="vp-extra-img" />
+                <img
+                  key={i}
+                  src={img}
+                  alt={`Vista extra ${i + 1}`}
+                  className="vp-extra-img"
+                />
               ))}
             </div>
           )}
         </section>
       </main>
 
-      <ModalLoginAlert isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
-      
-      {/* Loader de pantalla completa */}
-      {cargandoPago && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[100] flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm mx-4 text-center">
-            <div className="mb-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
-                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Redirigiendo a CardNet</h3>
-            <p className="text-gray-600 text-sm">Espera unos segundos mientras procesamos tu solicitud...</p>
-          </div>
-        </div>
-      )}
+      <ModalLoginAlert
+        isOpen={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+      />
     </>
   );
 }

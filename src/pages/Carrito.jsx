@@ -15,11 +15,15 @@ function getStockDisponible(itemCarrito) {
   let real = null;
   for (const cat of productosAll) {
     const e = cat.productos.find((p) => p.id === itemCarrito.id);
-    if (e) { real = e; break; }
+    if (e) {
+      real = e;
+      break;
+    }
   }
   if (!real) return Number.POSITIVE_INFINITY;
   if (typeof real.cantidad === "number") return real.cantidad;
-  if (real.variantes?.[0]?.cantidad !== undefined) return real.variantes[0].cantidad;
+  if (real.variantes?.[0]?.cantidad !== undefined)
+    return real.variantes[0].cantidad;
   return Number.POSITIVE_INFINITY;
 }
 
@@ -28,11 +32,18 @@ function setCheckoutPayloadCart(items, total) {
   try {
     const payload = { mode: "cart", items, total, at: Date.now() };
     sessionStorage.setItem("checkoutPayload", JSON.stringify(payload));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export default function Carrito() {
-  const { carrito, agregarAlCarrito, eliminarUnidadDelCarrito, quitarDelCarrito } = useCarrito();
+  const {
+    carrito,
+    agregarAlCarrito,
+    eliminarUnidadDelCarrito,
+    quitarDelCarrito,
+  } = useCarrito();
   const navigate = useNavigate();
   const [cargandoPago, setCargandoPago] = useState(false);
 
@@ -77,7 +88,11 @@ export default function Carrito() {
 
                     <p
                       className={`carrito-stock ${
-                        stock === 0 ? "stock-out" : stock <= 2 ? "stock-low" : "stock-ok"
+                        stock === 0
+                          ? "stock-out"
+                          : stock <= 2
+                          ? "stock-low"
+                          : "stock-ok"
                       }`}
                     >
                       {stock === 0
@@ -89,9 +104,14 @@ export default function Carrito() {
 
                     <div className="carrito-actions">
                       <button
-                        onClick={(e) => { e.stopPropagation(); eliminarUnidadDelCarrito(item.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          eliminarUnidadDelCarrito(item.id);
+                        }}
                         className="vp-qty-btn"
-                      >−</button>
+                      >
+                        −
+                      </button>
 
                       <span className="vp-qty">{item.cantidad}</span>
 
@@ -101,18 +121,28 @@ export default function Carrito() {
                           if (item.cantidad < stock) {
                             let productoReal = null;
                             for (const categoria of productosAll) {
-                              const encontrado = categoria.productos.find((p) => p.id === item.id);
-                              if (encontrado) { productoReal = encontrado; break; }
+                              const encontrado = categoria.productos.find(
+                                (p) => p.id === item.id
+                              );
+                              if (encontrado) {
+                                productoReal = encontrado;
+                                break;
+                              }
                             }
                             if (productoReal) agregarAlCarrito(productoReal);
                           }
                         }}
                         className="vp-qty-btn"
                         disabled={item.cantidad >= stock}
-                      >+</button>
+                      >
+                        +
+                      </button>
 
                       <button
-                        onClick={(e) => { e.stopPropagation(); quitarDelCarrito(item.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          quitarDelCarrito(item.id);
+                        }}
                         className="vp-remove"
                         title="Quitar"
                       >
@@ -122,7 +152,8 @@ export default function Carrito() {
                   </div>
 
                   <div className="carrito-subtotal">
-                    DOP {formatPriceRD((Number(item.precio) || 0) * item.cantidad)}
+                    DOP{" "}
+                    {formatPriceRD((Number(item.precio) || 0) * item.cantidad)}
                   </div>
                 </div>
               );
@@ -139,10 +170,7 @@ export default function Carrito() {
               }}
             >
               <span className="btn-text">Proceder al Pago</span>
-              <BotonCardnet
-                className=""
-                total={total * 100}
-              />
+              <BotonCardnet className="" total={total * 100} />
             </div>
           </div>
         </>
@@ -156,8 +184,12 @@ export default function Carrito() {
                 <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Redirigiendo a CardNet</h3>
-            <p className="text-gray-600 text-sm">Espera unos segundos mientras procesamos tu solicitud...</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
+              Redirigiendo a CardNet
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Espera unos segundos mientras procesamos tu solicitud...
+            </p>
           </div>
         </div>
       )}
