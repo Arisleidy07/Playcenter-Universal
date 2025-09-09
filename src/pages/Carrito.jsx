@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useCarrito } from "../context/CarritoContext";
 import { useNavigate } from "react-router-dom";
 import productosAll from "../data/productosAll";
@@ -45,7 +45,6 @@ export default function Carrito() {
     quitarDelCarrito,
   } = useCarrito();
   const navigate = useNavigate();
-  const [cargandoPago, setCargandoPago] = useState(false);
 
   const total = carrito.reduce(
     (acc, item) => acc + (Number(item.precio) || 0) * item.cantidad,
@@ -160,38 +159,19 @@ export default function Carrito() {
             })}
           </div>
 
-          {/* Pagar carrito completo */}
+          {/* Pagar carrito completo: SOLO el botón de CardNet (negro) */}
           <div className="carrito-footer">
             <div
-              className="carrito-pay-btn"
-              onClick={() => {
-                setCargandoPago(true);
-                setCheckoutPayloadCart(cartItemsForPayload, total);
-              }}
+              className="carrito-pay-wrap"
+              onClick={() => setCheckoutPayloadCart(cartItemsForPayload, total)}
             >
-              <span className="btn-text">Proceder al Pago</span>
-              <BotonCardnet className="" total={total * 100} />
+              <BotonCardnet
+                className="carrito-cardnet-btn w-full"
+                total={total * 100}
+              />
             </div>
           </div>
         </>
-      )}
-      {/* Loader de pantalla completa */}
-      {cargandoPago && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[100] flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm mx-4 text-center">
-            <div className="mb-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
-                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              Redirigiendo a CardNet
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Espera unos segundos mientras procesamos tu solicitud...
-            </p>
-          </div>
-        </div>
       )}
     </main>
   );

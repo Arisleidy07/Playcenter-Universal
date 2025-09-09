@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaArrowLeft, FaTimes, FaTrash } from "react-icons/fa";
@@ -40,6 +40,10 @@ function VistaProducto() {
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [imagenModalAbierta, setImagenModalAbierta] = useState(false);
   const [imagenActualIndex, setImagenActualIndex] = useState(0);
+
+  // refs/estado para swipe en modal
+  const touchStartX = useRef(0);
+  const touchDeltaX = useRef(0);
 
   let producto = null;
   for (const categoria of productosAll) {
@@ -118,7 +122,8 @@ function VistaProducto() {
   ];
 
   // Get all images for the gallery - show variant images when color is selected
-  const imagenesParaGaleria = varianteActiva?.imagenes || producto.imagenes || [producto.imagen].filter(Boolean);
+  const imagenesParaGaleria =
+    varianteActiva?.imagenes || producto.imagenes || [producto.imagen].filter(Boolean);
   const todasLasImagenes = producto.imagenes || [producto.imagen].filter(Boolean);
 
   const abrirImagenModal = (index) => {
@@ -131,15 +136,34 @@ function VistaProducto() {
   };
 
   const siguienteImagen = () => {
-    setImagenActualIndex((prev) => 
+    setImagenActualIndex((prev) =>
       prev === imagenesParaGaleria.length - 1 ? 0 : prev + 1
     );
   };
 
   const anteriorImagen = () => {
-    setImagenActualIndex((prev) => 
+    setImagenActualIndex((prev) =>
       prev === 0 ? imagenesParaGaleria.length - 1 : prev - 1
     );
+  };
+
+  // Handlers de swipe en el modal (sin flechas)
+  const onTouchStartModal = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchDeltaX.current = 0;
+  };
+  const onTouchMoveModal = (e) => {
+    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+  };
+  const onTouchEndModal = () => {
+    const threshold = 40; // sensibilidad swipe
+    if (touchDeltaX.current > threshold) {
+      anteriorImagen();
+    } else if (touchDeltaX.current < -threshold) {
+      siguienteImagen();
+    }
+    touchStartX.current = 0;
+    touchDeltaX.current = 0;
   };
 
   return (
@@ -178,7 +202,10 @@ function VistaProducto() {
             </button>
             <div className="absolute right-2 top-2 z-10">{/* comparte */}</div>
 
-            <div className="vp-gallery">
+            <div
+              className="vp-gallery"
+              /* el contenedor permite swipe nativo (overflow-x) en móvil */
+            >
               <GaleriaImagenes
                 imagenes={imagenesParaGaleria}
                 alt={producto.nombre}
@@ -415,7 +442,7 @@ function VistaProducto() {
         <div className="imagen-modal-overlay" onClick={cerrarImagenModal}>
           <div className="imagen-modal-container">
             {/* Botón cerrar */}
-            <button 
+            <button
               className="imagen-modal-close"
               onClick={cerrarImagenModal}
               aria-label="Cerrar"
@@ -423,23 +450,15 @@ function VistaProducto() {
               <FaTimes size={24} />
             </button>
 
-            {/* Imagen principal */}
-            <div className="imagen-modal-main">
-              <img 
-                src={imagenesParaGaleria[imagenActualIndex]}
-                alt={producto.nombre}
-                className="imagen-modal-img"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-
-            {/* Galería de miniaturas */}
+            {/* Galería de miniaturas (AHORA ARRIBA) */}
             {imagenesParaGaleria.length > 1 && (
               <div className="imagen-modal-thumbnails">
                 {imagenesParaGaleria.map((imagen, index) => (
                   <button
                     key={index}
-                    className={`thumbnail-btn ${index === imagenActualIndex ? 'active' : ''}`}
+                    className={`thumbnail-btn ${
+                      index === imagenActualIndex ? "active" : ""
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setImagenActualIndex(index);
@@ -451,10 +470,26 @@ function VistaProducto() {
               </div>
             )}
 
-            {/* Navegación con flechas */}
-            {imagenesParaGaleria.length > 1 && (
+            {/* Imagen principal (con swipe touch) */}
+            <div
+              className="imagen-modal-main"
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={onTouchStartModal}
+              onTouchMove={onTouchMoveModal}
+              onTouchEnd={onTouchEndModal}
+            >
+              <img
+                src={imagenesParaGaleria[imagenActualIndex]}
+                alt={producto.nombre}
+                className="imagen-modal-img"
+                draggable={false}
+              />
+            </div>
+
+            {/* Navegación con flechas (DESACTIVADA, no se renderiza) */}
+            {false && imagenesParaGaleria.length > 1 && (
               <>
-                <button 
+                <button
                   className="imagen-modal-nav prev"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -464,7 +499,7 @@ function VistaProducto() {
                 >
                   ‹
                 </button>
-                <button 
+                <button
                   className="imagen-modal-nav next"
                   onClick={(e) => {
                     e.stopPropagation();

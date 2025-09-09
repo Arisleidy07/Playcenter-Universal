@@ -379,7 +379,6 @@
   padding: 0.25rem;
   margin-top: 0;
 }
-
 @media (min-width: 1024px) {
   .vp-gallery {
     padding: 1rem;
@@ -441,42 +440,28 @@
   transition: all 0.2s ease;
   color: #333;
 }
-
 .imagen-modal-close:hover {
   background: white;
   transform: scale(1.1);
 }
 
-.imagen-modal-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100vw;
-  height: calc(100vh - 120px);
-  padding: 0;
-}
-
-.imagen-modal-img {
-  width: 100vw;
-  height: 100%;
-  object-fit: contain;
-  padding: 0;
-  margin: 0;
-}
-
+/* ---- (Miniaturas AHORA ARRIBA) ---- */
 .imagen-modal-thumbnails {
   display: flex;
   gap: 10px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   backdrop-filter: blur(10px);
-  margin-top: 20px;
+  margin: 8px 0 6px 0; /* más arriba */
   overflow-x: auto;
   max-width: 100%;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-
+.imagen-modal-thumbnails::-webkit-scrollbar {
+  display: none;
+}
 .thumbnail-btn {
   flex-shrink: 0;
   width: 60px;
@@ -489,23 +474,41 @@
   background: none;
   padding: 0;
 }
-
 .thumbnail-btn.active {
   border-color: #3b82f6;
   transform: scale(1.1);
 }
-
 .thumbnail-btn:hover {
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.05);
 }
-
 .thumbnail-btn img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+.imagen-modal-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: calc(100vh - 120px);
+  padding: 0;
+  touch-action: pan-y; /* mejora el gesto horizontal */
+}
+.imagen-modal-img {
+  width: 100vw;
+  height: 100%;
+  object-fit: contain;
+  padding: 0;
+  margin: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Navegación con flechas (estilos se quedan, pero no se renderiza en JSX) */
 .imagen-modal-nav {
   position: absolute;
   top: 50%;
@@ -525,59 +528,22 @@
   transition: all 0.2s ease;
   z-index: 10001;
 }
-
 .imagen-modal-nav:hover {
   background: white;
   transform: translateY(-50%) scale(1.1);
 }
-
-.imagen-modal-nav.prev {
-  left: 20px;
-}
-
-.imagen-modal-nav.next {
-  right: 20px;
-}
+.imagen-modal-nav.prev { left: 20px; }
+.imagen-modal-nav.next { right: 20px; }
 
 @media (max-width: 768px) {
-  .imagen-modal-container {
-    padding: 10px;
-  }
-
-  .imagen-modal-close {
-    top: 10px;
-    right: 10px;
-    width: 40px;
-    height: 40px;
-  }
-
-  .imagen-modal-main {
-    max-height: calc(100vh - 120px);
-  }
-
-  .imagen-modal-thumbnails {
-    padding: 15px;
-    gap: 8px;
-  }
-
-  .thumbnail-btn {
-    width: 50px;
-    height: 50px;
-  }
-
-  .imagen-modal-nav {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-
-  .imagen-modal-nav.prev {
-    left: 10px;
-  }
-
-  .imagen-modal-nav.next {
-    right: 10px;
-  }
+  .imagen-modal-container { padding: 8px; }
+  .imagen-modal-close { top: 10px; right: 10px; width: 40px; height: 40px; }
+  .imagen-modal-main { max-height: calc(100vh - 110px); }
+  .imagen-modal-thumbnails { padding: 8px 12px; gap: 8px; }
+  .thumbnail-btn { width: 52px; height: 52px; }
+  .imagen-modal-nav { width: 40px; height: 40px; font-size: 20px; }
+  .imagen-modal-nav.prev { left: 10px; }
+  .imagen-modal-nav.next { right: 10px; }
 }
 
 /* Sticky CTA */
@@ -597,9 +563,7 @@
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
 }
 @media (max-width: 640px) {
-  .vp-bullets {
-    font-size: 0.9rem;
-  }
+  .vp-bullets { font-size: 0.9rem; }
 }
 
 .vp-back-fab {
@@ -618,7 +582,44 @@
   z-index: 15;
   transition: transform 0.2s ease;
 }
+.vp-back-fab:hover { transform: scale(1.05); }
 
-.vp-back-fab:hover {
-  transform: scale(1.05);
+/* ===================================================== */
+/* === AJUSTES EXTRA PARA "GALERÍA" TÁCTIL EN MÓVIL ==== */
+/* ===================================================== */
+@media (max-width: 768px) {
+  /* El contenedor de la galería se vuelve un carril deslizante nativo */
+  .vp-gallery {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 2px 10px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .vp-gallery::-webkit-scrollbar { display: none; }
+
+  /* Si GaleriaImagenes renderiza imágenes directas o tarjetas,
+     esto asegura que cada "slide" encaje y haga snap centrado */
+  .vp-gallery > * {
+    flex: 0 0 92%;
+    max-width: 92%;
+    scroll-snap-align: center;
+    border-radius: 14px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .vp-gallery > *:active {
+    transform: scale(0.985);
+  }
 }
+
+/* Micro animación al abrir miniaturas */
+.thumbnail-btn,
+.vp-gallery > * {
+  will-change: transform, box-shadow;
+}
+
+
+

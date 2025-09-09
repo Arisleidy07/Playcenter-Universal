@@ -31,29 +31,18 @@
   text-shadow: 0 2px 6px rgba(40, 40, 60, 0.38), 0 1px 0 #3b82f6,
     0 5px 24px #23252622;
   padding: 0.5rem 1.4rem;
-  border-radius: 0; /* <----- QUITA EL BORDE REDONDEADO */
-  box-shadow: none; /* <----- QUITA EL RECUADRO BLANCO */
+  border-radius: 0;
+  box-shadow: none;
   transition: transform 0.15s cubic-bezier(0.68, -0.55, 0.27, 1.55),
     box-shadow 0.15s;
   position: relative;
   user-select: none;
-}
-.carrito-title:hover {
-  transform: scale(1.02) translateY(-1px);
-  box-shadow: none;
-}
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.carrito-title {
   animation: fadeInDown 0.5s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Empty */
@@ -131,15 +120,9 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
-.stock-out {
-  color: #ef4444;
-}
-.stock-low {
-  color: #d97706;
-}
-.stock-ok {
-  color: #059669;
-}
+.stock-out { color: #ef4444; }
+.stock-low { color: #d97706; }
+.stock-ok { color: #059669; }
 
 /* Acciones */
 .carrito-actions {
@@ -161,13 +144,8 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
   transition: transform 0.2s ease;
 }
-.vp-qty-btn:hover:not(:disabled) {
-  transform: scale(1.08);
-}
-.vp-qty-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.vp-qty-btn:hover:not(:disabled) { transform: scale(1.08); }
+.vp-qty-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .vp-qty {
   min-width: 32px;
   text-align: center;
@@ -183,10 +161,7 @@
   margin-left: 4px;
   transition: transform 0.2s ease, color 0.2s ease;
 }
-.vp-remove:hover {
-  transform: scale(1.15);
-  color: #dc2626;
-}
+.vp-remove:hover { transform: scale(1.15); color: #dc2626; }
 
 /* Subtotal */
 .carrito-subtotal {
@@ -200,96 +175,44 @@
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-  .carrito-page {
-    padding: 3rem 1rem 8rem;
-  }
-
-  .carrito-title {
-    font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-  }
+  .carrito-page { padding: 3rem 1rem 8rem; }
+  .carrito-title { font-size: 1.8rem; margin-bottom: 1.5rem; }
 
   .carrito-card {
-    display: flex;
     align-items: flex-start;
     gap: 12px;
     margin-bottom: 16px;
     padding: 16px;
     border-radius: 12px;
-    background: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
   .carrito-img {
-    width: 80px;
-    height: 80px;
-    flex-shrink: 0;
-    object-fit: contain;
-    border-radius: 8px;
+    width: 80px; height: 80px; border-radius: 8px;
   }
 
   .carrito-info {
-    flex: 1;
     min-width: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
     gap: 8px;
   }
 
-  .carrito-nombre {
-    font-size: 0.95rem;
-    margin-bottom: 0;
-    line-height: 1.3;
-    font-weight: 600;
-  }
-
-  .carrito-stock {
-    font-size: 0.8rem;
-    margin-bottom: 0;
-    color: #666;
-  }
+  .carrito-nombre { font-size: 0.95rem; line-height: 1.3; font-weight: 600; }
+  .carrito-stock { font-size: 0.8rem; color: #666; }
 
   .carrito-actions {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
     gap: 8px;
     margin-top: 8px;
   }
 
-  .carrito-qty-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .vp-qty-btn { width: 32px; height: 32px; font-size: 16px; border-radius: 6px; }
+  .vp-qty { min-width: 28px; font-size: 0.9rem; }
+  .vp-remove { font-size: 16px; }
 
-  .vp-qty-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
-    border-radius: 6px;
-  }
-
-  .vp-qty {
-    min-width: 28px;
-    font-size: 0.9rem;
-    text-align: center;
-  }
-
-  .vp-remove {
-    font-size: 16px;
-  }
-
-  .carrito-subtotal {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #2563eb;
-    white-space: nowrap;
-  }
+  .carrito-subtotal { font-size: 1rem; }
 }
 
-/* Footer con botón */
+/* Footer */
 .carrito-footer {
   margin-top: 2rem;
   display: flex;
@@ -300,105 +223,45 @@
 @media (max-width: 768px) {
   .carrito-footer {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin-top: 0;
-    padding: 16px;
-    background: transparent;
-    z-index: 40;
-  }
-}
-
-.carrito-pay-btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 0.9rem 1.8rem;
-  border-radius: 14px;
-  background: linear-gradient(to right, #101d32, #281788, #130d46);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.05rem;
-  cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.carrito-pay-btn:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
-}
-.carrito-pay-btn:active {
-  transform: scale(0.98);
-}
-
-.carrito-pay-btn .btn-text {
-  white-space: nowrap;
-  letter-spacing: -0.2px;
-}
-
-.icon-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.icon {
-  width: 22px;
-  height: 22px;
-}
-
-/* Animaciones suaves */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Ajuste responsivo del botón de pago */
-@media (max-width: 768px) {
-  .carrito-footer {
-    position: fixed;
-    bottom: 60px; /* 👈 espacio para el navbar inferior (ajusta si es más alto) */
+    bottom: 60px; /* ajusta según tu navbar inferior */
     left: 0;
     right: 0;
     padding: 0.75rem 1rem;
-    background: transparent; /* Sin fondo blanco */
-    backdrop-filter: none; /* Sin blur */
-    box-shadow: none; /* Sin sombra */
-    margin-top: 0; /* quitar el margen que tenías en desktop */
-    z-index: 50; /* que quede arriba del contenido */
-  }
-
-  .carrito-pay-btn {
-    width: 100%;
-    justify-content: center;
-    font-size: 1.1rem;
-    padding: 1rem;
-    border-radius: 12px;
+    background: transparent;
+    z-index: 50;
   }
 }
+
+/* Contenedor clickeable solo para setear el payload */
+.carrito-pay-wrap {
+  width: 100%;
+  max-width: 680px;
+}
+
+/* Botón de CardNet en NEGRO */
+.carrito-cardnet-btn {
+  display: inline-flex !important;
+  width: 100% !important;
+  justify-content: center !important;
+  background: #000 !important;
+  color: #fff !important;
+  border-radius: 14px !important;
+  padding: 0.9rem 1.4rem !important;
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
+  border: 1px solid rgba(0,0,0,0.85) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.18) !important;
+  transition: transform .25s ease, box-shadow .25s ease !important;
+}
+.carrito-cardnet-btn:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.28) !important;
+}
+.carrito-cardnet-btn:active {
+  transform: scale(0.98) !important;
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+@keyframes fadeInUp { from {opacity:0; transform: translateY(12px);} to {opacity:1; transform: translateY(0);} }
+@keyframes fadeInDown { from {opacity:0; transform: translateY(-12px);} to {opacity:1; transform: translateY(0);} }
