@@ -53,19 +53,18 @@
   display: none;
 }
 
-/* Tarjeta compacta y cuadrada */
+/* Tarjeta más pequeña y rectangular */
 .prl-card {
   flex: 0 0 auto;
   scroll-snap-align: start;
-  scroll-snap-stop: always;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  min-width: 42vw;
-  max-width: 320px;
+  min-width: 44vw;   /* más pequeña en móvil */
+  max-width: 260px;
   transition: transform .2s ease, box-shadow .2s ease;
   user-select: none;
 }
@@ -75,10 +74,10 @@
   box-shadow: var(--shadow-hover);
 }
 
-/* Imagen cuadrada */
+/* Imagen rectangular, bajita */
 .prl-imgbox {
-  aspect-ratio: 1 / 1;
-  background: #f8fafc;
+  aspect-ratio: 4 / 3;  /* más ancho que alto */
+  background: #fff;
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
   display: grid;
@@ -147,17 +146,21 @@
 
 /* Breakpoints */
 @media (max-width: 380px) {
-  .prl-card { min-width: 48vw; }
+  .prl-card { min-width: 50vw; }  /* más chiquitas aún */
 }
 
 @media (min-width: 640px) {
-  .prl-card { min-width: 28vw; }
+  .prl-card { min-width: 30vw; }
 }
 
 @media (min-width: 1024px) {
   .prl-card {
     min-width: 180px;
-    width: 200px;
+    width: 200px;   /* igual en desktop */
+  }
+
+  .prl-imgbox {
+    aspect-ratio: 4 / 3;  /* rectangular bajito */
   }
 
   .prl-arrow {
