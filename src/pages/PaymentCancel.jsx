@@ -18,9 +18,16 @@ function readCheckoutPayload() {
 export default function PaymentCancel() {
   const [searchParams] = useSearchParams();
   const { usuarioInfo } = useAuth();
-  const { carrito, vaciarCarrito } = useCarrito();
+  const { carrito } = useCarrito();
   const [saved, setSaved] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+
+  // Evita scroll en el body mientras esta vista está activa
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   useEffect(() => {
     const guardarCancelada = async () => {
@@ -28,12 +35,17 @@ export default function PaymentCancel() {
 
       const session = searchParams.get("session");
       const payload = readCheckoutPayload();
+
       const productos = payload?.items?.length
         ? payload.items
-        : carrito.map((p) => ({
-            id: p.id, nombre: p.nombre, precio: Number(p.precio) || 0, cantidad: p.cantidad,
+        : (carrito || []).map((p) => ({
+            id: p.id,
+            nombre: p.nombre,
+            precio: Number(p.precio) || 0,
+            cantidad: p.cantidad,
           }));
-      const total = payload?.total ?? carrito.reduce((acc, p) => acc + (Number(p.precio) || 0) * p.cantidad, 0);
+
+      const total = payload?.total ?? (carrito || []).reduce((acc, p) => acc + (Number(p.precio) || 0) * p.cantidad, 0);
 
       try {
         if (session) {
@@ -88,7 +100,7 @@ export default function PaymentCancel() {
       }
     };
 
-    const timer = setTimeout(guardarCancelada, 800);
+    const timer = setTimeout(guardarCancelada, 600);
     return () => clearTimeout(timer);
   }, [usuarioInfo, carrito, saved, searchParams]);
 
@@ -101,14 +113,16 @@ export default function PaymentCancel() {
 
   return (
     <motion.div 
-      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 px-3 sm:px-6 z-50 overflow-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-rose-50 via-red-50 to-pink-50 px-3 sm:px-6 overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.35 }}
+      role="dialog"
+      aria-modal="true"
     >
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(15)].map((_, i) => (
+      {/* Burbujas animadas de fondo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(16)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-3 h-3 bg-red-200 rounded-full opacity-20"
@@ -118,7 +132,7 @@ export default function PaymentCancel() {
               rotate: [0, 360]
             }}
             transition={{
-              duration: Math.random() * 15 + 15,
+              duration: Math.random() * 14 + 14,
               repeat: Infinity,
               ease: "linear"
             }}
@@ -132,38 +146,23 @@ export default function PaymentCancel() {
 
       <motion.div 
         className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-2xl w-full text-center relative overflow-hidden border border-white/30 my-4"
-        initial={{ scale: 0.8, y: 50 }}
+        initial={{ scale: 0.94, y: 28 }}
         animate={{ scale: 1, y: 0 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        transition={{ type: "spring", damping: 22, stiffness: 280 }}
       >
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-pink-500/5 rounded-3xl"></div>
-        
-        {/* Content */}
+        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-pink-500/5 rounded-3xl" />
+
         <div className="relative z-10">
-          {/* Main icon with animation */}
           <motion.div
             className="mb-8"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ 
-              type: "spring", 
-              damping: 15, 
-              stiffness: 300,
-              delay: 0.2 
-            }}
+            transition={{ type: "spring", damping: 16, stiffness: 300, delay: 0.15 }}
           >
             <motion.div
               className="relative inline-block"
-              animate={{ 
-                y: [0, -10, 0],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ 
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
+              animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
               <XCircle className="w-24 h-24 text-red-500 mx-auto drop-shadow-lg" />
               <motion.div
@@ -176,22 +175,20 @@ export default function PaymentCancel() {
             </motion.div>
           </motion.div>
 
-          {/* Title with gradient */}
           <motion.h1 
             className="text-4xl font-extrabold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-6"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
           >
             Pago cancelado
           </motion.h1>
 
-          {/* Description */}
           <motion.div
             className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.45 }}
           >
             <p className="text-gray-700 text-lg leading-relaxed mb-4">
               Tu transacción no pudo ser completada.
@@ -200,29 +197,26 @@ export default function PaymentCancel() {
               className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full border border-green-200"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.8, type: "spring" }}
+              transition={{ delay: 0.65, type: "spring" }}
             >
               <Shield className="w-4 h-4" />
               <span className="font-semibold">No se realizó ningún cargo a tu tarjeta</span>
             </motion.div>
           </motion.div>
 
-          {/* Possible reasons section */}
           <motion.div
             className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
+            transition={{ delay: 0.6 }}
           >
             <button
-              onClick={() => setShowDetails(!showDetails)}
+              onClick={() => setShowDetails(v => !v)}
               className="flex items-center gap-2 mx-auto text-gray-600 hover:text-gray-800 transition-colors"
+              type="button"
             >
               <span className="font-medium">¿Por qué falló mi pago?</span>
-              <motion.div
-                animate={{ rotate: showDetails ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div animate={{ rotate: showDetails ? 180 : 0 }} transition={{ duration: 0.25 }}>
                 <RefreshCw className="w-4 h-4" />
               </motion.div>
             </button>
@@ -234,31 +228,24 @@ export default function PaymentCancel() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.25 }}
                 >
                   {reasons.map((reason, index) => (
                     <motion.div
                       key={index}
                       className="bg-gray-50 rounded-xl p-4 border border-gray-200"
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -16 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ 
-                        scale: 1.02,
-                        backgroundColor: "#f8fafc"
-                      }}
+                      transition={{ delay: index * 0.08 }}
+                      whileHover={{ scale: 1.02, backgroundColor: "#f8fafc" }}
                     >
                       <div className="flex items-start gap-3">
                         <div className="p-2 bg-red-100 rounded-lg">
                           <reason.icon className="w-5 h-5 text-red-600" />
                         </div>
                         <div className="text-left">
-                          <h4 className="font-semibold text-gray-800 mb-1">
-                            {reason.title}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {reason.desc}
-                          </p>
+                          <h4 className="font-semibold text-gray-800 mb-1">{reason.title}</h4>
+                          <p className="text-sm text-gray-600">{reason.desc}</p>
                         </div>
                       </div>
                     </motion.div>
@@ -268,14 +255,13 @@ export default function PaymentCancel() {
             </AnimatePresence>
           </motion.div>
 
-          {/* Action buttons */}
           <motion.div 
             className="flex flex-col sm:flex-row gap-4 justify-center"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 }}
+            transition={{ delay: 0.8 }}
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/carrito"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
@@ -285,7 +271,7 @@ export default function PaymentCancel() {
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-700 rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
@@ -296,26 +282,24 @@ export default function PaymentCancel() {
             </motion.div>
           </motion.div>
 
-          {/* Help section */}
           <motion.div
             className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4 }}
+            transition={{ delay: 1.0 }}
           >
-            <h3 className="font-semibold text-blue-800 mb-2">
-              ¿Necesitas ayuda?
-            </h3>
+            <h3 className="font-semibold text-blue-800 mb-2">¿Necesitas ayuda?</h3>
             <p className="text-blue-700 text-sm">
               Si el problema persiste, contacta a nuestro equipo de soporte. 
               Estamos aquí para ayudarte a completar tu compra.
             </p>
-            <motion.button
-              className="mt-3 text-blue-600 font-semibold hover:text-blue-800 transition-colors"
-              whileHover={{ scale: 1.05 }}
+            <motion.a
+              href="/contacto"
+              className="mt-3 inline-block text-blue-600 font-semibold hover:text-blue-800 transition-colors"
+              whileHover={{ scale: 1.03 }}
             >
               Contactar soporte →
-            </motion.button>
+            </motion.a>
           </motion.div>
         </div>
       </motion.div>

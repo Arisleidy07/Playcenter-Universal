@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { CheckCircle, Star, Gift, Sparkles, Home, ShoppingCart, Download, Share2, Trophy, Zap } from "lucide-react";
+import { CheckCircle, Star, Gift, Sparkles, Home, Download, Trophy, Zap } from "lucide-react";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,13 @@ export default function PaymentSuccess() {
   const [status, setStatus] = useState(null);
   const [showConfetti, setShowConfetti] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
+
+  // Fullscreen: desactivar scroll del body
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   useEffect(() => {
     const session = searchParams.get("session");
@@ -42,44 +49,33 @@ export default function PaymentSuccess() {
 
     if (session) fetchData();
 
-    // Hide confetti after animation
     const confettiTimer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(confettiTimer);
   }, [searchParams]);
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("es-DO", {
-      style: "currency",
-      currency: "DOP",
-      minimumFractionDigits: 2,
-    }).format(amount || 0);
-  };
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP", minimumFractionDigits: 2 }).format(amount || 0);
 
   const formatDate = (fecha) => {
     if (!fecha) return "Fecha no disponible";
     let date;
-    if (typeof fecha === "object" && fecha.seconds) {
-      date = new Date(fecha.seconds * 1000);
-    } else {
-      date = new Date(fecha);
-    }
+    if (typeof fecha === "object" && fecha?.seconds) date = new Date(fecha.seconds * 1000);
+    else date = new Date(fecha);
     return date.toLocaleDateString("es-DO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
     });
   };
 
   return (
     <motion.div 
-      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-3 sm:px-6 z-50 overflow-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-3 sm:px-6 overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.35 }}
+      role="dialog"
+      aria-modal="true"
     >
-      {/* Confetti animation */}
+      {/* Confetti */}
       <AnimatePresence>
         {showConfetti && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -110,8 +106,8 @@ export default function PaymentSuccess() {
         )}
       </AnimatePresence>
 
-      {/* Floating elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      {/* Partículas */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
@@ -135,56 +131,36 @@ export default function PaymentSuccess() {
 
       <motion.div 
         className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-3xl w-full text-center relative overflow-hidden border border-white/30 my-4"
-        initial={{ scale: 0.8, y: 50 }}
+        initial={{ scale: 0.94, y: 28 }}
         animate={{ scale: 1, y: 0 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        transition={{ type: "spring", damping: 22, stiffness: 280 }}
       >
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-3xl" />
         
-        {/* Content */}
         <div className="relative z-10">
-          {/* Success icon with celebration */}
+          {/* Icono success */}
           <motion.div
             className="mb-8"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ 
-              type: "spring", 
-              damping: 15, 
-              stiffness: 300,
-              delay: 0.2 
-            }}
+            transition={{ type: "spring", damping: 16, stiffness: 300, delay: 0.15 }}
           >
             <motion.div
               className="relative inline-block"
-              animate={{ 
-                y: [0, -10, 0],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ 
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
+              animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
               <CheckCircle className="w-28 h-28 text-green-500 mx-auto drop-shadow-lg" />
               <motion.div
                 className="absolute -top-3 -right-3 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center"
-                animate={{ 
-                  scale: [1, 1.3, 1],
-                  rotate: [0, 15, -15, 0]
-                }}
+                animate={{ scale: [1, 1.25, 1], rotate: [0, 12, -12, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
                 <Trophy className="w-5 h-5 text-yellow-600" />
               </motion.div>
               <motion.div
                 className="absolute -bottom-2 -left-2 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center"
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.7, 1, 0.7]
-                }}
+                animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
               >
                 <Sparkles className="w-4 h-4 text-green-600" />
@@ -192,18 +168,16 @@ export default function PaymentSuccess() {
             </motion.div>
           </motion.div>
 
-          {/* Title with celebration */}
+          {/* Título */}
           <motion.div
             className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
           >
             <motion.h1 
               className="text-5xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-4"
-              animate={{ 
-                scale: [1, 1.05, 1]
-              }}
+              animate={{ scale: [1, 1.04, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
               ¡Pago exitoso!
@@ -212,15 +186,10 @@ export default function PaymentSuccess() {
               className="flex items-center justify-center gap-2 mb-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.5 }}
             >
               {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.8 + i * 0.1, type: "spring" }}
-                >
+                <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.7 + i * 0.08, type: "spring" }}>
                   <Star className="w-6 h-6 text-yellow-400 fill-current" />
                 </motion.div>
               ))}
@@ -229,20 +198,20 @@ export default function PaymentSuccess() {
               className="text-gray-700 text-lg leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
+              transition={{ delay: 0.9 }}
             >
               Tu transacción fue procesada correctamente.<br />
               ¡Gracias por tu compra en <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">PlayCenter Universal</span>!
             </motion.p>
           </motion.div>
 
-          {/* Order summary card */}
+          {/* Resumen de compra */}
           {order ? (
             <motion.div
               className="mb-8"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
+              transition={{ delay: 1.0 }}
             >
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
                 <div className="flex items-center justify-between mb-6">
@@ -250,10 +219,7 @@ export default function PaymentSuccess() {
                     <Gift className="w-6 h-6 text-green-600" />
                     Resumen de tu compra
                   </h3>
-                  <motion.div
-                    className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold"
-                    whileHover={{ scale: 1.05 }}
-                  >
+                  <motion.div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold" whileHover={{ scale: 1.05 }}>
                     ✓ Completado
                   </motion.div>
                 </div>
@@ -295,14 +261,12 @@ export default function PaymentSuccess() {
                 {order.productos?.length > 0 && (
                   <div>
                     <button
-                      onClick={() => setShowDetails(!showDetails)}
+                      onClick={() => setShowDetails(v => !v)}
                       className="flex items-center gap-2 text-green-600 hover:text-green-800 font-medium mb-4 transition-colors"
+                      type="button"
                     >
                       <span>Ver productos ({order.productos.length})</span>
-                      <motion.div
-                        animate={{ rotate: showDetails ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
+                      <motion.div animate={{ rotate: showDetails ? 180 : 0 }} transition={{ duration: 0.25 }}>
                         ▼
                       </motion.div>
                     </button>
@@ -314,15 +278,15 @@ export default function PaymentSuccess() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
+                          transition={{ duration: 0.25 }}
                         >
                           {order.productos.map((p, i) => (
                             <motion.div
-                              key={i}
+                              key={`${p.id}-${i}`}
                               className="flex items-center justify-between bg-white rounded-xl p-4 border border-green-100"
-                              initial={{ opacity: 0, x: -20 }}
+                              initial={{ opacity: 0, x: -16 }}
                               animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: i * 0.1 }}
+                              transition={{ delay: i * 0.06 }}
                               whileHover={{ scale: 1.02 }}
                             >
                               <div className="flex items-center gap-3">
@@ -337,7 +301,7 @@ export default function PaymentSuccess() {
                                 </div>
                               </div>
                               <span className="font-bold text-green-600">
-                                {formatCurrency(p.cantidad * p.precio)}
+                                {formatCurrency((Number(p.precio) || 0) * p.cantidad)}
                               </span>
                             </motion.div>
                           ))}
@@ -350,14 +314,14 @@ export default function PaymentSuccess() {
             </motion.div>
           ) : null}
 
-          {/* Action buttons */}
+          {/* Botones */}
           <motion.div 
             className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4 }}
+            transition={{ delay: 1.2 }}
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
@@ -367,7 +331,7 @@ export default function PaymentSuccess() {
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/profile"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-700 rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
@@ -378,16 +342,15 @@ export default function PaymentSuccess() {
             </motion.div>
           </motion.div>
 
-
-          {/* Technical details (collapsed by default) */}
+          {/* Detalles técnicos */}
           {status && (
             <motion.details
-              className="mt-8 text-left"
+              className="mt-2 text-left"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 2 }}
+              transition={{ delay: 1.6 }}
             >
-              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium mb-4">
+              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium mb-2">
                 Detalles técnicos de la transacción
               </summary>
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 max-h-64 overflow-y-auto">

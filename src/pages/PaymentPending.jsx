@@ -5,7 +5,7 @@ import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import { useCarrito } from "../context/CarritoContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, XCircle, Clock, CreditCard, Shield, Zap } from "lucide-react";
+import { CheckCircle, Clock, CreditCard, Shield, Zap } from "lucide-react";
 import "../styles/PaymentLoader.css";
 
 const API_BASE = import.meta.env.DEV ? "" : "https://playcenter-universal.onrender.com";
@@ -28,21 +28,28 @@ export default function PaymentPending() {
   const [step, setStep] = useState(1);
   const [progress, setProgress] = useState(0);
 
+  // Fullscreen: desactivar scroll del body
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   useEffect(() => {
     const session = searchParams.get("session");
     const payload = readCheckoutPayload(); // { mode, items, total }
 
-    // Animación de progreso
+    // Animación de progreso incremental
     const progressTimer = setInterval(() => {
       setProgress(prev => {
         if (prev >= 90) return prev;
-        return prev + Math.random() * 15;
+        return Math.min(90, prev + Math.random() * 15);
       });
     }, 200);
 
     // Animación de pasos
-    const stepTimer = setTimeout(() => setStep(2), 1000);
-    const stepTimer2 = setTimeout(() => setStep(3), 1800);
+    const stepTimer = setTimeout(() => setStep(2), 900);
+    const stepTimer2 = setTimeout(() => setStep(3), 1600);
 
     const verificar = async () => {
       try {
@@ -62,7 +69,6 @@ export default function PaymentPending() {
         const res = await fetch(`${API_BASE}/cardnet/verify/${session}/${sk}`);
         const data = await res.json();
 
-        // Determinar fuente de productos/total con información completa:
         const productos = payload?.items?.length
           ? payload.items.map(item => ({
               id: item.id,
@@ -73,7 +79,7 @@ export default function PaymentPending() {
               empresa: item.empresa || 'N/A',
               subtotal: (Number(item.precio) || 0) * item.cantidad
             }))
-          : carrito.map((p) => ({
+          : (carrito || []).map((p) => ({
               id: p.id,
               nombre: p.nombre,
               precio: Number(p.precio) || 0,
@@ -85,7 +91,7 @@ export default function PaymentPending() {
 
         const total =
           payload?.total ??
-          carrito.reduce((acc, item) => acc + (Number(item.precio) || 0) * item.cantidad, 0);
+          (carrito || []).reduce((acc, item) => acc + (Number(item.precio) || 0) * item.cantidad, 0);
 
         const orderData = {
           userId: usuario?.uid || null,
@@ -95,8 +101,8 @@ export default function PaymentPending() {
           productos,
           total,
           subtotal: productos.reduce((acc, item) => acc + item.subtotal, 0),
-          impuestos: 0, // Agregar si es necesario
-          envio: 0, // Agregar si es necesario
+          impuestos: 0,
+          envio: 0,
           estado: data?.ResponseCode === "00" ? "completado" : "cancelado",
           estadoPago: data?.ResponseCode === "00" ? "pagado" : "fallido",
           metodoPago: "CardNet",
@@ -116,7 +122,6 @@ export default function PaymentPending() {
           console.error("❌ Error guardando orden:", err);
         }
 
-        // Limpieza de estado de checkout
         try { sessionStorage.removeItem("checkoutPayload"); } catch {}
 
         setProgress(100);
@@ -124,13 +129,12 @@ export default function PaymentPending() {
 
         setTimeout(() => {
           if (data?.ResponseCode === "00") {
-            // vaciamos carrito sólo si el pago venía del carrito
             if ((payload?.mode || "cart") === "cart") vaciarCarrito();
             navigate(`/payment/success?session=${session}`);
           } else {
             navigate(`/payment/cancel?session=${session}`);
           }
-        }, 1000);
+        }, 900);
       } catch (err) {
         console.error("❌ Error verificando pago:", err);
         navigate("/payment/cancel");
@@ -138,8 +142,7 @@ export default function PaymentPending() {
     };
 
     if (session) {
-      // máximo 10s para mostrar loader antes de verificar
-      const timer = setTimeout(verificar, 10000);
+      const timer = setTimeout(verificar, 9000);
       return () => {
         clearTimeout(timer);
         clearInterval(progressTimer);
@@ -160,13 +163,15 @@ export default function PaymentPending() {
 
   return (
     <motion.div 
-      className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-3 sm:px-6 z-50 overflow-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-3 sm:px-6 overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.35 }}
+      role="dialog"
+      aria-modal="true"
     >
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      {/* Partículas de fondo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
@@ -176,7 +181,7 @@ export default function PaymentPending() {
               y: [Math.random() * window.innerHeight, Math.random() * window.innerHeight],
             }}
             transition={{
-              duration: Math.random() * 10 + 10,
+              duration: Math.random() * 12 + 12,
               repeat: Infinity,
               ease: "linear"
             }}
@@ -190,16 +195,14 @@ export default function PaymentPending() {
 
       <motion.div 
         className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-2xl w-full text-center relative overflow-hidden border border-white/30 my-4"
-        initial={{ scale: 0.8, y: 50 }}
+        initial={{ scale: 0.94, y: 28 }}
         animate={{ scale: 1, y: 0 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        transition={{ type: "spring", damping: 22, stiffness: 280 }}
       >
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl sm:rounded-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl sm:rounded-3xl" />
         
-        {/* Content */}
         <div className="relative z-10">
-          {/* Progress bar */}
+          {/* Barra de progreso */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <span className="text-sm font-medium text-gray-600">Progreso</span>
@@ -215,17 +218,17 @@ export default function PaymentPending() {
             </div>
           </div>
 
-          {/* Steps */}
+          {/* Pasos */}
           <div className="mb-8">
             <AnimatePresence mode="wait">
               {steps.map((stepData) => (
                 step >= stepData.id && (
                   <motion.div
                     key={stepData.id}
-                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                    initial={{ opacity: 0, y: 16, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                    transition={{ duration: 0.4, type: "spring" }}
+                    exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                    transition={{ duration: 0.35, type: "spring" }}
                     className={`flex items-center gap-4 p-4 rounded-2xl mb-3 ${
                       step === stepData.id 
                         ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200' 
@@ -238,10 +241,7 @@ export default function PaymentPending() {
                           ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' 
                           : 'bg-green-100 text-green-600'
                       }`}
-                      animate={step === stepData.id ? {
-                        scale: [1, 1.1, 1],
-                        rotate: [0, 5, -5, 0]
-                      } : {}}
+                      animate={step === stepData.id ? { scale: [1, 1.08, 1], rotate: [0, 5, -5, 0] } : {}}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
                       <stepData.icon className="w-6 h-6" />
@@ -251,11 +251,7 @@ export default function PaymentPending() {
                       <p className="text-gray-600 text-sm">{stepData.description}</p>
                     </div>
                     {step > stepData.id && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="text-green-500"
-                      >
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-green-500">
                         <CheckCircle className="w-6 h-6" />
                       </motion.div>
                     )}
@@ -265,7 +261,7 @@ export default function PaymentPending() {
             </AnimatePresence>
           </div>
 
-          {/* Main loader */}
+          {/* Loader visual */}
           <div className="mb-8">
             <div className="loader mx-auto">
               <div className="loader__bar"></div>
@@ -277,10 +273,10 @@ export default function PaymentPending() {
             </div>
           </div>
 
-          {/* Title and description */}
+          {/* Título y descripción */}
           <motion.h1 
             className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4"
-            animate={{ opacity: [0.8, 1, 0.8] }}
+            animate={{ opacity: [0.85, 1, 0.85] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             Procesando tu pago
@@ -290,52 +286,28 @@ export default function PaymentPending() {
             className="text-gray-600 mb-8 leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.4 }}
           >
             Estamos verificando tu transacción con CardNet de forma segura.<br />
             <span className="font-semibold text-blue-600">Por favor, no cierres esta ventana.</span>
           </motion.p>
 
-          {/* Security badges */}
+          {/* Badges */}
           <motion.div 
             className="flex justify-center items-center gap-4 text-sm text-gray-500"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
+            transition={{ delay: 0.6 }}
           >
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-green-500" />
               <span>Conexión segura</span>
             </div>
-            <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+            <div className="w-1 h-1 bg-gray-300 rounded-full" />
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-500" />
               <span>Tiempo real</span>
             </div>
-          </motion.div>
-
-          {/* Animated dots */}
-          <motion.div 
-            className="flex items-center justify-center space-x-2 mt-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.5, 1, 0.5]
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.2
-                }}
-              />
-            ))}
           </motion.div>
         </div>
       </motion.div>
