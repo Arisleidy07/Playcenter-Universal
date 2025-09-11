@@ -75,6 +75,8 @@
   padding: 8px;
   margin-bottom: 14px;
   display: flex; justify-content: center; align-items: center;
+  position: relative; /* para el recuadro de zoom */
+  overflow: visible;
 }
 .vp-main-image {
   width: 100%; max-height: 500px;
@@ -84,6 +86,36 @@
   cursor: pointer;
 }
 .vp-main-image:hover { transform: scale(1.01); }
+
+/* Contenedor que habilita el zoom (no cambia layout) */
+.vp-image-zoom-wrap {
+  overflow: visible;
+}
+
+/* ===========================
+   RECUADRO ZOOM (desktop)
+=========================== */
+.vp-zoom-pane {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .vp-zoom-pane {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: calc(100% + 16px); /* a la derecha de la imagen */
+    width: 420px;
+    height: 420px;
+    border-radius: 12px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    pointer-events: none;
+    z-index: 10;
+  }
+}
 
 /* ===========================
    MINIATURAS
@@ -135,6 +167,10 @@
 .vp-back-fab:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+/* En móvil baja la flecha para que nunca quede debajo del TopBar */
+@media (max-width: 1023.98px) {
+  .vp-back-fab { top: 72px; }
 }
 
 /* ===========================
@@ -325,7 +361,7 @@
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw; height: 100vh;
   background: rgba(0,0,0,0.95);
-  z-index: 99999;
+  z-index: 2147483646; /* cubre headers, admin panel y cualquier overlay */
   display: flex; align-items: center; justify-content: center;
   backdrop-filter: blur(5px);
 }
@@ -341,7 +377,7 @@
   border: none; border-radius: 50%;
   width: 50px; height: 50px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 100001;
+  cursor: pointer; z-index: 2147483647;
   transition: all 0.2s ease;
   color: #333;
 }

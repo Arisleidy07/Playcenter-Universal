@@ -45,6 +45,14 @@ function VistaProducto() {
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
 
+  // ---------- ZOOM (desktop) ----------
+  const imgWrapRef = useRef(null);
+  const mainImgRef = useRef(null);
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomBg, setZoomBg] = useState("");
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [zoomBgSize, setZoomBgSize] = useState({ w: 200, h: 200 }); // % tamaño fondo
+
   let producto = null;
   for (const categoria of productosAll) {
     const encontrado = categoria.productos.find((p) => p.id === id);
@@ -166,6 +174,42 @@ function VistaProducto() {
     touchDeltaX.current = 0;
   };
 
+  // ---------- Handlers ZOOM (desktop) ----------
+  const handleMouseEnter = () => {
+    if (window.innerWidth < 1024) return; // solo desktop
+    const url = imagenesParaGaleria[imagenActualIndex];
+    setZoomBg(url);
+    // intenta estimar el tamaño de fondo para mayor detalle:
+    const imgEl = mainImgRef.current;
+    if (imgEl && imgEl.naturalWidth && imgEl.clientWidth) {
+      const scale = Math.max(
+        2,
+        Math.min(4, imgEl.naturalWidth / imgEl.clientWidth)
+      );
+      setZoomBgSize({ w: scale * 100, h: scale * 100 });
+    } else {
+      setZoomBgSize({ w: 200, h: 200 });
+    }
+    setIsZooming(true);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isZooming || window.innerWidth < 1024) return;
+    const wrap = imgWrapRef.current;
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setIsZooming(false);
+  };
+
   return (
     <>
       {/* Barra superior */}
@@ -181,7 +225,8 @@ function VistaProducto() {
         </button>
       </div>
 
-      <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-1 lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
+      {/* ↑ En móvil ahora dejamos espacio suficiente para que nada quede bajo el TopBar */}
+      <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-[30px] lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
         <section className="max-w-7xl w-full flex flex-col lg:flex-row gap-8 lg:gap-12 overflow-visible">
           {/* Columna Izquierda */}
           <motion.div className="relative flex flex-col items-center w-full lg:w-1/2 overflow-visible">
@@ -194,14 +239,33 @@ function VistaProducto() {
               <FaArrowLeft size={18} />
             </button>
 
-            {/* Imagen grande */}
-            <div className="vp-image-container">
+            {/* Imagen grande + contenedor con soporte de zoom (desktop) */}
+            <div
+              className="vp-image-container vp-image-zoom-wrap"
+              ref={imgWrapRef}
+              onMouseEnter={handleMouseEnter}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+            >
               <img
+                ref={mainImgRef}
                 src={imagenesParaGaleria[imagenActualIndex]}
                 alt={producto.nombre}
                 className="vp-main-image"
                 onClick={() => abrirImagenModal(imagenActualIndex)}
               />
+
+              {/* Recuadro de zoom a la derecha (solo desktop) */}
+              {isZooming && (
+                <div
+                  className="vp-zoom-pane"
+                  style={{
+                    backgroundImage: `url(${zoomBg})`,
+                    backgroundSize: `${zoomBgSize.w}% ${zoomBgSize.h}%`,
+                    backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+                  }}
+                />
+              )}
             </div>
 
             {/* Miniaturas debajo */}
