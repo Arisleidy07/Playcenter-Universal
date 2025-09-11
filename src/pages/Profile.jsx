@@ -447,154 +447,113 @@ function HistorialSection({ historial }) {
       </motion.div>
 
       {/* Modal de detalles */}
-      <AnimatePresence>
-        {selectedOrder && (
-          <motion.div
-            className="order-modal-overlay-beautiful"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+{/* Modal de detalles FULLSCREEN en móvil */}
+<AnimatePresence>
+  {selectedOrder && (
+    <motion.div
+      className="order-modal-overlay-beautiful"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={() => setSelectedOrder(null)}
+    >
+      <motion.div
+        className="order-modal-beautiful"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header-beautiful">
+          <div className="modal-title-section">
+            <h3 className="modal-title">
+              {selectedOrder.numeroOrden ||
+                `Orden #${selectedOrder.id.slice(-8)}`}
+            </h3>
+            <div className="modal-subtitle">Detalles de tu compra</div>
+          </div>
+          <button
+            className="close-modal-beautiful"
             onClick={() => setSelectedOrder(null)}
           >
-            <motion.div
-              className="order-modal-beautiful"
-              initial={{ scale: 0.8, opacity: 0, y: 50 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 50 }}
-              onClick={(e) => e.stopPropagation()}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            >
-              <motion.div
-                className="modal-header-beautiful"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="modal-title-section">
-                  <h3 className="modal-title">
-                    {selectedOrder.numeroOrden ||
-                      `Orden #${selectedOrder.id.slice(-8)}`}
-                  </h3>
-                  <div className="modal-subtitle">Detalles de tu compra</div>
-                </div>
-                <motion.button
-                  className="close-modal-beautiful"
-                  onClick={() => setSelectedOrder(null)}
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="Cerrar"
-                >
-                  ×
-                </motion.button>
-              </motion.div>
+            ×
+          </button>
+        </div>
 
-              <motion.div
-                className="modal-content-beautiful"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="order-summary-beautiful">
-                  <div className="summary-card">
-                    <div className="summary-item">
-                      <span className="summary-label">
-                        <Calendar size={14} /> Fecha
-                      </span>
-                      <span className="summary-value">
-                        {formatOrderDate(selectedOrder.fecha)}
-                      </span>
-                    </div>
-                    <div className="summary-item">
-                      <span className="summary-label">
-                        <ShoppingBag size={14} /> Estado
-                      </span>
-                      <span
-                        className={`summary-status ${
-                          getStatusConfig(selectedOrder.estado).color
-                        }`}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
-                      >
-                        {(() => {
-                          const SIcon =
-                            getStatusConfig(selectedOrder.estado).Icon;
-                          return <SIcon size={14} />;
-                        })()}
-                        {getStatusConfig(selectedOrder.estado).text}
-                      </span>
-                    </div>
-                    <div className="summary-item">
-                      <span className="summary-label">
-                        <CircleDollarSign size={14} /> Total
-                      </span>
-                      <span className="summary-total">
-                        {formatCurrency(selectedOrder.total)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+        <div className="modal-content-beautiful">
+          {/* Resumen */}
+          <div className="order-summary-beautiful">
+            <div className="summary-card">
+              <div className="summary-item">
+                <span className="summary-label">
+                  <Calendar size={14} /> Fecha
+                </span>
+                <span className="summary-value">
+                  {new Date(
+                    selectedOrder.fecha?.seconds
+                      ? selectedOrder.fecha.seconds * 1000
+                      : selectedOrder.fecha
+                  ).toLocaleString("es-DO")}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">
+                  <ShoppingBag size={14} /> Estado
+                </span>
+                <span className="summary-status">
+                  {selectedOrder.estado}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">
+                  <CircleDollarSign size={14} /> Total
+                </span>
+                <span className="summary-total">
+                  DOP{" "}
+                  {new Intl.NumberFormat("es-DO").format(
+                    selectedOrder.total
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
 
-                <motion.div
-                  className="products-list-beautiful"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+          {/* Productos */}
+          <div className="products-grid-modal">
+            {selectedOrder.productos?.map((producto, idx) => (
+              <div key={idx} className="product-item-beautiful">
+                <div className="product-info-modal">
+                  <span className="product-name-modal">
+                    {producto.nombre}
+                  </span>
+                  <span className="product-details-modal">
+                    {producto.cantidad} × DOP{" "}
+                    {new Intl.NumberFormat("es-DO").format(producto.precio)}
+                  </span>
+                </div>
+                <div className="product-subtotal-beautiful">
+                  DOP{" "}
+                  {new Intl.NumberFormat("es-DO").format(
+                    producto.cantidad * producto.precio
+                  )}
+                </div>
+                <button
+                  className="btn-view-product-modal"
+                  onClick={() =>
+                    (window.location.href = `/producto/${producto.id}`)
+                  }
                 >
-                  <h4 className="products-title">Productos comprados</h4>
-                  <div className="products-grid-modal">
-                    {selectedOrder.productos?.map((producto, idx) => (
-                      <motion.div
-                        key={idx}
-                        className="product-item-beautiful"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 + idx * 0.1 }}
-                        whileHover={{
-                          scale: 1.02,
-                          backgroundColor: "#f8fafc",
-                        }}
-                      >
-                        <div className="product-image-modal" aria-hidden>
-                          <Package size={20} />
-                        </div>
-                        <div className="product-info-modal">
-                          <span className="product-name-modal">
-                            {producto.nombre}
-                          </span>
-                          <span className="product-details-modal">
-                            {producto.cantidad} ×{" "}
-                            {formatCurrency(producto.precio)}
-                          </span>
-                        </div>
-                        <div className="product-subtotal-beautiful">
-                          {formatCurrency(
-                            producto.cantidad * producto.precio
-                          )}
-                        </div>
-                        {producto?.id && (
-                          <button
-                            className="btn-view-product-modal"
-                            onClick={() =>
-                              (window.location.href = `/producto/${producto.id}`)
-                            }
-                            title="Ver producto"
-                          >
-                            <Eye size={16} />
-                            Ver producto
-                          </button>
-                        )}
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  <Eye size={16} /> Ver producto
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
     </>
   );
 }

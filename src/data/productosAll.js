@@ -3041,7 +3041,7 @@ const productosAll = [
           cantidad: 1,
         },
       ],
-      videoUrl:"",
+      videoUrl: "https://tulinkalvideo.mp4",
       imagenesExtra: [
         "/Productos/",
         "/Productos/",

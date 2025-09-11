@@ -181,38 +181,47 @@ function VistaProducto() {
         </button>
       </div>
 
-      {/* Botón de regreso móvil debajo del topbar */}
-      <div className="lg:hidden w-full px-4 pt-2 pb-1">
-        <button className="vp-icon-btn" onClick={onBack} aria-label="Volver">
-          <FaArrowLeft size={16} />
-        </button>
-      </div>
-
       <main className="min-h-screen bg-white px-3 sm:px-4 pb-16 pt-1 lg:pt-20 text-gray-800 flex flex-col items-center overflow-visible">
         <section className="max-w-7xl w-full flex flex-col lg:flex-row gap-8 lg:gap-12 overflow-visible">
           {/* Columna Izquierda */}
           <motion.div className="relative flex flex-col items-center w-full lg:w-1/2 overflow-visible">
-            {/* Botón de regreso para desktop */}
+            {/* Botón de regreso para desktop y móvil */}
             <button
-              className="vp-back-fab hidden lg:block"
+              className="vp-back-fab"
               onClick={onBack}
               aria-label="Volver"
             >
-              <FaArrowLeft size={16} />
+              <FaArrowLeft size={18} />
             </button>
-            <div className="absolute right-2 top-2 z-10">{/* comparte */}</div>
 
-            <div
-              className="vp-gallery"
-              /* el contenedor permite swipe nativo (overflow-x) en móvil */
-            >
-              <GaleriaImagenes
-                imagenes={imagenesParaGaleria}
+            {/* Imagen grande */}
+            <div className="vp-image-container">
+              <img
+                src={imagenesParaGaleria[imagenActualIndex]}
                 alt={producto.nombre}
-                onImageClick={abrirImagenModal}
+                className="vp-main-image"
+                onClick={() => abrirImagenModal(imagenActualIndex)}
               />
             </div>
 
+            {/* Miniaturas debajo */}
+            {imagenesParaGaleria.length > 1 && (
+              <div className="vp-gallery-thumbs">
+                {imagenesParaGaleria.map((imagen, index) => (
+                  <button
+                    key={index}
+                    className={`vp-thumb-btn ${
+                      index === imagenActualIndex ? "active" : ""
+                    }`}
+                    onClick={() => setImagenActualIndex(index)}
+                  >
+                    <img src={imagen} alt={`${producto.nombre} ${index + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Variantes */}
             {variantesConColor && variantesConColor.length > 1 && (
               <div className="vp-variants">
                 {variantesConColor.map((variante, i) => {
@@ -389,11 +398,11 @@ function VistaProducto() {
           />
         </div>
 
-        {/* Videos + extras */}
+        {/* Videos + extras (SIEMPRE visibles) */}
         <section className="max-w-7xl w-full mt-12 px-1 sm:px-2">
           <h2 className="vp-section-title">Más Información del Producto</h2>
 
-          {producto.videoUrls?.length > 0 ? (
+          {producto.videoUrls?.length > 0 && (
             <div className="vp-video-carousel">
               {producto.videoUrls.map((url, i) => (
                 <div key={i} className="vp-video-card">
@@ -406,7 +415,8 @@ function VistaProducto() {
                 </div>
               ))}
             </div>
-          ) : producto.videoUrl ? (
+          )}
+          {producto.videoUrl && (
             <div className="vp-video-single">
               <video
                 src={producto.videoUrl}
@@ -415,7 +425,7 @@ function VistaProducto() {
                 preload="metadata"
               />
             </div>
-          ) : null}
+          )}
 
           {producto.imagenesExtra?.length > 0 && (
             <div className="vp-extras-grid">
@@ -450,7 +460,7 @@ function VistaProducto() {
               <FaTimes size={24} />
             </button>
 
-            {/* Galería de miniaturas (AHORA ARRIBA) */}
+            {/* Miniaturas arriba del modal */}
             {imagenesParaGaleria.length > 1 && (
               <div className="imagen-modal-thumbnails">
                 {imagenesParaGaleria.map((imagen, index) => (
@@ -470,7 +480,7 @@ function VistaProducto() {
               </div>
             )}
 
-            {/* Imagen principal (con swipe touch) */}
+            {/* Imagen principal */}
             <div
               className="imagen-modal-main"
               onClick={(e) => e.stopPropagation()}
@@ -485,32 +495,6 @@ function VistaProducto() {
                 draggable={false}
               />
             </div>
-
-            {/* Navegación con flechas (DESACTIVADA, no se renderiza) */}
-            {false && imagenesParaGaleria.length > 1 && (
-              <>
-                <button
-                  className="imagen-modal-nav prev"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    anteriorImagen();
-                  }}
-                  aria-label="Imagen anterior"
-                >
-                  ‹
-                </button>
-                <button
-                  className="imagen-modal-nav next"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    siguienteImagen();
-                  }}
-                  aria-label="Siguiente imagen"
-                >
-                  ›
-                </button>
-              </>
-            )}
           </div>
         </div>
       )}
