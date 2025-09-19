@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
-import productosAll from "../data/productosAll.js";
+import { useProductSearch } from "../hooks/useProducts";
 
 const SearchBar = forwardRef(
   ({ onClose, placeholder = "Buscar en pcu.com.do" }, ref) => {
@@ -10,20 +10,8 @@ const SearchBar = forwardRef(
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
 
-    const todosProductos = productosAll.flatMap((cat) => cat.productos);
-
-    const filtrarProductos = (texto) => {
-      if (!texto.trim()) return [];
-      const textoLower = texto.toLowerCase();
-
-      return todosProductos.filter((producto) => {
-        const nombreLower = producto.nombre.toLowerCase();
-        const empresaLower = (producto.empresa || "").toLowerCase();
-        return (
-          nombreLower.includes(textoLower) || empresaLower.includes(textoLower)
-        );
-      });
-    };
+    // Firestore-backed search (debounced inside the hook)
+    const { results, loading } = useProductSearch(busqueda);
 
     useEffect(() => {
       if (!busqueda.trim()) {
@@ -31,14 +19,9 @@ const SearchBar = forwardRef(
         setMostrarResultados(false);
         return;
       }
-      const delay = setTimeout(() => {
-        const filtrados = filtrarProductos(busqueda);
-        setResultados(filtrados);
-        setMostrarResultados(true);
-      }, 250);
-
-      return () => clearTimeout(delay);
-    }, [busqueda]);
+      setResultados(results);
+      setMostrarResultados(true);
+    }, [busqueda, results]);
 
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -90,9 +73,15 @@ const SearchBar = forwardRef(
           </button>
         </form>
 
-        {mostrarResultados && resultados.length > 0 && (
+        {mostrarResultados && (
           <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-md max-h-72 overflow-y-auto">
-            {resultados.map((item) => (
+            {loading && (
+              <li className="px-4 py-3 text-sm text-gray-500">Buscando...</li>
+            )}
+            {!loading && resultados.length === 0 && (
+              <li className="px-4 py-3 text-sm text-gray-500">Sin resultados</li>
+            )}
+            {!loading && resultados.map((item) => (
               <li
                 key={item.id}
                 onClick={() => handleClickResultado(item)}

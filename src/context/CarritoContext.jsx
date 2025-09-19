@@ -18,27 +18,60 @@ export const CarritoProvider = ({ children }) => {
     localStorage.setItem("carrito", JSON.stringify(carrito));
   }, [carrito]);
 
+  // Normalizar carrito existente: calcular y rellenar maxStock cuando falte
+  useEffect(() => {
+    setCarrito((prev) =>
+      prev.map((item) => {
+        if (item.maxStock !== undefined) return item;
+        // Intentar por variante seleccionada
+        if (Array.isArray(item.variantes) && item.colorSeleccionado) {
+          const v = item.variantes.find((va) => va.color === item.colorSeleccionado);
+          if (v && v.cantidad !== undefined) {
+            return { ...item, maxStock: Number(v.cantidad) || 0 };
+          }
+        }
+        // Intentar por cantidad del producto si existe en el item
+        if (item.cantidadProducto !== undefined) {
+          const val = Number(item.cantidadProducto);
+          if (!Number.isNaN(val)) return { ...item, maxStock: val };
+        }
+        // Dejar sin maxStock si no podemos inferir (se tratará como infinito)
+        return item;
+      })
+    );
+    // Solo a la carga inicial
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Guardar favoritos en localStorage
   useEffect(() => {
     localStorage.setItem("favoritos", JSON.stringify(favoritos));
   }, [favoritos]);
 
-  // 🚨 Validación con stock máximo
-  const agregarAlCarrito = (producto) => {
+  // 🚨 Validación con stock máximo (soporta variantes por color)
+  const agregarAlCarrito = (producto, colorSeleccionado = null) => {
     setCarrito((prev) => {
-      const existe = prev.find((item) => item.id === producto.id);
+      // Identificar variante seleccionada (si aplica)
+      const variante = colorSeleccionado && Array.isArray(producto.variantes)
+        ? producto.variantes.find(v => v.color === colorSeleccionado)
+        : null;
 
-      // Buscar stock disponible: primero en variante, luego en producto.cantidad
-      const stockDisponible =
-        producto.cantidad ??
-        producto.variantes?.[0]?.cantidad ??
+      // Determinar el stock máximo permitido para esta línea (variante o producto)
+      const stockMaxCalculado =
+        (variante && Number(variante.cantidad)) ??
+        (producto.maxStock !== undefined ? Number(producto.maxStock) : undefined) ??
+        (producto.cantidad !== undefined ? Number(producto.cantidad) : undefined) ??
+        (producto.variantes?.[0]?.cantidad !== undefined ? Number(producto.variantes?.[0]?.cantidad) : undefined) ??
         Infinity;
 
+      // Buscar en carrito por id y, si aplica, mismo color
+      const existe = prev.find((item) => item.id === producto.id && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null));
+
       if (existe) {
-        // Si ya existe en carrito, verificar que no pase del stock
-        if (existe.cantidad < stockDisponible) {
+        const tope = (existe.maxStock !== undefined ? Number(existe.maxStock) : stockMaxCalculado);
+        if (existe.cantidad < tope) {
           return prev.map((item) =>
-            item.id === producto.id
+            item.id === producto.id && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null)
               ? { ...item, cantidad: item.cantidad + 1 }
               : item
           );
@@ -46,20 +79,27 @@ export const CarritoProvider = ({ children }) => {
         return prev; // No sumar más si llegó al límite
       }
 
-      // Si no existe en carrito, agregar solo si hay stock
-      if (stockDisponible > 0) {
-        return [...prev, { ...producto, cantidad: 1 }];
+      if (stockMaxCalculado > 0) {
+        return [
+          ...prev,
+          {
+            ...producto,
+            cantidad: 1,
+            colorSeleccionado: colorSeleccionado ?? null,
+            maxStock: stockMaxCalculado,
+          },
+        ];
       }
 
-      return prev; // No agregar si no hay stock
+      return prev;
     });
   };
 
-  const eliminarUnidadDelCarrito = (productoId) => {
+  const eliminarUnidadDelCarrito = (productoId, colorSeleccionado = null) => {
     setCarrito((prev) =>
       prev
         .map((item) =>
-          item.id === productoId
+          item.id === productoId && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null)
             ? { ...item, cantidad: item.cantidad - 1 }
             : item
         )
@@ -67,8 +107,8 @@ export const CarritoProvider = ({ children }) => {
     );
   };
 
-  const quitarDelCarrito = (productoId) => {
-    setCarrito((prev) => prev.filter((item) => item.id !== productoId));
+  const quitarDelCarrito = (productoId, colorSeleccionado = null) => {
+    setCarrito((prev) => prev.filter((item) => !(item.id === productoId && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null))));
   };
 
   const toggleCarrito = (producto) => {

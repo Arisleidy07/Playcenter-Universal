@@ -171,7 +171,10 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
             }}
           >
             <Slider
-              value={[filtros.precio.min, filtros.precio.max]}
+              value={[
+                typeof filtros.precio.min === 'number' ? filtros.precio.min : 0,
+                typeof filtros.precio.max === 'number' ? filtros.precio.max : 1000
+              ]}
               onChange={handlePrecioChange}
               valueLabelDisplay="auto"
               min={0}

@@ -5,20 +5,25 @@ import SidebarFiltros from "../components/SidebarFiltros";
 import FiltroDrawer from "../components/FiltroDrawer";
 import BotonFiltro from "../components/BotonFiltro";
 import TarjetaProducto from "../components/TarjetaProducto";
-import productosAll from "../data/productosAll";
+import { useProductsByCategory, useCategories } from "../hooks/useProducts";
 import { normalizar } from "../utils/normalizarCategoria";
 import "../styles/productosGrid.css";
 
 function ProductosPage() {
   const { categoria } = useParams();
   const navigate = useNavigate();
+  
+  // Get categories and products from database
+  const { categories, loading: categoriesLoading } = useCategories();
+  const categoryId = categoria && categoria !== "todos" ? categoria : "";
+  const { products, loading: productsLoading } = useProductsByCategory(categoryId);
 
   const [filtros, setFiltros] = useState({
     precio: { min: "", max: "" },
     estado: { nuevo: false, usado: false },
   });
 
-  const [filtroEmpresa, setFiltroEmpresa] = useState("");
+  const [brandFilter, setBrandFilter] = useState({ norm: "", display: "" });
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
@@ -46,25 +51,22 @@ function ProductosPage() {
     if (!categoria || categoria === "todos") {
       setCategoriaActiva("Todos");
     } else {
-      const encontrada = productosAll.find(
-        (cat) => normalizar(cat.categoria) === normalizar(categoria)
+      const encontrada = categories.find(
+        (cat) => normalizar(cat.ruta) === normalizar(categoria)
       );
-      setCategoriaActiva(encontrada ? encontrada.categoria : "Todos");
+      setCategoriaActiva(encontrada ? encontrada.nombre : "Todos");
     }
-  }, [categoria]);
+  }, [categoria, categories]);
 
   const productosOriginales = useMemo(() => {
     if (categoriaActiva === "Todos") {
-      return productosAll.flatMap((cat) => cat.productos).filter((p) => p?.id);
+      return products;
     }
-    const categoriaEncontrada = productosAll.find(
-      (cat) => normalizar(cat.categoria) === normalizar(categoriaActiva)
-    );
-    return (categoriaEncontrada?.productos ?? []).filter((p) => p?.id);
-  }, [categoriaActiva]);
+    return products.filter((p) => p?.id);
+  }, [products, categoriaActiva]);
 
   const productosFiltrados = useMemo(() => {
-    return productosOriginales.filter((p) => {
+    return (productosOriginales || []).filter((p) => {
       const cumpleMin = filtros.precio.min === "" || p.precio >= Number(filtros.precio.min);
       const cumpleMax = filtros.precio.max === "" || p.precio <= Number(filtros.precio.max);
       const cumpleEstado =
@@ -72,20 +74,18 @@ function ProductosPage() {
         (filtros.estado.nuevo && p.estado === "Nuevo") ||
         (filtros.estado.usado && p.estado === "Usado");
 
-      const cumpleEmpresa =
-        !filtroEmpresa ||
-        (typeof p.empresa === "string" && p.empresa === filtroEmpresa) ||
-        (Array.isArray(p.empresa) && p.empresa.includes(filtroEmpresa));
+      const prodEmpresaNorm = (p.empresaNorm || (p.empresa || "").toString().trim().toLowerCase());
+      const cumpleEmpresa = !brandFilter.norm || prodEmpresaNorm === brandFilter.norm;
 
       return cumpleMin && cumpleMax && cumpleEstado && cumpleEmpresa;
     });
-  }, [productosOriginales, filtros, filtroEmpresa]);
+  }, [productosOriginales, filtros, brandFilter]);
 
   const handleCategoriaChange = (nombre, ruta) => {
     navigate(`/productos/${ruta}`);
     setFiltrosVisible(false);
     setMostrarCategorias(false);
-    setFiltroEmpresa("");
+    setBrandFilter({ norm: "", display: "" });
   };
 
   const handleResetFiltros = () => {
@@ -93,14 +93,27 @@ function ProductosPage() {
       precio: { min: "", max: "" },
       estado: { nuevo: false, usado: false },
     });
-    setFiltroEmpresa("");
+    setBrandFilter({ norm: "", display: "" });
   };
 
+  // Marcas fijas: PlayStation, Xbox, Nintendo
   const logosEmpresa = [
-    { nombre: "PlayStation", imagen: "/logos/PlayStation_logo.svg.png" },
-    { nombre: "Xbox", imagen: "/logos/xbox-logo.png" },
-    { nombre: "Nintendo", imagen: "/logos/nintendo-logo.png" },
+    { nombre: "PlayStation", norm: "playstation", imagen: "/logos/PlayStation_logo.svg.png" },
+    { nombre: "Xbox", norm: "xbox", imagen: "/logos/xbox-logo.png" },
+    { nombre: "Nintendo", norm: "nintendo", imagen: "/logos/nintendo-logo.png" },
   ];
+
+  // Loading state
+  if (categoriesLoading || productsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-700 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-700">Cargando productos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -143,30 +156,29 @@ function ProductosPage() {
           </div>
 
           <div className="flex flex-wrap gap-4 sm:gap-5 px-4 lg:px-0 mb-10 justify-center sm:justify-start">
-            {logosEmpresa.map((empresa) => (
-              <button
-                key={empresa.nombre}
-                onClick={() => setFiltroEmpresa(empresa.nombre)}
-                className={`group relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
-                  filtroEmpresa === empresa.nombre
-                    ? "border-blue-700 ring-4 ring-offset-2 ring-blue-500 animate-spin-slow"
-                    : "border-gray-300 hover:border-blue-400"
-                }`}
-                title={empresa.nombre}
-              >
-                <img
-                  src={empresa.imagen}
-                  alt={empresa.nombre}
-                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain z-10"
-                />
-                {filtroEmpresa === empresa.nombre && (
-                  <span className="absolute inset-0 rounded-full border-4 border-blue-500 animate-pulse z-0"></span>
-                )}
-              </button>
-            ))}
+            {logosEmpresa.map((empresa) => {
+              const isActive = brandFilter.norm === empresa.norm;
+              return (
+                <button
+                  key={empresa.norm}
+                  onClick={() => setBrandFilter({ norm: empresa.norm, display: empresa.nombre })}
+                  className={`group relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
+                    isActive
+                      ? "border-blue-700 ring-4 ring-offset-2 ring-blue-500 animate-spin-slow"
+                      : "border-gray-300 hover:border-blue-400"
+                  }`}
+                  title={empresa.nombre}
+                >
+                  <img src={empresa.imagen} alt={empresa.nombre} className="w-8 h-8 sm:w-10 sm:h-10 object-contain z-10" />
+                  {isActive && (
+                    <span className="absolute inset-0 rounded-full border-4 border-blue-500 animate-pulse z-0"></span>
+                  )}
+                </button>
+              );
+            })}
 
             <button
-              onClick={() => setFiltroEmpresa("")}
+              onClick={() => setBrandFilter({ norm: "", display: "" })}
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 flex items-center justify-center text-lg sm:text-xl font-bold bg-gradient-to-br from-red-100 to-red-300 text-red-700 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
               title="Quitar filtro"
             >

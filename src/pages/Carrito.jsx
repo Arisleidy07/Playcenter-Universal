@@ -1,29 +1,51 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useCarrito } from "../context/CarritoContext";
 import { useNavigate } from "react-router-dom";
-import productosAll from "../data/productosAll";
 import { FaTrashAlt } from "react-icons/fa";
 import BotonCardnet from "../components/BotonCardnet";
 import "../styles/Carrito.css";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 function formatPriceRD(value) {
   const pesos = Math.round(Number(value) || 0);
   return new Intl.NumberFormat("es-DO").format(pesos);
 }
 
-function getStockDisponible(itemCarrito) {
-  let real = null;
-  for (const cat of productosAll) {
-    const e = cat.productos.find((p) => p.id === itemCarrito.id);
-    if (e) {
-      real = e;
-      break;
-    }
+// Obtiene stock máximo según el producto en Firestore y el color (si aplica)
+function getLiveMaxStock(item, productDoc) {
+  if (!productDoc) return getStockMaximo(item);
+  // Si hay variantes y color seleccionado, buscar esa variante
+  if (Array.isArray(productDoc.variantes) && item.colorSeleccionado) {
+    const v = productDoc.variantes.find((va) => va.color === item.colorSeleccionado);
+    if (v && v.cantidad !== undefined) return Number(v.cantidad) || 0;
   }
-  if (!real) return Number.POSITIVE_INFINITY;
-  if (typeof real.cantidad === "number") return real.cantidad;
-  if (real.variantes?.[0]?.cantidad !== undefined)
-    return real.variantes[0].cantidad;
+  // Si el producto tiene cantidad global
+  if (productDoc.cantidad !== undefined) return Number(productDoc.cantidad) || 0;
+  return getStockMaximo(item);
+}
+
+function getStockMaximo(itemCarrito) {
+  // Preferimos el maxStock calculado y guardado al momento de agregar al carrito
+  if (itemCarrito.maxStock !== undefined && itemCarrito.maxStock !== null) {
+    const val = Number(itemCarrito.maxStock);
+    if (!Number.isNaN(val)) return val;
+  }
+  // Si no existe maxStock, intentar por variante seleccionada
+  if (Array.isArray(itemCarrito.variantes) && itemCarrito.colorSeleccionado) {
+    const v = itemCarrito.variantes.find(
+      (va) => va.color === itemCarrito.colorSeleccionado
+    );
+    if (v && v.cantidad !== undefined) return Number(v.cantidad) || 0;
+  }
+  // Como fallback, usar cantidad del producto si existe
+  if (itemCarrito.cantidadProducto !== undefined) {
+    const val = Number(itemCarrito.cantidadProducto);
+    if (!Number.isNaN(val)) return val;
+  }
+  if (itemCarrito.cantidad !== undefined && typeof itemCarrito.cantidad === 'number') {
+    // OJO: en el carrito "cantidad" es cantidad en carrito, no stock; evitar si es posible
+  }
   return Number.POSITIVE_INFINITY;
 }
 
@@ -45,6 +67,30 @@ export default function Carrito() {
     quitarDelCarrito,
   } = useCarrito();
   const navigate = useNavigate();
+
+  const [productoAEliminar, setProductoAEliminar] = useState(null);
+  const [productosLive, setProductosLive] = useState({}); // id -> data
+
+  // Suscribirse a Firestore para tener stock en vivo por cada item del carrito
+  useEffect(() => {
+    const unsubscribers = [];
+    const seen = new Set();
+    carrito.forEach((item) => {
+      if (item?.id && !seen.has(item.id)) {
+        seen.add(item.id);
+        const ref = doc(db, "productos", item.id);
+        const unsub = onSnapshot(ref, (snap) => {
+          if (snap.exists()) {
+            setProductosLive((prev) => ({ ...prev, [item.id]: snap.data() }));
+          }
+        });
+        unsubscribers.push(unsub);
+      }
+    });
+    return () => {
+      unsubscribers.forEach((fn) => fn && fn());
+    };
+  }, [carrito]);
 
   const total = carrito.reduce(
     (acc, item) => acc + (Number(item.precio) || 0) * item.cantidad,
@@ -68,7 +114,12 @@ export default function Carrito() {
         <>
           <div className="carrito-grid">
             {carrito.map((item) => {
-              const stock = getStockDisponible(item);
+              const liveProd = productosLive[item.id];
+              const maxStockFallback = getStockMaximo(item);
+              const maxStock = getLiveMaxStock(item, liveProd);
+              const restante = Number.isFinite(maxStock)
+                ? Math.max(0, maxStock - (Number(item.cantidad) || 0))
+                : maxStock;
 
               return (
                 <div
@@ -87,25 +138,27 @@ export default function Carrito() {
 
                     <p
                       className={`carrito-stock ${
-                        stock === 0
+                        restante === 0
                           ? "stock-out"
-                          : stock <= 2
+                          : Number.isFinite(restante) && restante <= 2
                           ? "stock-low"
                           : "stock-ok"
                       }`}
                     >
-                      {stock === 0
+                      {restante === 0
                         ? "No disponible"
-                        : stock <= 2
-                        ? `Casi agotado (${stock})`
-                        : `Disponible (${stock})`}
+                        : Number.isFinite(restante) && restante <= 2
+                        ? `Casi agotado (${restante})`
+                        : Number.isFinite(restante)
+                        ? `Disponible (${restante})`
+                        : "Disponible"}
                     </p>
 
                     <div className="carrito-actions">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          eliminarUnidadDelCarrito(item.id);
+                          eliminarUnidadDelCarrito(item.id, item.colorSeleccionado ?? null);
                         }}
                         className="vp-qty-btn"
                       >
@@ -117,22 +170,12 @@ export default function Carrito() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (item.cantidad < stock) {
-                            let productoReal = null;
-                            for (const categoria of productosAll) {
-                              const encontrado = categoria.productos.find(
-                                (p) => p.id === item.id
-                              );
-                              if (encontrado) {
-                                productoReal = encontrado;
-                                break;
-                              }
-                            }
-                            if (productoReal) agregarAlCarrito(productoReal);
+                          if (!Number.isFinite(maxStock) || item.cantidad < maxStock) {
+                            agregarAlCarrito(item, item.colorSeleccionado ?? null);
                           }
                         }}
                         className="vp-qty-btn"
-                        disabled={item.cantidad >= stock}
+                        disabled={Number.isFinite(maxStock) && item.cantidad >= maxStock}
                       >
                         +
                       </button>
@@ -140,7 +183,7 @@ export default function Carrito() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          quitarDelCarrito(item.id);
+                          setProductoAEliminar(item); // abrir modal
                         }}
                         className="vp-remove"
                         title="Quitar"
@@ -172,6 +215,36 @@ export default function Carrito() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Modal de confirmación */}
+      {productoAEliminar && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>¿Eliminar producto?</h2>
+            <p>
+              ¿Seguro que quieres quitar{" "}
+              <strong>{productoAEliminar.nombre}</strong> del carrito?
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => setProductoAEliminar(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn-confirm"
+                onClick={() => {
+                  quitarDelCarrito(productoAEliminar.id, productoAEliminar.colorSeleccionado ?? null);
+                  setProductoAEliminar(null);
+                }}
+              >
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

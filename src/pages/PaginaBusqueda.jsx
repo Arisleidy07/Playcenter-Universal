@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import productosAll from "../data/productosAll.js";
 import { normalizarTexto } from "../utils/normalizarTexto";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
 import SidebarFiltros from "../components/SidebarFiltros";
 import FiltroDrawer from "../components/FiltroDrawer";
 import BotonFiltro from "../components/BotonFiltro";
+import { useProducts } from "../hooks/useProducts";
 
 // Levenshtein distance function
 function distanciaLevenshtein(a, b) {
@@ -42,6 +42,7 @@ const TOPBAR_HEIGHT = 56; // Ajusta según tu Top Bar
 
 function PaginaBusqueda() {
   const location = useLocation();
+  const { products: productosActivos, loading } = useProducts();
 
   const [filtros, setFiltros] = useState({
     precio: { min: "", max: "" },
@@ -51,14 +52,12 @@ function PaginaBusqueda() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
 
-  const todosLosProductos = productosAll.flatMap((cat) => cat.productos);
-
   const queryParams = new URLSearchParams(location.search);
   const queryOriginal = queryParams.get("q") || "";
   const queryNorm = normalizarTexto(queryOriginal);
 
   // Filtra por nombre o empresa, tolerando errores de escritura
-  const productosFiltrados = todosLosProductos.filter((prod) => {
+  const productosFiltrados = useMemo(() => (productosActivos || []).filter((prod) => {
     const nombreNorm = normalizarTexto(prod.nombre);
     const empresaNorm = normalizarTexto(prod.empresa || "");
 
@@ -71,10 +70,10 @@ function PaginaBusqueda() {
     ) ||
     esSimilar(nombreNorm, queryNorm) ||
     esSimilar(empresaNorm, queryNorm);
-  });
+  }), [productosActivos, queryNorm]);
 
   // Aplica filtros extra
-  const resultadosFiltrados = productosFiltrados.filter((p) => {
+  const resultadosFiltrados = useMemo(() => productosFiltrados.filter((p) => {
     const cumpleMin =
       filtros.precio.min === "" || p.precio >= Number(filtros.precio.min);
     const cumpleMax =
@@ -84,7 +83,7 @@ function PaginaBusqueda() {
       (filtros.estado.nuevo && p.estado === "Nuevo") ||
       (filtros.estado.usado && p.estado === "Usado");
     return cumpleMin && cumpleMax && cumpleEstado;
-  });
+  }), [productosFiltrados, filtros]);
 
   const handleResetFiltros = () => {
     setFiltros({
@@ -120,7 +119,11 @@ function PaginaBusqueda() {
           Resultados de búsqueda
         </h2>
 
-        {resultadosFiltrados.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
+          </div>
+        ) : resultadosFiltrados.length === 0 ? (
           <p className="text-gray-600">
             No se encontraron productos relacionados con <span className="font-bold">{queryOriginal}</span>.
           </p>

@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import SliderAnuncios from "../components/SliderAnuncios";
 import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
-import productosAll from "../data/productosAll.js";
+import { useProductsByCategories } from "../hooks/useProducts";
 import Anim from '../components/anim';
 
 // Animación sutil para bloques y banners
@@ -21,6 +21,30 @@ const fadeIn = {
 const trailImages = Array.from({ length: 17 }, (_, i) => `/animacion/${i + 1}.png`);
 
 function Inicio() {
+  const { productsByCategory, categories, loading, error } = useProductsByCategories();
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-700 mx-auto mb-4"></div>
+          <p className="text-blue-700 text-lg">Cargando productos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p className="text-lg">Error cargando productos</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen">
       
@@ -62,140 +86,44 @@ function Inicio() {
 
 
 
-      {/* BLOQUES CUADRADOS */}
+      {/* BLOQUES CUADRADOS - CATEGORÍAS DINÁMICAS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1600px] mx-auto px-4 mt-14">
-        {[
-          {
-            title: "Consolas",
-            links: [
-              { to: "/producto/cs5", img: "/Productos/ps4.jpg", alt: "PS4" },
-              {
-                to: "/producto/cs1",
-                img: "/Productos/ps5.webp",
-                alt: "PS5",
-              },
-              {
-                to: "/producto/cs6",
-                img: "/Productos/xboxone.webp",
-                alt: "Xbox One",
-              },
-              {
-                to: "/producto/cs3",
-                img: "/Productos/nintendoswitch.jpg",
-                alt: "Switch OLED",
-              },
-            ],
-            explore: "/Productos/consolas",
-          },
-          {
-            title: "Consolas Retro",
-            links: [
-              {
-                to: "/producto/rc6",
-                img: "/Productos/atari2600.png",
-                alt: "Atari 2600",
-              },
-              {
-                to: "/producto/rc5",
-                img: "/Productos/gameboy.jpg",
-                alt: "Game Boy",
-              },
-              {
-                to: "/producto/rc3",
-                img: "/Productos/segagenesis.webp",
-                alt: "Sega Genesis",
-              },
-              {
-                to: "/producto/rc4",
-                img: "/Productos/playstation1.webp",
-                alt: "PS1",
-              },
-            ],
-            explore: "/Productos/retro-consolas",
-          },
-          {
-            title: "Videojuegos",
-            links: [
-              {
-                to: "/producto/vj6",
-                img: "/Productos/Mario-Kart-8.jpeg",
-                alt: "Mario Kart 8",
-              },
-              {
-                to: "/producto/vj3",
-                img: "/Productos/zelda.webp",
-                alt: "Zelda BOTW",
-              },
-              {
-                to: "/producto/vj5",
-                img: "/Productos/spider-manps5.jpeg",
-                alt: "Spider-Man PS5",
-              },
-              {
-                to: "/producto/vj7",
-                img: "/Productos/super-smash-bros.jpg",
-                alt: "Super Smash Bros",
-              },
-            ],
-            explore: "/Productos/videojuegos",
-          },
-          {
-            title: "Retro Juegos",
-            links: [
-              {
-                to: "/producto/rj3",
-                img: "/Productos/dk.jpg",
-                alt: "Donkey Kong Country",
-              },
-              {
-                to: "/producto/rj4",
-                img: "/Productos/crash-retro.png",
-                alt: "Crash Bandicoot PS1",
-              },
-              {
-                to: "/producto/rj1",
-                img: "/Productos/mario-bros-.png",
-                alt: "Super Mario Bros NES",
-              },
-              {
-                to: "/producto/rj2",
-                img: "/Productos/legen-of-zelda.png",
-                alt: "Zelda NES",
-              },
-            ],
-            explore: "/Productos/retro-juegos",
-          },
-        ].map((bloque, idx) => (
-          <motion.div
-            key={bloque.title}
-            className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition h-[440px] flex flex-col justify-between p-5 group"
-            variants={fadeIn}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.1 * idx }}
-          >
-            <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">
-              {bloque.title}
-            </h3>
-            <div className="grid grid-cols-2 gap-2 flex-grow">
-              {bloque.links.map((item, i) => (
-                <Link to={item.to} key={i}>
-                  <img
-                    src={item.img}
-                    alt={item.alt}
-                    className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm group-hover:scale-105 transition-transform"
-                  />
-                </Link>
-              ))}
-            </div>
-            <Link
-              to={bloque.explore}
-              className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
+        {categories.slice(0, 4).map((category, idx) => {
+          const categoryProducts = productsByCategory[category.id] || [];
+          const featuredProducts = categoryProducts.slice(0, 4);
+          
+          return (
+            <motion.div
+              key={category.id}
+              className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition h-[440px] flex flex-col justify-between p-5 group"
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.1 * idx }}
             >
-              Explora nuestras {bloque.title} →
-            </Link>
-          </motion.div>
-        ))}
+              <h3 className="text-xl font-bold mb-2 text-indigo-700 tracking-tight">
+                {category.nombre}
+              </h3>
+              <div className="grid grid-cols-2 gap-2 flex-grow">
+                {featuredProducts.map((product, i) => (
+                  <Link to={`/producto/${product.id}`} key={product.id}>
+                    <img
+                      src={product.imagen || '/placeholder-product.png'}
+                      alt={product.nombre}
+                      className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm group-hover:scale-105 transition-transform"
+                    />
+                  </Link>
+                ))}
+              </div>
+              <Link
+                to={`/Productos/${category.ruta}`}
+                className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
+              >
+                Explora {category.nombre} →
+              </Link>
+            </motion.div>
+          );
+        })}
       </section>
 
                         {/* BANNER afisionados - SOLO DESKTOP */}
@@ -346,8 +274,8 @@ function Inicio() {
             Descubre nuestros productos
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-7">
-            {productosAll
-              .flatMap((cat) => cat.productos)
+            {Object.values(productsByCategory)
+              .flat()
               .slice(0, 6)
               .map((producto) => (
                 <Link to={`/producto/${producto.id}`} key={producto.id}>
@@ -736,9 +664,11 @@ function Inicio() {
 
 
 
-<div className="max-w-[1600px] mx-auto mt-10 px-4">
+{/* ANIMACIÓN */}
+<div className="max-w-[1600px] mx-auto mt-20 px-4">
   <Anim />
 </div>
+
 
 
       {/* CONTACTO */}

@@ -1,0 +1,67 @@
+.loader2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  height: 100%;        /* ocupa todo el alto del TopBar */
+  flex: 1;             /* se expande a la derecha */
+  overflow: hidden;    /* oculta si sobra */
+}
+
+.loader2 img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+  transform-origin: center center;
+  transition: transform 0.3s ease;
+}
+
+.loader2 img:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.3));
+}
+
+/* Animaciones suaves (todas suben poquito como la primera) */
+.loader2 img:nth-child(odd) { animation-name: gentle2-up; animation-delay: 0s; }
+.loader2 img:nth-child(even) { animation-name: gentle2-up; animation-delay: 1s; }
+
+@keyframes gentle2-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8%); } /* 🔹 solo un chin */
+}
+
+/* 📱 Móviles */
+@media (max-width: 640px) {
+  .loader2 img {
+    width: 22px;
+    height: 22px;
+  }
+  .loader2 img:nth-child(n+7) {
+    display: none; /* solo 6 imágenes */
+  }
+}
+
+/* 📱 Tablets */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .loader2 img {
+    width: 26px;
+    height: 26px;
+  }
+  .loader2 img:nth-child(n+11) {
+    display: none; /* solo 10 imágenes */
+  }
+}
+
+/* 💻 Desktop */
+@media (min-width: 1025px) {
+  .loader2 img {
+    width: 32px;
+    height: 32px;
+  }
+}

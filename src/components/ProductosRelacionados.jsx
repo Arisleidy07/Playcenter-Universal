@@ -1,39 +1,14 @@
 import React, { useMemo, useRef, useCallback, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useProductsByCategory } from "../hooks/useProducts";
 import "../styles/ProductosRelacionados.css";
 
-function ProductosRelacionados({
-  productoActual,
-  productosPorCategoria,
-  onProductoClick,
-}) {
-  const productosPlanos = useMemo(
-    () =>
-      (productosPorCategoria || []).flatMap((grupo) =>
-        (grupo?.productos || []).map((p) => ({
-          ...p,
-          categoria: (grupo?.categoria || "").trim().toLowerCase(),
-        }))
-      ),
-    [productosPorCategoria]
+function ProductosRelacionados({ productoActual, onProductoClick }) {
+  const { products: productosCategoria, loading } = useProductsByCategory(
+    productoActual?.categoria
   );
 
-  const categoriaActual = (productoActual?.categoria || "")
-    .trim()
-    .toLowerCase();
-
-  const relacionados = useMemo(() => {
-    if (!productoActual) return [];
-    return productosPlanos
-      .filter(
-        (p) =>
-          p?.id !== productoActual?.id &&
-          p?.categoria === categoriaActual &&
-          categoriaActual !== "todos los productos"
-      )
-      .slice(0, 1000);
-  }, [productosPlanos, productoActual?.id, categoriaActual]);
-
+  // Hooks MUST be declared unconditionally (before any early returns)
   const railRef = useRef(null);
   const snapTimer = useRef(null);
   const dragging = useRef(false);
@@ -110,6 +85,25 @@ function ProductosRelacionados({
       el.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
+
+  const relacionados = useMemo(() => {
+    if (!productoActual || !productosCategoria) return [];
+    return productosCategoria
+      .filter((p) => p?.id !== productoActual?.id)
+      .slice(0, 20);
+  }, [productosCategoria, productoActual?.id]);
+
+  // Conditional UI rendering AFTER hooks have been set up
+  if (loading) {
+    return (
+      <div className="productos-relacionados-container">
+        <h3 className="prl-title">Productos Relacionados</h3>
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="prl-section" aria-label="Productos relacionados">

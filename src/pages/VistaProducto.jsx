@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaArrowLeft, FaTimes, FaTrash } from "react-icons/fa";
 import GaleriaImagenes from "../components/GaleriaImagenes";
-import productosAll from "../data/productosAll";
+import { useProduct } from "../hooks/useProducts";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
@@ -40,6 +40,7 @@ function VistaProducto() {
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [imagenModalAbierta, setImagenModalAbierta] = useState(false);
   const [imagenActualIndex, setImagenActualIndex] = useState(0);
+  const [videoActualIndex, setVideoActualIndex] = useState(0);
 
   // refs/estado para swipe en modal
   const touchStartX = useRef(0);
@@ -53,26 +54,38 @@ function VistaProducto() {
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const [zoomBgSize, setZoomBgSize] = useState({ w: 200, h: 200 }); // % tamaño fondo
 
-  let producto = null;
-  for (const categoria of productosAll) {
-    const encontrado = categoria.productos.find((p) => p.id === id);
-    if (encontrado) {
-      producto = { ...encontrado, categoria: categoria.categoria };
-      break;
-    }
-  }
+  const { product: producto, loading, error } = useProduct(id);
 
   const onBack = () => {
     if (window.history && window.history.length > 1) navigate(-1);
     else navigate("/productos");
   };
 
-  if (!producto) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
-        <p className="text-center text-lg sm:text-xl font-semibold">
-          Producto no encontrado.
-        </p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-700 mx-auto mb-4"></div>
+          <p className="text-lg">Cargando producto...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !producto) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
+        <div className="text-center">
+          <p className="text-lg sm:text-xl font-semibold mb-2">
+            Producto no encontrado.
+          </p>
+          <button
+            onClick={onBack}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Volver
+          </button>
+        </div>
       </div>
     );
   }
@@ -81,7 +94,9 @@ function VistaProducto() {
     producto.variantes?.find((v) => v.color === colorSeleccionado) ||
     producto.variantes?.[0];
 
-  const enCarrito = carrito.find((item) => item.id === producto.id);
+  const enCarrito = carrito.find(
+    (item) => item.id === producto.id && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null)
+  );
   const cantidadEnCarrito = enCarrito?.cantidad || 0;
 
   const handleAgregar = () => {
@@ -89,35 +104,41 @@ function VistaProducto() {
       setModalAbierto(true);
       return;
     }
-    if (!enCarrito) agregarAlCarrito({ ...producto, cantidad: 1 });
+    if (!enCarrito) agregarAlCarrito({ ...producto, cantidad: 1 }, colorSeleccionado);
   };
   const handleIncremento = () => {
     if (!usuario) {
       setModalAbierto(true);
       return;
     }
-    agregarAlCarrito(producto);
+    agregarAlCarrito(producto, colorSeleccionado);
   };
   const handleDecremento = () => {
     if (!usuario) {
       setModalAbierto(true);
       return;
     }
-    eliminarUnidadDelCarrito(producto.id);
+    eliminarUnidadDelCarrito(producto.id, colorSeleccionado);
   };
   const handleQuitar = () => {
     if (!usuario) {
       setModalAbierto(true);
       return;
     }
-    quitarDelCarrito(producto.id);
+    quitarDelCarrito(producto.id, colorSeleccionado);
   };
 
   const variantesConColor = producto.variantes?.filter(
     (v) => v.color && v.color.trim() !== ""
   );
-  const disponible =
-    varianteActiva?.cantidad === undefined || varianteActiva?.cantidad > 0;
+  const stockDisponible =
+    varianteActiva?.cantidad !== undefined
+      ? Number(varianteActiva.cantidad) || 0
+      : (producto.cantidad !== undefined ? Number(producto.cantidad) || 0 : Infinity);
+  const disponible = stockDisponible > 0;
+  const restante = Number.isFinite(stockDisponible)
+    ? Math.max(0, stockDisponible - (enCarrito?.cantidad || 0))
+    : Infinity;
 
   const precioProducto = Number(producto.precio) || 0;
   const itemsBuyNow = [
@@ -129,10 +150,36 @@ function VistaProducto() {
     },
   ];
 
-  // Get all images for the gallery - show variant images when color is selected
-  const imagenesParaGaleria =
-    varianteActiva?.imagenes || producto.imagenes || [producto.imagen].filter(Boolean);
-  const todasLasImagenes = producto.imagenes || [producto.imagen].filter(Boolean);
+  // Media unificada (tipo Amazon): imágenes + videos (variante primero), sin duplicados
+  const imagenesVariante = varianteActiva?.imagenes || [];
+  const imagenPrincipalVariante = varianteActiva?.imagen ? [varianteActiva.imagen] : [];
+  const imagenesProducto = producto.imagenes || [];
+  const imagenPrincipalProducto = producto.imagen ? [producto.imagen] : [];
+  const videosVariante = Array.isArray(varianteActiva?.videoUrls) ? varianteActiva.videoUrls : [];
+  const videosProducto = Array.isArray(producto.videoUrls) ? producto.videoUrls : [];
+
+  // Preferencia: imágenes de la variante (principal + extra), si no hay, usar las del producto
+  const imagenesPreferidasRaw = (imagenesVariante.length || imagenPrincipalVariante.length)
+    ? [...imagenPrincipalVariante, ...imagenesVariante]
+    : [...imagenPrincipalProducto, ...imagenesProducto];
+
+  const unique = (arr) => {
+    const seen = new Set();
+    return arr.filter((u) => {
+      if (!u) return false;
+      if (seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
+  };
+  const imagenesPreferidas = unique(imagenesPreferidasRaw);
+  const videosPreferidos = unique(videosVariante.length ? videosVariante : videosProducto);
+
+  // Construir lista de medios: primero imágenes, luego videos
+  const mediaGaleria = [
+    ...imagenesPreferidas.map((url) => ({ tipo: 'imagen', url })),
+    ...videosPreferidos.map((url) => ({ tipo: 'video', url }))
+  ].filter((m) => !!m.url);
 
   const abrirImagenModal = (index) => {
     setImagenActualIndex(index);
@@ -145,13 +192,13 @@ function VistaProducto() {
 
   const siguienteImagen = () => {
     setImagenActualIndex((prev) =>
-      prev === imagenesParaGaleria.length - 1 ? 0 : prev + 1
+      prev === mediaGaleria.length - 1 ? 0 : prev + 1
     );
   };
 
   const anteriorImagen = () => {
     setImagenActualIndex((prev) =>
-      prev === 0 ? imagenesParaGaleria.length - 1 : prev - 1
+      prev === 0 ? mediaGaleria.length - 1 : prev - 1
     );
   };
 
@@ -177,7 +224,8 @@ function VistaProducto() {
   // ---------- Handlers ZOOM (desktop) ----------
   const handleMouseEnter = () => {
     if (window.innerWidth < 1024) return; // solo desktop
-    const url = imagenesParaGaleria[imagenActualIndex];
+    if (mediaGaleria[imagenActualIndex]?.tipo === 'video') return; // no zoom en video
+    const url = mediaGaleria[imagenActualIndex]?.url;
     setZoomBg(url);
     // intenta estimar el tamaño de fondo para mayor detalle:
     const imgEl = mainImgRef.current;
@@ -195,6 +243,7 @@ function VistaProducto() {
 
   const handleMouseMove = (e) => {
     if (!isZooming || window.innerWidth < 1024) return;
+    if (mediaGaleria[imagenActualIndex]?.tipo === 'video') return;
     const wrap = imgWrapRef.current;
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
@@ -247,13 +296,22 @@ function VistaProducto() {
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
             >
-              <img
-                ref={mainImgRef}
-                src={imagenesParaGaleria[imagenActualIndex]}
-                alt={producto.nombre}
-                className="vp-main-image"
-                onClick={() => abrirImagenModal(imagenActualIndex)}
-              />
+              {mediaGaleria[imagenActualIndex]?.tipo === 'video' ? (
+                <video
+                  src={mediaGaleria[imagenActualIndex].url}
+                  controls
+                  className="vp-main-image"
+                  onClick={() => abrirImagenModal(imagenActualIndex)}
+                />
+              ) : (
+                <img
+                  ref={mainImgRef}
+                  src={mediaGaleria[imagenActualIndex]?.url}
+                  alt={producto.nombre}
+                  className="vp-main-image"
+                  onClick={() => abrirImagenModal(imagenActualIndex)}
+                />
+              )}
 
               {/* Recuadro de zoom a la derecha (solo desktop) */}
               {isZooming && (
@@ -269,9 +327,9 @@ function VistaProducto() {
             </div>
 
             {/* Miniaturas debajo */}
-            {imagenesParaGaleria.length > 1 && (
+            {mediaGaleria.length > 1 && (
               <div className="vp-gallery-thumbs">
-                {imagenesParaGaleria.map((imagen, index) => (
+                {mediaGaleria.map((m, index) => (
                   <button
                     key={index}
                     className={`vp-thumb-btn ${
@@ -279,7 +337,14 @@ function VistaProducto() {
                     }`}
                     onClick={() => setImagenActualIndex(index)}
                   >
-                    <img src={imagen} alt={`${producto.nombre} ${index + 1}`} />
+                    {m.tipo === 'video' ? (
+                      <div className="relative">
+                        <video src={m.url} className="vp-thumb-video" />
+                        <span className="vp-badge-video">Video</span>
+                      </div>
+                    ) : (
+                      <img src={m.url} alt={`${producto.nombre} ${index + 1}`} />
+                    )}
                   </button>
                 ))}
               </div>
@@ -321,21 +386,21 @@ function VistaProducto() {
 
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL */}
             <div className="lg:hidden flex flex-col gap-3 overflow-visible">
-              {varianteActiva?.cantidad !== undefined && (
-                <div
-                  className={`vp-stock ${
-                    varianteActiva.cantidad === 0
-                      ? "vp-stock-out"
-                      : varianteActiva.cantidad <= 2
-                      ? "vp-stock-low"
-                      : "vp-stock-ok"
-                  }`}
-                >
-                  {varianteActiva.cantidad === 0
-                    ? "No disponible"
-                    : `Quedan ${varianteActiva.cantidad} disponibles`}
-                </div>
-              )}
+              <div
+                className={`vp-stock ${
+                  restante === 0
+                    ? "vp-stock-out"
+                    : restante <= 2
+                    ? "vp-stock-low"
+                    : "vp-stock-ok"
+                }`}
+              >
+                {restante === 0
+                  ? "No disponible"
+                  : Number.isFinite(restante)
+                  ? `Quedan ${restante} disponibles`
+                  : "Disponible"}
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-3 overflow-visible">
                 {enCarrito ? (
@@ -344,7 +409,12 @@ function VistaProducto() {
                       −
                     </button>
                     <span className="vp-qty">{cantidadEnCarrito}</span>
-                    <button onClick={handleIncremento} className="vp-qty-btn">
+                    <button
+                      onClick={handleIncremento}
+                      className="vp-qty-btn"
+                      disabled={cantidadEnCarrito >= stockDisponible}
+                      title={cantidadEnCarrito >= stockDisponible ? 'Has alcanzado el máximo disponible' : 'Agregar una unidad'}
+                    >
                       +
                     </button>
                     <button onClick={handleQuitar} className="vp-remove">
@@ -353,9 +423,10 @@ function VistaProducto() {
                   </div>
                 ) : (
                   <button
-                    className="button w-full sm:w-1/2"
+                    className={`button w-full sm:w-1/2 ${!disponible ? 'opacity-60 cursor-not-allowed' : ''}`}
                     onClick={handleAgregar}
                     disabled={!disponible}
+                    title={!disponible ? 'No disponible' : 'Agregar al carrito'}
                   >
                     Agregar al carrito
                   </button>
@@ -396,21 +467,21 @@ function VistaProducto() {
                 DOP {formatPriceRD(precioProducto)}
               </div>
 
-              {varianteActiva?.cantidad !== undefined && (
-                <div
-                  className={`vp-stock ${
-                    varianteActiva.cantidad === 0
-                      ? "vp-stock-out"
-                      : varianteActiva.cantidad <= 2
-                      ? "vp-stock-low"
-                      : "vp-stock-ok"
-                  }`}
-                >
-                  {varianteActiva.cantidad === 0
-                    ? "No disponible"
-                    : `Quedan ${varianteActiva.cantidad} disponibles`}
-                </div>
-              )}
+              <div
+                className={`vp-stock ${
+                  restante === 0
+                    ? "vp-stock-out"
+                    : restante <= 2
+                    ? "vp-stock-low"
+                    : "vp-stock-ok"
+                }`}
+              >
+                {restante === 0
+                  ? "No disponible"
+                  : Number.isFinite(restante)
+                  ? `Quedan ${restante} disponibles`
+                  : "Disponible"}
+              </div>
 
               <div className="flex flex-col gap-3">
                 {enCarrito ? (
@@ -419,7 +490,12 @@ function VistaProducto() {
                       −
                     </button>
                     <span className="vp-qty">{cantidadEnCarrito}</span>
-                    <button onClick={handleIncremento} className="vp-qty-btn">
+                    <button
+                      onClick={handleIncremento}
+                      className="vp-qty-btn"
+                      disabled={cantidadEnCarrito >= stockDisponible}
+                      title={cantidadEnCarrito >= stockDisponible ? 'Has alcanzado el máximo disponible' : 'Agregar una unidad'}
+                    >
                       +
                     </button>
                     <button onClick={handleQuitar} className="vp-remove">
@@ -428,9 +504,10 @@ function VistaProducto() {
                   </div>
                 ) : (
                   <button
-                    className="button w-full"
+                    className={`button w-full ${!disponible ? 'opacity-60 cursor-not-allowed' : ''}`}
                     onClick={handleAgregar}
                     disabled={!disponible}
+                    title={!disponible ? 'No disponible' : 'Agregar al carrito'}
                   >
                     Agregar al carrito
                   </button>
@@ -457,7 +534,6 @@ function VistaProducto() {
         <div className="max-w-7xl w-full mt-10">
           <ProductosRelacionados
             productoActual={producto}
-            productosPorCategoria={productosAll}
             onProductoClick={(pid) => navigate(`/producto/${pid}`)}
           />
         </div>
@@ -466,18 +542,52 @@ function VistaProducto() {
         <section className="max-w-7xl w-full mt-12 px-1 sm:px-2">
           <h2 className="vp-section-title">Más Información del Producto</h2>
 
-          {producto.videoUrls?.length > 0 && (
-            <div className="vp-video-carousel">
-              {producto.videoUrls.map((url, i) => (
-                <div key={i} className="vp-video-card">
-                  <video
-                    src={url}
-                    controls
-                    className="vp-video"
-                    preload="metadata"
-                  />
+          {(varianteActiva?.videoUrls?.length || producto.videoUrls?.length) > 0 && (
+            <div className="vp-video-carousel relative">
+              <div className="vp-video-card">
+                <video
+                  src={(varianteActiva?.videoUrls || producto.videoUrls)[videoActualIndex]}
+                  controls
+                  className="vp-video"
+                  preload="metadata"
+                />
+              </div>
+              {((varianteActiva?.videoUrls || producto.videoUrls)?.length || 0) > 1 && (
+                <>
+                  <button
+                    className="vp-arrow left"
+                    aria-label="Video anterior"
+                    onClick={() => setVideoActualIndex((prev) => {
+                      const total = (varianteActiva?.videoUrls || producto.videoUrls).length;
+                      return prev === 0 ? total - 1 : prev - 1;
+                    })}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="vp-arrow right"
+                    aria-label="Siguiente video"
+                    onClick={() => setVideoActualIndex((prev) => {
+                      const total = (varianteActiva?.videoUrls || producto.videoUrls).length;
+                      return prev === total - 1 ? 0 : prev + 1;
+                    })}
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+              {((varianteActiva?.videoUrls || producto.videoUrls)?.length || 0) > 1 && (
+                <div className="vp-video-dots">
+                  {(varianteActiva?.videoUrls || producto.videoUrls).map((_, idx) => (
+                    <button
+                      key={idx}
+                      className={`vp-dot ${idx === videoActualIndex ? 'active' : ''}`}
+                      aria-label={`Ir al video ${idx + 1}`}
+                      onClick={() => setVideoActualIndex(idx)}
+                    />
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
           {producto.videoUrl && (
@@ -525,9 +635,9 @@ function VistaProducto() {
             </button>
 
             {/* Miniaturas arriba del modal */}
-            {imagenesParaGaleria.length > 1 && (
+            {mediaGaleria.length > 1 && (
               <div className="imagen-modal-thumbnails">
-                {imagenesParaGaleria.map((imagen, index) => (
+                {mediaGaleria.map((m, index) => (
                   <button
                     key={index}
                     className={`thumbnail-btn ${
@@ -538,7 +648,14 @@ function VistaProducto() {
                       setImagenActualIndex(index);
                     }}
                   >
-                    <img src={imagen} alt={`${producto.nombre} ${index + 1}`} />
+                    {m.tipo === 'video' ? (
+                      <div className="relative">
+                        <video src={m.url} className="thumbnail-video" />
+                        <span className="vp-badge-video">Video</span>
+                      </div>
+                    ) : (
+                      <img src={m.url} alt={`${producto.nombre} ${index + 1}`} />
+                    )}
                   </button>
                 ))}
               </div>
@@ -552,12 +669,16 @@ function VistaProducto() {
               onTouchMove={onTouchMoveModal}
               onTouchEnd={onTouchEndModal}
             >
-              <img
-                src={imagenesParaGaleria[imagenActualIndex]}
-                alt={producto.nombre}
-                className="imagen-modal-img"
-                draggable={false}
-              />
+              {mediaGaleria[imagenActualIndex]?.tipo === 'video' ? (
+                <video src={mediaGaleria[imagenActualIndex].url} controls className="imagen-modal-video" />
+              ) : (
+                <img
+                  src={mediaGaleria[imagenActualIndex]?.url}
+                  alt={producto.nombre}
+                  className="imagen-modal-img"
+                  draggable={false}
+                />
+              )}
             </div>
           </div>
         </div>

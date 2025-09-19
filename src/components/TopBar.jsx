@@ -1,17 +1,18 @@
-// src/components/TopBar.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, ChevronDown } from "lucide-react";
 import Entrega from "./Entrega";
 import { useAuth } from "../context/AuthContext";
-import ModalLoginAlert from "./ModalLoginAlert"; // 🔹 Igual que en TarjetaProducto
-import { useAuthModal } from "../context/AuthModalContext"; // 🔹 Para abrir el modal de login
+import ModalLoginAlert from "./ModalLoginAlert";
+import { useAuthModal } from "../context/AuthModalContext";
+import Anim2 from "./anim2";
+import { motion } from "framer-motion";
 
 export default function TopBar() {
   const { usuarioInfo } = useAuth();
   const { abrirModal } = useAuthModal();
 
   const [modalEntrega, setModalEntrega] = useState(false);
-  const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false); // 🔹 Nuevo
+  const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
   const [textoEntrega, setTextoEntrega] = useState("Selecciona método de entrega");
   const [headerHeight, setHeaderHeight] = useState(0);
   const topbarRef = useRef(null);
@@ -96,9 +97,9 @@ export default function TopBar() {
   /* --- Manejo de click según login --- */
   const handleClickEntrega = () => {
     if (!usuarioInfo) {
-      setModalAlertaAbierto(true); // 🔹 Mostrar alerta si no hay sesión
+      setModalAlertaAbierto(true);
     } else {
-      setModalEntrega(true); // 🔹 Abrir modal de entrega si hay sesión
+      setModalEntrega(true);
     }
   };
 
@@ -109,17 +110,39 @@ export default function TopBar() {
         style={topStyle}
         className="shadow-md px-4 py-2 flex justify-between items-center"
       >
-        <div
-          className="flex items-center gap-2 cursor-pointer"
+        {/* IZQUIERDA: método de entrega con animaciones */}
+        <motion.div
+          className="flex items-center gap-2 cursor-pointer group"
           onClick={handleClickEntrega}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
-          <MapPin className="w-5 h-5 text-gray-700" />
-          {/* 🔹 Texto con tamaño responsivo (más pequeño en móvil/tablet) */}
-          <span className="font-semibold text-gray-800 max-w-[220px] sm:max-w-[280px] md:max-w-[350px] truncate text-sm sm:text-base">
+          <motion.div
+            whileHover={{ rotate: -10 }}
+            className="p-1.5 rounded-full bg-gray-100 group-hover:bg-blue-100 transition"
+          >
+            <MapPin className="w-5 h-5 text-gray-700 group-hover:text-blue-600 transition" />
+          </motion.div>
+          <motion.span
+            className="font-semibold text-gray-800 
+                       max-w-[220px] sm:max-w-[280px] md:max-w-[350px] 
+                       truncate text-sm sm:text-base tracking-wide"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             {textoEntrega}
-          </span>
-          <ChevronDown className="w-5 h-5 text-gray-600" />
-        </div>
+          </motion.span>
+          <motion.div
+            animate={{ y: [0, -3, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+          >
+            <ChevronDown className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition" />
+          </motion.div>
+        </motion.div>
+
+        {/* DERECHA: Anim2 (sin tocarlo) */}
+        <Anim2 />
       </div>
 
       {/* Modal de entrega */}
@@ -133,13 +156,13 @@ export default function TopBar() {
         />
       )}
 
-      {/* Modal de login (alerta + opción abrir AuthModal) */}
+      {/* Modal de login */}
       <ModalLoginAlert
         isOpen={modalAlertaAbierto}
         onClose={() => setModalAlertaAbierto(false)}
         onIniciarSesion={() => {
           setModalAlertaAbierto(false);
-          abrirModal(); // 🔹 Abre el AuthModal
+          abrirModal();
         }}
       />
     </>

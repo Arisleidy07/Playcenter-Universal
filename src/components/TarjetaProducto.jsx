@@ -128,8 +128,11 @@ function TarjetaProducto({ producto }) {
             ) : (
               <button
                 onClick={handleAgregar}
-                className="carrito-main-btn w-full flex items-center justify-center gap-2"
+                className={`w-full flex items-center justify-center gap-2 carrito-main-btn ${
+                  !disponible ? 'opacity-60 cursor-not-allowed bg-gray-300 text-gray-600 hover:bg-gray-300' : ''
+                }`}
                 disabled={!disponible}
+                title={!disponible ? 'No quedan productos' : 'Agregar al carrito'}
               >
                 <FaShoppingCart size={16} /> Agregar al carrito
               </button>

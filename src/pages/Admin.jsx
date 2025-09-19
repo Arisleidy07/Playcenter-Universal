@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { collection, onSnapshot, query, doc, where, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { collection, onSnapshot, query, doc, where, getDocs, addDoc, updateDoc, deleteDoc, setDoc, orderBy } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db, storage } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Admin.css";
 import { motion, AnimatePresence } from "framer-motion";
+import ProductForm from "../components/ProductForm";
+import ProductManagement from "../components/ProductManagement";
+import CategoryManagement from "../components/CategoryManagement";
+import AdminDashboard from "../components/AdminDashboard";
+import { FiBarChart2, FiBox, FiTag, FiUsers, FiSearch, FiMapPin, FiShoppingCart, FiUser, FiShield, FiEye } from "react-icons/fi";
 
 // Colores base
 const COLOR_PRIMARIO = "bg-blue-700";
@@ -18,7 +24,7 @@ const COLOR_BADGE_USER = "bg-blue-200 text-blue-900";
 const ADMIN_UID = "ZeiFzBgosCd0apv9cXL6aQZCYyu2";
 
 function getInitials(name = "") {
-  if (!name) return "👤";
+  if (!name) return "US";
   const parts = name.trim().split(" ");
   return ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase();
 }
@@ -149,12 +155,8 @@ function UsuarioFullView({ usuario, onClose }) {
               </h2>
               <p className="admin-user-email">{usuarioData?.email}</p>
               <div className="admin-user-badges">
-                <span
-                  className={
-                    usuario.id === ADMIN_UID ? "badge-admin" : "badge-user"
-                  }
-                >
-                  {usuario.id === ADMIN_UID ? "👑 Admin" : "👤 Usuario"}
+                <span className={usuario.id === ADMIN_UID ? "badge-admin" : "badge-user"}>
+                  {usuario.id === ADMIN_UID ? "Admin" : "Usuario"}
                 </span>
               </div>
             </div>
@@ -172,8 +174,8 @@ function UsuarioFullView({ usuario, onClose }) {
           {/* Información Personal */}
           <section className="bg-white rounded-xl border shadow p-4 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-blue-700 font-bold">👤</span>
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700">
+                <FiUser />
               </div>
               <h3 className={`text-xl font-bold ${COLOR_TEXTO}`}>
                 Información Personal
@@ -214,8 +216,8 @@ function UsuarioFullView({ usuario, onClose }) {
           {/* Dirección y Ubicación */}
           <section className="bg-white rounded-xl border shadow p-4 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-blue-700 font-bold">📍</span>
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700">
+                <FiMapPin />
               </div>
               <h3 className={`text-xl font-bold ${COLOR_TEXTO}`}>
                 Dirección y Ubicación
@@ -231,7 +233,7 @@ function UsuarioFullView({ usuario, onClose }) {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
               >
-                🗺️ Ver en Google Maps
+                <FiMapPin /> Ver en Google Maps
               </a>
             )}
           </section>
@@ -239,8 +241,8 @@ function UsuarioFullView({ usuario, onClose }) {
           {/* Historial de Compras */}
           <section className="bg-white rounded-xl border shadow p-4 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-blue-700 font-bold">🛒</span>
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700">
+                <FiShoppingCart />
               </div>
               <h3 className={`text-xl font-bold ${COLOR_TEXTO}`}>
                 Historial de Compras
@@ -259,7 +261,7 @@ function UsuarioFullView({ usuario, onClose }) {
               </div>
             ) : compras.length === 0 ? (
               <div className="text-center py-12 bg-blue-50 rounded-xl">
-                <div className="text-6xl mb-4">🛍️</div>
+                <div className="text-6xl mb-4 text-blue-700 flex items-center justify-center"><FiShoppingCart /></div>
                 <p className="text-xl text-blue-700 font-medium">
                   No hay compras registradas
                 </p>
@@ -328,11 +330,7 @@ function UsuarioFullView({ usuario, onClose }) {
                               }}
                               title="Ver producto"
                             >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                              </svg>
-                              Ver producto
+                              <span className="inline-flex items-center gap-1"><FiEye /> Ver producto</span>
                             </button>
                           </div>
                         </div>
@@ -390,6 +388,48 @@ function InfoItem({ label, value }) {
 }
 
 /* ============================================================
+   LISTA DE PEDIDOS (ORDERS LIST)
+   ============================================================ */
+function OrdersList() {
+  const [orders, setOrders] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(() => {
+    const q = query(collection(db, 'orders'), orderBy('fecha', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setOrders(data);
+      setLoading(false);
+    }, () => setLoading(false));
+    return () => unsub();
+  }, []);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+      </div>
+    );
+  }
+  if (orders.length === 0) {
+    return <div className="text-center text-gray-600 py-8">No hay pedidos registrados.</div>;
+  }
+  return (
+    <div className="divide-y border rounded-lg">
+      {orders.map(o => (
+        <div key={o.id} className="p-4 flex items-center justify-between">
+          <div>
+            <p className="font-medium text-blue-900">Pedido #{o.id.slice(-8)}</p>
+            <p className="text-sm text-gray-600">{o.fecha?.seconds ? new Date(o.fecha.seconds * 1000).toLocaleString() : ''}</p>
+          </div>
+          <div className="text-right">
+            <span className={`px-2 py-1 rounded-full text-xs ${o.estado==='completado'?'bg-green-100 text-green-800':o.estado==='pendiente'?'bg-yellow-100 text-yellow-800':'bg-gray-100 text-gray-800'}`}>{o.estado || 'Pendiente'}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
    COMPONENTE PRINCIPAL ADMIN
    ============================================================ */
 export default function Admin() {
@@ -398,6 +438,9 @@ export default function Admin() {
   const [filtro, setFiltro] = useState("");
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   useEffect(() => {
     if (!usuario || usuario.uid !== ADMIN_UID) return;
@@ -476,8 +519,127 @@ export default function Admin() {
     );
   });
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return (
+          <AdminDashboard
+            onAddProduct={() => {
+              setEditingProduct(null);
+              setShowProductForm(true);
+              setActiveTab('products');
+            }}
+            onOpenCategories={() => setActiveTab('categories')}
+            onViewAllProducts={() => setActiveTab('products')}
+            onViewAllOrders={() => setActiveTab('orders')}
+          />
+        );
+      case "products":
+        return (
+          <ProductManagement 
+            onAddProduct={() => {
+              setEditingProduct(null);
+              setShowProductForm(true);
+            }}
+            onEditProduct={(product) => {
+              setEditingProduct(product);
+              setShowProductForm(true);
+            }}
+          />
+        );
+      case "categories":
+        return <CategoryManagement />;
+      case "users":
+        return renderUsersContent();
+      case "orders":
+        return (
+          <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 border">
+            <h3 className="text-xl font-bold text-blue-900 mb-4">Todos los pedidos</h3>
+            <OrdersList />
+          </div>
+        );
+      default:
+        return <AdminDashboard />;
+    }
+  };
+
+  const renderUsersContent = () => (
+    <div>
+      {/* BUSCADOR */}
+      <div className="bg-white rounded-xl shadow-xl p-3 sm:p-6 mb-8 border border-blue-100">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-blue-700 rounded-xl flex items-center justify-center">
+            <span className="text-white text-xl"><FiSearch /></span>
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, email, teléfono, dirección o código..."
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+            className="flex-1 px-4 py-3 text-base border-2 border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* LISTADO DE USUARIOS */}
+      {usuariosFiltrados.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-xl shadow-lg">
+          <div className="text-7xl mb-6 text-blue-700 flex items-center justify-center"><FiUsers /></div>
+          <h3 className="text-2xl font-bold text-blue-900 mb-2">
+            No se encontraron usuarios
+          </h3>
+          <p className="text-blue-600 text-lg">
+            Intenta ajustar los términos de búsqueda
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
+          {usuariosFiltrados.map((u) => (
+            <div
+              key={u.id}
+              className="bg-white border-2 border-blue-100 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-400 transition-all duration-200 cursor-pointer p-3 group flex flex-col items-center"
+              onClick={() => setUsuarioSeleccionado(u)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") setUsuarioSeleccionado(u);
+              }}
+            >
+              <div className="w-14 h-14 rounded-xl bg-blue-700 flex items-center justify-center text-2xl font-bold text-white mb-2 shadow">
+                {getInitials(u.displayName)}
+              </div>
+              <div className="w-full flex-1 flex flex-col items-center text-center">
+                <h3 className="font-bold text-base text-blue-900 truncate w-full">
+                  {u.displayName || "Usuario Sin Nombre"}
+                </h3>
+                <p className="text-xs text-blue-700 break-all truncate w-full">
+                  ID: {u.id}
+                </p>
+                <div className="mt-1 mb-2 w-full">
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${u.admin ? COLOR_BADGE_ADMIN : COLOR_BADGE_USER}`}>
+                    {u.admin ? "Admin" : "Usuario"}
+                  </span>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-2 w-full mb-1">
+                  <p className="text-xs text-blue-700 mb-1">{u.email || "No email"}</p>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-2 w-full mb-1">
+                  <p className="text-xs text-blue-700">{u.telefono || "No tel."}</p>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-2 w-full mb-2">
+                  <p className="text-xs text-blue-700 line-clamp-2">{u.direccion || u.direccionCompleta || "No especificada"}</p>
+                </div>
+              </div>
+              <span className="text-xs text-blue-400">Ver detalles →</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <main className="min-h-screen bg-blue-50 p-2 sm:p-6">
+    <main className="min-h-screen bg-blue-50 p-2 sm:p-6 pt-20 sm:pt-24">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="text-center mb-6">
@@ -485,106 +647,76 @@ export default function Admin() {
             Panel Administrativo
           </h1>
           <p className="text-base sm:text-xl text-blue-700 font-medium">
-            Gestión Completa de Usuarios
+            Gestión Completa del Sistema
           </p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            <span className="bg-blue-100 text-blue-900 px-4 py-2 rounded-full text-sm font-bold">
-              👥 {usuarios.length}{" "}
-              {usuarios.length === 1 ? "usuario" : "usuarios"} registrados
+            <span className="bg-blue-100 text-blue-900 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
+              <FiUsers /> {usuarios.length} {usuarios.length === 1 ? "usuario" : "usuarios"} registrados
             </span>
             <span className="bg-green-100 text-green-900 px-4 py-2 rounded-full text-sm font-bold">
-              🔄 Sincronización en tiempo real
+              Sincronización en tiempo real
             </span>
           </div>
         </div>
 
-        {/* BUSCADOR */}
-        <div className="bg-white rounded-xl shadow-xl p-3 sm:p-6 mb-8 border border-blue-100">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-blue-700 rounded-xl flex items-center justify-center">
-              <span className="text-white text-xl">🔍</span>
-            </div>
-            <input
-              type="text"
-              placeholder="Buscar por nombre, email, teléfono, dirección o código..."
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
-              className="flex-1 px-4 py-3 text-base border-2 border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all"
-            />
+        {/* NAVIGATION TABS */}
+        <div className="bg-white rounded-xl shadow-lg p-1 mb-8 border border-blue-100">
+          <div className="flex flex-wrap gap-1">
+            {[
+              { id: "dashboard", label: "Dashboard", icon: <FiBarChart2 /> },
+              { id: "products", label: "Productos", icon: <FiBox /> },
+              { id: "categories", label: "Categorías", icon: <FiTag /> },
+              { id: "orders", label: "Pedidos", icon: <FiSearch /> },
+              { id: "users", label: "Usuarios", icon: <FiUsers /> },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? "bg-blue-700 text-white shadow-md"
+                    : "text-blue-700 hover:bg-blue-50"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="text-lg">{tab.icon}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* LISTADO DE USUARIOS */}
-        {usuariosFiltrados.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl shadow-lg">
-            <div className="text-7xl mb-6">👤</div>
-            <h3 className="text-2xl font-bold text-blue-900 mb-2">
-              No se encontraron usuarios
-            </h3>
-            <p className="text-blue-600 text-lg">
-              Intenta ajustar los términos de búsqueda
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
-            {usuariosFiltrados.map((u) => (
-              <div
-                key={u.id}
-                className="bg-white border-2 border-blue-100 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-400 transition-all duration-200 cursor-pointer p-3 group flex flex-col items-center"
-                onClick={() => setUsuarioSeleccionado(u)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") setUsuarioSeleccionado(u);
-                }}
-              >
-                <div className="w-14 h-14 rounded-xl bg-blue-700 flex items-center justify-center text-2xl font-bold text-white mb-2 shadow">
-                  {getInitials(u.displayName)}
-                </div>
-                <div className="w-full flex-1 flex flex-col items-center text-center">
-                  <h3 className="font-bold text-base text-blue-900 truncate w-full">
-                    {u.displayName || "Usuario Sin Nombre"}
-                  </h3>
-                  <p className="text-xs text-blue-700 break-all truncate w-full">
-                    ID: {u.id}
-                  </p>
-                  <div className="mt-1 mb-2 w-full">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${
-                        u.admin ? COLOR_BADGE_ADMIN : COLOR_BADGE_USER
-                      }`}
-                    >
-                      {u.admin ? "🛡️ Admin" : "👤"}
-                    </span>
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-2 w-full mb-1">
-                    <p className="text-xs text-blue-700 mb-1">
-                      📧 {u.email || "No email"}
-                    </p>
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-2 w-full mb-1">
-                    <p className="text-xs text-blue-700">
-                      📱 {u.telefono || "No tel."}
-                    </p>
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-2 w-full mb-2">
-                    <p className="text-xs text-blue-700 line-clamp-2">
-                      📍{" "}
-                      {u.direccion || u.direccionCompleta || "No especificada"}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs text-blue-400">Ver detalles →</span>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* TAB CONTENT */}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {renderTabContent()}
+        </motion.div>
 
-        {/* FULL VIEW */}
+
+        {/* MODALS */}
         {usuarioSeleccionado && (
           <UsuarioFullView
             usuario={usuarioSeleccionado}
             onClose={() => setUsuarioSeleccionado(null)}
+          />
+        )}
+        
+        {showProductForm && (
+          <ProductForm
+            product={editingProduct}
+            onClose={() => {
+              setShowProductForm(false);
+              setEditingProduct(null);
+            }}
+            onSave={() => {
+              setShowProductForm(false);
+              setEditingProduct(null);
+            }}
           />
         )}
       </div>
@@ -730,11 +862,7 @@ function OrderDetailsModal({ order, onClose }) {
                       onClick={() => window.location.href = `/producto/${producto.id}`}
                       title="Ver producto"
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
-                      Ver producto
+                      👁️ Ver producto
                     </button>
                   </div>
                 </div>

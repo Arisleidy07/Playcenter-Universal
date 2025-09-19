@@ -1,39 +1,8 @@
-import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useCategories } from '../hooks/useProducts';
 import WaveBackground from "./WaveBackground";
-
-const categorias = [
-  { nombre: "Todos", ruta: "" },
-  { nombre: "Videojuegos", ruta: "videojuegos" },
-  { nombre: "Accesorios Videojuegos", ruta: "AccesoriosVideojuegos" },
-  { nombre: "Consolas", ruta: "consolas" },
-  { nombre: "Retro Consolas", ruta: "retro-consolas" },
-  { nombre: "Coleccionables", ruta: "coleccionables" },
-  { nombre: "Retro Juegos", ruta: "retro-juegos" },
-  { nombre: "Controles", ruta: "controles" },
-  { nombre: "Audífonos", ruta: "audifonos" },
-  { nombre: "Teclados", ruta: "teclados" },
-  { nombre: "Mouses", ruta: "mouses" },
-  { nombre: "Laptops", ruta: "laptops" },
-  { nombre: "Monitores", ruta: "monitores" },
-  { nombre: "Memorias USB", ruta: "memorias-usb" },
-  { nombre: "Tu Rincón Variado", ruta: "tu-rincon-variado" },
-  { nombre: "Cables", ruta: "cables" },
-  { nombre: "Cámaras", ruta: "camaras" },
-  { nombre: "Cargadores", ruta: "cargadores" },
-  { nombre: "Celulares", ruta: "celulares" },
-  { nombre: "Discos Duros", ruta: "discos-duros" },
-  { nombre: "Electrodomésticos", ruta: "electrodomesticos" },
-  { nombre: "Gaming Chairs", ruta: "gaming-chairs" },
-  { nombre: "Hogar Inteligente", ruta: "hogar-inteligente" },
-  { nombre: "Impresoras", ruta: "impresoras" },
-  { nombre: "Nuevos Lanzamientos", ruta: "nuevos-lanzamientos" },
-  { nombre: "Ofertas Especiales", ruta: "ofertas-especiales" },
-  { nombre: "Relojes Inteligentes", ruta: "relojes-inteligentes" },
-  { nombre: "Smart TV", ruta: "smart-tv" },
-  { nombre: "Tablets", ruta: "tablets" },
-];
 
 const buttonVariants = {
   initial: { scale: 1, boxShadow: "none" },
@@ -66,6 +35,7 @@ const titleVariants = {
 
 function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil }) {
   const navigate = useNavigate();
+  const { categories, loading, error } = useCategories();
 
   const handleClick = (cat) => {
     navigate(`/Productos/${cat.ruta}`);
@@ -73,6 +43,32 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
   };
 
   const isActiva = (nombre) => nombre === categoriaActiva;
+
+  // Create categories array with "Todos" option and database categories
+  const allCategories = [
+    { nombre: "Todos", ruta: "", id: "todos" },
+    ...categories
+  ];
+
+  if (loading) {
+    return (
+      <aside className="hidden lg:flex flex-col w-56 px-2 relative z-40">
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        </div>
+      </aside>
+    );
+  }
+
+  if (error) {
+    return (
+      <aside className="hidden lg:flex flex-col w-56 px-2 relative z-40">
+        <div className="text-red-500 text-sm p-4">
+          Error cargando categorías
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <>
@@ -117,8 +113,8 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
             Categorías
           </motion.h2>
           <ul className="space-y-2 text-sm">
-            {categorias.map((cat, idx) => (
-              <motion.li key={idx} whileHover={{ scale: 1.02 }}>
+            {allCategories.map((cat, idx) => (
+              <motion.li key={cat.id || idx} whileHover={{ scale: 1.02 }}>
                 <motion.button
                   onClick={() => handleClick(cat)}
                   initial="initial"
@@ -173,8 +169,8 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
 
               <nav className="flex-1 overflow-y-auto px-4 py-2 scrollbar-light">
                 <ul className="space-y-2 text-sm">
-                  {categorias.map((cat, idx) => (
-                    <motion.li key={idx} whileHover={{ scale: 1.02 }}>
+                  {allCategories.map((cat, idx) => (
+                    <motion.li key={cat.id || idx} whileHover={{ scale: 1.02 }}>
                       <motion.button
                         onClick={() => handleClick(cat)}
                         initial="initial"
