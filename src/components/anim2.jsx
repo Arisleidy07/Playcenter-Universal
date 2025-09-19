@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/Anim2.css";
+import "../styles/anim2.css";
 
 const baseImages = [
   "/animacion/img1.png",
