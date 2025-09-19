@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, addDoc, updateDoc, doc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, getDocs, setDoc, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { db, storage } from '../firebase';
 
