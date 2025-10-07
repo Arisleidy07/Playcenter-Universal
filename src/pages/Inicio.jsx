@@ -24,14 +24,7 @@ function Inicio() {
   const { productsByCategory, categories, loading, error } = useProductsByCategories();
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-700 mx-auto mb-4"></div>
-          <p className="text-blue-700 text-lg">Cargando productos...</p>
-        </div>
-      </div>
-    );
+    return null; // sin animación ni texto durante la carga
   }
 
   if (error) {
@@ -44,6 +37,31 @@ function Inicio() {
       </div>
     );
   }
+
+  // Helpers nube
+  const pickUrl = (u) => {
+    try {
+      if (!u) return "";
+      if (typeof u === "string") return u;
+      if (typeof u === "object" && u !== null) return u.url || "";
+      return String(u || "");
+    } catch { return ""; }
+  };
+  const getMainImage = (p) => {
+    const a = pickUrl(p?.imagenPrincipal?.[0]);
+    if (a) return a;
+    if (p?.imagen) return p.imagen;
+    const m = (Array.isArray(p?.media) ? p.media : []).find((x) => x?.type === "image" && x?.url);
+    if (m?.url) return m.url;
+    if (Array.isArray(p?.imagenes) && p.imagenes[0]) return p.imagenes[0];
+    return "";
+  };
+  const getCategoryByRoute = (ruta) => categories.find((c) => (c?.ruta || "") === ruta);
+  const getProductsByRoute = (ruta) => {
+    const cat = getCategoryByRoute(ruta);
+    if (!cat) return [];
+    return productsByCategory[cat.id] || [];
+  };
 
   return (
     <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen">
@@ -105,15 +123,18 @@ function Inicio() {
                 {category.nombre}
               </h3>
               <div className="grid grid-cols-2 gap-2 flex-grow">
-                {featuredProducts.map((product, i) => (
-                  <Link to={`/producto/${product.id}`} key={product.id}>
-                    <img
-                      src={product.imagen || '/placeholder-product.png'}
-                      alt={product.nombre}
-                      className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm group-hover:scale-105 transition-transform"
-                    />
-                  </Link>
-                ))}
+                {featuredProducts.map((product, i) => {
+                  const img = getMainImage(product) || '/placeholder-product.png';
+                  return (
+                    <Link to={`/producto/${product.id}`} key={product.id}>
+                      <img
+                        src={img}
+                        alt={product.nombre}
+                        className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm group-hover:scale-105 transition-transform"
+                      />
+                    </Link>
+                  );
+                })}
               </div>
               <Link
                 to={`/Productos/${category.ruta}`}
@@ -128,7 +149,7 @@ function Inicio() {
 
                         {/* BANNER afisionados - SOLO DESKTOP */}
 <motion.div
-  className="hidden lg:block max-w-[1600px] mx-auto px-4 mt-10"
+  className="hidden xl:block max-w-[1600px] mx-auto px-4 mt-10"
   variants={fadeIn}
   initial="hidden"
   animate="visible"
@@ -148,7 +169,7 @@ function Inicio() {
 
 
             {/* BANNERS GRANDES - SOLO COMPUTADORA */}
-      <section className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
+      <section className="hidden xl:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
         {[
           {
             to: "/Productos/retro-consolas",
@@ -245,7 +266,7 @@ function Inicio() {
 
                   {/* BANNER ESTAFETAS - SOLO DESKTOP */}
       <motion.div
-        className="hidden lg:block max-w-[1600px] mx-auto px-4 mt-10"
+        className="hidden xl:block max-w-[1600px] mx-auto px-4 mt-10"
         variants={fadeIn}
         initial="hidden"
         animate="visible"
@@ -281,7 +302,7 @@ function Inicio() {
                 <Link to={`/producto/${producto.id}`} key={producto.id}>
                   <div className="bg-white rounded-xl overflow-hidden shadow hover:shadow-md transition">
                     <img
-                      src={producto.imagen || producto.imagenes?.[0]}
+                      src={getMainImage(producto) || producto.imagen || producto.imagenes?.[0] || '/placeholder-product.png'}
                       alt={producto.nombre}
                       className="w-full aspect-[1/1] object-contain p-2"
                     />
@@ -300,7 +321,7 @@ function Inicio() {
         </div>
       </motion.section>
 
-      {/* SLIDER HOGAR INTELIGENTE */}
+      {/* SLIDER HOGAR INTELIGENTE (dinámico desde Firestore) */}
       <motion.section
         className="max-w-[1600px] mx-auto mt-20 px-4"
         variants={fadeIn}
@@ -312,46 +333,20 @@ function Inicio() {
             Hogar Inteligente en Oferta
           </h2>
           <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-            {[
-              {
-                to: "/producto/hi1",
-                img: "/Productos/focointeligente.webp",
-                alt: "Foco inteligente Wi-Fi RGB",
-              },
-              {
-                to: "/producto/hi2",
-                img: "/Productos/enchufeinteligentewifi.jpg",
-                alt: "Enchufe inteligente TP-Link",
-              },
-              {
-                to: "/producto/hi4",
-                img: "/Productos/sensormovimientowifi.jpg",
-                alt: "Sensor de movimiento Wi-Fi",
-              },
-              {
-                to: "/producto/hi8",
-                img: "/Productos/echodot.png",
-                alt: "Amazon Echo Dot",
-              },
-              {
-                to: "/producto/hi9",
-                img: "/Productos/alexaecho.webp",
-                alt: "Amazon Echo Show 8",
-              },
-              {
-                to: "/producto/hi11",
-                img: "/Productos/smartplug.jpg",
-                alt: "Smart Plug compatible con Alexa",
-              },
-            ].map((prod, idx) => (
-              <Link to={prod.to} className="min-w-[180px] px-2" key={idx}>
-                <img
-                  src={prod.img}
-                  alt={prod.alt}
-                  className="rounded-xl hover:scale-110 transition object-cover w-full h-[180px]"
-                />
-              </Link>
-            ))}
+            {getProductsByRoute('hogar-inteligente')
+              .slice(0, 10)
+              .map((p) => {
+                const img = getMainImage(p) || '/placeholder-product.png';
+                return (
+                  <Link to={`/producto/${p.id}`} className="min-w-[180px] px-2" key={p.id}>
+                    <img
+                      src={img}
+                      alt={p.nombre}
+                      className="rounded-xl hover:scale-110 transition object-contain w-full h-[180px] bg-white"
+                    />
+                  </Link>
+                );
+              })}
           </div>
           <div className="text-right mt-6">
             <Link
@@ -364,7 +359,7 @@ function Inicio() {
         </div>
       </motion.section>
 
-      {/* TU RINCÓN VARIADO */}
+      {/* TU RINCÓN VARIADO (dinámico desde Firestore) */}
       <motion.section
         className="max-w-[1600px] mx-auto mt-20 px-4"
         variants={fadeIn}
@@ -376,66 +371,25 @@ function Inicio() {
             Tu Rincón Variado
           </h2>
           <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-            {[
-              {
-                id: "rv1",
-                nombre: "Bicicleta Urbana MTB 26'' Mongoose",
-                img: "/Productos/mongose.jpg",
-              },
-              {
-                id: "rv2",
-                nombre: "Patineta Eléctrica Plegable",
-                img: "/Productos/patinetaelectrica.jpg",
-              },
-              {
-                id: "rv3",
-                nombre: 'Hoverboard Autoequilibrado 10"',
-                img: "/Productos/hoverboard.jpg",
-              },
-              {
-                id: "rv4",
-                nombre: "Patines en línea 4 ruedas",
-                img: "/Productos/patines4ruedaasenlinea.jpeg",
-              },
-              {
-                id: "rv5",
-                nombre: "Patines clásicos 4 ruedas",
-                img: "/Productos/patinesclasicos.webp",
-              },
-              {
-                id: "rv6",
-                nombre: "Ruedas de repuesto para patineta",
-                img: "/Productos/ruedapatineta.webp",
-              },
-              {
-                id: "rv7",
-                nombre: "Casco Protector Urbano",
-                img: "/Productos/casco.jpg",
-              },
-              {
-                id: "rv8",
-                nombre: "Botella Térmica 1L Acero Inoxidable",
-                img: "/Productos/botella.jpg",
-              },
-              {
-                id: "rv9",
-                nombre: "Luz LED Recargable para Bicicleta",
-                img: "/Productos/lucesbici.webp",
-              },
-            ].map((prod) => (
-              <Link
-                to={`/producto/${prod.id}`}
-                key={prod.id}
-                className="min-w-[180px] px-2"
-                title={prod.nombre}
-              >
-                <img
-                  src={prod.img}
-                  alt={prod.nombre}
-                  className="rounded-xl hover:scale-110 transition-transform duration-300 object-contain w-full h-[180px]"
-                />
-              </Link>
-            ))}
+            {getProductsByRoute('tu-rincon-variado')
+              .slice(0, 12)
+              .map((p) => {
+                const img = getMainImage(p) || '/placeholder-product.png';
+                return (
+                  <Link
+                    to={`/producto/${p.id}`}
+                    key={p.id}
+                    className="min-w-[180px] px-2"
+                    title={p.nombre}
+                  >
+                    <img
+                      src={img}
+                      alt={p.nombre}
+                      className="rounded-xl hover:scale-110 transition-transform duration-300 object-contain w-full h-[180px] bg-white"
+                    />
+                  </Link>
+                );
+              })}
           </div>
           <div className="text-right mt-6">
             <Link
@@ -478,7 +432,7 @@ function Inicio() {
         ))}
       </section>
 
-      {/* BLOQUES: Cámaras, Discos Duros, Memorias USB, Cables */}
+      {/* BLOQUES: Cámaras, Discos Duros, Memorias USB, Cables (dinámicos desde Firestore) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1600px] mx-auto px-4 mt-16">
         {/* Cámaras de Vigilancia */}
         <motion.div
@@ -491,39 +445,20 @@ function Inicio() {
             Cámaras de Vigilancia
           </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
-            {[
-              {
-                id: "cam1",
-                nombre: "Hikvision Dome",
-                img: "/Productos/hikvision.png",
-              },
-              {
-                id: "cam2",
-                nombre: "Dahua Bullet",
-                img: "/Productos/dahua.webp",
-              },
-              {
-                id: "cam3",
-                nombre: "EZVIZ WiFi",
-                img: "/Productos/ezviz.png",
-              },
-              {
-                id: "cam4",
-                nombre: "TP-Link Tapo",
-                img: "/Productos/tapo.webp",
-              },
-            ].map((prod) => (
-              <Link to={`/producto/${prod.id}`} key={prod.id}>
-                <img
-                  src={prod.img}
-                  alt={prod.nombre}
-                  className="w-full aspect-[4/3] object-cover rounded-lg shadow-sm hover:scale-105 transition-transform"
-                />
-              </Link>
-            ))}
+            {getProductsByRoute('camaras')
+              .slice(0, 4)
+              .map((p) => (
+                <Link to={`/producto/${p.id}`} key={p.id}>
+                  <img
+                    src={getMainImage(p) || '/placeholder-product.png'}
+                    alt={p.nombre}
+                    className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm hover:scale-105 transition-transform bg-white"
+                  />
+                </Link>
+              ))}
           </div>
           <Link
-            to="/categoria/camaras-vigilancia"
+            to="/Productos/camaras"
             className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
           >
             Explora nuestras Cámaras de Vigilancia →
@@ -541,35 +476,20 @@ function Inicio() {
             Discos Duros
           </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
-            {[
-              {
-                id: "dd1",
-                nombre: "Seagate 1TB",
-                img: "/Productos/seagate.png",
-              },
-              {
-                id: "dd2",
-                nombre: "SSD Samsung",
-                img: "/Productos/samsung.webp",
-              },
-              { id: "dd3", nombre: "WD 2TB", img: "/Productos/wd2tb.jpg" },
-              {
-                id: "dd4",
-                nombre: "Crucial X6",
-                img: "/Productos/crucial.jpg",
-              },
-            ].map((prod) => (
-              <Link to={`/producto/${prod.id}`} key={prod.id}>
-                <img
-                  src={prod.img}
-                  alt={prod.nombre}
-                  className="w-full aspect-[4/3] object-cover rounded-lg shadow-sm hover:scale-105 transition-transform"
-                />
-              </Link>
-            ))}
+            {getProductsByRoute('discos-duros')
+              .slice(0, 4)
+              .map((p) => (
+                <Link to={`/producto/${p.id}`} key={p.id}>
+                  <img
+                    src={getMainImage(p) || '/placeholder-product.png'}
+                    alt={p.nombre}
+                    className="w-full aspect-[4/3] object-cover rounded-lg shadow-sm hover:scale-105 transition-transform bg-white"
+                  />
+                </Link>
+              ))}
           </div>
           <Link
-            to="/categoria/discos-duros"
+            to="/Productos/discos-duros"
             className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
           >
             Explora nuestros Discos Duros →
@@ -587,39 +507,20 @@ function Inicio() {
             Memorias USB
           </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
-            {[
-              {
-                id: "usb1",
-                nombre: "USB SanDisk 64GB",
-                img: "/Productos/sandisk.jpeg",
-              },
-              {
-                id: "usb2",
-                nombre: "Kingston 128GB USB 3.1",
-                img: "/Productos/kingston.webp",
-              },
-              {
-                id: "usb3",
-                nombre: "HP v150w 32GB",
-                img: "/Productos/hp.jpeg",
-              },
-              {
-                id: "usb4",
-                nombre: "Corsair Flash Voyager 256GB",
-                img: "/Productos/corsair.avif",
-              },
-            ].map((prod) => (
-              <Link to={`/producto/${prod.id}`} key={prod.id}>
-                <img
-                  src={prod.img}
-                  alt={prod.nombre}
-                  className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm hover:scale-105 transition-transform"
-                />
-              </Link>
-            ))}
+            {getProductsByRoute('memorias-usb')
+              .slice(0, 4)
+              .map((p) => (
+                <Link to={`/producto/${p.id}`} key={p.id}>
+                  <img
+                    src={getMainImage(p) || '/placeholder-product.png'}
+                    alt={p.nombre}
+                    className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm hover:scale-105 transition-transform bg-white"
+                  />
+                </Link>
+              ))}
           </div>
           <Link
-            to="/categoria/memorias-usb"
+            to="/Productos/memorias-usb"
             className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
           >
             Explora nuestras Memorias USB →
@@ -637,23 +538,20 @@ function Inicio() {
             Cables
           </h3>
           <div className="grid grid-cols-2 gap-2 flex-grow">
-            {[
-              { id: "cb1", img: "/Productos/usb-c.jpg" },
-              { id: "cb2", img: "/Productos/hdmi4k.jpeg" },
-              { id: "cb3", img: "/Productos/micro.jpg" },
-              { id: "cb4", img: "/Productos/ethernet.jpeg" },
-            ].map((prod) => (
-              <Link to={`/producto/${prod.id}`} key={prod.id}>
-                <img
-                  src={prod.img}
-                  alt="Cable"
-                  className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm hover:scale-105 transition-transform"
-                />
-              </Link>
-            ))}
+            {getProductsByRoute('cables')
+              .slice(0, 4)
+              .map((p) => (
+                <Link to={`/producto/${p.id}`} key={p.id}>
+                  <img
+                    src={getMainImage(p) || '/placeholder-product.png'}
+                    alt={p.nombre || 'Cable'}
+                    className="w-full aspect-[4/3] object-contain rounded-lg shadow-sm hover:scale-105 transition-transform bg-white"
+                  />
+                </Link>
+              ))}
           </div>
           <Link
-            to="/categoria/cables"
+            to="/Productos/cables"
             className="text-indigo-600 text-sm mt-3 hover:underline font-medium"
           >
             Explora nuestros Cables →

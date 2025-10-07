@@ -52,7 +52,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
 
   if (loading) {
     return (
-      <aside className="hidden lg:flex flex-col w-56 px-2 relative z-40">
+      <aside className="hidden xl:flex flex-col w-56 px-2 relative z-40">
         <div className="flex items-center justify-center h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
         </div>
@@ -62,7 +62,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
 
   if (error) {
     return (
-      <aside className="hidden lg:flex flex-col w-56 px-2 relative z-40">
+      <aside className="hidden xl:flex flex-col w-56 px-2 relative z-40">
         <div className="text-red-500 text-sm p-4">
           Error cargando categorías
         </div>
@@ -74,7 +74,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
     <>
       {/* DESKTOP */}
       <aside
-        className="hidden lg:flex flex-col w-56 px-2 relative z-40"
+        className="hidden xl:flex flex-col w-56 px-2 relative z-40"
         style={{
           height: "100vh",
           backgroundColor: "transparent",

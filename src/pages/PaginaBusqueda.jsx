@@ -94,10 +94,10 @@ function PaginaBusqueda() {
 
   return (
     <div
-      className="flex flex-col lg:flex-row min-h-screen bg-white pt-0"
+      className="flex flex-col xl:flex-row min-h-screen bg-white pt-0"
       style={{ paddingTop: TOPBAR_HEIGHT }}
     >
-      <aside className="hidden lg:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
+      <aside className="hidden xl:block w-64 border-r border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
         <SidebarCategorias
           categoriaActiva={null}
           setMostrarEnMovil={setMostrarCategorias}
@@ -105,7 +105,7 @@ function PaginaBusqueda() {
       </aside>
 
       <main className="flex-1 p-4 overflow-y-auto relative">
-        <div className="flex justify-between items-center mb-4 px-2 lg:hidden">
+        <div className="flex justify-between items-center mb-4 px-2 xl:hidden">
           <button
             onClick={() => setMostrarCategorias(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
@@ -136,7 +136,7 @@ function PaginaBusqueda() {
         )}
       </main>
 
-      <aside className="hidden lg:block w-64 border-l border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto px-4 py-4">
+      <aside className="hidden xl:block w-64 border-l border-gray-200 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto px-4 py-4">
         <SidebarFiltros
           filtros={filtros}
           setFiltros={setFiltros}
@@ -152,7 +152,7 @@ function PaginaBusqueda() {
         />
       )}
 
-      <div className="lg:hidden">
+      <div className="xl:hidden">
         <FiltroDrawer
           filtros={filtros}
           setFiltros={setFiltros}

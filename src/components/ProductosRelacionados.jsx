@@ -20,8 +20,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
     const card = rail.querySelector(".prl-card");
     if (!card) return 0;
     const styles = getComputedStyle(rail);
-    const gap =
-      parseInt(styles.getPropertyValue("--gap") || "16", 10) || 16;
+    const gap = parseInt(styles.getPropertyValue("--gap") || "16", 10) || 16;
     const w = card.getBoundingClientRect().width;
     return w + gap;
   }, []);
@@ -77,10 +76,8 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
     if (el && el.firstChild) {
       const cardWidth = el.firstChild.getBoundingClientRect().width;
       const gap =
-        parseInt(
-          getComputedStyle(el).getPropertyValue("--gap") || "16",
-          10
-        ) || 16;
+        parseInt(getComputedStyle(el).getPropertyValue("--gap") || "16", 10) ||
+        16;
       const scrollAmount = dir * (cardWidth + gap);
       el.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
@@ -113,7 +110,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
         <div className="prl-wrapper" aria-roledescription="carrusel">
           {/* Flecha izquierda */}
           <button
-            className="prl-arrow left hidden lg:flex"
+            className="prl-arrow left hidden xl:flex"
             onClick={() => scrollBy(-1)}
             aria-label="Anterior"
             type="button"
@@ -144,7 +141,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
                     aria-label={name}
                     onClick={() => {
                       if (moved.current) return;
-                      go(rel?.id);
+                      go(rel.slug || rel.id);
                     }}
                   >
                     <div className="prl-imgbox">
@@ -175,7 +172,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
                           aria-label={`Ver ${name}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            go(rel?.id);
+                            go(rel.slug || rel.id);
                           }}
                         >
                           Ver producto
@@ -210,7 +207,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
 
           {/* Flecha derecha */}
           <button
-            className="prl-arrow right hidden lg:flex"
+            className="prl-arrow right hidden xl:flex"
             onClick={() => scrollBy(1)}
             aria-label="Siguiente"
             type="button"

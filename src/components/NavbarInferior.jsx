@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaHome, FaThList, FaShoppingCart, FaUser } from "react-icons/fa";
+import { FaHome, FaThList, FaShoppingCart, FaUser, FaStore } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "./ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext"; // <-- asegurate que tienes este contexto
@@ -24,12 +24,18 @@ function NavbarInferior() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-md flex justify-around items-center h-14 text-sm lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-md flex justify-around items-center h-14 text-sm xl:hidden">
         <NavItem
           onClick={() => handleClick("/")}
           icon={<FaHome />}
           label="Inicio"
           active={isActive("/")}
+        />
+        <NavItem
+          onClick={() => handleClick("/tiendas")}
+          icon={<FaStore />}
+          label="Tiendas"
+          active={isActive("/tiendas")}
         />
         <NavItem
           onClick={() => handleClick("/categorias")}

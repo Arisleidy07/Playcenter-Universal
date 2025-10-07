@@ -44,7 +44,7 @@ function Nosotros() {
 <img
   src="/toy/asoman.png"
   alt="Muñeco asomándose"
-  className="hidden lg:block absolute z-20" // solo se muestra en desktop grande
+  className="hidden xl:block absolute z-20" // solo se muestra en desktop grande
   style={{
     top: "-160px",
     right: "-230px",

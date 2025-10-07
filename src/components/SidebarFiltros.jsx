@@ -75,7 +75,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
 
   return (
     <aside
-      className="hidden lg:block w-56 max-w-[240px] relative z-40"
+      className="hidden xl:block w-56 max-w-[240px] relative z-40"
       style={{
         height: `calc(100vh - ${HEADER_HEIGHT}px)`,
         overflow: "hidden",
