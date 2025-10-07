@@ -127,11 +127,55 @@ export default function Carrito() {
                   className="carrito-card"
                   onClick={() => navigate(`/producto/${item.id}`)}
                 >
-                  <img
-                    src={item.imagen || item.imagenes?.[0]}
-                    alt={item.nombre}
-                    className="carrito-img"
-                  />
+                  {(() => {
+                    const pickUrl = (u) => {
+                      try {
+                        if (!u) return "";
+                        if (typeof u === "string") return u;
+                        if (typeof u === "object" && u !== null) return u.url || "";
+                        return String(u || "");
+                      } catch {
+                        return "";
+                      }
+                    };
+                    const p = productosLive[item.id] || item;
+                    // Orden de prioridad: imagenPrincipal[0].url -> imagen -> media image -> galeriaImagenes[0] -> imagenes[0] -> variantes (principal/legacy)
+                    const fromVariant = () => {
+                      const vars = Array.isArray(p.variantes) ? p.variantes : [];
+                      for (const v of vars) {
+                        const vMain = pickUrl(v?.imagenPrincipal?.[0]);
+                        if (vMain) return vMain;
+                        if (v?.imagen) return v.imagen;
+                        const vMediaArr = Array.isArray(v?.media) ? v.media : [];
+                        const vMediaImg = vMediaArr.find((m) => {
+                          const t = (m?.type || "").toLowerCase();
+                          return pickUrl(m) && (!t || t.includes("image") || t === "img" || t === "photo");
+                        });
+                        if (vMediaImg) return pickUrl(vMediaImg);
+                      }
+                      return "";
+                    };
+                    const mediaArr = Array.isArray(p.media) ? p.media : [];
+                    const mediaImg = mediaArr.find((m) => {
+                      const t = (m?.type || "").toLowerCase();
+                      return pickUrl(m) && (!t || t.includes("image") || t === "img" || t === "photo");
+                    });
+                    const displayImage =
+                      pickUrl(p?.imagenPrincipal?.[0]) ||
+                      p?.imagen ||
+                      (mediaImg ? pickUrl(mediaImg) : "") ||
+                      pickUrl(Array.isArray(p?.galeriaImagenes) && p.galeriaImagenes[0]) ||
+                      pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
+                      fromVariant() ||
+                      "";
+                    return (
+                      <img
+                        src={displayImage}
+                        alt={item.nombre}
+                        className="carrito-img"
+                      />
+                    );
+                  })()}
 
                   <div className="carrito-info">
                     <h2 className="carrito-nombre">{item.nombre}</h2>

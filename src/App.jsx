@@ -5,7 +5,8 @@ import AnimatedRoutes from "./AnimatedRoutes";
 import NavbarInferior from "./components/NavbarInferior";
 import AuthModal from "./components/AuthModal";
 import ScrollToTop from "./ScrollToTop";
-import TopBar from "./components/TopBar"; 
+import TopBar from "./components/TopBar";
+ 
 
 function App() {
   return (

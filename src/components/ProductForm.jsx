@@ -1,34 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { collection, addDoc, updateDoc, doc, getDocs, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
-import { db, storage } from '../firebase';
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  getDocs,
+  setDoc,
+  onSnapshot,
+} from "firebase/firestore";
+import {
+  ref,
+  getDownloadURL,
+  deleteObject,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { db, storage } from "../firebase";
+import VistaProductoMini from "./VistaProductoMini";
+import RichTextEditor from "./RichTextEditor";
+
+import UniversalFileUploader from "./UniversalFileUploader";
 
 const ProductForm = ({ product, onClose, onSave }) => {
   const [formData, setFormData] = useState({
-    nombre: '',
-    empresa: '',
-    precio: '',
+    nombre: "",
+    empresa: "",
+    precio: "",
     cantidad: 0,
-    descripcion: '',
-    categoria: '',
-    nuevaCategoria: '',
-    imagen: '',
+    descripcion: "",
+    categoria: "",
+    nuevaCategoria: "",
+    imagen: "",
     imagenes: [],
     imagenesExtra: [],
-    videoUrl: '',
+    videoUrl: "",
     videoUrls: [],
+    videoAcercaArticulo: [],
     oferta: false,
-    precioOferta: '',
-    estado: 'Nuevo',
-    acerca: [''],
-    variantes: [{ color: '', imagen: '', imagenes: [], cantidad: 0 }],
-    etiquetas: [''],
+    precioOferta: "",
+    estado: "Nuevo",
+    acerca: [""],
+    variantes: [
+      {
+        color: "",
+        imagen: "",
+        imagenes: [],
+        cantidad: 0,
+        descripcion: "",
+        precio: "",
+      },
+    ],
+    etiquetas: [""],
     activo: true,
-    fechaPublicacion: new Date().toISOString().split('T')[0],
-    sku: '',
-    peso: '',
-    dimensiones: ''
+    fechaPublicacion: new Date().toISOString().split("T")[0],
+    sku: "",
+    peso: "",
+    dimensiones: "",
   });
 
   const [categorias, setCategorias] = useState([]);
@@ -41,9 +68,12 @@ const ProductForm = ({ product, onClose, onSave }) => {
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   // Previews locales (no se guardan en Firestore)
   const [tempPreviews, setTempPreviews] = useState({
-    imagen: '',
+    imagen: "",
     imagenes: [],
-    variantes: {}, // index -> { imagen: '', imagenes: [] }
+    productVideos: [],
+    acercaVideos: [],
+    variantes: {}, // index -> { imagen: '', imagenes: [], videos: [] }
+    extras: [],
   });
   // Cola de subidas por archivo (con progreso/cancelar/reintentar)
   const [uploadQueue, setUploadQueue] = useState([]); // {id,name,file,type:'image'|'video',progress,status:'uploading'|'done'|'error'|'canceled', target:{level:'product'|'variant', field, variantIndex|null}, task}
@@ -54,26 +84,50 @@ const ProductForm = ({ product, onClose, onSave }) => {
     if (product) {
       setFormData({
         ...product,
-        precio: product.precio?.toString() || '',
-        fechaPublicacion: product.fechaPublicacion || new Date().toISOString().split('T')[0],
-        acerca: product.acerca || [''],
-        etiquetas: product.etiquetas || [''],
-        variantes: product.variantes || [{ color: '', imagen: '', imagenes: [], cantidad: 0 }],
-        videoUrls: product.videoUrls || []
+        precio: product.precio?.toString() || "",
+        fechaPublicacion:
+          product.fechaPublicacion || new Date().toISOString().split("T")[0],
+        acerca: product.acerca || [""],
+        etiquetas: product.etiquetas || [""],
+        variantes: product.variantes || [
+          { color: "", imagen: "", imagenes: [], cantidad: 0 },
+        ],
+        videoUrl: product.videoUrl || "",
+        videoUrls: product.videoUrls || [],
+        videoAcercaArticulo: product.videoAcercaArticulo || [],
       });
-    } else {
-      // Si estamos creando uno nuevo y aún no existe un borrador, crearlo de inmediato
-      (async () => {
-        try { await ensureCurrentId(); } catch {}
-      })();
     }
   }, [product]);
+
+  // Sincronizar currentId cuando product.id llegue de forma asíncrona (evita crear borradores al editar)
+  useEffect(() => {
+    if (product?.id && currentId !== product.id) {
+      setCurrentId(product.id);
+    }
+  }, [product?.id]);
+
+  // Advertir si hay subidas en progreso al cerrar/recargar
+  useEffect(() => {
+    const handler = (e) => {
+      const hasUploading = uploadQueue?.some?.(
+        (q) => q?.status === "uploading"
+      );
+      if (hasUploading) {
+        e.preventDefault();
+        e.returnValue = ""; // Requerido por algunos navegadores
+        return "";
+      }
+      return undefined;
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [uploadQueue]);
 
   // Suscripción en tiempo real al producto/draft para mantener sincronizado el formulario
   useEffect(() => {
     const id = currentId || product?.id;
     if (!id) return;
-    const unsub = onSnapshot(doc(db, 'productos', id), (snap) => {
+    const unsub = onSnapshot(doc(db, "productos", id), (snap) => {
       if (!snap.exists()) return;
       const data = snap.data();
       // Merge no destructivo: priorizar lo que está en Firestore para medios y campos base,
@@ -85,74 +139,367 @@ const ProductForm = ({ product, onClose, onSave }) => {
         descripcion: data.descripcion ?? prev.descripcion,
         empresa: data.empresa ?? prev.empresa,
         categoria: data.categoria ?? prev.categoria,
-        precio: (data.precio ?? prev.precio)?.toString?.() || String(data.precio ?? prev.precio ?? ''),
+        precio:
+          (data.precio ?? prev.precio)?.toString?.() ||
+          String(data.precio ?? prev.precio ?? ""),
         cantidad: data.cantidad ?? prev.cantidad,
-        etiquetas: Array.isArray(data.etiquetas) ? data.etiquetas : (prev.etiquetas || []),
-        acerca: Array.isArray(data.acerca) ? data.acerca : (prev.acerca || []),
+        etiquetas: Array.isArray(data.etiquetas)
+          ? data.etiquetas
+          : prev.etiquetas || [],
+        acerca: Array.isArray(data.acerca) ? data.acerca : prev.acerca || [],
         imagen: data.imagen ?? prev.imagen,
-        imagenes: Array.isArray(data.imagenes) ? data.imagenes : (prev.imagenes || []),
-        videoUrls: Array.isArray(data.videoUrls) ? data.videoUrls : (prev.videoUrls || []),
-        variantes: Array.isArray(data.variantes) ? data.variantes : (prev.variantes || []),
+        imagenes: Array.isArray(data.imagenes)
+          ? data.imagenes
+          : prev.imagenes || [],
+        videoUrl: data.videoUrl ?? prev.videoUrl,
+        videoUrls: Array.isArray(data.videoUrls)
+          ? data.videoUrls
+          : prev.videoUrls || [],
+        videoAcercaArticulo: Array.isArray(data.videoAcercaArticulo)
+          ? data.videoAcercaArticulo
+          : prev.videoAcercaArticulo || [],
+        variantes: Array.isArray(data.variantes)
+          ? data.variantes
+          : prev.variantes || [],
         activo: data.activo ?? prev.activo,
       }));
+
+      // Normalizar URLs legacy (paths de Storage o URLs sin alt=media) y arrays de objetos {url}
+      (async () => {
+        // Convierte una URL HTTPS de Firebase Storage en un StorageReference compatible
+        const refFromUrlish = (s) => {
+          try {
+            if (!s) return null;
+            const url = String(s);
+            if (url.includes("firebasestorage.googleapis.com")) {
+              const m = url.match(/\/o\/([^?]+)/);
+              if (m && m[1]) {
+                const objectPath = decodeURIComponent(m[1]);
+                return ref(storage, objectPath);
+              }
+            }
+            // Si no es una URL de Firebase o no pudimos extraer el path, asumir que es un path de Storage
+            return ref(storage, url);
+          } catch {
+            return null;
+          }
+        };
+
+        // Múltiples videos handler moved to top-level: handleAcercaVideosUFU
+
+        // Extraer URL desde string u objeto {url}
+        const pickUrl = (u) => {
+          try {
+            if (!u) return "";
+            if (typeof u === "string") return u;
+            if (typeof u === "object" && u !== null) {
+              if (typeof u.url === "string") return u.url;
+            }
+            return String(u || "").trim();
+          } catch {
+            return "";
+          }
+        };
+
+        const normalizeOne = async (u) => {
+          try {
+            if (!u) return u;
+            const raw = pickUrl(u);
+            const s = String(raw).trim();
+            if (s.startsWith("blob:")) return s;
+            if (/^https?:\/\//i.test(s)) {
+              // Si es URL de Firebase Storage, obtener un downloadURL válido (con token)
+              if (s.includes("firebasestorage.googleapis.com")) {
+                const r = refFromUrlish(s);
+                if (r) {
+                  try {
+                    return await getDownloadURL(r);
+                  } catch {
+                    /* fallthrough */
+                  }
+                }
+                return s;
+              }
+              return s;
+            }
+            // Paths tipo 'Productos/archivo.jpg' o 'products/...'
+            const r = ref(storage, s);
+            return await getDownloadURL(r);
+          } catch {
+            return u;
+          }
+        };
+
+        const mapList = async (arr) =>
+          Array.isArray(arr) ? Promise.all(arr.map(normalizeOne)) : [];
+
+        const [
+          imgNorm,
+          imgsNorm,
+          vidSingleNorm,
+          vidsNorm,
+          extrasNorm,
+          acercaVidsNorm,
+        ] = await Promise.all([
+          normalizeOne(data.imagen ?? data.imagenPrincipal?.[0]?.url),
+          mapList(data.imagenes ?? data.galeriaImagenes),
+          normalizeOne(
+            data.videoUrl ?? data.videoAcercaArticulo?.[0]?.url ?? data.video
+          ),
+          mapList(data.videoUrls),
+          mapList(data.imagenesExtra ?? data.tresArchivosExtras),
+          mapList(data.videoAcercaArticulo),
+        ]);
+
+        // Normalizar variantes (soportar {url} y nombres legacy)
+        const normalizeVariant = (v) => {
+          const imagenVar = v?.imagen ?? v?.imagenPrincipal?.[0]?.url ?? "";
+          const imagenesVar = Array.isArray(v?.imagenes)
+            ? v.imagenes
+            : Array.isArray(v?.galeriaImagenes)
+            ? v.galeriaImagenes
+            : [];
+          const videoUrlsVar = Array.isArray(v?.videoUrls) ? v.videoUrls : [];
+          const toStr = (x) => pickUrl(x);
+          return {
+            ...v,
+            imagen: toStr(imagenVar),
+            imagenes: imagenesVar.map(toStr).filter(Boolean),
+            videoUrls: videoUrlsVar.map(toStr).filter(Boolean),
+          };
+        };
+        const variantesNorm = Array.isArray(data.variantes)
+          ? data.variantes.map(normalizeVariant)
+          : prev.variantes || [];
+
+        setFormData((prev) => ({
+          ...prev,
+          imagen: imgNorm || prev.imagen,
+          imagenes: imgsNorm?.length ? imgsNorm : prev.imagenes,
+          videoUrl: vidSingleNorm || prev.videoUrl,
+          videoUrls: vidsNorm?.length ? vidsNorm : prev.videoUrls,
+          imagenesExtra: extrasNorm?.length ? extrasNorm : prev.imagenesExtra,
+          videoAcercaArticulo: acercaVidsNorm?.length
+            ? acercaVidsNorm
+            : prev.videoAcercaArticulo,
+          variantes: variantesNorm,
+        }));
+      })();
     });
     return () => unsub();
   }, [currentId, product?.id]);
 
-  // Auto-guardado (debounced) de campos de texto/base cuando existe draft o producto
+  // Limpieza: eliminar cualquier inyección previa del video de ejemplo (flower.mp4)
+  const defaultsAppliedRef = useRef(false);
   useEffect(() => {
-    const id = currentId || product?.id;
-    if (!id) return;
-    const timer = setTimeout(() => {
-      try {
-        updateDoc(doc(db, 'productos', id), {
-          nombre: formData.nombre || 'Borrador',
-          descripcion: formData.descripcion || '',
-          empresa: formData.empresa || '',
-          categoria: formData.categoria || '',
-          precio: parseFloat(formData.precio) || 0,
-          cantidad: Number(formData.cantidad) || 0,
-          etiquetas: Array.isArray(formData.etiquetas) ? formData.etiquetas : [],
-          acerca: Array.isArray(formData.acerca) ? formData.acerca : [],
+    if (defaultsAppliedRef.current) return;
+    try {
+      const defaultVideo =
+        "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+      const list = Array.isArray(formData.videoAcercaArticulo)
+        ? formData.videoAcercaArticulo
+        : [];
+      const hasDefault = list.some((u) => String(u).trim() === defaultVideo);
+      if (hasDefault) {
+        const cleaned = list.filter((u) => String(u).trim() !== defaultVideo);
+        setFormData((prev) => ({ ...prev, videoAcercaArticulo: cleaned }));
+        const targetId = currentId || product?.id;
+        if (targetId) {
+          updateDoc(doc(db, "productos", targetId), {
+            videoAcercaArticulo: cleaned,
+            fechaActualizacion: new Date(),
+          }).catch(() => {});
+        }
+      }
+    } catch {}
+    defaultsAppliedRef.current = true;
+  }, [formData.videoAcercaArticulo, currentId, product?.id]);
+
+  // Auto-guardado desactivado para evitar guardados ocultos de campos de texto/base.
+
+  // Datos para Vista Previa Mini: combinar formData + tempPreviews para feedback instantáneo
+  const productIdForPreview = currentId || product?.id || null;
+  const miniDraft = useMemo(() => {
+    const draft = {};
+    draft.id = productIdForPreview || "draft";
+    draft.name = formData.nombre || "";
+    draft.price = parseFloat(formData.precio) || 0;
+    draft.stock = Number(formData.cantidad) || 0;
+    draft.mainImage = (tempPreviews.imagen || formData.imagen || "").trim();
+    draft.gallery = [
+      ...(Array.isArray(tempPreviews.imagenes) ? tempPreviews.imagenes : []),
+      ...(Array.isArray(formData.imagenes) ? formData.imagenes : []),
+    ];
+    // Videos de galería (se muestran en la galería principal)
+    draft.productVideos = [
+      ...(Array.isArray(tempPreviews.productVideos)
+        ? tempPreviews.productVideos
+        : []),
+      ...(Array.isArray(formData.videoUrls) ? formData.videoUrls : []),
+    ];
+    // Videos de "Acerca de este artículo" (carrusel independiente)
+    draft.videoAcercaArticulo = [
+      ...(Array.isArray(tempPreviews.acercaVideos)
+        ? tempPreviews.acercaVideos
+        : []),
+      ...(Array.isArray(formData.videoAcercaArticulo)
+        ? formData.videoAcercaArticulo
+        : formData.videoUrl
+        ? [formData.videoUrl]
+        : []),
+    ];
+    draft.extraMedia = [
+      ...(Array.isArray(tempPreviews.extras) ? tempPreviews.extras : []),
+      ...(Array.isArray(formData.imagenesExtra) ? formData.imagenesExtra : []),
+    ];
+    draft.variants = (
+      Array.isArray(formData.variantes) ? formData.variantes : []
+    ).map((v, idx) => ({
+      id: v.id || `var_${idx}`,
+      name: v.name || v.color || `Variante ${idx + 1}`,
+      price: v.precio ?? v.price ?? null,
+      stock: v.cantidad ?? v.stock ?? null,
+      mainImage: (
+        tempPreviews.variantes?.[idx]?.imagen ||
+        v.imagen ||
+        ""
+      ).trim(),
+      gallery: [
+        ...(tempPreviews.variantes?.[idx]?.imagenes || []),
+        ...(Array.isArray(v.imagenes) ? v.imagenes : []),
+      ],
+      videos: [
+        ...(tempPreviews.variantes?.[idx]?.videos || []),
+        ...(Array.isArray(v.videoUrls) ? v.videoUrls : []),
+      ],
+    }));
+    return draft;
+  }, [productIdForPreview, formData, tempPreviews]);
+
+  // Obtener ID del producto actual. No crear borradores automáticamente para evitar duplicados.
+  const ensureCurrentId = async () => {
+    if (product?.id) return product.id;
+    if (formData?.id) return formData.id;
+    if (currentId) return currentId;
+    // No auto-crear: los handlers deben abortar subida si no hay ID todavía
+    return null;
+  };
+
+  // Persistir un campo específico de inmediato (safe, solo actualiza ese campo)
+  const persistFieldImmediate = async (field, value) => {
+    // Evitar guardar campos transitorios del formulario
+    if (["nuevaCategoria", "_tempVideoUrl"].includes(field)) return;
+    try {
+      const existingId = product?.id || formData?.id || currentId;
+      const isEditing = Boolean(existingId);
+      let targetId = existingId;
+      // Si estamos editando y aún no tenemos ID, NO crear borradores: esperar
+      if (!targetId) {
+        if (isEditing) return;
+        targetId = await ensureCurrentId();
+        if (!targetId) return;
+      }
+      await updateDoc(doc(db, "productos", targetId), {
+        [field]: value,
+        fechaActualizacion: new Date(),
+      });
+    } catch (e) {
+      // silencioso: no bloquear la UI
+    }
+  };
+
+  // -------- Helpers de rutas y IDs estables --------
+  const makeUniqueName = (file) => {
+    const base = (file?.name || "file").replace(/[^a-zA-Z0-9_.-]/g, "_");
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${base}`;
+  };
+
+  const buildStoragePath = ({ productId, section, file, variantId = null }) => {
+    const fname = makeUniqueName(file);
+    if (variantId) {
+      if (section === "main")
+        return `products/${productId}/variants/${variantId}/main/${fname}`;
+      if (section === "gallery")
+        return `products/${productId}/variants/${variantId}/gallery/${fname}`;
+    } else {
+      if (section === "main") return `products/${productId}/main/${fname}`;
+      if (section === "gallery")
+        return `products/${productId}/gallery/${fname}`;
+      if (section === "videos") return `products/${productId}/videos/${fname}`;
+      if (section === "extras") return `products/${productId}/extras/${fname}`;
+    }
+    return `products/${productId}/misc/${fname}`;
+  };
+
+  const getOrCreateVariantId = (variantIndex) => {
+    const v = (formData.variantes || [])[variantIndex] || {};
+    if (v.id) return v.id;
+    const newId = `var_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    // persistir inmediatamente en estado y Firestore si hay doc
+    setFormData((prev) => {
+      const variantes = [...(prev.variantes || [])];
+      variantes[variantIndex] = {
+        ...(variantes[variantIndex] || {}),
+        id: newId,
+      };
+      const next = { ...prev, variantes };
+      const targetId = currentId || product?.id;
+      if (targetId)
+        updateDoc(doc(db, "productos", targetId), {
+          variantes,
           fechaActualizacion: new Date(),
         }).catch(() => {});
-      } catch {}
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [currentId, product?.id, formData.nombre, formData.descripcion, formData.empresa, formData.categoria, formData.precio, formData.cantidad, formData.etiquetas, formData.acerca]);
+      return next;
+    });
+    return newId;
+  };
 
-  // Crea un borrador en Firestore si aún no hay ID (para propagar en vivo al subir medios)
-  const ensureCurrentId = async () => {
-    if (currentId) return currentId;
-    const newId = `prod_${Date.now()}`;
-    const baseDraft = {
-      id: newId,
-      nombre: formData.nombre || 'Borrador',
-      descripcion: formData.descripcion || '',
-      empresa: formData.empresa || '',
-      precio: parseFloat(formData.precio) || 0,
-      cantidad: Number(formData.cantidad) || 0,
-      categoria: formData.categoria || '',
-      imagen: formData.imagen || '',
-      imagenes: Array.isArray(formData.imagenes) ? formData.imagenes : [],
-      videoUrls: Array.isArray(formData.videoUrls) ? formData.videoUrls : [],
-      variantes: Array.isArray(formData.variantes) ? formData.variantes : [],
-      activo: false,
-      fechaCreacion: new Date(),
-      fechaActualizacion: new Date(),
-    };
+  // Guardar borrador explícitamente y cerrar el formulario
+  const handleSaveDraft = async () => {
+    const draft = { ...formData };
+    // Normalizar listas
+    draft.acerca = (draft.acerca || []).filter((x) => (x || "").trim());
+    draft.etiquetas = (draft.etiquetas || []).filter((x) => (x || "").trim());
+    draft.activo = false; // siempre como borrador
+    draft.fechaActualizacion = new Date();
+    delete draft.nuevaCategoria;
+    delete draft._tempVideoUrl;
+
+    try {
+      let id = product?.id || currentId;
+      if (!id) {
+        id = `prod_${Date.now()}`;
+        draft.id = id;
+        draft.fechaCreacion = new Date();
+        await setDoc(doc(db, "productos", id), draft);
+        setCurrentId(id);
+      } else {
+        await updateDoc(doc(db, "productos", id), draft);
+      }
+      if (onClose) onClose();
+    } catch (e) {
+      console.error("Error al guardar borrador:", e);
+      alert(
+        "No se pudo guardar el borrador. Revisa tu conexión e intenta nuevamente."
+      );
+    }
+  };
 
   // Helpers para reordenar videos del producto (persistencia inmediata)
   const moveProductVideo = (fromIndex, direction) => {
     setFormData((prev) => {
       const vids = Array.isArray(prev.videoUrls) ? [...prev.videoUrls] : [];
-      const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+      const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
       if (toIndex < 0 || toIndex >= vids.length) return prev;
       const [m] = vids.splice(fromIndex, 1);
       vids.splice(toIndex, 0, m);
       const next = { ...prev, videoUrls: vids };
       const targetId = currentId || product?.id;
-      if (targetId) updateDoc(doc(db, 'productos', targetId), { videoUrls: vids, fechaActualizacion: new Date() }).catch(() => {});
+      if (targetId)
+        updateDoc(doc(db, "productos", targetId), {
+          videoUrls: vids,
+          fechaActualizacion: new Date(),
+        }).catch(() => {});
       return next;
     });
   };
@@ -161,64 +508,86 @@ const ProductForm = ({ product, onClose, onSave }) => {
   const moveVariantVideo = (variantIndex, fromIndex, direction) => {
     setFormData((prev) => {
       const variantes = [...prev.variantes];
-      const vids = Array.isArray(variantes[variantIndex]?.videoUrls) ? [...variantes[variantIndex].videoUrls] : [];
-      const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+      const vids = Array.isArray(variantes[variantIndex]?.videoUrls)
+        ? [...variantes[variantIndex].videoUrls]
+        : [];
+      const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
       if (toIndex < 0 || toIndex >= vids.length) return prev;
       const [m] = vids.splice(fromIndex, 1);
       vids.splice(toIndex, 0, m);
       variantes[variantIndex] = { ...variantes[variantIndex], videoUrls: vids };
       const next = { ...prev, variantes };
       const targetId = currentId || product?.id;
-      if (targetId) updateDoc(doc(db, 'productos', targetId), { variantes, fechaActualizacion: new Date() }).catch(() => {});
+      if (targetId)
+        updateDoc(doc(db, "productos", targetId), {
+          variantes,
+          fechaActualizacion: new Date(),
+        }).catch(() => {});
       return next;
     });
-  };
-    try {
-      await setDoc(doc(db, 'productos', newId), baseDraft);
-      setCurrentId(newId);
-      setFormData((prev) => ({ ...prev, id: newId }));
-      return newId;
-    } catch (e) {
-      console.error('No se pudo crear borrador de producto:', e);
-      throw e;
-    }
   };
 
   const loadCategorias = async () => {
     try {
-      const categoriasSnap = await getDocs(collection(db, 'categorias'));
-      const categoriasData = categoriasSnap.docs.map(doc => ({
+      const categoriasSnap = await getDocs(collection(db, "categorias"));
+      const categoriasData = categoriasSnap.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
       setCategorias(categoriasData);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      console.error("Error loading categories:", error);
     }
   };
 
   const handleVariantVideoUpload = async (files, variantIndex) => {
     if (!files?.length) return;
+    // asegurar IDs
+    let targetId = currentId || product?.id;
+    if (!targetId) targetId = await ensureCurrentId();
+    const variantId = getOrCreateVariantId(variantIndex);
     setUploadingImages(true);
     const tasks = Array.from(files).map(async (file) => {
-      const id = `${Date.now()}_${file.name}_${Math.random().toString(36).slice(2,7)}`;
-      setUploadQueue((prev) => ([...prev, { id, name: file.name, file, type: 'video', progress: 0, status: 'uploading', target: { level: 'variant', field: 'videoUrls', variantIndex }, task: null }]));
+      const id = `${Date.now()}_${file.name}_${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
+      setUploadQueue((prev) => [
+        ...prev,
+        {
+          id,
+          name: file.name,
+          file,
+          type: "video",
+          progress: 0,
+          status: "uploading",
+          target: { level: "variant", field: "videoUrls", variantIndex },
+          task: null,
+        },
+      ]);
       try {
-        const url = await uploadWithRetry(uploadVideo, file, (formData.nombre || currentId || 'temp'), id);
+        const destPath = buildStoragePath({
+          productId: targetId,
+          section: "gallery",
+          file,
+          variantId,
+        });
+        const url = await uploadWithRetry(uploadVideo, file, destPath, id);
         // Update local + Firestore (when editing) using functional state to avoid races
         setFormData((prev) => {
           const current = Array.isArray(prev.variantes[variantIndex]?.videoUrls)
             ? prev.variantes[variantIndex].videoUrls
             : [];
-          const newVariants = prev.variantes.map((v, i) => i === variantIndex ? { ...v, videoUrls: [...current, url] } : v);
-          if (product?.id || currentId) {
-            const targetId = currentId || product.id;
-            updateDoc(doc(db, 'productos', targetId), { variantes: newVariants, fechaActualizacion: new Date() }).catch(() => {});
-          }
+          const newVariants = prev.variantes.map((v, i) =>
+            i === variantIndex ? { ...v, videoUrls: [...current, url] } : v
+          );
+          updateDoc(doc(db, "productos", targetId), {
+            variantes: newVariants,
+            fechaActualizacion: new Date(),
+          }).catch(() => {});
           return { ...prev, variantes: newVariants };
         });
       } catch (e) {
-        console.error('Variant video upload failed for file', file?.name, e);
+        console.error("Variant video upload failed for file", file?.name, e);
       }
     });
     try {
@@ -231,9 +600,11 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
   const loadBrands = async () => {
     try {
-      const snap = await getDocs(collection(db, 'productos'));
-      const all = snap.docs.map(d => d.data()?.empresa).filter(Boolean);
-      const unique = Array.from(new Set(all)).sort((a,b) => a.localeCompare(b));
+      const snap = await getDocs(collection(db, "productos"));
+      const all = snap.docs.map((d) => d.data()?.empresa).filter(Boolean);
+      const unique = Array.from(new Set(all)).sort((a, b) =>
+        a.localeCompare(b)
+      );
       setBrands(unique);
     } catch (e) {
       // silently ignore
@@ -241,143 +612,296 @@ const ProductForm = ({ product, onClose, onSave }) => {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    // Persistir inmediatamente ciertos campos clave si ya hay un doc (editar o borrador creado)
-    const targetId = currentId || product?.id;
-    if (targetId && ['imagen', 'imagenes', 'videoUrls'].includes(field)) {
-      try {
-        updateDoc(doc(db, 'productos', targetId), { [field]: value, fechaActualizacion: new Date() });
-      } catch {}
-    }
+    // Persistir inmediatamente cualquier cambio de campo (safe por campo)
+    persistFieldImmediate(field, value);
   };
 
   const handleArrayChange = (field, index, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
-    }));
+    setFormData((prev) => {
+      const nextArr = prev[field].map((item, i) =>
+        i === index ? value : item
+      );
+      const next = { ...prev, [field]: nextArr };
+      // Persistir arreglo actualizado
+      persistFieldImmediate(field, nextArr);
+      return next;
+    });
   };
 
   const addArrayItem = (field) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], field === 'variantes' ? { color: '', imagen: '', imagenes: [], cantidad: 0 } : '']
-    }));
+    setFormData((prev) => {
+      const appended = [
+        ...prev[field],
+        field === "variantes"
+          ? {
+              color: "",
+              imagen: "",
+              imagenes: [],
+              cantidad: 0,
+              descripcion: "",
+              precio: "",
+            }
+          : "",
+      ];
+      const next = { ...prev, [field]: appended };
+      persistFieldImmediate(field, appended);
+      return next;
+    });
   };
 
   const removeArrayItem = (field, index) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
+    setFormData((prev) => {
+      const filtered = prev[field].filter((_, i) => i !== index);
+      const next = { ...prev, [field]: filtered };
+      persistFieldImmediate(field, filtered);
+      return next;
+    });
   };
 
   const handleVariantChange = (index, field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      variantes: prev.variantes.map((variant, i) => 
+      variantes: prev.variantes.map((variant, i) =>
         i === index ? { ...variant, [field]: value } : variant
-      )
+      ),
     }));
     // Persistir variantes inmediatamente si hay doc
     const targetId = currentId || product?.id;
     if (targetId) {
       try {
         // Construir el nuevo array en base al estado más reciente conocido
-        setFormData(prev => {
-          const nuevas = prev.variantes.map((v, i) => i === index ? { ...v, [field]: value } : v);
-          updateDoc(doc(db, 'productos', targetId), { variantes: nuevas, fechaActualizacion: new Date() }).catch(() => {});
+        setFormData((prev) => {
+          const nuevas = prev.variantes.map((v, i) =>
+            i === index ? { ...v, [field]: value } : v
+          );
+          updateDoc(doc(db, "productos", targetId), {
+            variantes: nuevas,
+            fechaActualizacion: new Date(),
+          }).catch(() => {});
           return { ...prev, variantes: nuevas };
         });
       } catch {}
     }
   };
 
-  const uploadImage = async (file, path, queueId) => {
+  const uploadImage = async (file, destPath, queueId) => {
     return new Promise((resolve, reject) => {
       try {
-        const imageRef = ref(storage, `productos/${path}/imagenes/${Date.now()}_${file.name}`);
+        const imageRef = ref(storage, destPath);
         const task = uploadBytesResumable(imageRef, file);
         // attach task to queue item
-        setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, task } : q)));
-        task.on('state_changed', (snap) => {
-          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-          setUploadProgress(pct);
-          setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q)));
-          // Watchdog: si sigue en 0% tras 6s, cancelar para reintentar
-          setTimeout(() => {
-            setUploadQueue((prev) => {
-              const item = prev.find((q) => q.id === queueId);
-              if (item && item.status === 'uploading' && (!item.progress || item.progress === 0) && item.task) {
-                try { item.task.cancel(); } catch {}
-                return prev.map((q) => q.id === queueId ? { ...q, status: 'error' } : q);
-              }
-              return prev;
-            });
-          }, 6000);
-        }, (err) => {
-          setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, status: 'error' } : q)));
-          reject(err);
-        }, async () => {
-          const url = await getDownloadURL(task.snapshot.ref);
-          setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, status: 'done' } : q)));
-          resolve(url);
-        });
+        setUploadQueue((prev) =>
+          prev.map((q) => (q.id === queueId ? { ...q, task } : q))
+        );
+        task.on(
+          "state_changed",
+          (snap) => {
+            const pct = Math.round(
+              (snap.bytesTransferred / snap.totalBytes) * 100
+            );
+            setUploadProgress(pct);
+            setUploadQueue((prev) =>
+              prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q))
+            );
+            // Watchdog: si sigue en 0% tras 6s, cancelar para reintentar
+            setTimeout(() => {
+              setUploadQueue((prev) => {
+                const item = prev.find((q) => q.id === queueId);
+                if (
+                  item &&
+                  item.status === "uploading" &&
+                  (!item.progress || item.progress === 0) &&
+                  item.task
+                ) {
+                  try {
+                    item.task.cancel();
+                  } catch {}
+                  return prev.map((q) =>
+                    q.id === queueId ? { ...q, status: "error" } : q
+                  );
+                }
+                return prev;
+              });
+            }, 6000);
+          },
+          (err) => {
+            setUploadQueue((prev) =>
+              prev.map((q) =>
+                q.id === queueId ? { ...q, status: "error" } : q
+              )
+            );
+            reject(err);
+          },
+          async () => {
+            const url = await getDownloadURL(task.snapshot.ref);
+            setUploadQueue((prev) =>
+              prev.map((q) => (q.id === queueId ? { ...q, status: "done" } : q))
+            );
+            resolve(url);
+          }
+        );
       } catch (e) {
-        setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, status: 'error' } : q)));
+        setUploadQueue((prev) =>
+          prev.map((q) => (q.id === queueId ? { ...q, status: "error" } : q))
+        );
         reject(e);
       }
     });
   };
 
-  const uploadVideo = async (file, path, queueId) => {
+  const uploadVideo = async (file, destPath, queueId) => {
     return new Promise((resolve, reject) => {
       try {
-        const videoRef = ref(storage, `productos/${path}/videos/${Date.now()}_${file.name}`);
+        const videoRef = ref(storage, destPath);
         const task = uploadBytesResumable(videoRef, file);
-        setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, task } : q)));
-        task.on('state_changed', (snap) => {
-          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-          setUploadProgress(pct);
-          setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q)));
-        }, (err) => {
-          setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, status: 'error' } : q)));
-          reject(err);
-        }, async () => {
-          const url = await getDownloadURL(task.snapshot.ref);
-          setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, status: 'done' } : q)));
-          resolve(url);
-        });
+        setUploadQueue((prev) =>
+          prev.map((q) => (q.id === queueId ? { ...q, task } : q))
+        );
+        task.on(
+          "state_changed",
+          (snap) => {
+            const pct = Math.round(
+              (snap.bytesTransferred / snap.totalBytes) * 100
+            );
+            setUploadProgress(pct);
+            setUploadQueue((prev) =>
+              prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q))
+            );
+          },
+          (err) => {
+            setUploadQueue((prev) =>
+              prev.map((q) =>
+                q.id === queueId ? { ...q, status: "error" } : q
+              )
+            );
+            reject(err);
+          },
+          async () => {
+            const url = await getDownloadURL(task.snapshot.ref);
+            setUploadQueue((prev) =>
+              prev.map((q) => (q.id === queueId ? { ...q, status: "done" } : q))
+            );
+            resolve(url);
+          }
+        );
       } catch (e) {
-        setUploadQueue((prev) => prev.map((q) => (q.id === queueId ? { ...q, status: 'error' } : q)));
+        setUploadQueue((prev) =>
+          prev.map((q) => (q.id === queueId ? { ...q, status: "error" } : q))
+        );
         reject(e);
       }
     });
+  };
+
+  // Helper con reintentos y backoff simple
+  const uploadWithRetry = async (
+    fn,
+    file,
+    pathKey,
+    queueId,
+    maxRetries = 2
+  ) => {
+    let lastErr;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const url = await fn(file, pathKey, queueId);
+        return url;
+      } catch (e) {
+        lastErr = e;
+        await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+      }
+    }
+    throw lastErr;
+  };
+
+  // Borrar un archivo de Firebase Storage a partir de su URL pública (si aplica)
+  const deleteFromStorageByUrl = async (url) => {
+    if (!url) return;
+    try {
+      const toRef = (s) => {
+        try {
+          const u = String(s);
+          if (u.startsWith("gs://")) return ref(storage, u);
+          if (u.includes("firebasestorage.googleapis.com")) {
+            const m = u.match(/\/o\/([^?]+)/);
+            if (m && m[1]) {
+              const objectPath = decodeURIComponent(m[1]);
+              return ref(storage, objectPath);
+            }
+          }
+          return ref(storage, u);
+        } catch {
+          return null;
+        }
+      };
+      const r = toRef(url);
+      if (r) await deleteObject(r);
+    } catch (e) {
+      // Ignorar errores (URLs externas o falta de permisos)
+    }
+  };
+
+  // Detectar tipo a partir de la URL (para extras guardados)
+  const detectTypeFromUrl = (url) => {
+    try {
+      const clean = String(url).split("?")[0].split("#")[0].toLowerCase();
+      const ext = clean.split(".").pop() || "";
+      if (["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(ext))
+        return "image";
+      if (["mp4", "mov", "avi", "mkv", "webm", "m4v"].includes(ext))
+        return "video";
+      return "document";
+    } catch {
+      return "document";
+    }
   };
 
   const handleVideoFilesUpload = async (files) => {
     if (!files?.length) return;
+    // asegurar ID de producto para rutas estables y Firestore inmediato
+    let targetId = currentId || product?.id;
+    if (!targetId) targetId = await ensureCurrentId();
     setUploadingImages(true);
     const tasks = Array.from(files).map(async (file) => {
-      const id = `${Date.now()}_${file.name}_${Math.random().toString(36).slice(2,7)}`;
-      setUploadQueue((prev) => ([...prev, { id, name: file.name, file, type: 'video', progress: 0, status: 'uploading', target: { level: 'product', field: 'videoUrls', variantIndex: null }, task: null }]));
+      const id = `${Date.now()}_${file.name}_${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
+      setUploadQueue((prev) => [
+        ...prev,
+        {
+          id,
+          name: file.name,
+          file,
+          type: "video",
+          progress: 0,
+          status: "uploading",
+          target: { level: "product", field: "videoUrls", variantIndex: null },
+          task: null,
+        },
+      ]);
       try {
-        const url = await uploadWithRetry(uploadVideo, file, (formData.nombre || currentId || 'temp'), id);
+        const destPath = buildStoragePath({
+          productId: targetId,
+          section: "videos",
+          file,
+        });
+        const url = await uploadWithRetry(uploadVideo, file, destPath, id);
         // Update local state immediately
         setFormData((prev) => {
           const next = { ...prev, videoUrls: [...(prev.videoUrls || []), url] };
           // Instant Firestore propagation when editing existing product
-          if (product?.id || currentId) {
-            const targetId = currentId || product.id;
-            updateDoc(doc(db, 'productos', targetId), { videoUrls: next.videoUrls, fechaActualizacion: new Date() }).catch(() => {});
-          }
+          updateDoc(doc(db, "productos", targetId), {
+            videoUrls: next.videoUrls,
+            fechaActualizacion: new Date(),
+          }).catch(() => {});
           return next;
         });
       } catch (e) {
-        console.error('Video upload failed for file', file?.name, e);
+        console.error("Video upload failed for file", file?.name, e);
       }
     });
     try {
@@ -393,73 +917,150 @@ const ProductForm = ({ product, onClose, onSave }) => {
     const localUrls = Array.from(files).map((f) => URL.createObjectURL(f));
     if (variantIndex !== null) {
       setTempPreviews((prev) => {
-        const actual = prev.variantes[variantIndex] || { imagen: '', imagenes: [] };
-        if (field === 'imagen') {
-          return {
-            ...prev,
-            variantes: { ...prev.variantes, [variantIndex]: { ...actual, imagen: localUrls[0] } },
-          };
-        }
-        if (field === 'imagenes') {
+        const actual = prev.variantes[variantIndex] || {
+          imagen: "",
+          imagenes: [],
+        };
+        if (field === "imagen") {
           return {
             ...prev,
             variantes: {
               ...prev.variantes,
-              [variantIndex]: { ...actual, imagenes: [...actual.imagenes, ...localUrls] },
+              [variantIndex]: { ...actual, imagen: localUrls[0] },
+            },
+          };
+        }
+        if (field === "imagenes") {
+          return {
+            ...prev,
+            variantes: {
+              ...prev.variantes,
+              [variantIndex]: {
+                ...actual,
+                imagenes: [...actual.imagenes, ...localUrls],
+              },
             },
           };
         }
         return prev;
       });
-    } else if (field === 'imagen') {
+    } else if (field === "imagen") {
       setTempPreviews((prev) => ({ ...prev, imagen: localUrls[0] }));
-    } else if (field === 'imagenes') {
-      setTempPreviews((prev) => ({ ...prev, imagenes: [...prev.imagenes, ...localUrls] }));
+    } else if (field === "imagenes") {
+      setTempPreviews((prev) => ({
+        ...prev,
+        imagenes: [...prev.imagenes, ...localUrls],
+      }));
     }
 
+    // asegurar ID antes de subir para rutas y preview en tiempo real
+    let targetId = currentId || product?.id;
+    if (!targetId) targetId = await ensureCurrentId();
     setUploadingImages(true);
     const filesArr = Array.from(files);
     const tasks = filesArr.map(async (file) => {
-      const id = `${Date.now()}_${file.name}_${Math.random().toString(36).slice(2,7)}`;
-      setUploadQueue((prev) => ([...prev, { id, name: file.name, file, type: 'image', progress: 0, status: 'uploading', target: { level: variantIndex !== null ? 'variant' : 'product', field, variantIndex }, task: null }]));
+      const id = `${Date.now()}_${file.name}_${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
+      setUploadQueue((prev) => [
+        ...prev,
+        {
+          id,
+          name: file.name,
+          file,
+          type: "image",
+          progress: 0,
+          status: "uploading",
+          target: {
+            level: variantIndex !== null ? "variant" : "product",
+            field,
+            variantIndex,
+          },
+          task: null,
+        },
+      ]);
       try {
-        // Asegura un ID para que la propagación en vivo funcione al crear nuevo producto
-        const targetId = currentId || product?.id || await ensureCurrentId();
-        const url = await uploadWithRetry(uploadImage, file, (formData.nombre || targetId || 'temp'), id);
+        // decidir sección y ruta de Storage
+        let destPath;
+        if (variantIndex !== null) {
+          const variantId = getOrCreateVariantId(variantIndex);
+          destPath = buildStoragePath({
+            productId: targetId,
+            section: field === "imagen" ? "main" : "gallery",
+            file,
+            variantId,
+          });
+        } else {
+          destPath = buildStoragePath({
+            productId: targetId,
+            section: field === "imagen" ? "main" : "gallery",
+            file,
+          });
+        }
+        const url = await uploadWithRetry(uploadImage, file, destPath, id);
         if (variantIndex !== null) {
           // Functional set to avoid races and also update Firestore immediately when editing
           setFormData((prev) => {
-            if (field === 'imagen') {
-              const newVariants = prev.variantes.map((v, i) => i === variantIndex ? { ...v, imagen: url } : v);
-              if (product?.id || currentId) updateDoc(doc(db, 'productos', targetId), { variantes: newVariants, fechaActualizacion: new Date() }).catch(() => {});
+            if (field === "imagen") {
+              const newVariants = prev.variantes.map((v, i) =>
+                i === variantIndex ? { ...v, imagen: url } : v
+              );
+              updateDoc(doc(db, "productos", targetId), {
+                variantes: newVariants,
+                fechaActualizacion: new Date(),
+              }).catch(() => {});
               return { ...prev, variantes: newVariants };
-            } else if (field === 'imagenes') {
-              const current = Array.isArray(prev.variantes[variantIndex]?.imagenes) ? prev.variantes[variantIndex].imagenes : [];
-              const newVariants = prev.variantes.map((v, i) => i === variantIndex ? { ...v, imagenes: [...current, url] } : v);
-              if (product?.id || currentId) updateDoc(doc(db, 'productos', targetId), { variantes: newVariants, fechaActualizacion: new Date() }).catch(() => {});
+            } else if (field === "imagenes") {
+              const current = Array.isArray(
+                prev.variantes[variantIndex]?.imagenes
+              )
+                ? prev.variantes[variantIndex].imagenes
+                : [];
+              const newVariants = prev.variantes.map((v, i) =>
+                i === variantIndex ? { ...v, imagenes: [...current, url] } : v
+              );
+              updateDoc(doc(db, "productos", targetId), {
+                variantes: newVariants,
+                fechaActualizacion: new Date(),
+              }).catch(() => {});
               return { ...prev, variantes: newVariants };
             } else {
-              const current = Array.isArray(prev.variantes[variantIndex]?.[field]) ? prev.variantes[variantIndex][field] : [];
-              const newVariants = prev.variantes.map((v, i) => i === variantIndex ? { ...v, [field]: [...current, url] } : v);
-              if (product?.id || currentId) updateDoc(doc(db, 'productos', targetId), { variantes: newVariants, fechaActualizacion: new Date() }).catch(() => {});
+              const current = Array.isArray(
+                prev.variantes[variantIndex]?.[field]
+              )
+                ? prev.variantes[variantIndex][field]
+                : [];
+              const newVariants = prev.variantes.map((v, i) =>
+                i === variantIndex ? { ...v, [field]: [...current, url] } : v
+              );
+              updateDoc(doc(db, "productos", targetId), {
+                variantes: newVariants,
+                fechaActualizacion: new Date(),
+              }).catch(() => {});
               return { ...prev, variantes: newVariants };
             }
           });
-        } else if (field === 'imagen') {
+        } else if (field === "imagen") {
           setFormData((prev) => {
             const next = { ...prev, imagen: url };
-            updateDoc(doc(db, 'productos', targetId), { imagen: url, fechaActualizacion: new Date() }).catch(() => {});
+            updateDoc(doc(db, "productos", targetId), {
+              imagen: url,
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
             return next;
           });
         } else {
           setFormData((prev) => {
             const next = { ...prev, [field]: [...prev[field], url] };
-            updateDoc(doc(db, 'productos', targetId), { [field]: next[field], fechaActualizacion: new Date() }).catch(() => {});
+            updateDoc(doc(db, "productos", targetId), {
+              [field]: next[field],
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
             return next;
           });
         }
       } catch (e) {
-        console.error('Image upload failed for file', file?.name, e);
+        console.error("Image upload failed for file", file?.name, e);
       }
     });
     try {
@@ -471,14 +1072,891 @@ const ProductForm = ({ product, onClose, onSave }) => {
     if (variantIndex !== null) {
       setTempPreviews((prev) => {
         const copy = { ...prev.variantes[variantIndex] };
-        if (field === 'imagen') copy.imagen = '';
-        if (field === 'imagenes') copy.imagenes = [];
-        return { ...prev, variantes: { ...prev.variantes, [variantIndex]: copy } };
+        if (field === "imagen") copy.imagen = "";
+        if (field === "imagenes") copy.imagenes = [];
+        return {
+          ...prev,
+          variantes: { ...prev.variantes, [variantIndex]: copy },
+        };
       });
-    } else if (field === 'imagen') {
-      setTempPreviews((prev) => ({ ...prev, imagen: '' }));
-    } else if (field === 'imagenes') {
+    } else if (field === "imagen") {
+      setTempPreviews((prev) => ({ ...prev, imagen: "" }));
+    } else if (field === "imagenes") {
       setTempPreviews((prev) => ({ ...prev, imagenes: [] }));
+    }
+  };
+
+  // ---- Extras (Tres archivos) ----
+  const handleExtrasUpload = async (files) => {
+    if (!files?.length) return;
+    const remaining = Math.max(0, 3 - (formData.imagenesExtra?.length || 0));
+    const toAdd = Array.from(files).slice(0, remaining);
+    // previews locales
+    const localUrls = toAdd.map((f) => URL.createObjectURL(f));
+    setTempPreviews((prev) => ({
+      ...prev,
+      extras: [...(prev.extras || []), ...localUrls],
+    }));
+    // asegurar ID antes de subir
+    let targetId = currentId || product?.id;
+    if (!targetId) targetId = await ensureCurrentId();
+    setUploadingImages(true);
+    const tasks = toAdd.map(async (file) => {
+      const id = `${Date.now()}_${file.name}_${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
+      setUploadQueue((prev) => [
+        ...prev,
+        {
+          id,
+          name: file.name,
+          file,
+          type: "file",
+          progress: 0,
+          status: "uploading",
+          target: {
+            level: "product",
+            field: "imagenesExtra",
+            variantIndex: null,
+          },
+          task: null,
+        },
+      ]);
+      try {
+        const destPath = buildStoragePath({
+          productId: targetId,
+          section: "extras",
+          file,
+        });
+        const url = await uploadWithRetry(uploadImage, file, destPath, id);
+        setFormData((prev) => {
+          const next = {
+            ...prev,
+            imagenesExtra: [...(prev.imagenesExtra || []), url],
+          };
+          updateDoc(doc(db, "productos", targetId), {
+            imagenesExtra: next.imagenesExtra,
+            fechaActualizacion: new Date(),
+          }).catch(() => {});
+          return next;
+        });
+      } catch (e) {
+        console.error("Extras upload failed for file", file?.name, e);
+      }
+    });
+    try {
+      await Promise.allSettled(tasks);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+      setTempPreviews((prev) => ({ ...prev, extras: [] }));
+    }
+  };
+
+  const moveExtraFile = (fromIndex, direction) => {
+    setFormData((prev) => {
+      const arr = Array.isArray(prev.imagenesExtra)
+        ? [...prev.imagenesExtra]
+        : [];
+      const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
+      if (toIndex < 0 || toIndex >= arr.length) return prev;
+      const [m] = arr.splice(fromIndex, 1);
+      arr.splice(toIndex, 0, m);
+      const next = { ...prev, imagenesExtra: arr };
+      const targetId = currentId || product?.id;
+      if (targetId)
+        updateDoc(doc(db, "productos", targetId), {
+          imagenesExtra: arr,
+          fechaActualizacion: new Date(),
+        }).catch(() => {});
+      return next;
+    });
+  };
+
+  const removeExtraFile = async (index) => {
+    const url = formData.imagenesExtra?.[index];
+    if (url) await deleteFromStorageByUrl(url);
+    const updated = (formData.imagenesExtra || []).filter(
+      (_, i) => i !== index
+    );
+    handleInputChange("imagenesExtra", updated);
+  };
+
+  // Borrado helpers para otras secciones
+  const removeProductVideo = async (index) => {
+    const url = formData.videoUrls?.[index];
+    if (url) await deleteFromStorageByUrl(url);
+    const updated = (formData.videoUrls || []).filter((_, i) => i !== index);
+    handleInputChange("videoUrls", updated);
+  };
+
+  const removeProductImage = async (index) => {
+    const url = formData.imagenes?.[index];
+    if (url) await deleteFromStorageByUrl(url);
+    const updated = (formData.imagenes || []).filter((_, i) => i !== index);
+    handleInputChange("imagenes", updated);
+  };
+
+  const removeVariantImage = async (variantIndex, index) => {
+    const url = formData.variantes?.[variantIndex]?.imagenes?.[index];
+    if (url) await deleteFromStorageByUrl(url);
+    const updated = (formData.variantes?.[variantIndex]?.imagenes || []).filter(
+      (_, i) => i !== index
+    );
+    handleVariantChange(variantIndex, "imagenes", updated);
+  };
+
+  const removeVariantVideo = async (variantIndex, index) => {
+    const url = formData.variantes?.[variantIndex]?.videoUrls?.[index];
+    if (url) await deleteFromStorageByUrl(url);
+    const updated = (
+      formData.variantes?.[variantIndex]?.videoUrls || []
+    ).filter((_, i) => i !== index);
+    handleVariantChange(variantIndex, "videoUrls", updated);
+  };
+
+  const removeMainImage = async () => {
+    if (formData.imagen) await deleteFromStorageByUrl(formData.imagen);
+    // Limpiar tanto legacy como nuevo formato
+    handleInputChange("imagen", "");
+    handleInputChange("imagenPrincipal", []);
+  };
+
+  // removed legacy single additional video handler in favor of multi 'videoAcercaArticulo'
+
+  // ====== UniversalFileUploader Handlers (instant preview + background upload) ======
+  const handleMainImageUFU = async (filesList) => {
+    try {
+      setUploadingImages(true);
+      const arr = Array.isArray(filesList) ? filesList : [];
+      if (arr.length === 0) {
+        setTempPreviews((prev) => ({ ...prev, imagen: "" }));
+        await removeMainImage();
+        return;
+      }
+      const first = arr[0];
+      const url0 = first?.url || "";
+      if (first?.file) {
+        // show local preview immediately
+        setTempPreviews((prev) => ({ ...prev, imagen: url0 }));
+        let targetId = currentId || product?.id;
+        if (!targetId) targetId = await ensureCurrentId();
+        if (!targetId) return; // aún sin ID: mantener preview y abortar subida
+        const queueId = `${Date.now()}_${first.file.name}_${Math.random()
+          .toString(36)
+          .slice(2, 7)}`;
+        const destPath = buildStoragePath({
+          productId: targetId,
+          section: "main",
+          file: first.file,
+        });
+        const remoteUrl = await uploadWithRetry(
+          uploadImage,
+          first.file,
+          destPath,
+          queueId
+        );
+        setFormData((prev) => {
+          const imgs = Array.isArray(prev.imagenes) ? [...prev.imagenes] : [];
+          // Asegurar que la imagen principal también esté en la galería (al inicio)
+          if (!imgs.includes(remoteUrl)) imgs.unshift(remoteUrl);
+          const imagenPrincipal = [{ url: remoteUrl }];
+          const next = {
+            ...prev,
+            imagen: remoteUrl,
+            imagenPrincipal,
+            imagenes: imgs,
+          };
+          updateDoc(doc(db, "productos", targetId), {
+            imagen: remoteUrl,
+            imagenPrincipal,
+            imagenes: imgs,
+            fechaActualizacion: new Date(),
+          }).catch(() => {});
+          return next;
+        });
+      } else if (url0 && !url0.startsWith("blob:")) {
+        // existing remote URL
+        handleInputChange("imagen", url0);
+        handleInputChange("imagenPrincipal", [{ url: url0 }]);
+        setTempPreviews((prev) => ({ ...prev, imagen: "" }));
+      }
+    } catch (e) {
+      console.error("handleMainImageUFU error", e);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+    }
+  };
+
+  const handleGalleryUFU = async (filesList) => {
+    try {
+      setUploadingImages(true);
+      const arr = Array.isArray(filesList) ? filesList : [];
+
+      // Previews locales separadas por tipo
+      const localImagePreviews = arr
+        .filter((f) => f?.file && f.file.type?.startsWith?.("image/"))
+        .map((f) => f.url)
+        .filter(Boolean);
+      const localVideoPreviews = arr
+        .filter((f) => f?.file && f.file.type?.startsWith?.("video/"))
+        .map((f) => f.url)
+        .filter(Boolean);
+      setTempPreviews((prev) => ({
+        ...prev,
+        imagenes: localImagePreviews,
+        productVideos: localVideoPreviews,
+      }));
+
+      // Separar remotos existentes (sin blob:) por tipo usando extensión
+      const savedExisting = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+      const savedNewImages = savedExisting.filter(
+        (u) => detectTypeFromUrl(u) === "image"
+      );
+      const savedNewVideos = savedExisting.filter(
+        (u) => detectTypeFromUrl(u) === "video"
+      );
+
+      const savedOldImages = Array.isArray(formData.imagenes)
+        ? formData.imagenes
+        : [];
+      const savedOldVideos = Array.isArray(formData.videoUrls)
+        ? formData.videoUrls
+        : [];
+
+      // Detectar y borrar eliminados por tipo
+      const removedImages = savedOldImages.filter(
+        (u) => !savedNewImages.includes(u)
+      );
+      const removedVideos = savedOldVideos.filter(
+        (u) => !savedNewVideos.includes(u)
+      );
+      for (const r of removedImages) await deleteFromStorageByUrl(r);
+      for (const r of removedVideos) await deleteFromStorageByUrl(r);
+
+      // Persistir órdenes existentes (si cambiaron)
+      if (JSON.stringify(savedNewImages) !== JSON.stringify(savedOldImages)) {
+        const targetId = currentId || product?.id;
+        setFormData((prev) => {
+          const next = { ...prev, imagenes: savedNewImages };
+          if (targetId)
+            updateDoc(doc(db, "productos", targetId), {
+              imagenes: savedNewImages,
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
+          return next;
+        });
+      }
+      if (JSON.stringify(savedNewVideos) !== JSON.stringify(savedOldVideos)) {
+        const targetId = currentId || product?.id;
+        setFormData((prev) => {
+          const next = { ...prev, videoUrls: savedNewVideos };
+          if (targetId)
+            updateDoc(doc(db, "productos", targetId), {
+              videoUrls: savedNewVideos,
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
+          return next;
+        });
+      }
+
+      // Asegurar que si la primera del arreglo visible es imagen, actúe como principal
+      const firstImage = arr.find(
+        (f) =>
+          (f?.file && f.file.type?.startsWith?.("image/")) ||
+          (!f?.file && f?.url && detectTypeFromUrl(f.url) === "image")
+      );
+      if (firstImage) {
+        if (firstImage.file)
+          setTempPreviews((prev) => ({ ...prev, imagen: firstImage.url }));
+        else if (firstImage.url && !firstImage.url.startsWith("blob:"))
+          handleInputChange("imagen", firstImage.url);
+      }
+
+      // Subir nuevos archivos en background por tipo
+      let targetId = currentId || product?.id;
+      if (!targetId) targetId = await ensureCurrentId();
+      if (!targetId) return; // sin ID: no subir aún
+      for (const item of arr) {
+        if (item?.file && item.file.type?.startsWith?.("image/")) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "gallery",
+            file: item.file,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadImage,
+              item.file,
+              destPath,
+              queueId
+            );
+            setFormData((prev) => {
+              const imgs = Array.isArray(prev.imagenes)
+                ? [...prev.imagenes, remoteUrl]
+                : [remoteUrl];
+              const shouldSetMain =
+                !prev.imagen &&
+                (!Array.isArray(prev.imagenPrincipal) ||
+                  prev.imagenPrincipal.length === 0);
+              const next = {
+                ...prev,
+                imagenes: imgs,
+                ...(shouldSetMain
+                  ? { imagen: remoteUrl, imagenPrincipal: [{ url: remoteUrl }] }
+                  : {}),
+              };
+              const updatePayload = shouldSetMain
+                ? {
+                    imagenes: imgs,
+                    imagen: remoteUrl,
+                    imagenPrincipal: [{ url: remoteUrl }],
+                    fechaActualizacion: new Date(),
+                  }
+                : {
+                    imagenes: imgs,
+                    fechaActualizacion: new Date(),
+                  };
+              updateDoc(doc(db, "productos", targetId), updatePayload).catch(
+                () => {}
+              );
+              return next;
+            });
+          } catch (e) {
+            console.error("Gallery image upload error", e);
+          }
+        } else if (item?.file && item.file.type?.startsWith?.("video/")) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "videos",
+            file: item.file,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadVideo,
+              item.file,
+              destPath,
+              queueId
+            );
+            setFormData((prev) => {
+              const vids = Array.isArray(prev.videoUrls)
+                ? [...prev.videoUrls, remoteUrl]
+                : [remoteUrl];
+              const next = { ...prev, videoUrls: vids };
+              updateDoc(doc(db, "productos", targetId), {
+                videoUrls: vids,
+                fechaActualizacion: new Date(),
+              }).catch(() => {});
+              return next;
+            });
+          } catch (e) {
+            console.error("Gallery video upload error", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("handleGalleryUFU error", e);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+    }
+  };
+
+  const handleProductVideosUFU = async (filesList) => {
+    try {
+      setUploadingImages(true);
+      const arr = Array.isArray(filesList) ? filesList : [];
+      const localPreviews = arr
+        .filter((f) => f?.file)
+        .map((f) => f.url)
+        .filter(Boolean);
+      setTempPreviews((prev) => ({ ...prev, productVideos: localPreviews }));
+
+      const savedNew = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+      const savedOld = Array.isArray(formData.videoUrls)
+        ? formData.videoUrls
+        : [];
+
+      // deletions
+      const removed = savedOld.filter((u) => !savedNew.includes(u));
+      for (const r of removed) {
+        await deleteFromStorageByUrl(r);
+      }
+      if (JSON.stringify(savedNew) !== JSON.stringify(savedOld)) {
+        setFormData((prev) => {
+          const next = { ...prev, videoUrls: savedNew };
+          const targetId = currentId || product?.id;
+          if (targetId)
+            updateDoc(doc(db, "productos", targetId), {
+              videoUrls: savedNew,
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
+          return next;
+        });
+      }
+
+      // uploads
+      let targetId = currentId || product?.id;
+      if (!targetId) targetId = await ensureCurrentId();
+      if (!targetId) return; // sin ID: no subir aún
+      for (const item of arr) {
+        if (item?.file && item.file.type?.startsWith?.("video/")) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "videos",
+            file: item.file,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadVideo,
+              item.file,
+              destPath,
+              queueId
+            );
+            setFormData((prev) => {
+              const vids = Array.isArray(prev.videoUrls)
+                ? [...prev.videoUrls, remoteUrl]
+                : [remoteUrl];
+              const next = { ...prev, videoUrls: vids };
+              updateDoc(doc(db, "productos", targetId), {
+                videoUrls: vids,
+                fechaActualizacion: new Date(),
+              }).catch(() => {});
+              return next;
+            });
+          } catch (e) {
+            console.error("Product video upload error", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("handleProductVideosUFU error", e);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+    }
+  };
+
+  // Múltiples videos para "Acerca de este artículo"
+  const handleAcercaVideosUFU = async (filesList) => {
+    try {
+      setUploadingImages(true);
+      const arr = Array.isArray(filesList) ? filesList : [];
+      const localPreviews = arr
+        .filter((f) => f?.file)
+        .map((f) => f.url)
+        .filter(Boolean);
+      setTempPreviews((prev) => ({ ...prev, acercaVideos: localPreviews }));
+
+      const savedNew = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+      const savedOld = Array.isArray(formData.videoAcercaArticulo)
+        ? formData.videoAcercaArticulo
+        : [];
+
+      // eliminaciones
+      const removed = savedOld.filter((u) => !savedNew.includes(u));
+      for (const r of removed) {
+        await deleteFromStorageByUrl(r);
+      }
+      if (JSON.stringify(savedNew) !== JSON.stringify(savedOld)) {
+        setFormData((prev) => {
+          const next = { ...prev, videoAcercaArticulo: savedNew };
+          const targetId = currentId || product?.id;
+          if (targetId)
+            updateDoc(doc(db, "productos", targetId), {
+              videoAcercaArticulo: savedNew,
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
+          return next;
+        });
+      }
+
+      // subidas
+      let targetId = currentId || product?.id;
+      if (!targetId) targetId = await ensureCurrentId();
+      if (!targetId) return; // sin ID: no subir aún
+      for (const item of arr) {
+        if (item?.file && item.file.type?.startsWith?.("video/")) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "videos",
+            file: item.file,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadVideo,
+              item.file,
+              destPath,
+              queueId
+            );
+            setFormData((prev) => {
+              const vids = Array.isArray(prev.videoAcercaArticulo)
+                ? [...prev.videoAcercaArticulo, remoteUrl]
+                : [remoteUrl];
+              const next = { ...prev, videoAcercaArticulo: vids };
+              updateDoc(doc(db, "productos", targetId), {
+                videoAcercaArticulo: vids,
+                fechaActualizacion: new Date(),
+              }).catch(() => {});
+              return next;
+            });
+          } catch (e) {
+            console.error("Acerca video upload error", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("handleAcercaVideosUFU error", e);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+    }
+  };
+
+  // removed legacy single additional video uploader; superseded by handleAcercaVideosUFU
+
+  const handleExtrasUFU = async (filesList) => {
+    try {
+      setUploadingImages(true);
+      const arr = Array.isArray(filesList) ? filesList.slice(0, 3) : [];
+      const localPreviews = arr
+        .filter((f) => f?.file)
+        .map((f) => f.url)
+        .filter(Boolean);
+      setTempPreviews((prev) => ({ ...prev, extras: localPreviews }));
+
+      const savedNew = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+      const savedOld = Array.isArray(formData.imagenesExtra)
+        ? formData.imagenesExtra
+        : [];
+      // deletions
+      const removed = savedOld.filter((u) => !savedNew.includes(u));
+      for (const r of removed) {
+        await deleteFromStorageByUrl(r);
+      }
+      if (JSON.stringify(savedNew) !== JSON.stringify(savedOld)) {
+        setFormData((prev) => {
+          const next = { ...prev, imagenesExtra: savedNew };
+          const targetId = currentId || product?.id;
+          if (targetId)
+            updateDoc(doc(db, "productos", targetId), {
+              imagenesExtra: savedNew,
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
+          return next;
+        });
+      }
+
+      // uploads (any type to extras path)
+      let targetId = currentId || product?.id;
+      if (!targetId) targetId = await ensureCurrentId();
+      if (!targetId) return; // sin ID: no subir aún
+      for (const item of arr) {
+        if (item?.file) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "extras",
+            file: item.file,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadImage,
+              item.file,
+              destPath,
+              queueId
+            );
+            setFormData((prev) => {
+              const extras = Array.isArray(prev.imagenesExtra)
+                ? [...prev.imagenesExtra, remoteUrl]
+                : [remoteUrl];
+              const next = { ...prev, imagenesExtra: extras };
+              updateDoc(doc(db, "productos", targetId), {
+                imagenesExtra: extras,
+                fechaActualizacion: new Date(),
+              }).catch(() => {});
+              return next;
+            });
+          } catch (e) {
+            console.error("Extra file upload error", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("handleExtrasUFU error", e);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+    }
+  };
+
+  const handleVariantMainUFU = async (filesList, variantIndex) => {
+    try {
+      setUploadingImages(true);
+      const arr = Array.isArray(filesList) ? filesList : [];
+      if (arr.length === 0) {
+        setTempPreviews((prev) => ({
+          ...prev,
+          variantes: {
+            ...prev.variantes,
+            [variantIndex]: {
+              ...(prev.variantes?.[variantIndex] || {}),
+              imagen: "",
+            },
+          },
+        }));
+        handleVariantChange(variantIndex, "imagen", "");
+        return;
+      }
+      const first = arr[0];
+      if (first?.file) {
+        // preview
+        setTempPreviews((prev) => ({
+          ...prev,
+          variantes: {
+            ...prev.variantes,
+            [variantIndex]: {
+              ...(prev.variantes?.[variantIndex] || {}),
+              imagen: first.url,
+            },
+          },
+        }));
+        let targetId = currentId || product?.id;
+        if (!targetId) targetId = await ensureCurrentId();
+        if (!targetId) return; // sin ID: no subir aún
+        const variantId = getOrCreateVariantId(variantIndex);
+        const queueId = `${Date.now()}_${first.file.name}_${Math.random()
+          .toString(36)
+          .slice(2, 7)}`;
+        const destPath = buildStoragePath({
+          productId: targetId,
+          section: "main",
+          file: first.file,
+          variantId,
+        });
+        const remoteUrl = await uploadWithRetry(
+          uploadImage,
+          first.file,
+          destPath,
+          queueId
+        );
+        handleVariantChange(variantIndex, "imagen", remoteUrl);
+      } else if (first?.url && !first.url.startsWith("blob:")) {
+        handleVariantChange(variantIndex, "imagen", first.url);
+        // clear preview temp
+        setTempPreviews((prev) => ({
+          ...prev,
+          variantes: {
+            ...prev.variantes,
+            [variantIndex]: {
+              ...(prev.variantes?.[variantIndex] || {}),
+              imagen: "",
+            },
+          },
+        }));
+      }
+    } catch (e) {
+      console.error("handleVariantMainUFU error", e);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+    }
+  };
+
+  const handleVariantGalleryUFU = async (filesList, variantIndex) => {
+    try {
+      setUploadingImages(true);
+      const arr = Array.isArray(filesList) ? filesList : [];
+      const localPreviews = arr
+        .filter((f) => f?.file)
+        .map((f) => f.url)
+        .filter(Boolean);
+      setTempPreviews((prev) => ({
+        ...prev,
+        variantes: {
+          ...prev.variantes,
+          [variantIndex]: {
+            ...(prev.variantes?.[variantIndex] || {}),
+            imagenes: localPreviews,
+          },
+        },
+      }));
+
+      const savedNew = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+      const savedOld = Array.isArray(
+        formData.variantes?.[variantIndex]?.imagenes
+      )
+        ? formData.variantes[variantIndex].imagenes
+        : [];
+      const removed = savedOld.filter((u) => !savedNew.includes(u));
+      for (const r of removed) await deleteFromStorageByUrl(r);
+
+      // persist order
+      if (JSON.stringify(savedNew) !== JSON.stringify(savedOld)) {
+        handleVariantChange(variantIndex, "imagenes", savedNew);
+      }
+
+      // uploads
+      let targetId = currentId || product?.id;
+      if (!targetId) targetId = await ensureCurrentId();
+      if (!targetId) return; // sin ID: no subir aún
+      const variantId = getOrCreateVariantId(variantIndex);
+      for (const item of arr) {
+        if (item?.file && item.file.type?.startsWith?.("image/")) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "gallery",
+            file: item.file,
+            variantId,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadImage,
+              item.file,
+              destPath,
+              queueId
+            );
+            // append
+            setFormData((prev) => {
+              const variantes = [...(prev.variantes || [])];
+              const curr = Array.isArray(variantes[variantIndex]?.imagenes)
+                ? variantes[variantIndex].imagenes
+                : [];
+              variantes[variantIndex] = {
+                ...(variantes[variantIndex] || {}),
+                imagenes: [...curr, remoteUrl],
+              };
+              const next = { ...prev, variantes };
+              const id = currentId || product?.id;
+              if (id)
+                updateDoc(doc(db, "productos", id), {
+                  variantes,
+                  fechaActualizacion: new Date(),
+                }).catch(() => {});
+              return next;
+            });
+          } catch (e) {
+            console.error("Variant gallery upload error", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("handleVariantGalleryUFU error", e);
+    } finally {
+      setUploadingImages(false);
+      setUploadProgress(null);
+    }
+  };
+
+  const handleVariantVideosUFU = async (filesList, variantIndex) => {
+    try {
+      const arr = Array.isArray(filesList) ? filesList : [];
+      const localPreviews = arr
+        .filter((f) => f?.file)
+        .map((f) => f.url)
+        .filter(Boolean);
+      setTempPreviews((prev) => ({
+        ...prev,
+        variantes: {
+          ...prev.variantes,
+          [variantIndex]: {
+            ...(prev.variantes?.[variantIndex] || {}),
+            videos: localPreviews,
+          },
+        },
+      }));
+
+      const savedNew = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+      const savedOld = Array.isArray(
+        formData.variantes?.[variantIndex]?.videoUrls
+      )
+        ? formData.variantes[variantIndex].videoUrls
+        : [];
+      const removed = savedOld.filter((u) => !savedNew.includes(u));
+      for (const r of removed) await deleteFromStorageByUrl(r);
+      if (JSON.stringify(savedNew) !== JSON.stringify(savedOld)) {
+        handleVariantChange(variantIndex, "videoUrls", savedNew);
+      }
+
+      // uploads
+      let targetId = currentId || product?.id;
+      if (!targetId) targetId = await ensureCurrentId();
+      if (!targetId) return; // sin ID: no subir aún
+      const variantId = getOrCreateVariantId(variantIndex);
+      for (const item of arr) {
+        if (item?.file && item.file.type?.startsWith?.("video/")) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          // mantener mismo folder 'gallery' para compatibilidad con código previo
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "gallery",
+            file: item.file,
+            variantId,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadVideo,
+              item.file,
+              destPath,
+              queueId
+            );
+            setFormData((prev) => {
+              const variantes = [...(prev.variantes || [])];
+              const curr = Array.isArray(variantes[variantIndex]?.videoUrls)
+                ? variantes[variantIndex].videoUrls
+                : [];
+              variantes[variantIndex] = {
+                ...(variantes[variantIndex] || {}),
+                videoUrls: [...curr, remoteUrl],
+              };
+              const next = { ...prev, variantes };
+              const id = currentId || product?.id;
+              if (id)
+                updateDoc(doc(db, "productos", id), {
+                  variantes,
+                  fechaActualizacion: new Date(),
+                }).catch(() => {});
+              return next;
+            });
+          } catch (e) {
+            console.error("Variant video upload error", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("handleVariantVideosUFU error", e);
     }
   };
 
@@ -487,9 +1965,11 @@ const ProductForm = ({ product, onClose, onSave }) => {
     setUploadQueue((prev) => {
       const item = prev.find((q) => q.id === id);
       if (item?.task) {
-        try { item.task.cancel(); } catch {}
+        try {
+          item.task.cancel();
+        } catch {}
       }
-      return prev.map((q) => (q.id === id ? { ...q, status: 'canceled' } : q));
+      return prev.map((q) => (q.id === id ? { ...q, status: "canceled" } : q));
     });
   };
 
@@ -498,36 +1978,50 @@ const ProductForm = ({ product, onClose, onSave }) => {
     const item = uploadQueue.find((q) => q.id === id);
     if (!item) return;
     const file = item.file;
-    const newId = `${Date.now()}_${file?.name || 'file'}_${Math.random().toString(36).slice(2,7)}`;
-    setUploadQueue((prev) => prev.map((q) => (q.id === id ? { ...q, id: newId, progress: 0, status: 'uploading', task: null } : q)));
-    const path = formData.nombre || 'temp';
+    const newId = `${Date.now()}_${file?.name || "file"}_${Math.random()
+      .toString(36)
+      .slice(2, 7)}`;
+    setUploadQueue((prev) =>
+      prev.map((q) =>
+        q.id === id
+          ? { ...q, id: newId, progress: 0, status: "uploading", task: null }
+          : q
+      )
+    );
+    const path = formData.nombre || "temp";
     try {
-      if (item.type === 'image') {
+      if (item.type === "image") {
         const url = await uploadWithRetry(uploadImage, file, path, newId);
-        if (item.target.level === 'variant') {
+        if (item.target.level === "variant") {
           const idx = item.target.variantIndex;
-          if (item.target.field === 'imagen') {
-            handleVariantChange(idx, 'imagen', url);
+          if (item.target.field === "imagen") {
+            handleVariantChange(idx, "imagen", url);
           } else {
-            const current = Array.isArray(formData.variantes[idx]?.imagenes) ? formData.variantes[idx].imagenes : [];
-            handleVariantChange(idx, 'imagenes', [...current, url]);
+            const current = Array.isArray(formData.variantes[idx]?.imagenes)
+              ? formData.variantes[idx].imagenes
+              : [];
+            handleVariantChange(idx, "imagenes", [...current, url]);
           }
         } else {
-          if (item.target.field === 'imagen') handleInputChange('imagen', url);
-          else handleInputChange('imagenes', [...formData.imagenes, url]);
+          if (item.target.field === "imagen") handleInputChange("imagen", url);
+          else handleInputChange("imagenes", [...formData.imagenes, url]);
         }
-      } else if (item.type === 'video') {
+      } else if (item.type === "video") {
         const url = await uploadWithRetry(uploadVideo, file, path, newId);
-        if (item.target.level === 'variant') {
+        if (item.target.level === "variant") {
           const idx = item.target.variantIndex;
-          const current = Array.isArray(formData.variantes[idx]?.videoUrls) ? formData.variantes[idx].videoUrls : [];
-          handleVariantChange(idx, 'videoUrls', [...current, url]);
+          const current = Array.isArray(formData.variantes[idx]?.videoUrls)
+            ? formData.variantes[idx].videoUrls
+            : [];
+          handleVariantChange(idx, "videoUrls", [...current, url]);
         } else {
-          handleInputChange('videoUrls', [...(formData.videoUrls || []), url]);
+          handleInputChange("videoUrls", [...(formData.videoUrls || []), url]);
         }
       }
     } catch (e) {
-      setUploadQueue((prev) => prev.map((q) => (q.id === newId ? { ...q, status: 'error' } : q)));
+      setUploadQueue((prev) =>
+        prev.map((q) => (q.id === newId ? { ...q, status: "error" } : q))
+      );
     }
   };
 
@@ -535,13 +2029,17 @@ const ProductForm = ({ product, onClose, onSave }) => {
   const moveProductImage = (fromIndex, direction) => {
     setFormData((prev) => {
       const imgs = [...prev.imagenes];
-      const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+      const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
       if (toIndex < 0 || toIndex >= imgs.length) return prev;
       const [m] = imgs.splice(fromIndex, 1);
       imgs.splice(toIndex, 0, m);
       const next = { ...prev, imagenes: imgs };
       const targetId = currentId || product?.id;
-      if (targetId) updateDoc(doc(db, 'productos', targetId), { imagenes: imgs, fechaActualizacion: new Date() }).catch(() => {});
+      if (targetId)
+        updateDoc(doc(db, "productos", targetId), {
+          imagenes: imgs,
+          fechaActualizacion: new Date(),
+        }).catch(() => {});
       return next;
     });
   };
@@ -550,15 +2048,21 @@ const ProductForm = ({ product, onClose, onSave }) => {
   const moveVariantImage = (variantIndex, fromIndex, direction) => {
     setFormData((prev) => {
       const variantes = [...prev.variantes];
-      const imgs = Array.isArray(variantes[variantIndex]?.imagenes) ? [...variantes[variantIndex].imagenes] : [];
-      const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+      const imgs = Array.isArray(variantes[variantIndex]?.imagenes)
+        ? [...variantes[variantIndex].imagenes]
+        : [];
+      const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
       if (toIndex < 0 || toIndex >= imgs.length) return prev;
       const [m] = imgs.splice(fromIndex, 1);
       imgs.splice(toIndex, 0, m);
       variantes[variantIndex] = { ...variantes[variantIndex], imagenes: imgs };
       const next = { ...prev, variantes };
       const targetId = currentId || product?.id;
-      if (targetId) updateDoc(doc(db, 'productos', targetId), { variantes, fechaActualizacion: new Date() }).catch(() => {});
+      if (targetId)
+        updateDoc(doc(db, "productos", targetId), {
+          variantes,
+          fechaActualizacion: new Date(),
+        }).catch(() => {});
       return next;
     });
   };
@@ -567,17 +2071,20 @@ const ProductForm = ({ product, onClose, onSave }) => {
     try {
       const categoryData = {
         nombre: categoryName,
-        ruta: categoryName.toLowerCase().replace(/\s+/g, '-'),
+        ruta: categoryName.toLowerCase().replace(/\s+/g, "-"),
         activa: true,
         fechaCreacion: new Date(),
-        productCount: 0
+        productCount: 0,
       };
-      
-      await setDoc(doc(db, 'categorias', categoryData.ruta), categoryData);
-      setCategorias(prev => [...prev, { id: categoryData.ruta, ...categoryData }]);
+
+      await setDoc(doc(db, "categorias", categoryData.ruta), categoryData);
+      setCategorias((prev) => [
+        ...prev,
+        { id: categoryData.ruta, ...categoryData },
+      ]);
       return categoryData.ruta;
     } catch (error) {
-      console.error('Error creating category:', error);
+      console.error("Error creating category:", error);
       throw error;
     }
   };
@@ -591,23 +2098,54 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
       // Create new category if needed
       if (showNewCategoryInput && formData.nuevaCategoria.trim()) {
-        finalCategoryId = await createNewCategory(formData.nuevaCategoria.trim());
+        finalCategoryId = await createNewCategory(
+          formData.nuevaCategoria.trim()
+        );
       }
 
-      const productData = {
+      let productData = {
         ...formData,
         categoria: finalCategoryId,
         precio: parseFloat(formData.precio) || 0,
         fechaActualizacion: new Date(),
-        acerca: formData.acerca.filter(item => item.trim()),
-        etiquetas: formData.etiquetas.filter(item => item.trim()),
-        variantes: formData.variantes.filter(variant => 
-          variant.color.trim() || variant.cantidad > 0
-        )
+        acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter((item) => String(item || "").trim()),
+        etiquetas: (Array.isArray(formData.etiquetas) ? formData.etiquetas : []).filter((item) => String(item || "").trim()),
+        // Mantener TODAS las variantes tal cual para no perder medios ni IDs
+        variantes: Array.isArray(formData.variantes) ? formData.variantes : [],
       };
+
+      // Publicar el producto al guardar: marcar activo=true para que aparezca en categorías
+      productData.activo = true;
 
       delete productData.nuevaCategoria;
       delete productData._tempVideoUrl;
+
+      // Evitar sobreescribir campos de medios si hay subidas en progreso
+      if (uploadingImages) {
+        const MEDIA_KEYS = [
+          "imagen",
+          "imagenPrincipal",
+          "imagenes",
+          "media",
+          "videoAcercaArticulo",
+          "video",
+          "videoUrls",
+          "imagenesExtra",
+          "tresArchivosExtras",
+        ];
+        for (const k of MEDIA_KEYS) delete productData[k];
+        if (Array.isArray(productData.variantes)) {
+          productData.variantes = productData.variantes.map((v) => {
+            const nv = { ...v };
+            delete nv.media;
+            delete nv.videoUrls;
+            delete nv.imagenes;
+            delete nv.imagen;
+            delete nv.imagenPrincipal;
+            return nv;
+          });
+        }
+      }
 
       // Normalización de marca para filtros insensibles a mayúsculas
       if (productData.empresa) {
@@ -615,21 +2153,31 @@ const ProductForm = ({ product, onClose, onSave }) => {
         productData.empresaNorm = productData.empresa.toLowerCase();
       }
 
-      // Si ya existe un borrador o estamos editando, actualizamos ese documento
-      const targetId = currentId || product?.id || `prod_${Date.now()}`;
-      productData.id = targetId;
-      if (!currentId && !product?.id) {
-        productData.fechaCreacion = new Date();
-        await setDoc(doc(db, 'productos', targetId), productData);
-        setCurrentId(targetId);
-      } else {
-        await updateDoc(doc(db, 'productos', targetId), { ...productData, fechaActualizacion: new Date() });
+      // Determinar modo: edición vs creación (a prueba de duplicados)
+      // En edición, exigir SIEMPRE product.id; si falta, abortar para no crear copias
+      const editingId = product?.id || null;
+      if (product && !editingId) {
+        throw new Error("Producto en edición sin ID válido. No se guardó para evitar duplicados.");
       }
+      const targetId = editingId || formData?.id || currentId || `prod_${Date.now()}`;
+      productData.id = targetId;
+      const isNew = !editingId && !formData?.id && !currentId;
+      if (isNew) {
+        productData.fechaCreacion = new Date();
+      }
+      // Usar setDoc con merge para crear o actualizar sin fallar
+      await setDoc(
+        doc(db, "productos", targetId),
+        { ...productData, fechaActualizacion: new Date() },
+        { merge: true }
+      );
+      if (isNew) setCurrentId(targetId);
 
-      onSave();
+      if (typeof onSave === "function") onSave();
+      if (typeof onClose === "function") onClose();
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Error al guardar el producto');
+      console.error("Error saving product:", error);
+      alert("Error al guardar el producto");
     } finally {
       setLoading(false);
     }
@@ -651,7 +2199,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
         {/* Header */}
         <div className="bg-blue-700 text-white p-4 md:p-6 flex justify-between items-center sticky top-0 z-10 shadow">
           <h2 className="text-2xl font-bold">
-            {product ? 'Editar Producto' : 'Agregar Producto'}
+            {product ? "Editar Producto" : "Agregar Producto"}
           </h2>
           <button
             onClick={onClose}
@@ -662,14 +2210,17 @@ const ProductForm = ({ product, onClose, onSave }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto p-4 md:p-6"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
                 Información Básica
               </h3>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nombre del Producto *
@@ -678,7 +2229,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
                   type="text"
                   required
                   value={formData.nombre}
-                  onChange={(e) => handleInputChange('nombre', e.target.value)}
+                  onChange={(e) => handleInputChange("nombre", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -690,8 +2241,8 @@ const ProductForm = ({ product, onClose, onSave }) => {
                 <input
                   type="text"
                   list="brands-list"
-                  value={formData.empresa || ''}
-                  onChange={(e) => handleInputChange('empresa', e.target.value)}
+                  value={formData.empresa || ""}
+                  onChange={(e) => handleInputChange("empresa", e.target.value)}
                   placeholder="Ej. Xbox, PlayStation, Nintendo... (puedes escribir una nueva)"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
@@ -701,7 +2252,10 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     <option key={b} value={b} />
                   ))}
                 </datalist>
-                <p className="text-xs text-gray-500 mt-1">Sugerencias basadas en tus marcas guardadas. Se guardará sin importar mayúsculas/minúsculas.</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Sugerencias basadas en tus marcas guardadas. Se guardará sin
+                  importar mayúsculas/minúsculas.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -714,7 +2268,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     step="0.01"
                     required
                     value={formData.precio}
-                    onChange={(e) => handleInputChange('precio', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("precio", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -728,7 +2284,12 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     min="0"
                     required
                     value={formData.cantidad}
-                    onChange={(e) => handleInputChange('cantidad', parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "cantidad",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -741,23 +2302,24 @@ const ProductForm = ({ product, onClose, onSave }) => {
                 <input
                   type="text"
                   value={formData.sku}
-                  onChange={(e) => handleInputChange('sku', e.target.value)}
+                  onChange={(e) => handleInputChange("sku", e.target.value)}
                   placeholder="Ej. NIN-SWITCH-NEON-01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <p className="text-xs text-gray-500 mt-1">El SKU es un identificador interno para gestionar tu inventario.</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  El SKU es un identificador interno para gestionar tu
+                  inventario.
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Descripción *
                 </label>
-                <textarea
-                  required
-                  rows={3}
+                <RichTextEditor
                   value={formData.descripcion}
-                  onChange={(e) => handleInputChange('descripcion', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(html) => handleInputChange("descripcion", html)}
+                  placeholder="Describe el producto (negrita, listas, imágenes, enlaces)"
                 />
               </div>
             </div>
@@ -774,20 +2336,20 @@ const ProductForm = ({ product, onClose, onSave }) => {
                 </label>
                 <div className="space-y-2">
                   <select
-                    value={showNewCategoryInput ? '' : formData.categoria}
+                    value={showNewCategoryInput ? "" : formData.categoria}
                     onChange={(e) => {
-                      if (e.target.value === 'nueva') {
+                      if (e.target.value === "nueva") {
                         setShowNewCategoryInput(true);
                       } else {
                         setShowNewCategoryInput(false);
-                        handleInputChange('categoria', e.target.value);
+                        handleInputChange("categoria", e.target.value);
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required={!showNewCategoryInput}
                   >
                     <option value="">Seleccionar categoría</option>
-                    {categorias.map(cat => (
+                    {categorias.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.nombre}
                       </option>
@@ -801,7 +2363,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                         type="text"
                         placeholder="Nombre de la nueva categoría"
                         value={formData.nuevaCategoria}
-                        onChange={(e) => handleInputChange('nuevaCategoria', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("nuevaCategoria", e.target.value)
+                        }
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required
                       />
@@ -809,7 +2373,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
                         type="button"
                         onClick={() => {
                           setShowNewCategoryInput(false);
-                          handleInputChange('nuevaCategoria', '');
+                          handleInputChange("nuevaCategoria", "");
                         }}
                         className="px-3 py-2 text-gray-500 hover:text-gray-700"
                       >
@@ -827,7 +2391,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                   </label>
                   <select
                     value={formData.estado}
-                    onChange={(e) => handleInputChange('estado', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("estado", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="Nuevo">Nuevo</option>
@@ -843,7 +2409,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                   <input
                     type="date"
                     value={formData.fechaPublicacion}
-                    onChange={(e) => handleInputChange('fechaPublicacion', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("fechaPublicacion", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -855,7 +2423,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     <input
                       type="checkbox"
                       checked={formData.oferta}
-                      onChange={(e) => handleInputChange('oferta', e.target.checked)}
+                      onChange={(e) =>
+                        handleInputChange("oferta", e.target.checked)
+                      }
                       className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     En oferta
@@ -865,7 +2435,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     <input
                       type="checkbox"
                       checked={formData.activo}
-                      onChange={(e) => handleInputChange('activo', e.target.checked)}
+                      onChange={(e) =>
+                        handleInputChange("activo", e.target.checked)
+                      }
                       className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     Producto activo
@@ -881,7 +2453,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                       type="number"
                       step="0.01"
                       value={formData.precioOferta}
-                      onChange={(e) => handleInputChange('precioOferta', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("precioOferta", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Precio con descuento"
                     />
@@ -896,7 +2470,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     <input
                       type="text"
                       value={formData.peso}
-                      onChange={(e) => handleInputChange('peso', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("peso", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="ej: 1.5 kg"
                     />
@@ -909,7 +2485,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     <input
                       type="text"
                       value={formData.dimensiones}
-                      onChange={(e) => handleInputChange('dimensiones', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("dimensiones", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="ej: 30x20x10 cm"
                     />
@@ -917,265 +2495,103 @@ const ProductForm = ({ product, onClose, onSave }) => {
                 </div>
               </div>
             </div>
+            {/* Vista Previa Mini (derecha en desktop, abajo en móvil) */}
+            <div className="xl:col-span-1">
+              <VistaProductoMini
+                productId={currentId || product?.id || null}
+                draftData={miniDraft}
+                className="sticky top-20"
+              />
+            </div>
           </div>
 
           {/* Images Section */}
           <div className="mt-8 space-y-4">
-            <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-600 border-b-4 border-rose-200 pb-2">
               Imágenes y Multimedia
             </h3>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div className="rounded-2xl border-2 border-rose-200/70 bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-4 shadow-sm">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Imagen Principal *
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.length && handleImageUpload(e.target.files, 'imagen')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <UniversalFileUploader
+                  files={[
+                    ...(tempPreviews.imagen
+                      ? [
+                          {
+                            id: "temp-main",
+                            url: tempPreviews.imagen,
+                            type: "image",
+                            name: "imagen-principal",
+                            size: 0,
+                            isUploaded: false,
+                          },
+                        ]
+                      : []),
+                    ...(formData.imagen ? [formData.imagen] : []),
+                  ]}
+                  onFilesChange={handleMainImageUFU}
+                  acceptedTypes="image/*"
+                  multiple={false}
+                  maxFiles={1}
+                  label="Imagen Principal"
+                  placeholder="Arrastra o selecciona una imagen principal"
+                  allowReorder={false}
+                  allowSetMain={false}
                 />
-                {(tempPreviews.imagen || formData.imagen) && (
-                  <div className="mt-2 relative inline-block">
-                    <img src={tempPreviews.imagen || formData.imagen} alt="Preview" className="w-32 h-32 object-cover rounded-lg border" />
-                    <button
-                      type="button"
-                      onClick={() => handleInputChange('imagen', '')}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
               </div>
 
-              <div>
+              <div className="rounded-2xl border-2 border-pink-200/70 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 p-4 shadow-sm">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Imágenes Adicionales
+                  Galería (Imágenes y Videos)
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => e.target.files?.length && handleImageUpload(e.target.files, 'imagenes')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                {(tempPreviews.imagenes.length > 0 || formData.imagenes.length > 0) && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {[...tempPreviews.imagenes.map((u) => ({ url: u, temp: true })), ...formData.imagenes.map((u) => ({ url: u, temp: false }))].map((item, index) => {
-                      const isSaved = !item.temp;
-                      const savedIndex = index - tempPreviews.imagenes.length; // índice dentro de formData.imagenes
-                      return (
-                        <div key={index} className="relative group">
-                          <img src={item.url} alt={`Preview ${index}`} className="w-16 h-16 object-cover rounded border opacity-100" />
-                          {/* Remove */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (item.temp) {
-                                setTempPreviews((prev) => ({
-                                  ...prev,
-                                  imagenes: prev.imagenes.filter((_, i) => i !== index),
-                                }));
-                              } else {
-                                const newImages = formData.imagenes.filter((_, i) => i !== savedIndex);
-                                handleInputChange('imagenes', newImages);
-                              }
-                            }}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                            title="Quitar"
-                          >
-                            ×
-                          </button>
-
-                          {/* Controls for saved images */}
-                          {isSaved && (
-                            <div className="absolute inset-x-0 -bottom-8 hidden group-hover:flex items-center justify-center gap-1">
-                              <button
-                                type="button"
-                                className="px-1 py-0.5 text-[10px] bg-blue-600 text-white rounded"
-                                onClick={() => handleInputChange('imagen', item.url)}
-                                title="Usar como principal"
-                              >
-                                Principal
-                              </button>
-                              <button
-                                type="button"
-                                className="px-1 py-0.5 text-[10px] bg-gray-200 rounded"
-                                onClick={() => moveProductImage(savedIndex, 'up')}
-                                disabled={savedIndex <= 0}
-                                title="Subir"
-                              >
-                                ↑
-                              </button>
-                              <button
-                                type="button"
-                                className="px-1 py-0.5 text-[10px] bg-gray-200 rounded"
-                                onClick={() => moveProductImage(savedIndex, 'down')}
-                                disabled={savedIndex >= (formData.imagenes.length - 1)}
-                                title="Bajar"
-                              >
-                                ↓
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Videos del Producto
-                </label>
-                <input
-                  type="file"
-                  accept="video/*"
-                  multiple
-                  onChange={(e) => e.target.files?.length && handleVideoFilesUpload(e.target.files)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                {Array.isArray(formData.videoUrls) && formData.videoUrls.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {formData.videoUrls.map((v, iv) => (
-                      <div key={iv} className="flex items-center gap-2">
-                        <video src={v} controls className="w-40 max-h-28 rounded border" />
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            className="px-2 py-1 text-[12px] bg-blue-600 text-white rounded"
-                            onClick={() => {
-                              setFormData((prev) => {
-                                const vids = [...(prev.videoUrls || [])];
-                                const [m] = vids.splice(iv, 1);
-                                vids.unshift(m);
-                                const next = { ...prev, videoUrls: vids };
-                                const targetId = currentId || product?.id;
-                                if (targetId) updateDoc(doc(db, 'productos', targetId), { videoUrls: vids, fechaActualizacion: new Date() }).catch(() => {});
-                                return next;
-                              });
-                            }}
-                            title="Marcar como destacado"
-                          >
-                            Principal
-                          </button>
-                          <button
-                            type="button"
-                            className="px-2 py-1 text-[12px] bg-gray-200 rounded"
-                            onClick={() => moveProductVideo(iv, 'up')}
-                            disabled={iv === 0}
-                            title="Subir"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            className="px-2 py-1 text-[12px] bg-gray-200 rounded"
-                            onClick={() => moveProductVideo(iv, 'down')}
-                            disabled={iv === (formData.videoUrls.length - 1)}
-                            title="Bajar"
-                          >
-                            ↓
-                          </button>
-                          <button
-                            type="button"
-                            className="px-2 py-1 text-[12px] text-red-600"
-                            onClick={() => {
-                              const updated = formData.videoUrls.filter((_, k) => k !== iv);
-                              handleInputChange('videoUrls', updated);
-                            }}
-                          >
-                            Quitar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  URL del Video (opcional)
-                </label>
-                <input
-                  type="url"
-                  value={formData.videoUrl}
-                  onChange={(e) => handleInputChange('videoUrl', e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <UniversalFileUploader
+                  files={[
+                    ...(Array.isArray(formData.imagenes)
+                      ? formData.imagenes
+                      : []),
+                    ...(Array.isArray(formData.videoUrls)
+                      ? formData.videoUrls
+                      : []),
+                    ...(Array.isArray(tempPreviews.imagenes)
+                      ? tempPreviews.imagenes.map((u, i) => ({
+                          id: `temp-gallery-img-${i}`,
+                          url: u,
+                          type: "image",
+                          name: `imagen-${i + 1}`,
+                          size: 0,
+                          isUploaded: false,
+                        }))
+                      : []),
+                    ...(Array.isArray(tempPreviews.productVideos)
+                      ? tempPreviews.productVideos.map((u, i) => ({
+                          id: `temp-gallery-vid-${i}`,
+                          url: u,
+                          type: "video",
+                          name: `video-${i + 1}`,
+                          size: 0,
+                          isUploaded: false,
+                        }))
+                      : []),
+                  ]}
+                  onFilesChange={handleGalleryUFU}
+                  acceptedTypes="image/*,video/*"
+                  multiple={true}
+                  label="Galería (Imágenes y Videos)"
+                  placeholder="Arrastra o selecciona imágenes o videos"
+                  allowReorder={true}
+                  allowSetMain={true}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Subir Video desde el dispositivo (opcional)
-              </label>
-              <input
-                type="file"
-                accept="video/*"
-                multiple
-                onChange={async (e) => handleVideoFilesUpload(e.target.files)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              {uploadProgress !== null && (
-                <div className="mt-2">
-                  <div className="h-2 bg-gray-200 rounded">
-                    <div className="h-2 bg-blue-600 rounded" style={{ width: `${uploadProgress}%` }} />
-                  </div>
-                  <p className="text-xs text-gray-600 mt-1">Subiendo: {uploadProgress}%</p>
-                </div>
-              )}
-              {(formData.videoUrls?.length || 0) > 0 && (
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {formData.videoUrls.map((v, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <video src={v} controls className="w-48 max-h-32 rounded border" />
-                      <button
-                        type="button"
-                        onClick={() => handleInputChange('videoUrls', formData.videoUrls.filter((_, i) => i !== idx))}
-                        className="px-3 py-2 text-red-600 hover:text-red-700"
-                      >
-                        Quitar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-4 flex gap-2">
-                <input
-                  type="url"
-                  placeholder="Pegar URL de video y presiona Agregar"
-                  value={formData._tempVideoUrl || ''}
-                  onChange={(e) => handleInputChange('_tempVideoUrl', e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const val = (formData._tempVideoUrl || '').trim();
-                    if (!val) return;
-                    handleInputChange('videoUrls', [...(formData.videoUrls || []), val]);
-                    handleInputChange('_tempVideoUrl', '');
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Agregar
-                </button>
-              </div>
-            </div>
+            {/* Sección de videos del producto removida; la galería ya acepta videos */}
           </div>
 
           {/* Details Section */}
           <div className="mt-8 space-y-4">
-            <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 border-b-4 border-blue-200 pb-2">
               Detalles del Producto
             </h3>
 
@@ -1188,13 +2604,15 @@ const ProductForm = ({ product, onClose, onSave }) => {
                   <input
                     type="text"
                     value={item}
-                    onChange={(e) => handleArrayChange('acerca', index, e.target.value)}
+                    onChange={(e) =>
+                      handleArrayChange("acerca", index, e.target.value)
+                    }
                     placeholder="Característica del producto"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <button
                     type="button"
-                    onClick={() => removeArrayItem('acerca', index)}
+                    onClick={() => removeArrayItem("acerca", index)}
                     className="px-3 py-2 text-red-500 hover:text-red-700"
                   >
                     ×
@@ -1203,7 +2621,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
               ))}
               <button
                 type="button"
-                onClick={() => addArrayItem('acerca')}
+                onClick={() => addArrayItem("acerca")}
                 className="text-blue-600 hover:text-blue-800 text-sm"
               >
                 + Agregar característica
@@ -1219,13 +2637,15 @@ const ProductForm = ({ product, onClose, onSave }) => {
                   <input
                     type="text"
                     value={tag}
-                    onChange={(e) => handleArrayChange('etiquetas', index, e.target.value)}
+                    onChange={(e) =>
+                      handleArrayChange("etiquetas", index, e.target.value)
+                    }
                     placeholder="Etiqueta"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <button
                     type="button"
-                    onClick={() => removeArrayItem('etiquetas', index)}
+                    onClick={() => removeArrayItem("etiquetas", index)}
                     className="px-3 py-2 text-red-500 hover:text-red-700"
                   >
                     ×
@@ -1234,7 +2654,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
               ))}
               <button
                 type="button"
-                onClick={() => addArrayItem('etiquetas')}
+                onClick={() => addArrayItem("etiquetas")}
                 className="text-blue-600 hover:text-blue-800 text-sm"
               >
                 + Agregar etiqueta
@@ -1249,19 +2669,22 @@ const ProductForm = ({ product, onClose, onSave }) => {
             </h3>
 
             {formData.variantes.map((variant, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-4 space-y-3"
+              >
                 <div className="flex justify-between items-center">
                   <h4 className="font-medium">Variante {index + 1}</h4>
                   <button
                     type="button"
-                    onClick={() => removeArrayItem('variantes', index)}
+                    onClick={() => removeArrayItem("variantes", index)}
                     className="text-red-500 hover:text-red-700"
                   >
                     Eliminar
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Color/Tipo
@@ -1269,7 +2692,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     <input
                       type="text"
                       value={variant.color}
-                      onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
+                      onChange={(e) =>
+                        handleVariantChange(index, "color", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -1282,8 +2707,50 @@ const ProductForm = ({ product, onClose, onSave }) => {
                       type="number"
                       min="0"
                       value={variant.cantidad}
-                      onChange={(e) => handleVariantChange(index, 'cantidad', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleVariantChange(
+                          index,
+                          "cantidad",
+                          parseInt(e.target.value) || 0
+                        )
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Descripción de la variante
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={variant.descripcion || ""}
+                      onChange={(e) =>
+                        handleVariantChange(
+                          index,
+                          "descripcion",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Ej. Color neón, control edición especial, etc."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Precio de la variante (opcional)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={variant.precio ?? ""}
+                      onChange={(e) =>
+                        handleVariantChange(index, "precio", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Ej. 1999.99"
                     />
                   </div>
 
@@ -1291,17 +2758,33 @@ const ProductForm = ({ product, onClose, onSave }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Imagen de Variante
                     </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => e.target.files?.length && handleImageUpload(e.target.files, 'imagen', index)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    <UniversalFileUploader
+                      files={[
+                        ...(tempPreviews.variantes?.[index]?.imagen
+                          ? [
+                              {
+                                id: `temp-var${index}-main`,
+                                url: tempPreviews.variantes[index].imagen,
+                                type: "image",
+                                name: `var${index}-imagen`,
+                                size: 0,
+                                isUploaded: false,
+                              },
+                            ]
+                          : []),
+                        ...(variant.imagen ? [variant.imagen] : []),
+                      ]}
+                      onFilesChange={(files) =>
+                        handleVariantMainUFU(files, index)
+                      }
+                      acceptedTypes="image/*"
+                      multiple={false}
+                      maxFiles={1}
+                      label="Imagen de Variante"
+                      placeholder="Arrastra o selecciona una imagen"
+                      allowReorder={false}
+                      allowSetMain={false}
                     />
-                    {(tempPreviews.variantes[index]?.imagen || variant.imagen) && (
-                      <div className="mt-2">
-                        <img src={tempPreviews.variantes[index]?.imagen || variant.imagen} alt="Variante" className="w-20 h-20 object-cover rounded border" />
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -1310,77 +2793,30 @@ const ProductForm = ({ product, onClose, onSave }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Imágenes adicionales de la variante
                   </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => e.target.files?.length && handleImageUpload(e.target.files, 'imagenes', index)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <UniversalFileUploader
+                    files={[
+                      ...(variant.imagenes || []),
+                      ...(tempPreviews.variantes?.[index]?.imagenes || []).map(
+                        (u, i) => ({
+                          id: `temp-var${index}-img-${i}`,
+                          url: u,
+                          type: "image",
+                          name: `var${index}-img-${i + 1}`,
+                          size: 0,
+                          isUploaded: false,
+                        })
+                      ),
+                    ]}
+                    onFilesChange={(files) =>
+                      handleVariantGalleryUFU(files, index)
+                    }
+                    acceptedTypes="image/*"
+                    multiple={true}
+                    label="Imágenes adicionales de la variante"
+                    placeholder="Arrastra o selecciona imágenes"
+                    allowReorder={true}
+                    allowSetMain={true}
                   />
-                  {((tempPreviews.variantes[index]?.imagenes?.length || 0) > 0 || (Array.isArray(variant.imagenes) && variant.imagenes.length > 0)) && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {[...(tempPreviews.variantes[index]?.imagenes || []).map((u) => ({ url: u, temp: true })), ...((variant.imagenes || []).map((u) => ({ url: u, temp: false })))].map((item, i2) => {
-                        const isSaved = !item.temp;
-                        const savedIndex = i2 - (tempPreviews.variantes[index]?.imagenes?.length || 0);
-                        return (
-                          <div key={i2} className="relative group">
-                            <img src={item.url} alt={`Var img ${i2}`} className="w-16 h-16 object-cover rounded border" />
-                            {/* Remove */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (item.temp) {
-                                  setTempPreviews((prev) => {
-                                    const list = (prev.variantes[index]?.imagenes || []).filter((_, k) => k !== i2);
-                                    return { ...prev, variantes: { ...prev.variantes, [index]: { ...(prev.variantes[index] || {}), imagenes: list } } };
-                                  });
-                                } else {
-                                  const updated = (variant.imagenes || []).filter((_, k) => k !== savedIndex);
-                                  handleVariantChange(index, 'imagenes', updated);
-                                }
-                              }}
-                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                              title="Quitar"
-                            >
-                              ×
-                            </button>
-
-                            {/* Controls for saved variant images */}
-                            {isSaved && (
-                              <div className="absolute inset-x-0 -bottom-8 hidden group-hover:flex items-center justify-center gap-1">
-                                <button
-                                  type="button"
-                                  className="px-1 py-0.5 text-[10px] bg-blue-600 text-white rounded"
-                                  onClick={() => handleVariantChange(index, 'imagen', item.url)}
-                                  title="Usar como principal de variante"
-                                >
-                                  Principal
-                                </button>
-                                <button
-                                  type="button"
-                                  className="px-1 py-0.5 text-[10px] bg-gray-200 rounded"
-                                  onClick={() => moveVariantImage(index, savedIndex, 'up')}
-                                  disabled={savedIndex <= 0}
-                                  title="Subir"
-                                >
-                                  ↑
-                                </button>
-                                <button
-                                  type="button"
-                                  className="px-1 py-0.5 text-[10px] bg-gray-200 rounded"
-                                  onClick={() => moveVariantImage(index, savedIndex, 'down')}
-                                  disabled={savedIndex >= ((variant.imagenes || []).length - 1)}
-                                  title="Bajar"
-                                >
-                                  ↓
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
 
                 {/* Videos de la variante */}
@@ -1388,111 +2824,127 @@ const ProductForm = ({ product, onClose, onSave }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Videos de la variante
                   </label>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    multiple
-                    onChange={(e) => e.target.files?.length && handleVariantVideoUpload(e.target.files, index)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <UniversalFileUploader
+                    files={[
+                      ...(variant.videoUrls || []),
+                      ...(tempPreviews.variantes?.[index]?.videos || []).map(
+                        (u, i) => ({
+                          id: `temp-var${index}-video-${i}`,
+                          url: u,
+                          type: "video",
+                          name: `video-${i + 1}`,
+                          size: 0,
+                          isUploaded: false,
+                        })
+                      ),
+                    ]}
+                    onFilesChange={(files) =>
+                      handleVariantVideosUFU(files, index)
+                    }
+                    acceptedTypes="video/*"
+                    multiple={true}
+                    label="Videos de la variante"
+                    placeholder="Arrastra o selecciona videos"
+                    allowReorder={true}
+                    allowSetMain={true}
                   />
-                  {Array.isArray(variant.videoUrls) && variant.videoUrls.length > 0 && (
-                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {variant.videoUrls.map((v, iv) => (
-                        <div key={iv} className="flex items-center gap-2">
-                          <video src={v} controls className="w-40 max-h-28 rounded border" />
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              className="px-2 py-1 text-[12px] bg-blue-600 text-white rounded"
-                              onClick={() => {
-                                // mover a primera posición (destacado)
-                                setFormData((prev) => {
-                                  const variantes = [...prev.variantes];
-                                  const vids = Array.isArray(variantes[index]?.videoUrls) ? [...variantes[index].videoUrls] : [];
-                                  const [m] = vids.splice(iv, 1);
-                                  vids.unshift(m);
-                                  variantes[index] = { ...variantes[index], videoUrls: vids };
-                                  const next = { ...prev, variantes };
-                                  const targetId = currentId || product?.id;
-                                  if (targetId) updateDoc(doc(db, 'productos', targetId), { variantes, fechaActualizacion: new Date() }).catch(() => {});
-                                  return next;
-                                });
-                              }}
-                              title="Marcar como destacado"
-                            >
-                              Principal
-                            </button>
-                            <button
-                              type="button"
-                              className="px-2 py-1 text-[12px] bg-gray-200 rounded"
-                              onClick={() => moveVariantVideo(index, iv, 'up')}
-                              disabled={iv === 0}
-                              title="Subir"
-                            >
-                              ↑
-                            </button>
-                            <button
-                              type="button"
-                              className="px-2 py-1 text-[12px] bg-gray-200 rounded"
-                              onClick={() => moveVariantVideo(index, iv, 'down')}
-                              disabled={iv === (variant.videoUrls.length - 1)}
-                              title="Bajar"
-                            >
-                              ↓
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const upd = variant.videoUrls.filter((_, k) => k !== iv);
-                                handleVariantChange(index, 'videoUrls', upd);
-                              }}
-                              className="px-2 py-1 text-[12px] text-red-600 hover:text-red-700"
-                            >
-                              Quitar
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
 
             <button
               type="button"
-              onClick={() => addArrayItem('variantes')}
+              onClick={() => addArrayItem("variantes")}
               className="text-blue-600 hover:text-blue-800 text-sm"
             >
               + Agregar variante
             </button>
           </div>
 
-          {/* Upload queue visualización */}
-          {uploadQueue.length > 0 && (
-            <div className="mt-6 border-t pt-4">
-              <h4 className="text-sm font-semibold text-blue-900 mb-2">Subidas en curso</h4>
-              <div className="space-y-2">
-                {uploadQueue.map((u, idx) => (
-                  <div key={u.id} className="flex items-center gap-3 text-sm">
-                    <span className="w-6 text-gray-500">{idx + 1}.</span>
-                    <span className="flex-1 truncate">{u.name}</span>
-                    <span className="w-24 text-right text-gray-600">{u.progress ?? 0}%</span>
-                    <span className={`w-24 text-center ${u.status === 'done' ? 'text-green-600' : u.status === 'error' ? 'text-red-600' : u.status === 'canceled' ? 'text-gray-500' : 'text-blue-700'}`}>{u.status}</span>
-                    {u.status === 'uploading' && (
-                      <button type="button" onClick={() => cancelUpload(u.id)} className="px-2 py-1 text-xs text-red-600 hover:text-red-700">Cancelar</button>
-                    )}
-                    {(u.status === 'error' || u.status === 'canceled') && (
-                      <button type="button" onClick={() => retryUpload(u.id)} className="px-2 py-1 text-xs text-blue-600 hover:text-blue-700">Reintentar</button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Video principal (Acerca de este artículo) */}
+          <div className="mt-8 space-y-4 rounded-2xl border-2 border-rose-200/70 bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-4 shadow-sm">
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 border-b-4 border-rose-200 pb-2">
+              Video principal (Acerca de este artículo)
+            </h3>
+            <UniversalFileUploader
+              files={[
+                ...(Array.isArray(formData.videoAcercaArticulo)
+                  ? formData.videoAcercaArticulo
+                  : []),
+                ...(Array.isArray(tempPreviews.acercaVideos)
+                  ? tempPreviews.acercaVideos.map((u, i) => ({
+                      id: `temp-acerca-video-${i}`,
+                      url: u,
+                      type: "video",
+                      name: `acerca-${i + 1}`,
+                      size: 0,
+                      isUploaded: false,
+                    }))
+                  : []),
+              ]}
+              onFilesChange={handleAcercaVideosUFU}
+              acceptedTypes="video/*"
+              multiple={true}
+              label="Videos de 'Acerca de este artículo'"
+              placeholder="Arrastra o selecciona videos para 'Acerca de este artículo'"
+              allowReorder={true}
+              allowSetMain={false}
+            />
+          </div>
+
+          {/* Upload queue UI removido: el uploader maneja previews y acciones inline */}
+
+          {/* Tres Archivos Extras */}
+          <div className="mt-8 space-y-4 rounded-2xl border-2 border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-fuchsia-50 p-4 shadow-sm">
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 border-b-4 border-violet-200 pb-2">
+              Tres Archivos Extras
+            </h3>
+            <UniversalFileUploader
+              files={[
+                ...(formData.imagenesExtra || []).map((u, i) => ({
+                  id: `saved-extra-${i}`,
+                  url: u,
+                  type: detectTypeFromUrl(u),
+                  name: (String(u).split("/").pop() || `extra-${i + 1}`).split(
+                    "?"
+                  )[0],
+                  size: 0,
+                  isUploaded: true,
+                })),
+                ...(tempPreviews.extras || []).map((u, i) => ({
+                  id: `temp-extra-${i}`,
+                  url: u,
+                  type: "document",
+                  name: `extra-${i + 1}`,
+                  size: 0,
+                  isUploaded: false,
+                })),
+              ]}
+              onFilesChange={handleExtrasUFU}
+              acceptedTypes="image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
+              multiple={true}
+              maxFiles={3}
+              label="Tres Archivos Extras"
+              placeholder="Sube hasta 3 archivos (imágenes, videos, documentos)"
+              allowReorder={true}
+              allowSetMain={false}
+            />
+          </div>
 
           {/* Submit Buttons */}
           <div className="mt-8 flex justify-end space-x-4 pt-6 border-t">
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await handleSaveDraft();
+                } catch (e) {}
+              }}
+              className="px-6 py-2 border border-amber-300 rounded-lg text-amber-700 hover:bg-amber-50"
+              title="Guardar para más tarde"
+            >
+              Guardar para más tarde
+            </button>
             <button
               type="button"
               onClick={onClose}
@@ -1505,15 +2957,11 @@ const ProductForm = ({ product, onClose, onSave }) => {
               disabled={loading}
               className="px-6 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Guardando...' : 'Guardar Producto'}
+              {loading ? "Guardando..." : "Guardar Producto"}
             </button>
           </div>
 
-          {uploadingImages && (
-            <p className="mt-2 text-sm text-amber-700">
-              Archivos subiendo en segundo plano. Puedes guardar el producto; las nuevas URLs aparecerán cuando finalicen.
-            </p>
-          )}
+          {/* Mensaje de subida en segundo plano removido para evitar estados de carga visibles */}
         </form>
       </motion.div>
     </motion.div>

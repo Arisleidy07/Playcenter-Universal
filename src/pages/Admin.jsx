@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { collection, onSnapshot, query, doc, where, getDocs, addDoc, updateDoc, deleteDoc, setDoc, orderBy } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "../firebase";
@@ -6,10 +6,12 @@ import { useAuth } from "../context/AuthContext";
 import "../styles/Admin.css";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductForm from "../components/ProductForm";
-import ProductManagement from "../components/ProductManagement";
-import CategoryManagement from "../components/CategoryManagement";
-import AdminDashboard from "../components/AdminDashboard";
+import ProductManagement from '../components/ProductManagement';
+import CategoryManagement from '../components/CategoryManagement';
+import AdminDashboard from '../components/AdminDashboard';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { FiBarChart2, FiBox, FiTag, FiUsers, FiSearch, FiMapPin, FiShoppingCart, FiUser, FiShield, FiEye } from "react-icons/fi";
+import { migrateAllLegacyProductMedia } from "../utils/legacyMediaMigrator";
 
 // Colores base
 const COLOR_PRIMARIO = "bg-blue-700";
@@ -112,6 +114,26 @@ function UsuarioFullView({ usuario, onClose }) {
       }
     );
     return () => unsubscribe();
+  }, [usuario]);
+
+  // Ejecutar migración legacy una sola vez al entrar el admin
+  useEffect(() => {
+    if (!usuario || usuario.uid !== ADMIN_UID) return;
+    if (migrationRanRef.current) return;
+    migrationRanRef.current = true;
+    (async () => {
+      try {
+        console.log("[Migración] Iniciando migración de medios legacy a Firebase Storage...");
+        await migrateAllLegacyProductMedia((p) => {
+          if (!p) return;
+          if (p.type === "skip") console.log(`[Migración] (${p.index}/${p.total}) Sin cambios:`, p.id);
+          else if (p.type === "migrated") console.log(`[Migración] (${p.index}/${p.total}) Migrado:`, p.id);
+          else if (p.type === "done") console.log(`[Migración] Completada. Migrados: ${p.migratedCount}/${p.total}`);
+        });
+      } catch (e) {
+        console.error("[Migración] Error ejecutando migración:", e);
+      }
+    })();
   }, [usuario]);
 
   useEffect(() => {
@@ -254,10 +276,7 @@ function UsuarioFullView({ usuario, onClose }) {
 
             {loadingCompras ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-                <span className="ml-3 text-blue-700">
-                  Cargando historial...
-                </span>
+                <LoadingSpinner size="medium" color="blue" text="Cargando compras..." />
               </div>
             ) : compras.length === 0 ? (
               <div className="text-center py-12 bg-blue-50 rounded-xl">
@@ -405,7 +424,7 @@ function OrdersList() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        <LoadingSpinner size="medium" color="blue" text="Cargando órdenes..." />
       </div>
     );
   }
@@ -441,6 +460,7 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const migrationRanRef = useRef(false);
 
   useEffect(() => {
     if (!usuario || usuario.uid !== ADMIN_UID) return;
@@ -550,12 +570,52 @@ export default function Admin() {
       case "categories":
         return <CategoryManagement />;
       case "users":
-        return renderUsersContent();
-      case "orders":
         return (
-          <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 border">
-            <h3 className="text-xl font-bold text-blue-900 mb-4">Todos los pedidos</h3>
-            <OrdersList />
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h2>
+              <input
+                type="text"
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                placeholder="Buscar por nombre, email, teléfono, dirección o código"
+                className="w-full sm:w-80 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            {usuariosFiltrados.length === 0 ? (
+              <div className="text-gray-600">No hay usuarios que coincidan con la búsqueda.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registrado</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {usuariosFiltrados.map((u) => (
+                      <tr key={u.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setUsuarioSeleccionado(u)}>
+                        <td className="px-4 py-2 text-sm text-gray-900 font-medium">{u.displayName || u.nombre || 'Usuario'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-700">{u.email || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-700">{u.telefono || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-700">{u.codigo || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-700">{formatDate(u.createdAt) || '-'}</td>
+                        <td className="px-4 py-2 text-sm">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${u.id === ADMIN_UID ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                            {u.id === ADMIN_UID ? 'Admin' : 'Usuario'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         );
       default:
@@ -563,83 +623,8 @@ export default function Admin() {
     }
   };
 
-  const renderUsersContent = () => (
-    <div>
-      {/* BUSCADOR */}
-      <div className="bg-white rounded-xl shadow-xl p-3 sm:p-6 mb-8 border border-blue-100">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-700 rounded-xl flex items-center justify-center">
-            <span className="text-white text-xl"><FiSearch /></span>
-          </div>
-          <input
-            type="text"
-            placeholder="Buscar por nombre, email, teléfono, dirección o código..."
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
-            className="flex-1 px-4 py-3 text-base border-2 border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all"
-          />
-        </div>
-      </div>
-
-      {/* LISTADO DE USUARIOS */}
-      {usuariosFiltrados.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl shadow-lg">
-          <div className="text-7xl mb-6 text-blue-700 flex items-center justify-center"><FiUsers /></div>
-          <h3 className="text-2xl font-bold text-blue-900 mb-2">
-            No se encontraron usuarios
-          </h3>
-          <p className="text-blue-600 text-lg">
-            Intenta ajustar los términos de búsqueda
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
-          {usuariosFiltrados.map((u) => (
-            <div
-              key={u.id}
-              className="bg-white border-2 border-blue-100 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-400 transition-all duration-200 cursor-pointer p-3 group flex flex-col items-center"
-              onClick={() => setUsuarioSeleccionado(u)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") setUsuarioSeleccionado(u);
-              }}
-            >
-              <div className="w-14 h-14 rounded-xl bg-blue-700 flex items-center justify-center text-2xl font-bold text-white mb-2 shadow">
-                {getInitials(u.displayName)}
-              </div>
-              <div className="w-full flex-1 flex flex-col items-center text-center">
-                <h3 className="font-bold text-base text-blue-900 truncate w-full">
-                  {u.displayName || "Usuario Sin Nombre"}
-                </h3>
-                <p className="text-xs text-blue-700 break-all truncate w-full">
-                  ID: {u.id}
-                </p>
-                <div className="mt-1 mb-2 w-full">
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${u.admin ? COLOR_BADGE_ADMIN : COLOR_BADGE_USER}`}>
-                    {u.admin ? "Admin" : "Usuario"}
-                  </span>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-2 w-full mb-1">
-                  <p className="text-xs text-blue-700 mb-1">{u.email || "No email"}</p>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-2 w-full mb-1">
-                  <p className="text-xs text-blue-700">{u.telefono || "No tel."}</p>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-2 w-full mb-2">
-                  <p className="text-xs text-blue-700 line-clamp-2">{u.direccion || u.direccionCompleta || "No especificada"}</p>
-                </div>
-              </div>
-              <span className="text-xs text-blue-400">Ver detalles →</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   return (
-    <main className="min-h-screen bg-blue-50 p-2 sm:p-6 pt-20 sm:pt-24">
+    <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6 pt-20 sm:pt-24">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="text-center mb-6">
@@ -668,8 +653,7 @@ export default function Admin() {
               { id: "categories", label: "Categorías", icon: <FiTag /> },
               { id: "orders", label: "Pedidos", icon: <FiSearch /> },
               { id: "users", label: "Usuarios", icon: <FiUsers /> },
-            ].map((tab) => (
-              <button
+            ].map((tab) => (              <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-medium transition-all duration-200 ${

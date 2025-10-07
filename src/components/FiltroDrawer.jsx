@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
-import Slider from '@mui/material/Slider';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import Slider from "@mui/material/Slider";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 import "../index.css";
 
-function FiltroDrawer({
-  filtros,
-  setFiltros,
-  onReset,
-  visible,
-  onClose,
-}) {
+function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
   const [tempFiltros, setTempFiltros] = useState(filtros);
 
   useEffect(() => {
-    setTempFiltros(filtros);
+    // Ensure precio values are always valid numbers to prevent slider errors
+    const safeFiltros = {
+      ...filtros,
+      precio: {
+        min: filtros.precio?.min ?? 0,
+        max: filtros.precio?.max ?? 1000,
+      },
+    };
+    setTempFiltros(safeFiltros);
   }, [filtros, visible]);
 
   const handlePrecioChange = (event, newValue) => {
@@ -23,6 +25,11 @@ function FiltroDrawer({
       precio: { min: newValue[0], max: newValue[1] },
     }));
   };
+
+  // Asegurar que siempre sea un array de dos números válidos
+  const min = Number.isFinite(tempFiltros.precio?.min) ? tempFiltros.precio.min : 0;
+  const max = Number.isFinite(tempFiltros.precio?.max) ? tempFiltros.precio.max : 10000;
+  const precioValido = [min, max];
 
   return (
     <div
@@ -81,51 +88,51 @@ function FiltroDrawer({
 
         {/* Precio */}
         <div>
-          <Typography gutterBottom className="text-sm font-semibold text-indigo-700">
+          <Typography
+            gutterBottom
+            className="text-sm font-semibold text-indigo-700"
+          >
             Precio (RD$)
           </Typography>
           <Box
             sx={{
               px: 1,
-              '& .MuiSlider-thumb': {
+              "& .MuiSlider-thumb": {
                 width: 16,
                 height: 16,
-                bgcolor: '#5a67d8', // indigo 600
-                border: '2px solid white',
-                '&:focus, &:hover, &.Mui-active': {
-                  boxShadow: '0 0 0 10px rgba(90, 103, 216, 0.2)',
+                bgcolor: "#5a67d8", // indigo 600
+                border: "2px solid white",
+                "&:focus, &:hover, &.Mui-active": {
+                  boxShadow: "0 0 0 10px rgba(90, 103, 216, 0.2)",
                 },
               },
-              '& .MuiSlider-rail': {
+              "& .MuiSlider-rail": {
                 height: 8,
                 opacity: 0.3,
-                bgcolor: '#cbd5e1', // slate 300
+                bgcolor: "#cbd5e1", // slate 300
                 borderRadius: 4,
               },
-              '& .MuiSlider-track': {
+              "& .MuiSlider-track": {
                 height: 8,
                 borderRadius: 4,
-                bgcolor: '#5a67d8', // indigo 600
+                bgcolor: "#5a67d8", // indigo 600
               },
-              '& .MuiSlider-root': {
-                padding: '20px 0',
+              "& .MuiSlider-root": {
+                padding: "20px 0",
               },
             }}
           >
             <Slider
-              value={[
-                tempFiltros.precio.min,
-                tempFiltros.precio.max,
-              ]}
+              value={precioValido}
               onChange={handlePrecioChange}
               valueLabelDisplay="auto"
               min={0}
-              max={1000}
+              max={10000}
             />
           </Box>
           <div className="flex justify-between text-xs text-indigo-700 mt-1 font-semibold">
-            <span>RD${tempFiltros.precio.min}</span>
-            <span>RD${tempFiltros.precio.max}</span>
+            <span>RD${precioValido[0]}</span>
+            <span>RD${precioValido[1]}</span>
           </div>
         </div>
       </div>

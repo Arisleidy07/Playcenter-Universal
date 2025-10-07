@@ -67,7 +67,7 @@ function Inicio() {
     <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen">
       
       {/* VIDEO SOLO EN DESKTOP */}
-      <div className="hidden sm:block w-full">
+      <div className="hidden xl:block w-full">
         <video
           src="/videos/pcu-intro.mp4"
           autoPlay
@@ -81,7 +81,7 @@ function Inicio() {
 
       {/* SLIDER SOLO DESKTOP */}
       <motion.div
-        className="hidden sm:block w-full max-w-[1600px] mx-auto px-4"
+        className="hidden xl:block w-full max-w-[1600px] mx-auto px-4"
         variants={fadeIn}
         initial="hidden"
         animate="visible"
@@ -91,9 +91,9 @@ function Inicio() {
         </div>
       </motion.div>
 
-      {/* SLIDER SOLO MOBILE */}
+      {/* SLIDER PARA < xl */}
       <motion.div
-        className="block sm:hidden w-full max-w-[600px] mx-auto px-2 mt-4"
+        className="block xl:hidden w-full max-w-[600px] mx-auto px-2 mt-4"
         variants={fadeIn}
         initial="hidden"
         animate="visible"
@@ -105,7 +105,7 @@ function Inicio() {
 
 
       {/* BLOQUES CUADRADOS - CATEGORÍAS DINÁMICAS */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1600px] mx-auto px-4 mt-14">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-[1600px] mx-auto px-4 mt-14">
         {categories.slice(0, 4).map((category, idx) => {
           const categoryProducts = productsByCategory[category.id] || [];
           const featuredProducts = categoryProducts.slice(0, 4);
@@ -211,7 +211,7 @@ function Inicio() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
             Explora nuestras categorías
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-7">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-7">
             {[
               {
                 to: "/Productos/audifonos",
@@ -294,7 +294,7 @@ function Inicio() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
             Descubre nuestros productos
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-7">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-7">
             {Object.values(productsByCategory)
               .flat()
               .slice(0, 6)
@@ -433,7 +433,7 @@ function Inicio() {
       </section>
 
       {/* BLOQUES: Cámaras, Discos Duros, Memorias USB, Cables (dinámicos desde Firestore) */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-[1600px] mx-auto px-4 mt-16">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8 max-w-[1600px] mx-auto px-4 mt-16">
         {/* Cámaras de Vigilancia */}
         <motion.div
           className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition h-[440px] flex flex-col justify-between p-5"

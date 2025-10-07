@@ -8,6 +8,33 @@
   --admin-bg: #f8fafc;
 }
 
+/* === UG Content: contenedores que NO recortan imágenes === */
+.ug-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.ug-container.square {
+  aspect-ratio: 1 / 1;
+}
+
+.ug-content {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Force contain for any Tailwind object-cover inside admin pages */
+.admin-page .object-cover {
+  object-fit: contain !important;
+}
+
 .admin-page {
   background: var(--admin-bg);
   min-height: 100vh;

@@ -13,6 +13,8 @@
   width: 100%;
 }
 
+/* Badges, wishlist, stock indicators removed by request */
+
 .tarjeta-producto:hover {
   box-shadow: 0 4px 16px rgba(0,0,0,0.16);
 }
@@ -27,6 +29,8 @@
   padding: 0;
   border: none;
 }
+
+/* Image skeleton removed by request */
 
 .tarjeta-img {
   max-width: 100%;
@@ -75,6 +79,21 @@
   color: #006bb3;
   margin-bottom: 10px;
   min-width: 86px;
+}
+
+/* Price row with old price */
+.tarjeta-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tarjeta-precio-old {
+  color: #6b7280; /* gray-500 */
+  text-decoration: line-through;
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 /* Botones */
@@ -193,9 +212,15 @@
     margin: auto;
     object-fit: contain;
     display: block;
-    background: #fff;
     border-radius: 8px;
     box-shadow: none;
+  }
+
+  .tarjeta-price-row {
+    margin-bottom: 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
   }
 
   .tarjeta-info-zone {
@@ -291,7 +316,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8f9fa;
+    background: #fff;
     padding: 6px;
     border: none;
   }

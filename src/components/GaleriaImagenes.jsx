@@ -1,8 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-function GaleriaImagenes({ imagenes, onImageClick }) {
-  const [imagenActiva, setImagenActiva] = useState(0);
+function GaleriaImagenes({ imagenes, imagenPrincipal, videos, nombreProducto, onImageClick }) {
+  // Combinar imágenes y videos en un solo array
+  const todosLosMedias = [
+    ...(imagenes || []).map(img => ({ url: img, type: 'image' })),
+    ...(videos || []).map(vid => ({ url: vid, type: 'video' }))
+  ];
+  
+  const [mediaActivo, setMediaActivo] = useState(0);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [zoomVisible, setZoomVisible] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
@@ -37,7 +43,7 @@ function GaleriaImagenes({ imagenes, onImageClick }) {
           ref={zoomRef}
           onClick={() => {
             if (onImageClick) {
-              onImageClick(imagenActiva);
+              onImageClick(mediaActivo);
             } else if (isMobile) {
               setModalAbierto(true);
             }
@@ -46,51 +52,77 @@ function GaleriaImagenes({ imagenes, onImageClick }) {
           onMouseEnter={!isMobile ? handleMouseEnter : null}
           onMouseLeave={!isMobile ? handleMouseLeave : null}
         >
-          <img
-            src={imagenes[imagenActiva]}
-            alt={`Imagen ${imagenActiva + 1}`}
-            className="w-full h-[400px] lg:h-[450px] object-contain cursor-zoom-in"
-          />
-
-          {/* Imagen de zoom flotante (solo visible en hover en escritorio) */}
-          {!isMobile && zoomVisible && (
-            <div className="absolute top-0 left-full ml-4 w-[500px] h-[500px] border rounded-xl overflow-hidden shadow-lg z-50 bg-white hidden lg:block">
-              <div
-                className="w-full h-full bg-no-repeat bg-center bg-contain"
-                style={{
-                  backgroundImage: `url(${imagenes[imagenActiva]})`,
-                  backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                  backgroundSize: "200%",
-                }}
-              ></div>
+          {/* Mostrar imagen o video */}
+          {todosLosMedias[mediaActivo]?.type === 'image' ? (
+            <img
+              src={todosLosMedias[mediaActivo].url}
+              alt={`${nombreProducto} - Media ${mediaActivo + 1}`}
+              className="w-full h-auto object-contain aspect-square bg-white rounded-lg"
+              style={{ minHeight: '400px' }}
+            />
+          ) : (
+            <div className="w-full aspect-square bg-black rounded-lg flex items-center justify-center" style={{ minHeight: '400px' }}>
+              <video
+                controls
+                className="max-w-full max-h-full rounded-lg"
+                preload="metadata"
+                poster={imagenPrincipal}
+              >
+                <source src={todosLosMedias[mediaActivo]?.url} type="video/mp4" />
+                Tu navegador no soporta el elemento de video.
+              </video>
             </div>
           )}
+
+          {/* Zoom overlay (solo desktop y solo para imágenes) */}
+          {zoomVisible && !isMobile && todosLosMedias[mediaActivo]?.type === 'image' && (
+            <div
+              className="absolute inset-0 bg-white/10 cursor-zoom-in"
+              style={{
+                backgroundImage: `url(${todosLosMedias[mediaActivo].url})`,
+                backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                backgroundSize: "200%",
+                backgroundRepeat: "no-repeat",
+              }}
+            />
+          )}
+          
         </div>
 
         {/* Miniaturas */}
-        <div className="overflow-x-auto mt-4">
-          <div className="flex gap-4 justify-center lg:justify-start w-max mx-auto lg:mx-0 px-2">
-            {imagenes.map((img, idx) => (
-              <motion.div
-                key={img}
-                className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer ${
-                  idx === imagenActiva 
-                    ? "opacity-100" 
-                    : "opacity-70 hover:opacity-90"
+        {todosLosMedias.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {todosLosMedias.map((media, index) => (
+              <button
+                key={index}
+                onClick={() => setMediaActivo(index)}
+                className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                  index === mediaActivo
+                    ? "border-blue-500 ring-2 ring-blue-200"
+                    : "border-gray-300 hover:border-gray-400"
                 }`}
-                onClick={() => setImagenActiva(idx)}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
               >
-                <img
-                  src={img}
-                  alt={`Miniatura ${idx + 1}`}
-                  className="w-full h-full object-contain"
-                />
-              </motion.div>
+                {media.type === 'video' ? (
+                  <div className="w-full h-full bg-gray-800 flex items-center justify-center relative">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                    <div className="absolute bottom-0 right-0 bg-black/70 text-white text-xs px-1 rounded-tl">
+                      VIDEO
+                    </div>
+                  </div>
+                ) : (
+                  <img
+                    src={media.url}
+                    alt={`Miniatura ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </button>
             ))}
           </div>
-        </div>
+        )}
+
       </div>
 
       {/* Modal en móvil */}
@@ -103,14 +135,33 @@ function GaleriaImagenes({ imagenes, onImageClick }) {
             exit={{ opacity: 0 }}
             onClick={() => setModalAbierto(false)}
           >
-            <motion.img
-              src={imagenes[imagenActiva]}
-              alt="Imagen ampliada"
-              className="max-w-full max-h-full object-contain"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-            />
+            {todosLosMedias[mediaActivo]?.type === 'image' ? (
+              <motion.img
+                src={todosLosMedias[mediaActivo].url}
+                alt="Imagen ampliada"
+                className="max-w-full max-h-full object-contain"
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.8 }}
+              />
+            ) : (
+              <motion.div
+                className="max-w-full max-h-full"
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.8 }}
+              >
+                <video
+                  controls
+                  autoPlay
+                  className="max-w-full max-h-full"
+                  preload="metadata"
+                >
+                  <source src={todosLosMedias[mediaActivo]?.url} type="video/mp4" />
+                  Tu navegador no soporta el elemento de video.
+                </video>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

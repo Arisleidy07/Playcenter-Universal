@@ -1,0 +1,122 @@
+/* Advanced Media Gallery Styles */
+.advanced-media-gallery {
+  @apply w-full;
+}
+
+/* Scrollbar personalizado para thumbnails */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* Animaciones suaves para transiciones */
+.advanced-media-gallery img,
+.advanced-media-gallery video {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Efectos hover para thumbnails */
+.advanced-media-gallery button:hover img,
+.advanced-media-gallery button:hover video {
+  transform: scale(1.05);
+}
+
+/* Zoom cursor para imágenes */
+.advanced-media-gallery .cursor-pointer {
+  cursor: zoom-in;
+}
+
+.advanced-media-gallery .cursor-pointer.zoomed {
+  cursor: zoom-out;
+}
+
+/* Controles de video personalizados */
+.advanced-media-gallery .video-controls {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Indicadores de carga */
+.advanced-media-gallery .loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .advanced-media-gallery .thumbnails {
+    gap: 0.5rem;
+  }
+  
+  .advanced-media-gallery .thumbnail {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+/* Fullscreen modal optimizations */
+.advanced-media-gallery .fullscreen-modal {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Touch gestures support */
+.advanced-media-gallery .touch-area {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Accessibility improvements */
+.advanced-media-gallery button:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+.advanced-media-gallery [aria-label] {
+  position: relative;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .advanced-media-gallery .bg-black\/50 {
+    @apply bg-black;
+  }
+  
+  .advanced-media-gallery .bg-white\/90 {
+    @apply bg-white;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .advanced-media-gallery * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .advanced-media-gallery .controls,
+  .advanced-media-gallery .thumbnails {
+    display: none !important;
+  }
+}

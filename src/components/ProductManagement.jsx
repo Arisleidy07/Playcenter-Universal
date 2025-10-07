@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import LoadingSpinner from './LoadingSpinner';
 import { FiEye, FiEyeOff, FiCopy, FiTrash2, FiPackage } from 'react-icons/fi';
 
 const ProductManagement = ({ onAddProduct, onEditProduct }) => {
@@ -56,43 +57,151 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
   const toggleProductStatus = async (productId, currentStatus) => {
     try {
-      await updateDoc(doc(db, 'productos', productId), {
+      console.log(`🔄 Cambiando estado del producto ${productId}: ${currentStatus} -> ${!currentStatus}`);
+      
+      // Verificar que el producto existe
+      const productRef = doc(db, 'productos', productId);
+      const productSnap = await getDoc(productRef);
+      
+      if (!productSnap.exists()) {
+        throw new Error('El producto no existe en la base de datos');
+      }
+      
+      await updateDoc(productRef, {
         activo: !currentStatus,
         fechaActualizacion: new Date()
       });
+      
+      console.log(`✅ Estado actualizado exitosamente`);
     } catch (error) {
-      console.error('Error updating product status:', error);
-      alert('Error al actualizar el estado del producto');
+      console.error('❌ Error updating product status:', error);
+      alert(`Error al actualizar el estado del producto: ${error.message}`);
     }
   };
 
   const duplicateProduct = async (product) => {
     try {
-      const newProductId = `prod_${Date.now()}`;
-      const newProduct = {
-        ...product,
-        nombre: `${product.nombre} (Copia)`,
-        fechaCreacion: new Date(),
-        fechaActualizacion: new Date()
-      };
+      console.log('🔄 Iniciando duplicación de producto:', product.id);
       
+      // Verificar que el producto existe y obtener datos actualizados
+      const productRef = doc(db, 'productos', product.id);
+      const productSnap = await getDoc(productRef);
+      
+      if (!productSnap.exists()) {
+        throw new Error('El producto original no existe en la base de datos');
+      }
+      
+      // Obtener datos actualizados del producto
+      const originalProduct = productSnap.data();
+      
+      // Crear un nuevo ID único para el producto duplicado
+      const newProductId = `prod_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      
+      // Realizar una copia profunda del producto
+      const newProduct = JSON.parse(JSON.stringify(originalProduct));
+      
+      // Actualizar campos específicos en la copia
+      newProduct.nombre = `${originalProduct.nombre} (Copia)`;
+      newProduct.fechaCreacion = new Date();
+      newProduct.fechaActualizacion = new Date();
+      
+      // Asegurar que la categoría se mantenga
+      if (!newProduct.categoria && originalProduct.categoria) {
+        newProduct.categoria = originalProduct.categoria;
+      }
+      
+      // Asegurar que el producto esté activo
+      newProduct.activo = true;
+      
+      // Asegurar que tenga un estado válido
+      if (!newProduct.estado) {
+        newProduct.estado = 'activo';
+      }
+      
+      // Asegurar que el producto duplicado sea independiente del original
+      // Generar nuevos IDs para variantes si existen
+      if (Array.isArray(newProduct.variantes) && newProduct.variantes.length > 0) {
+        newProduct.variantes = newProduct.variantes.map(variante => {
+          // Crear copia profunda de la variante
+          const newVariante = { ...variante };
+          
+          // Asignar nuevo ID único a la variante
+          newVariante.id = `var_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+          
+          // Si la variante tiene medios, asegurarse de que sean independientes
+          if (Array.isArray(newVariante.media) && newVariante.media.length > 0) {
+            // Los medios se mantienen igual ya que son URLs a Firebase Storage
+            // pero aseguramos que cada objeto de medio tenga un ID único
+            newVariante.media = newVariante.media.map(medio => ({
+              ...medio,
+              id: `med_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+            }));
+          }
+          
+          return newVariante;
+        });
+      }
+      
+      // Asegurar que los medios del producto principal también sean independientes
+      if (Array.isArray(newProduct.media) && newProduct.media.length > 0) {
+        newProduct.media = newProduct.media.map(medio => ({
+          ...medio,
+          id: `med_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+        }));
+      }
+      
+      // Para compatibilidad con productos antiguos que usan 'imagenes' en lugar de 'media'
+      if (Array.isArray(newProduct.imagenes) && newProduct.imagenes.length > 0) {
+        // Mantener las URLs pero crear un nuevo array para evitar referencias
+        newProduct.imagenes = [...newProduct.imagenes];
+      }
+      
+      console.log(`✅ Producto duplicado creado con ID: ${newProductId}`);
+      console.log('📋 Datos del producto duplicado:', {
+        id: newProductId,
+        nombre: newProduct.nombre,
+        categoria: newProduct.categoria,
+        activo: newProduct.activo,
+        estado: newProduct.estado,
+        fechaCreacion: newProduct.fechaCreacion
+      });
+      
+      // Guardar el nuevo producto en Firestore
       await setDoc(doc(db, 'productos', newProductId), newProduct);
-      alert('Producto duplicado exitosamente');
+      
+      console.log('✅ Producto guardado en Firestore con ID:', newProductId);
+      
+      // Pequeño delay para asegurar que Firebase procese el documento
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      alert(`Producto duplicado exitosamente con ID: ${newProductId}`);
     } catch (error) {
-      console.error('Error duplicating product:', error);
-      alert('Error al duplicar el producto');
+      console.error('❌ Error duplicating product:', error);
+      alert(`Error al duplicar el producto: ${error.message}`);
     }
   };
 
   const updateProductField = async (productId, field, value) => {
     try {
-      await updateDoc(doc(db, 'productos', productId), {
+      console.log(`📝 Actualizando ${field} del producto ${productId}:`, value);
+      
+      // Verificar que el producto existe
+      const productRef = doc(db, 'productos', productId);
+      const productSnap = await getDoc(productRef);
+      
+      if (!productSnap.exists()) {
+        throw new Error('El producto no existe en la base de datos');
+      }
+      
+      await updateDoc(productRef, {
         [field]: value,
         fechaActualizacion: new Date()
       });
+      
+      console.log(`✅ Campo ${field} actualizado exitosamente`);
     } catch (error) {
-      console.error(`Error updating ${field}:`, error);
-      alert(`Error al actualizar ${field}`);
+      console.error(`❌ Error updating ${field}:`, error);
+      alert(`Error al actualizar ${field}: ${error.message}`);
     }
   };
 
@@ -110,14 +219,22 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
     }
   };
 
+
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.empresa?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = !selectedCategory || product.categoria === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+    try {
+      const matchesSearch = product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.categoria?.toLowerCase().includes(searchTerm.toLowerCase());
+                           product.empresa?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = !selectedCategory || product.categoria === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    } catch (error) {
+      console.warn('Error filtrando producto:', product.id, error);
+      return false; // Excluir productos corruptos del filtro
+    }
   }).sort((a, b) => {
     let aValue = a[sortBy];
     let bValue = b[sortBy];
@@ -158,7 +275,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+        <LoadingSpinner size="large" color="blue" text="Cargando productos..." />
       </div>
     );
   }
@@ -185,15 +302,19 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Buscar productos
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Buscar productos..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+              </div>
             </label>
-            <input
-              type="text"
-              placeholder="Nombre, descripción, empresa..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
           </div>
 
           <div>
@@ -261,19 +382,43 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
               {/* Product Image (contain to avoid cropping) */}
               <div className="relative h-48 bg-white rounded-t-lg overflow-hidden flex items-center justify-center">
                 {(() => {
-                  const principal = product.imagen || (product.imagenes?.[0]) || (product.variantes?.[0]?.imagen) || '';
-                  return principal ? (
-                    <img
-                      src={principal}
-                      alt={product.nombre}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      Sin imagen
-                    </div>
-                  );
+                  try {
+                    const mainImage = product.imagen || 
+                                     (Array.isArray(product.imagenes) && product.imagenes.length > 0 ? product.imagenes[0] : null) ||
+                                     (Array.isArray(product.variantes) && product.variantes.length > 0 && product.variantes[0].imagen ? product.variantes[0].imagen : null);
+                    
+                    return mainImage ? (
+                      <img
+                        src={mainImage}
+                        alt={product.nombre || 'Producto'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <span className="text-sm">Sin imagen</span>
+                      </div>
+                    );
+                  } catch (error) {
+                    console.warn('Error renderizando imagen del producto:', product.id, error);
+                    return (
+                      <div className="w-full h-full flex items-center justify-center text-red-400 bg-red-50">
+                        <span className="text-sm">Error en imagen</span>
+                      </div>
+                    );
+                  }
                 })()}
+                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50" style={{display: 'none'}}>
+                  <div className="text-center">
+                    <svg className="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-sm">Sin imagen</span>
+                  </div>
+                </div>
               
                 {/* Status Badge */}
                 <div className="absolute top-2 right-2">
@@ -402,16 +547,17 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-3">
                   <button
                     onClick={() => onEditProduct(product)}
-                    className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+                    className="px-3 py-2 border border-blue-300 text-blue-600 rounded text-sm hover:bg-blue-50 transition-colors"
+                    title="Editar"
                   >
                     Editar
                   </button>
                   <button
                     onClick={() => duplicateProduct(product)}
-                    className="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors"
+                    className="px-3 py-2 border border-green-300 text-green-600 rounded text-sm hover:bg-green-50 transition-colors"
                     title="Duplicar"
                   >
                     <FiCopy />

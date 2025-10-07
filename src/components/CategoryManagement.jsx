@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc, onSnapshot } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, orderBy } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
+import LoadingSpinner from './LoadingSpinner';
 import { FiFolder, FiEye, FiEyeOff, FiEdit2, FiTrash2, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 
 const CategoryManagement = () => {
@@ -99,7 +100,7 @@ const CategoryManagement = () => {
         categoryData.fechaCreacion = new Date();
         categoryData.productCount = 0;
         const categoryId = categoryData.ruta;
-        await setDoc(doc(db, 'categorias', categoryId), categoryData);
+        await addDoc(collection(db, 'categorias'), categoryData);
       }
 
       setShowForm(false);
@@ -171,7 +172,7 @@ const CategoryManagement = () => {
   if (loading && categories.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+        <LoadingSpinner size="large" color="blue" text="Cargando categorías..." />
       </div>
     );
   }
@@ -460,6 +461,9 @@ const CategoryManagement = () => {
                     disabled={uploadingImage}
                     className="px-6 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    {uploadingImage ? (
+                      <LoadingSpinner size="small" color="white" className="mr-2" />
+                    ) : null}
                     {uploadingImage ? 'Subiendo imagen...' : editingCategory ? 'Actualizar' : 'Crear Categoría'}
                   </button>
                 </div>

@@ -36,11 +36,11 @@ function Footer() {
           <img
             src="/Playlogo.png"
             alt="Playcenter Universal Logo"
-            className="footer-logo-glow w-32 sm:w-44 lg:w-64 transition-transform duration-300 hover:scale-105"
+            className="footer-logo-glow w-32 sm:w-44 xl:w-64 transition-transform duration-300 hover:scale-105"
           />
         </div>
 
-        <div className="footer-cols-wrapper relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="footer-cols-wrapper relative z-20 max-w-7xl mx-auto px-4 sm:px-6 xl:px-8 grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
           <div className="footer-col">
             <h3 className="footer-title-neon text-base sm:text-lg font-bold mb-3">Playcenter Universal</h3>
@@ -67,6 +67,8 @@ function Footer() {
                 ["Nosotros", "/nosotros", false],
                 ["Contáctanos", "/contacto", false],
                 ["Estafetas", "/estafetas", false],
+                ["Tiendas", "/tiendas", false],
+                ["Vender", "/vender", false],
                 ["Carrito", "/carrito", true],
                 ["Mi perfil", "/Profile", true],
               ].map(([text, url, protegido]) => (

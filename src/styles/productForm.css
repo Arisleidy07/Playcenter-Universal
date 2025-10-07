@@ -1,0 +1,326 @@
+/* Product Form polished styles and animations */
+
+:root {
+  --pf-primary: #1d4ed8; /* blue-700 */
+  --pf-primary-600: #2563eb;
+  --pf-primary-100: #dbeafe;
+  --pf-text: #0f1f3a;
+  --pf-muted: #6b7280;
+  --pf-surface: #ffffff;
+}
+
+/* Container subtle fade-in */
+.pf-container {
+  animation: pf-fade-in 220ms ease-out both;
+}
+
+@keyframes pf-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Preview card */
+.pf-preview-card {
+  border-radius: 14px;
+  background: var(--pf-surface);
+  box-shadow: 0 8px 20px rgba(16,24,40,.06), 0 2px 6px rgba(16,24,40,.04);
+  transition: transform 180ms ease, box-shadow 200ms ease;
+}
+.pf-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(16,24,40,.10), 0 4px 8px rgba(16,24,40,.06);
+}
+
+/* Thumbnail */
+.pf-thumb {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.pf-thumb:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 6px 14px rgba(16,24,40,.12);
+}
+.pf-thumb img, .pf-thumb video { display: block; }
+
+/* Badge "Principal" */
+.pf-badge {
+  display: inline-block;
+  background: var(--pf-primary);
+  color: white;
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.12);
+  animation: pf-badge-pop 160ms ease-out both;
+}
+@keyframes pf-badge-pop {
+  from { transform: scale(.9); opacity: .0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Soft buttons used in controls */
+.pf-soft-btn {
+  background: #f3f4f6;
+  border-radius: 8px;
+  color: var(--pf-text);
+  font-size: 11px;
+  padding: 3px 8px;
+  transition: background 120ms ease, transform 120ms ease;
+}
+.pf-soft-btn:hover {
+  background: #e5e7eb;
+}
+.pf-soft-btn:active {
+  transform: translateY(1px);
+}
+
+/* Section titles underline accent */
+.pf-section-title {
+  position: relative;
+}
+.pf-section-title::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -8px;
+  width: 56px; height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--pf-primary), var(--pf-primary-600));
+}
+
+/* Subtle focus ring */
+.pf-focus input, .pf-focus textarea, .pf-focus select {
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+.pf-focus input:focus, .pf-focus textarea:focus, .pf-focus select:focus {
+  box-shadow: 0 0 0 3px var(--pf-primary-100);
+  border-color: var(--pf-primary);
+}
+
+/* Mini helper for grid gutters */
+.pf-grid-gap { gap: 10px; }
+
+/* ===== BOTONES DEL FORMULARIO ===== */
+.pf-buttons-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.98) 70%, rgba(255,255,255,0.95) 100%);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.15), 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-height: 80px;
+}
+
+.pf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 2px solid transparent;
+  text-decoration: none;
+  white-space: nowrap;
+  min-width: 140px;
+  height: 44px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pf-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--pf-primary-100);
+}
+
+.pf-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Botón Cancelar */
+.pf-button--cancel {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #d1d5db;
+}
+
+.pf-button--cancel:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pf-button--cancel:active:not(:disabled) {
+  transform: translateY(0);
+  background: #f3f4f6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón Guardar para más tarde */
+.pf-button--draft {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: 2px solid #f59e0b;
+}
+
+.pf-button--draft:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  border-color: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.4);
+}
+
+.pf-button--draft:active:not(:disabled) {
+  transform: translateY(0);
+  background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.3);
+}
+
+/* Botón Guardar Producto */
+.pf-button--primary {
+  background: linear-gradient(135deg, #3b82f6 0%, var(--pf-primary) 100%);
+  color: white;
+  border: 2px solid var(--pf-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.pf-button--primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.pf-button--primary:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.pf-button--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--pf-primary-600) 0%, #1e40af 100%);
+  border-color: var(--pf-primary-600);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(29, 78, 216, 0.4);
+}
+
+.pf-button--primary:active:not(:disabled) {
+  transform: translateY(0);
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  box-shadow: 0 2px 4px rgba(29, 78, 216, 0.3);
+}
+
+/* Loading state */
+.pf-button--loading {
+  position: relative;
+  color: transparent !important;
+  cursor: wait;
+}
+
+.pf-button--loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: pf-spin 0.8s linear infinite;
+}
+
+.pf-button--loading:hover {
+  transform: none !important;
+}
+
+@keyframes pf-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pf-buttons-container {
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 16px;
+    min-height: 140px;
+  }
+  
+  .pf-button {
+    width: 100%;
+    min-width: auto;
+    justify-content: center;
+    height: 48px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pf-buttons-container {
+    padding: 16px 12px;
+  }
+  
+  .pf-button {
+    height: 44px;
+    font-size: 15px;
+  }
+}
+
+/* Form container adjustments */
+.pf-form-container {
+  padding-bottom: 120px; /* Space for fixed buttons */
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+/* Ensure form content doesn't get hidden behind fixed buttons */
+.pf-form-content {
+  margin-bottom: 40px;
+  min-height: calc(100vh - 200px);
+}
+
+/* Smooth scrolling */
+.pf-form-container {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+.pf-form-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pf-form-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.pf-form-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.pf-form-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

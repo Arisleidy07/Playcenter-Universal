@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Audiowide&display=swap");
+
+/* Base performance helpers for TopBar */
+.topbar-base {
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Fuente solo para el TopBar (no global) */
+.topbar-tech {
+  font-family: "Orbitron", "Audiowide", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.3px;
+}

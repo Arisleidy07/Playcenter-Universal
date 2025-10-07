@@ -1,0 +1,74 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow uploads to productos folder
+    match /productos/{productId}/{mediaType}/{fileName} {
+      // Allow read access to all users
+      allow read: if true;
+      
+      // Allow write access for authenticated users
+      allow write: if request.auth != null
+        && mediaType in ['imagenes', 'videos']
+        && resource == null // Only allow creating new files, not overwriting
+        && request.resource.size < 100 * 1024 * 1024; // Max 100MB
+    }
+    
+    // Allow uploads to categorias folder
+    match /categorias/{categoryId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && resource == null
+        && request.resource.size < 10 * 1024 * 1024; // Max 10MB for category images
+    }
+    
+    // Allow uploads to products folder (English path used by the app)
+    match /products/{productId}/main/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && resource == null
+        && request.resource.size < 100 * 1024 * 1024;
+    }
+
+    match /products/{productId}/gallery/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && resource == null
+        && request.resource.size < 100 * 1024 * 1024;
+    }
+
+    match /products/{productId}/videos/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && resource == null
+        && request.resource.size < 100 * 1024 * 1024;
+    }
+
+    match /products/{productId}/extras/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && resource == null
+        && request.resource.size < 100 * 1024 * 1024;
+    }
+
+    match /products/{productId}/variants/{variantId}/main/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && resource == null
+        && request.resource.size < 100 * 1024 * 1024;
+    }
+
+    match /products/{productId}/variants/{variantId}/gallery/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && resource == null
+        && request.resource.size < 100 * 1024 * 1024;
+    }
+
+    // Temporary rule for development - remove in production
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}

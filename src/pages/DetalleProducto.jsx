@@ -32,18 +32,18 @@ function DetalleProducto() {
     }
 
     return (
-    <div className="pt-24 px-4 lg:px-20 py-10 bg-white min-h-screen flex flex-col lg:flex-row gap-10 items-start">
+    <div className="pt-24 px-4 xl:px-20 py-10 bg-white min-h-screen flex flex-col xl:flex-row gap-10 items-start">
       {/* Imagen del producto */}
-        <div className="w-full lg:w-1/2 flex justify-center">
+        <div className="w-full xl:w-1/2 flex justify-center">
         <img
             src={producto.imagen}
             alt={producto.nombre}
-            className="w-[300px] sm:w-[400px] lg:w-[500px] object-contain border p-4 rounded-lg shadow"
+            className="w-[300px] sm:w-[400px] xl:w-[500px] object-contain border p-4 rounded-lg shadow"
         />
         </div>
 
       {/* Info del producto */}
-        <div className="w-full lg:w-1/2 space-y-6">
+        <div className="w-full xl:w-1/2 space-y-6">
         <h1 className="text-3xl font-bold text-gray-800">{producto.nombre}</h1>
         <p className="text-gray-700 text-lg">{producto.descripcion}</p>
         <p className="text-2xl font-bold text-pink-600">${producto.precio}</p>

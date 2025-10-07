@@ -1,310 +1,270 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-// Removed test/migration utilities from dashboard UI per requirements
-import { FiBox, FiFolder, FiUsers, FiShoppingCart } from 'react-icons/fi';
+import { FiPackage, FiUsers, FiShoppingBag, FiGrid } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-const AdminDashboard = ({ onAddProduct, onOpenCategories, onViewAllProducts, onViewAllOrders }) => {
+const AdminDashboard = () => {
   const [stats, setStats] = useState({
-    totalProducts: 0,
-    activeProducts: 0,
-    totalCategories: 0,
-    activeCategories: 0,
-    totalUsers: 0,
-    totalOrders: 0,
-    recentProducts: [],
-    recentOrders: []
+    productos: 0,
+    categorias: 0,
+    usuarios: 0,
+    pedidos: 0
   });
+  const [recentProducts, setRecentProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
+    const fetchStats = async () => {
       try {
-        // Recent products (limited)
-        const recentSnap = await getDocs(query(collection(db, 'productos'), orderBy('fechaCreacion', 'desc'), limit(5)));
-        const recentProducts = recentSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-        // Full counts
-        const allProductsSnap = await getDocs(collection(db, 'productos'));
-        let activeCount = 0;
-        allProductsSnap.forEach(doc => { if (doc.data()?.activo) activeCount++; });
-
-        const categoriesSnap = await getDocs(query(collection(db, 'categorias')));
-        const categories = categoriesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const usersSnap = await getDocs(query(collection(db, 'users')));
-        const ordersSnap = await getDocs(query(collection(db, 'orders'), orderBy('fecha', 'desc'), limit(5)));
-        const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
+        // Fetch products count
+        const productsQuery = query(collection(db, 'productos'));
+        const productsSnapshot = await getDocs(productsQuery);
+        
+        // Fetch categories count
+        const categoriesQuery = query(collection(db, 'categorias'));
+        const categoriesSnapshot = await getDocs(categoriesQuery);
+        
+        // Fetch users count
+        const usersQuery = query(collection(db, 'usuarios'));
+        const usersSnapshot = await getDocs(usersQuery);
+        
+        // Fetch orders count (if you have an orders collection)
+        let ordersCount = 0;
+        try {
+          const ordersQuery = query(collection(db, 'pedidos'));
+          const ordersSnapshot = await getDocs(ordersQuery);
+          ordersCount = ordersSnapshot.size;
+        } catch (error) {
+          console.log('No pedidos collection or other error:', error);
+        }
+        
         setStats({
-          totalProducts: allProductsSnap.size,
-          activeProducts: activeCount,
-          totalCategories: categories.length,
-          activeCategories: categories.filter(c => c.activa).length,
-          totalUsers: usersSnap.size,
-          totalOrders: ordersSnap.size,
-          recentProducts,
-          recentOrders: orders
+          productos: productsSnapshot.size,
+          categorias: categoriesSnapshot.size,
+          usuarios: usersSnapshot.size,
+          pedidos: ordersCount
         });
-      } catch (e) {
-        console.error(e);
-      } finally {
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    const fetchRecentProducts = () => {
+      try {
+        const q = query(
+          collection(db, 'productos'),
+          orderBy('fechaCreacion', 'desc'),
+          limit(5)
+        );
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          const productsData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setRecentProducts(productsData);
+          setLoading(false);
+        }, (error) => {
+          console.error('Error fetching recent products:', error);
+          setLoading(false);
+        });
+        
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error setting up recent products listener:', error);
         setLoading(false);
       }
     };
-    loadData();
+
+    fetchStats();
+    const unsubscribe = fetchRecentProducts();
+    
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
-  const formatDate = (date) => {
-    if (!date) return 'N/A';
-    const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
-    return d.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-DO', {
-      style: 'currency',
-      currency: 'DOP'
-    }).format(price || 0);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
-      </div>
-    );
-  }
-
-  const statCards = [
-    {
-      title: 'Total Productos',
-      value: stats.totalProducts,
-      subtitle: `${stats.activeProducts} activos`,
-      icon: <FiBox />,
-      color: 'bg-blue-500',
-      textColor: 'text-blue-600'
-    },
-    {
-      title: 'Categorías',
-      value: stats.totalCategories,
-      subtitle: `${stats.activeCategories} activas`,
-      icon: <FiFolder />,
-      color: 'bg-green-500',
-      textColor: 'text-green-600'
-    },
-    {
-      title: 'Usuarios',
-      value: stats.totalUsers,
-      subtitle: 'Registrados',
-      icon: <FiUsers />,
-      color: 'bg-purple-500',
-      textColor: 'text-purple-600'
-    },
-    {
-      title: 'Pedidos',
-      value: stats.totalOrders,
-      subtitle: 'Total histórico',
-      icon: <FiShoppingCart />,
-      color: 'bg-orange-500',
-      textColor: 'text-orange-600'
-    }
-  ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-blue-900">Dashboard Administrativo</h2>
-        <p className="text-gray-600">Resumen general del sistema</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-blue-900">Dashboard</h2>
+          <p className="text-gray-600">Bienvenido al panel de administración</p>
+        </div>
       </div>
+
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((card, index) => (
-          <motion.div
-            key={card.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{card.value}</p>
-                <p className="text-sm text-gray-500 mt-1">{card.subtitle}</p>
-              </div>
-              <div className={`w-12 h-12 ${card.color} rounded-lg flex items-center justify-center text-white text-2xl`}>
-                {card.icon}
-              </div>
-            </div>
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard 
+          title="Productos" 
+          count={stats.productos} 
+          icon={<FiPackage className="text-blue-500" size={24} />} 
+          linkTo="/admin/productos"
+        />
+        <StatsCard 
+          title="Categorías" 
+          count={stats.categorias} 
+          icon={<FiGrid className="text-green-500" size={24} />} 
+          linkTo="/admin/categorias"
+        />
+        <StatsCard 
+          title="Usuarios" 
+          count={stats.usuarios} 
+          icon={<FiUsers className="text-purple-500" size={24} />} 
+          linkTo="/admin/usuarios"
+        />
+        <StatsCard 
+          title="Pedidos" 
+          count={stats.pedidos} 
+          icon={<FiShoppingBag className="text-orange-500" size={24} />} 
+          linkTo="/admin/pedidos"
+        />
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Products */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white rounded-lg shadow-sm border"
-        >
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Productos Recientes</h3>
-            <p className="text-sm text-gray-600">Últimos productos agregados</p>
-            <button onClick={onViewAllProducts} className="text-sm text-blue-600 hover:text-blue-700 font-medium float-right">Ver todos</button>
+      {/* Recent Products */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Productos Recientes</h3>
+        
+        {loading ? (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
           </div>
-          
-          <div className="divide-y divide-gray-200">
-            {stats.recentProducts.length > 0 ? (
-              stats.recentProducts.map((product) => (
-                <div key={product.id} className="p-4 hover:bg-gray-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      {product.imagen ? (
-                        <img
-                          src={product.imagen}
-                          alt={product.nombre}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <FiBox />
+        ) : recentProducts.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Producto
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Precio
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {recentProducts.map(product => (
+                  <tr key={product.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 relative">
+                          {(() => {
+                            try {
+                              const mainImage = product.imagen || 
+                                             (Array.isArray(product.imagenes) && product.imagenes.length > 0 ? product.imagenes[0] : null) ||
+                                             (Array.isArray(product.variantes) && product.variantes.length > 0 && product.variantes[0].imagen ? product.variantes[0].imagen : null) ||
+                                             (Array.isArray(product.media) && product.media.length > 0 ? product.media[0].url : null) ||
+                                             (Array.isArray(product.variantes) && product.variantes.length > 0 && 
+                                              Array.isArray(product.variantes[0].media) && product.variantes[0].media.length > 0 ? 
+                                              product.variantes[0].media[0].url : null);
+                              
+                              return mainImage ? (
+                                <img 
+                                  className="h-10 w-10 rounded-full object-cover" 
+                                  src={mainImage} 
+                                  alt="" 
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                                  N/A
+                                </div>
+                              );
+                            } catch (error) {
+                              return (
+                                <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs">
+                                  Error
+                                </div>
+                              );
+                            }
+                          })()}
+                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs" style={{display: 'none'}}>
+                            N/A
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
-                        {product.nombre}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {formatPrice(product.precio)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(product.fechaCreacion)}
-                      </p>
-                    </div>
-                    
-                    <div className="flex-shrink-0">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        product.activo 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.nombre || 'Sin nombre'}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            ID: {product.id.substring(0, 8)}...
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {new Intl.NumberFormat('es-DO', {
+                          style: 'currency',
+                          currency: 'DOP'
+                        }).format(product.precio || 0)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${product.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {product.activo ? 'Activo' : 'Inactivo'}
                       </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 text-center text-gray-500">
-                <div className="text-4xl mb-2 inline-flex"><FiBox /></div>
-                <p>No hay productos recientes</p>
-              </div>
-            )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Link to={`/admin/productos/editar/${product.id}`} className="text-blue-600 hover:text-blue-900 mr-4">
+                        Editar
+                      </Link>
+                      <Link to={`/producto/${product.id}`} className="text-green-600 hover:text-green-900" target="_blank" rel="noopener noreferrer">
+                        Ver
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </motion.div>
-
-        {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white rounded-lg shadow-sm border"
-        >
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Pedidos Recientes</h3>
-            <p className="text-sm text-gray-600">Últimos pedidos recibidos</p>
-            <button onClick={onViewAllOrders} className="text-sm text-blue-600 hover:text-blue-700 font-medium float-right">Ver todos</button>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No hay productos recientes</p>
           </div>
-          
-          <div className="divide-y divide-gray-200">
-            {stats.recentOrders.length > 0 ? (
-              stats.recentOrders.map((order) => (
-                <div key={order.id} className="p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        Pedido #{order.id?.slice(-8) || 'N/A'}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {order.usuario?.nombre || 'Usuario desconocido'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(order.fecha)}
-                      </p>
-                    </div>
-                    
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">
-                        {formatPrice(order.total)}
-                      </p>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        order.estado === 'completado' 
-                          ? 'bg-green-100 text-green-800'
-                          : order.estado === 'pendiente'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {order.estado || 'Pendiente'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 text-center text-gray-500">
-                <div className="text-4xl mb-2 inline-flex"><FiShoppingCart /></div>
-                <p>No hay pedidos recientes</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="bg-white rounded-lg shadow-sm border p-6"
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
+        )}
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button onClick={onAddProduct} className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-blue-600 text-xl"><FiBox /></span>
-            </div>
-            <div className="text-left">
-              <p className="font-medium text-gray-900">Agregar Producto</p>
-              <p className="text-sm text-gray-600">Crear nuevo producto</p>
-            </div>
-          </button>
-          
-          <button onClick={onOpenCategories} className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-green-600 text-xl"><FiFolder /></span>
-            </div>
-            <div className="text-left">
-              <p className="font-medium text-gray-900">Nueva Categoría</p>
-              <p className="text-sm text-gray-600">Crear categoría</p>
-            </div>
-          </button>
+        <div className="mt-4 text-right">
+          <Link to="/admin/productos" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            Ver todos los productos →
+          </Link>
         </div>
-      </motion.div>
-
-      {/* System Status removed per requirements */}
+      </div>
     </div>
+  );
+};
+
+const StatsCard = ({ title, count, icon, linkTo }) => {
+  return (
+    <motion.div 
+      whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}
+      className="bg-white p-6 rounded-lg shadow-sm border transition-all"
+    >
+      <Link to={linkTo} className="block">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{count}</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-full">
+            {icon}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
   );
 };
 
