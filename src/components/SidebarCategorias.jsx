@@ -141,7 +141,6 @@ function SidebarCategorias({
                 </div>
               </div>
             </div>
-          </div>
         </div>
       </aside>
 
