@@ -449,10 +449,67 @@ function OrdersList() {
 }
 
 /* ============================================================
+   PANEL DEL VENDEDOR (Seller-only, acceso limitado)
+   ============================================================ */
+function SellerAdminPanel() {
+  const { usuario, usuarioInfo } = useAuth();
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  return (
+    <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
+      <div className="max-w-7xl mx-auto">
+        {/* HEADER */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 text-blue-900">
+            Panel del Vendedor
+          </h1>
+          <p className="text-base sm:text-xl text-blue-700 font-medium">
+            Gestiona tus productos en tiempo real
+          </p>
+          {usuarioInfo?.empresa && (
+            <div className="mt-3 inline-flex items-center gap-2 bg-blue-100 text-blue-900 px-4 py-2 rounded-full text-sm font-bold">
+              {usuarioInfo.empresa}
+            </div>
+          )}
+        </div>
+
+        {/* PRODUCT MANAGEMENT ONLY */}
+        <ProductManagement
+          onAddProduct={() => {
+            setEditingProduct(null);
+            setShowProductForm(true);
+          }}
+          onEditProduct={(product) => {
+            setEditingProduct(product);
+            setShowProductForm(true);
+          }}
+        />
+
+        {/* PRODUCT FORM MODAL */}
+        {showProductForm && (
+          <ProductForm
+            product={editingProduct}
+            onClose={() => {
+              setShowProductForm(false);
+              setEditingProduct(null);
+            }}
+            onSave={() => {
+              setShowProductForm(false);
+              setEditingProduct(null);
+            }}
+          />
+        )}
+      </div>
+    </main>
+  );
+}
+
+/* ============================================================
    COMPONENTE PRINCIPAL ADMIN
    ============================================================ */
 export default function Admin() {
-  const { usuario } = useAuth();
+  const { usuario, usuarioInfo } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
@@ -521,7 +578,17 @@ export default function Admin() {
         Inicia sesión
       </div>
     );
-  if (usuario.uid !== ADMIN_UID)
+
+  const isGlobalAdmin = usuario?.uid === ADMIN_UID || usuarioInfo?.isAdmin === true;
+  const isSeller = Boolean(usuarioInfo?.isSeller || usuarioInfo?.empresa || usuarioInfo?.empresaId);
+
+  // Acceso vendedor: panel simplificado
+  if (!isGlobalAdmin && isSeller) {
+    return <SellerAdminPanel />;
+  }
+
+  // Sin acceso
+  if (!isGlobalAdmin)
     return (
       <div className="flex items-center justify-center min-h-screen bg-blue-50">
         Sin acceso
@@ -624,7 +691,7 @@ export default function Admin() {
   };
 
   return (
-    <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6 pt-20 sm:pt-24">
+    <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <div className="text-center mb-6">

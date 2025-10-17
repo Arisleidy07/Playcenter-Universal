@@ -1,0 +1,173 @@
+/* TEMA CLARO (por defecto) */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --hover-bg: #f3f4f6;
+}
+
+/* TEMA OSCURO */
+html.dark-theme {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --card-bg: #1f2937;
+  --input-bg: #374151;
+  --hover-bg: #4b5563;
+}
+
+/* Aplicar tema a elementos generales */
+html.dark-theme body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Tarjetas */
+html.dark-theme .bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+html.dark-theme .shadow,
+html.dark-theme .shadow-sm,
+html.dark-theme .shadow-md,
+html.dark-theme .shadow-lg,
+html.dark-theme .shadow-xl,
+html.dark-theme .shadow-2xl {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Texto */
+html.dark-theme .text-gray-800,
+html.dark-theme .text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+html.dark-theme .text-gray-600,
+html.dark-theme .text-gray-700 {
+  color: var(--text-secondary) !important;
+}
+
+html.dark-theme .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+/* Bordes */
+html.dark-theme .border,
+html.dark-theme .border-gray-200,
+html.dark-theme .border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+/* Inputs */
+html.dark-theme input,
+html.dark-theme textarea,
+html.dark-theme select {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+html.dark-theme input::placeholder,
+html.dark-theme textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Botones */
+html.dark-theme button:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600) {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+html.dark-theme button:hover:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600) {
+  background-color: var(--hover-bg) !important;
+}
+
+/* Hover effects */
+html.dark-theme .hover\:bg-gray-50:hover,
+html.dark-theme .hover\:bg-gray-100:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+/* Gradientes de fondo */
+html.dark-theme .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #1f2937, #111827, #0f172a) !important;
+}
+
+html.dark-theme .bg-gradient-to-r {
+  background: linear-gradient(to right, #1f2937, #111827) !important;
+}
+
+/* Rings */
+html.dark-theme .ring-1,
+html.dark-theme .ring-2 {
+  --tw-ring-color: var(--border-color) !important;
+}
+
+/* Modales y dropdowns */
+html.dark-theme .bg-opacity-75 {
+  background-color: rgba(17, 24, 39, 0.75) !important;
+}
+
+/* Scrollbars */
+html.dark-theme ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+html.dark-theme ::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+}
+
+html.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--hover-bg);
+}
+
+/* Links */
+html.dark-theme a:not(.bg-indigo-600):not([class*="text-indigo"]) {
+  color: #93c5fd !important;
+}
+
+html.dark-theme a:hover:not(.bg-indigo-600):not([class*="text-indigo"]) {
+  color: #bfdbfe !important;
+}
+
+/* Tablas */
+html.dark-theme table {
+  background-color: var(--card-bg) !important;
+}
+
+html.dark-theme th {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+html.dark-theme td {
+  border-color: var(--border-color) !important;
+}
+
+/* Badges y pills */
+html.dark-theme .rounded-full,
+html.dark-theme .rounded-lg,
+html.dark-theme .rounded-xl,
+html.dark-theme .rounded-2xl {
+  background-color: var(--bg-tertiary);
+}
+
+/* Imágenes - mantener brillo normal */
+html.dark-theme img {
+  filter: none;
+}
+
+/* NO APLICAR TEMA AL FOOTER */
+html.dark-theme footer,
+html.dark-theme footer * {
+  background-color: initial !important;
+  color: initial !important;
+}

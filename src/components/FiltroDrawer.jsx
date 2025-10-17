@@ -33,16 +33,16 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full w-72 bg-white border-l shadow-lg z-[9999] transform transition-transform duration-300 ${
+      className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-slate-900 border-l border-gray-300 dark:border-gray-700 shadow-lg z-[9999] transform transition-transform duration-300 ${
         visible ? "translate-x-0" : "translate-x-full"
       }`}
     >
       {/* Header */}
-      <div className="flex justify-between items-center px-4 py-4 border-b border-gray-300">
-        <h2 className="text-lg font-semibold text-indigo-700">Filtros</h2>
+      <div className="flex justify-between items-center px-4 py-4 border-b border-gray-300 dark:border-gray-700">
+        <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Filtros</h2>
         <button
           onClick={onClose}
-          className="text-indigo-600 font-extrabold text-xl hover:text-indigo-800 transition-colors"
+          className="text-blue-600 dark:text-blue-400 font-extrabold text-xl hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
           aria-label="Cerrar filtro"
         >
           ✕
@@ -50,10 +50,10 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
       </div>
 
       {/* Contenido */}
-      <div className="p-4 pt-6 flex flex-col gap-6 overflow-y-auto">
+      <div className="p-4 pt-6 flex flex-col gap-6 overflow-y-auto text-gray-900 dark:text-gray-100">
         {/* Estado */}
         <div>
-          <h3 className="font-medium mb-3 text-indigo-700">Estado</h3>
+          <h3 className="font-medium mb-3 text-blue-700 dark:text-blue-300">Estado</h3>
           <label className="switch-container mb-2">
             <input
               type="checkbox"
@@ -67,7 +67,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
               }
             />
             <div className="slider"></div>
-            <span className="ml-2 text-gray-800 font-medium">Nuevo</span>
+            <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Nuevo</span>
           </label>
           <label className="switch-container">
             <input
@@ -82,7 +82,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
               }
             />
             <div className="slider"></div>
-            <span className="ml-2 text-gray-800 font-medium">Usado</span>
+            <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Usado</span>
           </label>
         </div>
 
@@ -90,7 +90,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
         <div>
           <Typography
             gutterBottom
-            className="text-sm font-semibold text-indigo-700"
+            className="text-sm font-semibold text-blue-700 dark:text-blue-300"
           >
             Precio (RD$)
           </Typography>
@@ -100,10 +100,10 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
               "& .MuiSlider-thumb": {
                 width: 16,
                 height: 16,
-                bgcolor: "#5a67d8", // indigo 600
+                bgcolor: "#1d4ed8", // blue 700
                 border: "2px solid white",
                 "&:focus, &:hover, &.Mui-active": {
-                  boxShadow: "0 0 0 10px rgba(90, 103, 216, 0.2)",
+                  boxShadow: "0 0 0 10px rgba(29, 78, 216, 0.2)",
                 },
               },
               "& .MuiSlider-rail": {
@@ -115,7 +115,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
               "& .MuiSlider-track": {
                 height: 8,
                 borderRadius: 4,
-                bgcolor: "#5a67d8", // indigo 600
+                bgcolor: "#1d4ed8", // blue 700
               },
               "& .MuiSlider-root": {
                 padding: "20px 0",
@@ -130,7 +130,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
               max={10000}
             />
           </Box>
-          <div className="flex justify-between text-xs text-indigo-700 mt-1 font-semibold">
+          <div className="flex justify-between text-xs text-blue-700 dark:text-blue-300 mt-1 font-semibold">
             <span>RD${precioValido[0]}</span>
             <span>RD${precioValido[1]}</span>
           </div>
@@ -138,13 +138,13 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
       </div>
 
       {/* Botones abajo */}
-      <div className="flex justify-between gap-3 border-t border-gray-300 p-4 mt-4">
+      <div className="flex justify-between gap-3 border-t border-gray-300 dark:border-gray-700 p-4 mt-4">
         <button
           onClick={() => {
             onReset();
             onClose();
           }}
-          className="w-1/2 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold text-sm py-2 rounded transition-colors"
+          className="w-1/2 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-blue-300 font-semibold text-sm py-2 rounded transition-colors"
         >
           Restablecer
         </button>
@@ -153,7 +153,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
             setFiltros(tempFiltros);
             onClose();
           }}
-          className="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm py-2 rounded transition-colors"
+          className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-2 rounded transition-colors"
         >
           Aplicar filtros
         </button>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap");
 
 /* Fondo animado futurista */
 .footer-bg-animated {
@@ -14,8 +14,12 @@
 }
 
 @keyframes bgMove {
-  0% { background-position: 0% 100%; }
-  100% { background-position: 100% 0%; }
+  0% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 100% 0%;
+  }
 }
 
 /* Glow logo */
@@ -31,8 +35,6 @@
   z-index: 2;
   min-width: 0;
 }
-
-
 
 @media (min-width: 1024px) {
   .footer-divider {
@@ -51,7 +53,7 @@
 
 /* Título neon */
 .footer-title-neon {
-  font-family: 'Orbitron', 'Montserrat', sans-serif;
+  font-family: "Orbitron", "Montserrat", sans-serif;
   color: #fff;
   text-shadow: 0 0 8px #0ff, 0 0 2px #0939ff;
   letter-spacing: 1.5px;
@@ -80,7 +82,7 @@
 }
 
 .footer-link-neon {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   color: #d1d5db;
   transition: color 0.3s, text-shadow 0.3s, font-weight 0.3s;
   font-weight: 500;
@@ -130,11 +132,11 @@
 @media screen and (max-width: 640px) {
   /* Reorganiza el grid en dos columnas reales */
 
-    /* Aumentamos tamaño y alineamos texto de los links en Navegación */
+  /* Aumentamos tamaño y alineamos texto de los links en Navegación */
   .footer-col:nth-child(2) .footer-link-neon {
-    font-size: 1.1rem;      /* Más grande que antes */
-    text-align: left;        /* Alineado a la izquierda, igual que la columna izquierda */
-    white-space: normal;     /* Para que los textos largos hagan wrap */
+    font-size: 1.1rem; /* Más grande que antes */
+    text-align: left; /* Alineado a la izquierda, igual que la columna izquierda */
+    white-space: normal; /* Para que los textos largos hagan wrap */
   }
 
   /* Aseguramos que la columna navegación también tenga texto alineado a la izquierda */

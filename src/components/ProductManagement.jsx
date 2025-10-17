@@ -2,10 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 import { FiEye, FiEyeOff, FiCopy, FiTrash2, FiPackage } from 'react-icons/fi';
 
+// UID del administrador global (ver Admin.jsx)
+const ADMIN_UID = "ZeiFzBgosCd0apv9cXL6aQZCYyu2";
+
 const ProductManagement = ({ onAddProduct, onEditProduct }) => {
+  const { usuario } = useAuth();
+  const isAdmin = usuario?.uid === ADMIN_UID;
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,10 +24,26 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
   const [editingQuantity, setEditingQuantity] = useState(null);
   const [editingPrice, setEditingPrice] = useState(null);
 
+  // Filtros avanzados
+  const [statusFilter, setStatusFilter] = useState(''); // '' | 'activo' | 'inactivo'
+  const [stockFilter, setStockFilter] = useState(''); // '' | 'agotado' | 'bajo' | 'disponible'
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [dateFrom, setDateFrom] = useState(''); // yyyy-mm-dd
+  const [dateTo, setDateTo] = useState('');     // yyyy-mm-dd
+  const [companyFilter, setCompanyFilter] = useState(''); // solo admin
+
   useEffect(() => {
     loadCategories();
-    loadProducts();
   }, []);
+
+  useEffect(() => {
+    const unsub = loadProducts();
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario?.uid]);
 
   const loadCategories = async () => {
     try {
@@ -38,20 +60,54 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
   const loadProducts = () => {
     try {
-      const q = query(collection(db, 'productos'), orderBy('fechaCreacion', 'desc'));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      let qRef;
+      if (isAdmin) {
+        qRef = query(collection(db, 'productos'), orderBy('fechaCreacion', 'desc'));
+      } else if (usuario?.uid) {
+        // Vista de empresa: solo sus productos (sin exigir índice compuesto)
+        qRef = query(collection(db, 'productos'), where('ownerUid', '==', usuario.uid));
+      } else {
+        // Fallback: solo activos
+        qRef = query(collection(db, 'productos'), where('activo', '==', true));
+      }
+
+      const unsubscribe = onSnapshot(qRef, (snapshot) => {
         const productsData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
         setProducts(productsData);
         setLoading(false);
-      });
+      }, () => setLoading(false));
 
       return unsubscribe;
     } catch (error) {
       console.error('Error loading products:', error);
       setLoading(false);
+      return null;
+    }
+  };
+
+  // Opciones de empresas (solo admin): a partir de ownerName/empresa presentes
+  const companyOptions = useMemo(() => {
+    if (!isAdmin) return [];
+    const set = new Set();
+    products.forEach((p) => {
+      const name = (p.ownerName || p.empresa || '').trim();
+      if (name) set.add(name);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [isAdmin, products]);
+
+  const getTotalStock = (p) => {
+    try {
+      if (typeof p?.cantidad === 'number') return Number(p.cantidad) || 0;
+      if (Array.isArray(p?.variantes) && p.variantes.length) {
+        return p.variantes.reduce((acc, v) => acc + (parseInt(v?.cantidad) || 0), 0);
+      }
+      return Number.POSITIVE_INFINITY; // si no está definido, considerar disponible
+    } catch {
+      return Number.POSITIVE_INFINITY;
     }
   };
 
@@ -222,17 +278,42 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
   const filteredProducts = products.filter(product => {
     try {
-      const matchesSearch = product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.categoria?.toLowerCase().includes(searchTerm.toLowerCase());
-                           product.empresa?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = (
+        (product.nombre || '').toLowerCase().includes(term) ||
+        (product.descripcion || '').toLowerCase().includes(term) ||
+        (product.empresa || '').toLowerCase().includes(term) ||
+        (product.categoria || '').toLowerCase().includes(term)
+      );
+
       const matchesCategory = !selectedCategory || product.categoria === selectedCategory;
-      
-      return matchesSearch && matchesCategory;
+
+      const matchesStatus = !statusFilter || (statusFilter === 'activo' ? product.activo !== false : product.activo === false);
+
+      const totalStock = getTotalStock(product);
+      const stockStatus = Number.isFinite(totalStock)
+        ? (totalStock <= 0 ? 'agotado' : (totalStock <= 5 ? 'bajo' : 'disponible'))
+        : 'disponible';
+      const matchesStock = !stockFilter || stockStatus === stockFilter;
+
+      const price = parseFloat(product.precio) || 0;
+      const matchesPrice = (
+        (priceMin === '' || price >= parseFloat(priceMin)) &&
+        (priceMax === '' || price <= parseFloat(priceMax))
+      );
+
+      const createdAtMs = product?.fechaCreacion?.seconds
+        ? product.fechaCreacion.seconds * 1000
+        : (product?.fechaCreacion ? new Date(product.fechaCreacion).getTime() : null);
+      const fromOk = !dateFrom || (createdAtMs && createdAtMs >= new Date(dateFrom).setHours(0,0,0,0));
+      const toOk = !dateTo || (createdAtMs && createdAtMs <= new Date(dateTo).setHours(23,59,59,999));
+      const matchesDate = fromOk && toOk;
+
+      const matchesCompany = !isAdmin || !companyFilter || (((product.ownerName || product.empresa || '') === companyFilter));
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesStock && matchesPrice && matchesDate && matchesCompany;
     } catch (error) {
-      console.warn('Error filtrando producto:', product.id, error);
+      console.warn('Error filtrando producto:', product?.id, error);
       return false; // Excluir productos corruptos del filtro
     }
   }).sort((a, b) => {
@@ -391,7 +472,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                       <img
                         src={mainImage}
                         alt={product.nombre || 'Producto'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'flex';

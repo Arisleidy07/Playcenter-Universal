@@ -1,20 +1,28 @@
 import React from "react";
-import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaWhatsapp } from "react-icons/fa";
+import {
+  FaPhone,
+  FaMapMarkerAlt,
+  FaEnvelope,
+  FaWhatsapp,
+} from "react-icons/fa";
 import Wave from "../components/wave";
 
 function Contacto() {
   return (
-    <div className="relative min-h-screen flex flex-col items-center px-4 sm:px-8 pt-12 pb-20 font-sans text-gray-800 bg-transparent overflow-hidden">
+    <div
+      className="relative min-h-screen flex flex-col items-center px-4 sm:px-8 pb-20 font-sans text-gray-800 dark:text-gray-100 bg-gradient-to-r from-yellow-200 via-red-200 to-orange-200 dark:from-gray-800 dark:via-gray-900 dark:to-black overflow-hidden"
+      style={{ paddingTop: "var(--content-offset, 100px)" }}
+    >
       <Wave />
 
       <h1
-        className="text-2xl sm:text-5xl font-extrabold mb-4 text-center text-gray-800 z-10"
+        className="text-2xl sm:text-5xl font-extrabold mb-4 text-center text-gray-800 dark:text-gray-100 z-10"
         style={{ fontFamily: "'Orbitron', sans-serif" }}
       >
         CONTÁCTANOS
       </h1>
       <h2
-        className="text-lg sm:text-2xl font-semibold mb-10 text-center text-gray-600 z-10"
+        className="text-lg sm:text-2xl font-semibold mb-10 text-center text-gray-600 dark:text-gray-300 z-10"
         style={{ fontFamily: "'Montserrat', sans-serif" }}
       >
         PlayCenter Universal
@@ -32,43 +40,48 @@ function Contacto() {
         }}
       >
         {/* Muñeco fijo al cristal, más pequeño en móvil */}
-{/* Muñeco fijo al cristal, oculto en móvil */}
-<img
-  src="/toy/asoma.png"
-  alt="Muñeco asomándose"
-  className="hidden sm:block absolute z-20 pointer-events-none w-[300px]"
-  style={{
-    top: "-160px",
-    right: "-80px",
-    height: "auto",
-  }}
-/>
-
+        {/* Muñeco fijo al cristal, oculto en móvil */}
+        <img
+          src="/toy/asoma.png"
+          alt="Muñeco asomándose"
+          className="hidden sm:block absolute z-20 pointer-events-none w-[300px]"
+          style={{
+            top: "-160px",
+            right: "-80px",
+            height: "auto",
+          }}
+        />
 
         <InfoItem
-          icon={<FaMapMarkerAlt />}
+          icon={<FaMapMarkerAlt className="text-gray-400 dark:text-gray-300" />}
           label="Dirección"
           text="Av. Estrella Sadhalá #55, Santiago, República Dominicana"
         />
         <InfoItem
-          icon={<FaPhone />}
+          icon={<FaPhone className="text-gray-400 dark:text-gray-300" />}
           label="Teléfono Tienda"
           text="+1 (849)-635-7000"
         />
         <InfoItem
-          icon={<FaPhone />}
+          icon={<FaPhone className="text-gray-400 dark:text-gray-300" />}
           label="Teléfono Internet"
           text="+1 (809)-582-1212"
         />
         <InfoItem
-          icon={<FaEnvelope />}
+          icon={<FaEnvelope className="text-gray-400 dark:text-gray-300" />}
           label="Correo"
           text="playcenter121@gmail.com"
         />
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center mt-4 w-full">
-          <WhatsAppButton href="https://wa.me/18496357000" text="WhatsApp Tienda" />
-          <WhatsAppButton href="https://wa.me/18095821212" text="WhatsApp Internet" />
+          <WhatsAppButton
+            href="https://wa.me/18496357000"
+            text="WhatsApp Tienda"
+          />
+          <WhatsAppButton
+            href="https://wa.me/18095821212"
+            text="WhatsApp Internet"
+          />
         </div>
       </div>
     </div>
@@ -77,10 +90,16 @@ function Contacto() {
 
 const InfoItem = ({ icon, label, text }) => (
   <div className="flex items-start gap-3 w-full z-10">
-    <div className="text-xl sm:text-2xl text-gray-400">{icon}</div>
+    <div className="text-xl sm:text-2xl text-gray-400 dark:text-gray-300">
+      {icon}
+    </div>
     <div>
-      <p className="font-semibold text-sm sm:text-base text-gray-700">{label}:</p>
-      <p className="text-gray-600 text-sm sm:text-base break-words">{text}</p>
+      <p className="font-semibold text-sm sm:text-base text-gray-700 dark:text-gray-300">
+        {label}:
+      </p>
+      <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base break-words">
+        {text}
+      </p>
     </div>
   </div>
 );

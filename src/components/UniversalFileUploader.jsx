@@ -515,7 +515,12 @@ const UniversalFileUploader = ({
 
     if (!initialFiles || initialFiles.length === 0) {
       console.log("📭 No hay archivos iniciales, limpiando estado");
-      setFiles([]);
+      setFiles((prev) => {
+        if (prev.length > 0) {
+          shouldNotifyRef.current = true;
+        }
+        return [];
+      });
       return;
     }
 
@@ -540,8 +545,15 @@ const UniversalFileUploader = ({
     });
 
     console.log("✅ Archivos procesados:", processedFiles);
-    setFiles(processedFiles);
-  }, [JSON.stringify(initialFiles)]);
+    setFiles((prev) => {
+      // Solo notificar si hay cambios reales
+      const hasChanged = JSON.stringify(prev.map(f => f.id)) !== JSON.stringify(processedFiles.map(f => f.id));
+      if (hasChanged) {
+        shouldNotifyRef.current = true;
+      }
+      return processedFiles;
+    });
+  }, [initialFiles.length, initialFiles.map(f => typeof f === 'string' ? f : f?.id || f?.url).join('|')]);
 
   // Manejar archivos soltados o seleccionados
   const onDrop = useCallback(
@@ -726,7 +738,12 @@ const UniversalFileUploader = ({
   useEffect(() => {
     if (shouldNotifyRef.current) {
       shouldNotifyRef.current = false;
-      if (typeof onFilesChange === "function") onFilesChange(files);
+      console.log("📤 Notificando cambios al padre:", files);
+      if (typeof onFilesChange === "function") {
+        onFilesChange(files);
+      } else {
+        console.warn("⚠️ onFilesChange no es una función");
+      }
     }
   }, [files, onFilesChange]);
 

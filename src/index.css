@@ -4,6 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "./styles/theme.css";
+
 /* Reset básico */
 html,
 body {
@@ -14,14 +16,113 @@ body {
   -webkit-text-size-adjust: 100%;
   overscroll-behavior-x: none;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Para modo oscuro */
-@media (prefers-color-scheme: dark) {
-  html,
-  body {
-    color: black;
-  }
+/* ========================================
+   VARIABLES DE TEMA
+   ======================================== */
+:root.light-theme {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-gradient: linear-gradient(to bottom right, #eef2ff, #ffffff, #dbeafe);
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+  --card-bg: #ffffff;
+  --card-hover: #f1f5f9;
+  --accent-primary: #4fc3f7;
+  --accent-secondary: #3bb0f3;
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --topbar-bg: #ffffff;
+  --footer-bg: #f8fafc;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+}
+
+:root.dark-theme {
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --bg-gradient: linear-gradient(135deg, #1e293b, #111827);
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-lg: rgba(0, 0, 0, 0.7);
+  --card-bg: linear-gradient(135deg, #1f2937, #374151);
+  --card-hover: #1a1a1a;
+  --accent-primary: #ffc107;
+  --accent-secondary: #ffd54f;
+  --header-bg: rgba(0, 0, 0, 0.95);
+  --topbar-bg: #000000;
+  --footer-bg: #000000;
+  --input-bg: #1a1a1a;
+  --input-border: #333333;
+}
+
+/* Aplicar colores del tema */
+html.light-theme,
+html.light-theme body {
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+}
+
+html.dark-theme,
+html.dark-theme body {
+  background: #000000 !important;
+  color: var(--text-primary);
+}
+
+/* Forzar que todo esté pegado al topbar */
+body > div {
+  margin-top: 0 !important;
+}
+
+body > div > div {
+  margin-top: 0 !important;
+}
+
+/* Clases utilitarias de tema */
+.theme-bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.theme-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.theme-text {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-card {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.theme-card:hover {
+  background-color: var(--card-hover);
+}
+
+.theme-border {
+  border-color: var(--border-color);
+}
+
+.theme-shadow {
+  box-shadow: 0 1px 3px var(--shadow);
+}
+
+.theme-shadow-lg {
+  box-shadow: 0 10px 25px var(--shadow-lg);
 }
 
 .nosotros-container {

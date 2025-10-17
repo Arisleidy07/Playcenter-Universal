@@ -7,8 +7,18 @@ const API_BASE =
     ? "" // en localhost usamos el proxy de Vite
     : "https://playcenter-universal.onrender.com"; // en producción Render
 
+const AUTHORIZE_URL =
+  import.meta.env.DEV
+    ? "https://lab.cardnet.com.do/authorize"
+    : "https://ecommerce.cardnet.com.do/authorize";
+
 export default function BotonCardnet({ className, total, label }) {
   const [session, setSession] = useState(null);
+  const displayAmount = typeof total === 'number' ? total / 100 : null; // total llega en centavos
+  const formatted = Number.isFinite(displayAmount)
+    ? new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(displayAmount)
+    : null;
+  const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
 
   const iniciarPago = async () => {
     try {
@@ -51,7 +61,7 @@ export default function BotonCardnet({ className, total, label }) {
   return (
     <>
       <button onClick={iniciarPago} className={`pay-btn ${className || ""}`}>
-        <span className="btn-text">{label || "Comprar ahora"}</span>
+        <span className="btn-text">{buttonLabel}</span>
         <div className="icon-container">
           <svg viewBox="0 0 24 24" className="icon card-icon">
             <path d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18C2,19.11 2.89,20 4,20H20C21.11,20 22,19.11 22,18V6C22,4.89 21.11,4 20,4Z" fill="currentColor" />
@@ -72,7 +82,7 @@ export default function BotonCardnet({ className, total, label }) {
       </button>
 
       {session && (
-        <form id="cardnetForm" action="https://lab.cardnet.com.do/authorize" method="post">
+        <form id="cardnetForm" action={AUTHORIZE_URL} method="post">
           <input type="hidden" name="SESSION" value={session} />
         </form>
       )}

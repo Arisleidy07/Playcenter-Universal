@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "firebase/auth";
 import { subirImagenCloudinary } from "../utils/subirImagenCloudinary";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   collection,
@@ -16,20 +16,6 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Entrega from "../components/Entrega";
-import {
-  Pencil,
-  Check,
-  Trash2,
-  Eye,
-  Package,
-  Calendar,
-  ShoppingBag,
-  CircleDollarSign,
-  XCircle,
-  CheckCircle,
-  Hourglass,
-  ArrowRight,
-} from "lucide-react";
 import "../styles/Profile.css";
 
 /* =========================
@@ -64,8 +50,8 @@ const avatarDataUrl = (seed = "", size = 512) => {
   const bg = stringToHexColor(seed || initial);
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'>
     <rect width='100%' height='100%' fill='${bg}' rx='${Math.floor(
-      size * 0.12
-    )}' />
+    size * 0.12
+  )}' />
     <text x='50%' y='50%' dy='.04em' font-family='Inter, system-ui, Arial' font-size='${Math.floor(
       size * 0.42
     )}' fill='#fff' text-anchor='middle' alignment-baseline='middle'>${initial}</text>
@@ -447,113 +433,114 @@ function HistorialSection({ historial }) {
       </motion.div>
 
       {/* Modal de detalles */}
-{/* Modal de detalles FULLSCREEN en móvil */}
-<AnimatePresence>
-  {selectedOrder && (
-    <motion.div
-      className="order-modal-overlay-beautiful"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={() => setSelectedOrder(null)}
-    >
-      <motion.div
-        className="order-modal-beautiful"
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header-beautiful">
-          <div className="modal-title-section">
-            <h3 className="modal-title">
-              {selectedOrder.numeroOrden ||
-                `Orden #${selectedOrder.id.slice(-8)}`}
-            </h3>
-            <div className="modal-subtitle">Detalles de tu compra</div>
-          </div>
-          <button
-            className="close-modal-beautiful"
+      {/* Modal de detalles FULLSCREEN en móvil */}
+      <AnimatePresence>
+        {selectedOrder && (
+          <motion.div
+            className="order-modal-overlay-beautiful"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={() => setSelectedOrder(null)}
           >
-            ×
-          </button>
-        </div>
-
-        <div className="modal-content-beautiful">
-          {/* Resumen */}
-          <div className="order-summary-beautiful">
-            <div className="summary-card">
-              <div className="summary-item">
-                <span className="summary-label">
-                  <Calendar size={14} /> Fecha
-                </span>
-                <span className="summary-value">
-                  {new Date(
-                    selectedOrder.fecha?.seconds
-                      ? selectedOrder.fecha.seconds * 1000
-                      : selectedOrder.fecha
-                  ).toLocaleString("es-DO")}
-                </span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-label">
-                  <ShoppingBag size={14} /> Estado
-                </span>
-                <span className="summary-status">
-                  {selectedOrder.estado}
-                </span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-label">
-                  <CircleDollarSign size={14} /> Total
-                </span>
-                <span className="summary-total">
-                  DOP{" "}
-                  {new Intl.NumberFormat("es-DO").format(
-                    selectedOrder.total
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Productos */}
-          <div className="products-grid-modal">
-            {selectedOrder.productos?.map((producto, idx) => (
-              <div key={idx} className="product-item-beautiful">
-                <div className="product-info-modal">
-                  <span className="product-name-modal">
-                    {producto.nombre}
-                  </span>
-                  <span className="product-details-modal">
-                    {producto.cantidad} × DOP{" "}
-                    {new Intl.NumberFormat("es-DO").format(producto.precio)}
-                  </span>
-                </div>
-                <div className="product-subtotal-beautiful">
-                  DOP{" "}
-                  {new Intl.NumberFormat("es-DO").format(
-                    producto.cantidad * producto.precio
-                  )}
+            <motion.div
+              className="order-modal-beautiful"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header-beautiful">
+                <div className="modal-title-section">
+                  <h3 className="modal-title">
+                    {selectedOrder.numeroOrden ||
+                      `Orden #${selectedOrder.id.slice(-8)}`}
+                  </h3>
+                  <div className="modal-subtitle">Detalles de tu compra</div>
                 </div>
                 <button
-                  className="btn-view-product-modal"
-                  onClick={() =>
-                    (window.location.href = `/producto/${producto.id}`)
-                  }
+                  className="close-modal-beautiful"
+                  onClick={() => setSelectedOrder(null)}
                 >
-                  <Eye size={16} /> Ver producto
+                  ×
                 </button>
               </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
 
+              <div className="modal-content-beautiful">
+                {/* Resumen */}
+                <div className="order-summary-beautiful">
+                  <div className="summary-card">
+                    <div className="summary-item">
+                      <span className="summary-label">
+                        <Calendar size={14} /> Fecha
+                      </span>
+                      <span className="summary-value">
+                        {new Date(
+                          selectedOrder.fecha?.seconds
+                            ? selectedOrder.fecha.seconds * 1000
+                            : selectedOrder.fecha
+                        ).toLocaleString("es-DO")}
+                      </span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-label">
+                        <ShoppingBag size={14} /> Estado
+                      </span>
+                      <span className="summary-status">
+                        {selectedOrder.estado}
+                      </span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-label">
+                        <CircleDollarSign size={14} /> Total
+                      </span>
+                      <span className="summary-total">
+                        DOP{" "}
+                        {new Intl.NumberFormat("es-DO").format(
+                          selectedOrder.total
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Productos */}
+                <div className="products-grid-modal">
+                  {selectedOrder.productos?.map((producto, idx) => (
+                    <div key={idx} className="product-item-beautiful">
+                      <div className="product-info-modal">
+                        <span className="product-name-modal">
+                          {producto.nombre}
+                        </span>
+                        <span className="product-details-modal">
+                          {producto.cantidad} × DOP{" "}
+                          {new Intl.NumberFormat("es-DO").format(
+                            producto.precio
+                          )}
+                        </span>
+                      </div>
+                      <div className="product-subtotal-beautiful">
+                        DOP{" "}
+                        {new Intl.NumberFormat("es-DO").format(
+                          producto.cantidad * producto.precio
+                        )}
+                      </div>
+                      <button
+                        className="btn-view-product-modal"
+                        onClick={() =>
+                          (window.location.href = `/producto/${producto.id}`)
+                        }
+                      >
+                        <Eye size={16} /> Ver producto
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -602,7 +589,9 @@ function OrderDetailsModal({
 
         <div className="modal-content">
           <div className="order-status-section">
-            <span className={`status-badge large ${getStatusColor(order.estado)}`}>
+            <span
+              className={`status-badge large ${getStatusColor(order.estado)}`}
+            >
               {getStatusText(order.estado)}
             </span>
             {order.estadoPago && (
@@ -627,22 +616,29 @@ function OrderDetailsModal({
                 <div key={idx} className="product-detail-item">
                   <div className="product-detail-info">
                     <h4>{producto.nombre}</h4>
-                    <p className="product-company">{producto.empresa || "N/A"}</p>
+                    <p className="product-company">
+                      {producto.empresa || "N/A"}
+                    </p>
                     <div className="product-pricing">
-                      <span className="quantity">Cantidad: {producto.cantidad}</span>
+                      <span className="quantity">
+                        Cantidad: {producto.cantidad}
+                      </span>
                       <span className="price">
                         Precio unitario: {formatCurrency(producto.precio)}
                       </span>
                       <span className="subtotal">
                         Subtotal:{" "}
                         {formatCurrency(
-                          producto.subtotal || producto.precio * producto.cantidad
+                          producto.subtotal ||
+                            producto.precio * producto.cantidad
                         )}
                       </span>
                     </div>
                     <button
                       className="btn-view-product-modal"
-                      onClick={() => (window.location.href = `/producto/${producto.id}`)}
+                      onClick={() =>
+                        (window.location.href = `/producto/${producto.id}`)
+                      }
                       title="Ver producto"
                     >
                       <Eye size={16} />
@@ -658,7 +654,9 @@ function OrderDetailsModal({
             <div className="delivery-section">
               <h3>Información de entrega</h3>
               <p>{order.direccionEntrega}</p>
-              {order.telefonoContacto && <p>Teléfono: {order.telefonoContacto}</p>}
+              {order.telefonoContacto && (
+                <p>Teléfono: {order.telefonoContacto}</p>
+              )}
             </div>
           )}
 
@@ -753,8 +751,16 @@ function Loader({ visible, text = "Cargando..." }) {
       <div className="loaderInner">
         <div className="loader">
           <div className="spinner">
-            <div></div><div></div><div></div><div></div><div></div>
-            <div></div><div></div><div></div><div></div><div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
           </div>
         </div>
         <p className="loaderText">{text}</p>
@@ -971,7 +977,9 @@ export default function Profile() {
       }
 
       try {
-        await setDoc(doc(db, "usuarios", usuario.uid), payload, { merge: true });
+        await setDoc(doc(db, "usuarios", usuario.uid), payload, {
+          merge: true,
+        });
       } catch (err) {
         console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
@@ -1012,8 +1020,7 @@ export default function Profile() {
     try {
       const direccionCompleta =
         typeof dir === "string" ? dir : dir?.direccionCompleta || "";
-      const metodo =
-        dir && dir.metodoEntrega ? dir.metodoEntrega : "domicilio";
+      const metodo = dir && dir.metodoEntrega ? dir.metodoEntrega : "domicilio";
 
       setShowFullLoader(true);
 
@@ -1033,14 +1040,17 @@ export default function Profile() {
         console.warn("No se pudo escribir users/{uid}:", err);
       }
       try {
-        await setDoc(doc(db, "usuarios", usuario.uid), payload, { merge: true });
+        await setDoc(doc(db, "usuarios", usuario.uid), payload, {
+          merge: true,
+        });
       } catch (err) {
         console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
       try {
         let snap = await getDoc(doc(db, "users", usuario.uid));
-        if (!snap.exists()) snap = await getDoc(doc(db, "usuarios", usuario.uid));
+        if (!snap.exists())
+          snap = await getDoc(doc(db, "usuarios", usuario.uid));
         if (snap && snap.exists()) {
           const data = snap.data() || {};
           await actualizarUsuarioInfo({
@@ -1115,7 +1125,10 @@ export default function Profile() {
 
   if (!usuario || !usuarioInfo) {
     return (
-      <main className="min-h-screen flex items-start justify-center bg-slate-50 pt-28">
+      <main
+        className="min-h-screen flex items-start justify-center bg-slate-50"
+        style={{ paddingTop: "var(--content-offset, 100px)" }}
+      >
         <p className="text-lg animate-pulse">Cargando perfil...</p>
       </main>
     );

@@ -17,11 +17,14 @@ function getLiveMaxStock(item, productDoc) {
   if (!productDoc) return getStockMaximo(item);
   // Si hay variantes y color seleccionado, buscar esa variante
   if (Array.isArray(productDoc.variantes) && item.colorSeleccionado) {
-    const v = productDoc.variantes.find((va) => va.color === item.colorSeleccionado);
+    const v = productDoc.variantes.find(
+      (va) => va.color === item.colorSeleccionado
+    );
     if (v && v.cantidad !== undefined) return Number(v.cantidad) || 0;
   }
   // Si el producto tiene cantidad global
-  if (productDoc.cantidad !== undefined) return Number(productDoc.cantidad) || 0;
+  if (productDoc.cantidad !== undefined)
+    return Number(productDoc.cantidad) || 0;
   return getStockMaximo(item);
 }
 
@@ -43,7 +46,10 @@ function getStockMaximo(itemCarrito) {
     const val = Number(itemCarrito.cantidadProducto);
     if (!Number.isNaN(val)) return val;
   }
-  if (itemCarrito.cantidad !== undefined && typeof itemCarrito.cantidad === 'number') {
+  if (
+    itemCarrito.cantidad !== undefined &&
+    typeof itemCarrito.cantidad === "number"
+  ) {
     // OJO: en el carrito "cantidad" es cantidad en carrito, no stock; evitar si es posible
   }
   return Number.POSITIVE_INFINITY;
@@ -105,9 +111,7 @@ export default function Carrito() {
   }));
 
   return (
-    <main className="carrito-page">
-      <h1 className="carrito-title">Mi Carrito</h1>
-
+    <main className="carrito-page" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
       {carrito.length === 0 ? (
         <p className="carrito-empty">Tu carrito está vacío.</p>
       ) : (
@@ -121,9 +125,10 @@ export default function Carrito() {
                 ? Math.max(0, maxStock - (Number(item.cantidad) || 0))
                 : maxStock;
 
+              const itemKey = `${item.id}__${item.colorSeleccionado ?? ""}`;
               return (
                 <div
-                  key={item.id}
+                  key={itemKey}
                   className="carrito-card"
                   onClick={() => navigate(`/producto/${item.id}`)}
                 >
@@ -132,7 +137,8 @@ export default function Carrito() {
                       try {
                         if (!u) return "";
                         if (typeof u === "string") return u;
-                        if (typeof u === "object" && u !== null) return u.url || "";
+                        if (typeof u === "object" && u !== null)
+                          return u.url || "";
                         return String(u || "");
                       } catch {
                         return "";
@@ -141,15 +147,25 @@ export default function Carrito() {
                     const p = productosLive[item.id] || item;
                     // Orden de prioridad: imagenPrincipal[0].url -> imagen -> media image -> galeriaImagenes[0] -> imagenes[0] -> variantes (principal/legacy)
                     const fromVariant = () => {
-                      const vars = Array.isArray(p.variantes) ? p.variantes : [];
+                      const vars = Array.isArray(p.variantes)
+                        ? p.variantes
+                        : [];
                       for (const v of vars) {
                         const vMain = pickUrl(v?.imagenPrincipal?.[0]);
                         if (vMain) return vMain;
                         if (v?.imagen) return v.imagen;
-                        const vMediaArr = Array.isArray(v?.media) ? v.media : [];
+                        const vMediaArr = Array.isArray(v?.media)
+                          ? v.media
+                          : [];
                         const vMediaImg = vMediaArr.find((m) => {
                           const t = (m?.type || "").toLowerCase();
-                          return pickUrl(m) && (!t || t.includes("image") || t === "img" || t === "photo");
+                          return (
+                            pickUrl(m) &&
+                            (!t ||
+                              t.includes("image") ||
+                              t === "img" ||
+                              t === "photo")
+                          );
                         });
                         if (vMediaImg) return pickUrl(vMediaImg);
                       }
@@ -158,13 +174,22 @@ export default function Carrito() {
                     const mediaArr = Array.isArray(p.media) ? p.media : [];
                     const mediaImg = mediaArr.find((m) => {
                       const t = (m?.type || "").toLowerCase();
-                      return pickUrl(m) && (!t || t.includes("image") || t === "img" || t === "photo");
+                      return (
+                        pickUrl(m) &&
+                        (!t ||
+                          t.includes("image") ||
+                          t === "img" ||
+                          t === "photo")
+                      );
                     });
                     const displayImage =
                       pickUrl(p?.imagenPrincipal?.[0]) ||
                       p?.imagen ||
                       (mediaImg ? pickUrl(mediaImg) : "") ||
-                      pickUrl(Array.isArray(p?.galeriaImagenes) && p.galeriaImagenes[0]) ||
+                      pickUrl(
+                        Array.isArray(p?.galeriaImagenes) &&
+                          p.galeriaImagenes[0]
+                      ) ||
                       pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
                       fromVariant() ||
                       "";
@@ -202,7 +227,10 @@ export default function Carrito() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          eliminarUnidadDelCarrito(item.id, item.colorSeleccionado ?? null);
+                          eliminarUnidadDelCarrito(
+                            item.id,
+                            item.colorSeleccionado ?? null
+                          );
                         }}
                         className="vp-qty-btn"
                       >
@@ -214,12 +242,20 @@ export default function Carrito() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!Number.isFinite(maxStock) || item.cantidad < maxStock) {
-                            agregarAlCarrito(item, item.colorSeleccionado ?? null);
+                          if (
+                            !Number.isFinite(maxStock) ||
+                            item.cantidad < maxStock
+                          ) {
+                            agregarAlCarrito(
+                              item,
+                              item.colorSeleccionado ?? null
+                            );
                           }
                         }}
                         className="vp-qty-btn"
-                        disabled={Number.isFinite(maxStock) && item.cantidad >= maxStock}
+                        disabled={
+                          Number.isFinite(maxStock) && item.cantidad >= maxStock
+                        }
                       >
                         +
                       </button>
@@ -280,7 +316,10 @@ export default function Carrito() {
               <button
                 className="btn-confirm"
                 onClick={() => {
-                  quitarDelCarrito(productoAEliminar.id, productoAEliminar.colorSeleccionado ?? null);
+                  quitarDelCarrito(
+                    productoAEliminar.id,
+                    productoAEliminar.colorSeleccionado ?? null
+                  );
                   setProductoAEliminar(null);
                 }}
               >

@@ -3,6 +3,16 @@
   @apply w-full;
 }
 
+/* Theme-aware surface for main media area */
+.amg-surface {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+html.dark-theme .amg-surface {
+  background: #111827; /* gray-900 */
+  border-color: #374151; /* gray-700 */
+}
+
 /* Scrollbar personalizado para thumbnails */
 .scrollbar-thin {
   scrollbar-width: thin;

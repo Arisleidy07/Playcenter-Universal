@@ -1,142 +1,271 @@
-:root {
-  --gap: 16px;
-  --radius: 14px;
-  --shadow: 0 4px 16px rgba(0,0,0,.06);
-  --shadow-hover: 0 10px 28px rgba(0,0,0,.12);
-  --border: #e5e7eb;
-  --text: #303944;
-  --muted: #686f7c;
-  --primary: #2b62d9;
-}
+/* ===========================
+   PRODUCTOS RELACIONADOS - AMAZON STYLE EXACTO
+=========================== */
 
 .prl-section {
   width: 100%;
   background: #fff;
-  border-top: 1px solid var(--border);
-  padding: 20px 0 28px;
+  padding: 32px 0 80px 0;
+  border-top: 1px solid #e7e7e7;
+  overflow: visible;
 }
 
 .prl-container {
-  max-width: 1120px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 12px;
+  padding: 0 20px;
+  overflow: visible;
 }
 
 .prl-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text);
-  margin-bottom: 16px;
+  font-size: 21px;
+  font-weight: 700;
+  color: #0F1111;
+  margin-bottom: 20px;
+  font-family: "Amazon Ember", Arial, sans-serif;
+  line-height: 1.2;
 }
 
-.prl-wrapper { position: relative; }
+.prl-wrapper {
+  position: relative;
+  display: block;
+  overflow: visible;
+}
 
-/* Rail */
+/* Rail - carrusel horizontal */
 .prl-rail {
   display: flex;
-  gap: var(--gap);
+  gap: 20px;
   overflow-x: auto;
+  overflow-y: visible;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 8px;
+  padding: 20px 0 40px 0;
+  scrollbar-width: none;
+  --gap: 20px;
+  scroll-padding-left: 10px;
+  scroll-padding-right: 10px;
 }
-.prl-rail::-webkit-scrollbar { display: none; }
-.prl-rail.no-smooth { scroll-behavior: auto !important; }
+.prl-rail::-webkit-scrollbar {
+  display: none;
+}
+.prl-rail.no-smooth {
+  scroll-behavior: auto !important;
+}
 
-/* Tarjeta organizada */
+/* Tarjeta Amazon exacta */
 .prl-card {
   flex: 0 0 auto;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
+  width: 200px;
   background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 44vw;
-  max-width: 260px;
-  transition: transform .2s ease, box-shadow .2s ease;
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   user-select: none;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
-.prl-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
 
-/* Imagen centrada */
+.prl-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  border-color: #c8c8c8;
+  transform: translateY(-4px);
+}
+
+/* Imagen Amazon style */
 .prl-imgbox {
-  aspect-ratio: 4 / 3;
+  height: 200px;
   background: #fff;
-  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  padding: 20px;
+  border-bottom: 1px solid #e7e7e7;
 }
+
 .prl-img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  display: block;
-  margin: auto;
   user-select: none;
   -webkit-user-drag: none;
 }
 
-/* Meta (nombre + botón separados) */
+.prl-img-fallback {
+  width: 100%;
+  height: 100%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Meta información */
 .prl-meta {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  flex: 1;
 }
 
 .prl-name {
-  font-size: .92rem;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.35;
+  font-size: 14px;
+  font-weight: 400;
+  color: #2563eb; /* blue-600 */
+  line-height: 1.4;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 2.6em;
+  text-decoration: none;
+  min-height: 40px;
+  margin-bottom: 4px;
+}
+
+.prl-card:hover .prl-name {
+  color: #1d4ed8; /* blue-700 */
+  text-decoration: underline;
+}
+
+/* Precio Amazon style */
+.prl-price {
+  font-size: 18px;
+  color: #B12704;
+  font-weight: 400;
+}
+
+.prl-price strong {
+  font-weight: 700;
+  font-size: 21px;
+}
+
+.prl-price-muted {
+  color: #565959;
+  font-size: 14px;
+}
+
+/* Flechas Amazon exactas - FUERA de las tarjetas */
+.prl-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  border: 1px solid #d5d9d9;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(15,17,17,.15);
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #0F1111;
+  font-size: 18px;
+  transition: all 0.15s ease;
+  z-index: 10;
+}
+
+.prl-arrow.left {
+  left: -70px;
+}
+
+.prl-arrow.right {
+  right: -70px;
+}
+
+.prl-arrow:hover {
+  background: #f7f8fa;
+  border-color: #a8a8a8;
+  box-shadow: 0 4px 8px rgba(15,17,17,.2);
+}
+
+.prl-arrow:active {
+  background: #ededed;
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Empty state */
+.prl-empty {
   text-align: center;
+  color: #565959;
+  padding: 40px 20px;
+  font-size: 16px;
 }
 
-/* Botón */
-.prl-cta { display: flex; justify-content: center; }
-.prl-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px;
-  font-size: .85rem; font-weight: 700;
-  background: #eff6ff;
-  border: 2px solid rgba(37,99,235,.18);
-  border-radius: 8px;
-  color: #1e3a8a;
-  box-shadow: 0 4px 12px rgba(37,99,235,.12);
-  transition: all .15s ease;
-}
-.prl-btn:hover { background: #fff; border-color: rgba(37,99,235,.3); }
-.prl-btn:active { transform: translateY(1px) scale(.98); }
-.prl-btn-icon { width: 14px; height: 14px; }
-
-/* Empty */
-.prl-empty { text-align: center; color: var(--muted); padding: 20px 0; }
-
-/* Breakpoints */
-@media (max-width: 380px) { .prl-card { min-width: 50vw; } }
-@media (min-width: 640px) { .prl-card { min-width: 30vw; } }
-@media (min-width: 1024px) {
-  .prl-card { min-width: 200px; }
-  .prl-arrow {
-    position: absolute; top: 50%; transform: translateY(-50%);
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    padding: 10px; cursor: pointer; z-index: 20;
+/* Responsive */
+@media (max-width: 640px) {
+  .prl-container {
+    padding: 0 16px;
   }
-  .prl-arrow.left { left: -48px; }
-  .prl-arrow.right { right: -48px; }
+  
+  .prl-title {
+    font-size: 18px;
+  }
+  
+  .prl-card {
+    width: 150px;
+  }
+  
+  .prl-imgbox {
+    height: 150px;
+    padding: 12px;
+  }
+  
+  .prl-arrow {
+    display: none;
+  }
 }
+
+@media (max-width: 1279px) {
+  .prl-arrow {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .prl-container {
+    max-width: 1400px;
+    padding: 0 90px;
+  }
+  
+  .prl-arrow {
+    display: flex;
+  }
+}
+
+/* =====================
+   Dark theme variants
+===================== */
+html.dark-theme .prl-section {
+  background: #0f172a; /* slate-900 */
+  border-top-color: #1f2937;
+}
+html.dark-theme .prl-title {
+  color: #e5e7eb;
+}
+html.dark-theme .prl-card {
+  background: #111827;
+  border-color: #374151;
+}
+html.dark-theme .prl-imgbox {
+  background: #0b1220;
+  border-bottom-color: #374151;
+}
+html.dark-theme .prl-name { color: #93c5fd; }
+html.dark-theme .prl-price { color: #60a5fa; }
+html.dark-theme .prl-price-muted { color: #9ca3af; }
+html.dark-theme .prl-img-fallback { background: #1f2937; }
+html.dark-theme .prl-arrow {
+  background: #111827;
+  border-color: #374151;
+  color: #e5e7eb;
+  box-shadow: 0 2px 5px rgba(0,0,0,.35);
+}
+

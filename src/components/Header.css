@@ -1,87 +1,177 @@
-/* === NAVEGACIÓN === */
+/* ========================================
+   HEADER ESTILO AMAZON - PROFESIONAL
+   ======================================== */
+
+/* Header principal */
+.amazon-header {
+  background: #232f3e; /* Azul oscuro de Amazon */
+  color: white;
+  font-family: "Amazon Ember", Arial, sans-serif;
+}
+
+/* Navegación */
 .nav-link {
-  color: #7f9eb2; /* gris-azulado tech */
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: 0.5px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-@media (max-width: 360px) {
-  .nav-link {
-    font-size: 0.875rem; /* 14px */
-    letter-spacing: 0.3px;
-  }
-}
-@media (max-width: 480px) {
-  .nav-link:hover {
-    animation: none;
-    transform: scale(1.02);
-  }
+  color: #fff;
+  font-weight: 400;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 }
 
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -5px;
-  width: 0;
-  height: 2px;
-  background: #00CFFF;
-  transition: width 0.4s ease;
-}
-
-.nav-link:hover::after {
-  width: 100%;
-}
-
-/* === EFECTO GLITCH === */
 .nav-link:hover {
-  color: #00CFFF;
-  animation: glitch 0.5s steps(2, end) infinite;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Logo */
+.amazon-logo {
+  height: 32px;
+  width: auto;
+  transition: transform 0.2s ease;
+}
+
+.amazon-logo:hover {
   transform: scale(1.05);
 }
 
-@keyframes glitch {
-  0% {
-    text-shadow: 2px 0 #00f6ff, -2px 0 #ff00c8;
+/* Entrega/Ubicación */
+.delivery-info {
+  color: #ccc;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.delivery-info:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.delivery-title {
+  color: #ccc;
+  font-size: 12px;
+  margin: 0;
+}
+
+.delivery-location {
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Botones de usuario */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-greeting {
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.user-greeting:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.greeting-line1 {
+  color: #ccc;
+  font-size: 12px;
+  margin: 0;
+}
+
+.greeting-line2 {
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Carrito */
+.cart-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+  text-decoration: none;
+  position: relative;
+}
+
+.cart-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-decoration: none;
+}
+
+.cart-count {
+  background: #ff9900; /* Naranja de Amazon */
+  color: #000;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+}
+
+/* Responsive */
+@media (max-width: 1279px) {
+  .nav-link {
+    font-size: 13px;
+    padding: 6px 8px;
   }
-  20% {
-    text-shadow: -2px -2px #00f6ff, 2px 2px #ff00c8;
-  }
-  40% {
-    text-shadow: 2px 2px #00f6ff, -2px -2px #ff00c8;
-  }
-  60% {
-    text-shadow: -2px 2px #00f6ff, 2px -2px #ff00c8;
-  }
-  80% {
-    text-shadow: 2px 0 #00f6ff, -2px 0 #ff00c8;
-  }
-  100% {
-    text-shadow: none;
+  
+  .delivery-info,
+  .user-greeting {
+    display: none; /* Ocultar en móvil/tablet */
   }
 }
 
-/* === ÍCONOS === */
-.link-icon {
-  font-size: 20px;
-  color: #7f9eb2;
-  transition: all 0.3s ease;
+@media (max-width: 639px) {
+  .nav-link {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+  
+  .amazon-logo {
+    height: 28px;
+  }
 }
 
-.link-icon:hover {
-  color: #00CFFF;
-  transform: scale(1.3) rotate(-3deg);
-  animation: flicker 1s infinite;
+/* Dark theme */
+html.dark-theme .amazon-header {
+  background: #1a1a1a;
 }
 
-@keyframes flicker {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-    opacity: 1;
-  }
-  20%, 22%, 24%, 55% {
-    opacity: 0.4;
-  }
+html.dark-theme .nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html.dark-theme .delivery-info:hover,
+html.dark-theme .user-greeting:hover,
+html.dark-theme .cart-button:hover {
+  background: rgba(255, 255, 255, 0.05);
 }

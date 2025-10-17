@@ -90,6 +90,15 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
       .slice(0, 20);
   }, [productosCategoria, productoActual?.id]);
 
+  const formatPriceRD = (value) => {
+    const pesos = Math.round(Number(value) || 0);
+    try {
+      return new Intl.NumberFormat("es-DO").format(pesos);
+    } catch {
+      return String(pesos);
+    }
+  };
+
   // Conditional UI rendering AFTER hooks have been set up
   if (loading) {
     return (
@@ -103,25 +112,26 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
   }
 
   return (
-    <section className="prl-section" aria-label="Productos relacionados">
-      <div className="prl-container">
+    <section className="prl-section" aria-label="Productos relacionados" style={{ overflow: 'visible' }}>
+      <div className="prl-container" style={{ overflow: 'visible' }}>
         <h2 className="prl-title">Productos relacionados</h2>
 
-        <div className="prl-wrapper" aria-roledescription="carrusel">
+        <div className="prl-wrapper" aria-roledescription="carrusel" style={{ overflow: 'visible' }}>
           {/* Flecha izquierda */}
           <button
-            className="prl-arrow left hidden xl:flex"
+            className="prl-arrow left"
             onClick={() => scrollBy(-1)}
             aria-label="Anterior"
             type="button"
           >
-            <FaChevronLeft size={20} />
+            <FaChevronLeft size={16} />
           </button>
 
           {/* Rail */}
           <div
             ref={railRef}
             className="prl-rail"
+            style={{ overflowY: 'visible' }}
             onScroll={onScroll}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -133,6 +143,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
               relacionados.map((rel) => {
                 const imgSrc = rel?.imagen || rel?.imagenes?.[0] || "";
                 const name = rel?.nombre || "Producto";
+                const price = Number(rel?.precio) || 0;
                 return (
                   <article
                     key={rel?.id}
@@ -163,38 +174,14 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
                       <h3 className="prl-name" title={name}>
                         {name}
                       </h3>
-
-                      <div className="prl-cta">
-                        <button
-                          className="prl-btn"
-                          type="button"
-                          tabIndex={-1}
-                          aria-label={`Ver ${name}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            go(rel.slug || rel.id);
-                          }}
-                        >
-                          Ver producto
-                          <svg
-                            className="prl-btn-icon"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            aria-hidden
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M12 2.25c-5.385 0-9.75 4.365-9.75 
-                              9.75s4.365 9.75 9.75 9.75 9.75-4.365 
-                              9.75-9.75S17.385 2.25 12 2.25zm4.28 
-                              10.28a.75.75 0 000-1.06l-3-3a.75.75 
-                              0 10-1.06 1.06l1.72 1.72H8.25a.75.75 
-                              0 000 1.5h5.69l-1.72 1.72a.75.75 0 
-                              101.06 1.06l3-3z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
+                      <div className="prl-price">
+                        {price > 0 ? (
+                          <span>
+                            DOP <strong>{formatPriceRD(price)}</strong>
+                          </span>
+                        ) : (
+                          <span className="prl-price-muted">Sin precio</span>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -207,12 +194,12 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
 
           {/* Flecha derecha */}
           <button
-            className="prl-arrow right hidden xl:flex"
+            className="prl-arrow right"
             onClick={() => scrollBy(1)}
             aria-label="Siguiente"
             type="button"
           >
-            <FaChevronRight size={20} />
+            <FaChevronRight size={16} />
           </button>
         </div>
       </div>

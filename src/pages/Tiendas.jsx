@@ -1,63 +1,46 @@
 import React from "react";
 
-const companies = [
-  {
-    id: "playcenter",
-    name: "Playcenter Universal",
-    logo: "/Playlogo.png",
-    city: "Santiago de los Caballeros, RD",
-    description:
-      "Tienda física y plataforma oficial. Videojuegos, consolas, accesorios y tecnología con garantía y soporte local.",
-    link: "/nosotros",
-  },
-  { id: "st-electronics", name: "ST Electronics", logo: "/estafetas/St electronics.png", city: "Santiago", description: "Electrónica y repuestos.", link: "/tiendas/st-electronics" },
-  { id: "cafeteria-guido", name: "Cafetería Guido", logo: "/estafetas/cafeteria-guido.png", city: "Santiago", description: "Servicios y paquetería aliada.", link: "/tiendas/cafeteria-guido" },
-  { id: "colmado-espinal", name: "Colmado Espinal", logo: "/estafetas/colmado-espinal.png", city: "Santiago", description: "Punto aliado de entrega.", link: "/tiendas/colmado-espinal" },
-];
-
 export default function Tiendas() {
   return (
     <div
-      className="max-w-7xl mx-auto px-4 pb-14"
-      style={{ paddingTop: "calc(var(--topbar-height, 0px) + 3.5rem)" }}
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ paddingTop: 'var(--content-offset, 100px)' }}
     >
-      <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-2">Todas las tiendas</h1>
-      <p className="text-gray-600 mb-8">Explora empresas aliadas y puntos verificados.</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {companies.map((c) => (
-          <article
-            key={c.id}
-            className="group relative rounded-2xl p-[1px] bg-gradient-to-br from-slate-200 via-white to-indigo-200 shadow-[0_18px_60px_rgba(2,6,23,0.06)] hover:shadow-[0_24px_70px_rgba(2,6,23,0.10)] transition-transform duration-300 hover:-translate-y-1"
-          >
-            <div className="rounded-[14px] bg-white p-5 sm:p-6 flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-40 sm:w-52 aspect-[16/9] rounded-xl bg-white border shadow-sm overflow-hidden flex items-center justify-center">
-                  <img
-                    src={c.logo}
-                    alt={c.name}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 truncate">{c.name}</h3>
-                  <p className="text-sm text-slate-600 truncate">{c.city}</p>
-                </div>
-              </div>
-
-              <p className="text-sm text-slate-700 leading-relaxed">{c.description}</p>
-
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={c.link}
-                  className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-300/40 transition"
-                >
-                  Ver tienda
-                </a>
-              </div>
-            </div>
-          </article>
-        ))}
+      <div className="max-w-2xl w-full text-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-12 border-2 border-gray-100">
+          <div className="mb-6">
+            <svg
+              className="w-24 h-24 mx-auto text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+            Función No Disponible
+          </h1>
+          <p className="text-lg text-gray-600 mb-8">
+            La opción de <strong>Tiendas</strong> no está disponible en este momento.
+          </p>
+          <p className="text-md text-gray-500">
+            Por favor, vuelva más tarde. Estamos trabajando para habilitarla pronto.
+          </p>
+          <div className="mt-10">
+            <a
+              href="/"
+              className="inline-block px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Volver al Inicio
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

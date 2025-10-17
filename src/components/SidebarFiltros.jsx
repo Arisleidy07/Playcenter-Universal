@@ -51,7 +51,8 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
     }
 
     const min = filtros.precio.min !== "" ? Number(filtros.precio.min) : 0;
-    const max = filtros.precio.max !== "" ? Number(filtros.precio.max) : Infinity;
+    const max =
+      filtros.precio.max !== "" ? Number(filtros.precio.max) : Infinity;
     filtrados = filtrados.filter((p) => p.precio >= min && p.precio <= max);
 
     setProductosFiltrados(filtrados);
@@ -71,13 +72,12 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
     });
   };
 
-  const HEADER_HEIGHT = 76;
-
   return (
     <aside
       className="hidden xl:block w-56 max-w-[240px] relative z-40"
       style={{
-        height: `calc(100vh - ${HEADER_HEIGHT}px)`,
+        height: "100vh",
+        paddingTop: 0,
         overflow: "hidden",
         backgroundColor: "transparent",
         border: "none",
@@ -90,7 +90,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         style={{
           position: "relative",
           zIndex: 1,
-          height: `calc(100vh - ${HEADER_HEIGHT}px)`,
+          height: "100%",
           overflowY: "auto",
           padding: "1rem",
           backgroundColor: "transparent",
@@ -99,7 +99,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         }}
       >
         <motion.h2
-          className="text-lg font-semibold mb-4 text-blue-800"
+          className="text-lg font-semibold mb-4 text-blue-800 dark:text-blue-400"
           variants={titleVariants}
           animate="animate"
         >
@@ -107,7 +107,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         </motion.h2>
 
         <div className="mb-6">
-          <h3 className="font-medium mb-2">Estado</h3>
+          <h3 className="font-medium mb-2 text-gray-800 dark:text-gray-200">Estado</h3>
           <label className="switch-container">
             <input
               type="checkbox"
@@ -142,7 +142,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         </div>
 
         <div className="mb-6">
-          <Typography gutterBottom>Precio (RD$)</Typography>
+          <Typography gutterBottom className="text-sm font-semibold text-blue-700 dark:text-blue-300">Precio (RD$)</Typography>
           <Box
             sx={{
               px: 1,
@@ -172,8 +172,10 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
           >
             <Slider
               value={[
-                typeof filtros.precio.min === 'number' ? filtros.precio.min : 0,
-                typeof filtros.precio.max === 'number' ? filtros.precio.max : 1000
+                typeof filtros.precio.min === "number" ? filtros.precio.min : 0,
+                typeof filtros.precio.max === "number"
+                  ? filtros.precio.max
+                  : 1000,
               ]}
               onChange={handlePrecioChange}
               valueLabelDisplay="auto"
@@ -181,7 +183,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
               max={1000}
             />
           </Box>
-          <div className="flex justify-between text-sm mt-2 text-gray-700">
+          <div className="flex justify-between text-sm mt-2 text-gray-700 dark:text-gray-300">
             <span>RD${filtros.precio.min}</span>
             <span>RD${filtros.precio.max}</span>
           </div>
@@ -193,15 +195,17 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
           initial="initial"
           whileHover="hover"
           whileTap="tap"
-          className="bg-blue-600 text-white text-sm px-3 py-2 rounded w-full"
+          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-sm px-3 py-2 rounded w-full"
         >
           Restablecer filtros
         </motion.button>
 
-        <p className="mt-4 text-sm text-gray-600">
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
           {productosFiltrados.length === 0
             ? "No hay productos que coincidan con los filtros."
-            : `Mostrando ${productosFiltrados.length} producto${productosFiltrados.length > 1 ? "s" : ""}`}
+            : `Mostrando ${productosFiltrados.length} producto${
+                productosFiltrados.length > 1 ? "s" : ""
+              }`}
         </p>
       </div>
     </aside>

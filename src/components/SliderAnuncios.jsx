@@ -40,18 +40,38 @@ function SliderAnuncios() {
   const [index, setIndex] = useState(0);
   const timeoutRef = useRef(null);
   const delay = 6000;
+  const [paused, setPaused] = useState(false);
 
   const resetAutoplay = useCallback(() => {
     clearTimeout(timeoutRef.current);
+    if (paused) return; // no programar si está en pausa
     timeoutRef.current = setTimeout(() => {
       setIndex((prev) => (prev + 1) % anuncios.length);
     }, delay);
-  }, []);
+  }, [paused]);
 
   useEffect(() => {
     resetAutoplay();
     return () => clearTimeout(timeoutRef.current);
   }, [index, resetAutoplay]);
+
+  // Control global desde TopBar: escuchar evento para pausar/reanudar
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const next = Boolean(e?.detail?.paused);
+        setPaused(next);
+        clearTimeout(timeoutRef.current);
+        if (!next) {
+          timeoutRef.current = setTimeout(() => {
+            setIndex((prev) => (prev + 1) % anuncios.length);
+          }, delay);
+        }
+      } catch {}
+    };
+    window.addEventListener("pcu:main-slider-toggle", handler);
+    return () => window.removeEventListener("pcu:main-slider-toggle", handler);
+  }, []);
 
   const handlePrev = () => {
     clearTimeout(timeoutRef.current);

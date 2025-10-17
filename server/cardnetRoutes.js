@@ -3,6 +3,27 @@ import fetch from "node-fetch";
 
 const router = express.Router();
 
+const isProd = process.env.NODE_ENV === "production";
+const FRONTEND_BASE =
+  process.env.FRONTEND_BASE_URL || (isProd ? "https://pcu.com.do" : "http://localhost:5173");
+const SERVER_BASE =
+  process.env.SERVER_PUBLIC_BASE_URL ||
+  (isProd
+    ? "https://playcenter-universal.onrender.com"
+    : "http://localhost:5000");
+const CARDNET_BASE = isProd
+  ? "https://ecommerce.cardnet.com.do"
+  : "https://lab.cardnet.com.do";
+
+// Merchant configuration (use env in prod)
+const ACQUIRER_CODE = process.env.CARDNET_ACQUIRER_CODE || "349";
+const MERCHANT_TYPE = process.env.CARDNET_MERCHANT_TYPE || "7997";
+const MERCHANT_NUMBER = process.env.CARDNET_MERCHANT_NUMBER || "349000000";
+const MERCHANT_TERMINAL = process.env.CARDNET_MERCHANT_TERMINAL || "58585858";
+const MERCHANT_TERMINAL_AMEX = process.env.CARDNET_MERCHANT_TERMINAL_AMEX || "00000001";
+const MERCHANT_NAME =
+  (process.env.CARDNET_MERCHANT_NAME || "PLAYCENTER UNIVERSAL DO").toUpperCase();
+
 // Guardar SESSION → session-key en memoria (⚠️ se borra si Render reinicia el server)
 const sessions = {};
 
@@ -10,28 +31,31 @@ const sessions = {};
 router.post("/create-session", async (req, res) => {
   try {
     const { total } = req.body;
+    const now = Date.now();
+    const ordId = `ORD${now}`;
+    const txId = String(Math.floor(100000 + Math.random() * 900000)); // 6 dígitos
 
-    const response = await fetch("https://lab.cardnet.com.do/sessions", {
+    const response = await fetch(`${CARDNET_BASE}/sessions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         TransactionType: "0200",
         CurrencyCode: "214",
-        AcquiringInstitutionCode: "349",
-        MerchantType: "7997",
-        MerchantNumber: "349000000",
-        MerchantTerminal: "58585858",
-        MerchantTerminal_amex: "00000001",
+        AcquiringInstitutionCode: ACQUIRER_CODE,
+        MerchantType: MERCHANT_TYPE,
+        MerchantNumber: MERCHANT_NUMBER,
+        MerchantTerminal: MERCHANT_TERMINAL,
+        MerchantTerminal_amex: MERCHANT_TERMINAL_AMEX,
 
-        // 👉 Render maneja estos endpoints
-        ReturnUrl: "https://playcenter-universal.onrender.com/cardnet/return",
-        CancelUrl: "https://playcenter-universal.onrender.com/cardnet/cancel",
+        // 👉 Endpoints públicos donde CardNet hará POST de retorno/cancelación
+        ReturnUrl: `${SERVER_BASE}/cardnet/return`,
+        CancelUrl: `${SERVER_BASE}/cardnet/cancel`,
 
         PageLanguaje: "ESP",
-        OrdenId: "ORD12345",
-        TransactionId: "TX1234",
+        OrdenId: ordId,
+        TransactionId: txId,
         Tax: "000000000000",
-        MerchantName: "PLAYCENTER UNIVERSAL DO",
+        MerchantName: MERCHANT_NAME,
         AVS: "SANTO DOMINGO DO",
         Amount: String(total),
       }),
@@ -66,7 +90,7 @@ router.get("/verify/:session/:sk", async (req, res) => {
   try {
     const { session, sk } = req.params;
     const response = await fetch(
-      `https://lab.cardnet.com.do/sessions/${session}?sk=${sk}`
+      `${CARDNET_BASE}/sessions/${session}?sk=${sk}`
     );
     const data = await response.json();
     res.json(data);
@@ -82,9 +106,9 @@ router.post("/return", express.urlencoded({ extended: true }), (req, res) => {
   console.log("<< Return de CardNet:", req.body);
 
   if (session) {
-    res.redirect(`https://pcu.com.do/payment/pending?session=${session}`);
+    res.redirect(`${FRONTEND_BASE}/payment/pending?session=${session}`);
   } else {
-    res.redirect("https://pcu.com.do/payment/cancel");
+    res.redirect(`${FRONTEND_BASE}/payment/cancel`);
   }
 });
 
@@ -93,9 +117,9 @@ router.post("/cancel", express.urlencoded({ extended: true }), (req, res) => {
   console.log("<< Cancel de CardNet:", req.body);
 
   if (session) {
-    res.redirect(`https://pcu.com.do/payment/cancel?session=${session}`);
+    res.redirect(`${FRONTEND_BASE}/payment/cancel?session=${session}`);
   } else {
-    res.redirect("https://pcu.com.do/payment/cancel");
+    res.redirect(`${FRONTEND_BASE}/payment/cancel`);
   }
 });
 

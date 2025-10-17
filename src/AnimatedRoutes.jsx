@@ -45,6 +45,10 @@ export default function AnimatedRoutes() {
               </PrivateRoute>
             }
           />
+          {/* Rutas de vendedores desactivadas temporalmente */}
+          {/* <Route path="/perfil" element={...} /> */}
+          {/* <Route path="/panel-vendedor" element={...} /> */}
+          {/* <Route path="/tienda/:vendedorId" element={...} /> */}
           <Route path="/admin" element={<Admin />} />
           <Route
             path="/producto/:id"

@@ -43,17 +43,54 @@ export const CarritoProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Deduplicar por (id + colorSeleccionado) al cargar, sumando cantidades
+  useEffect(() => {
+    setCarrito((prev) => {
+      const map = new Map();
+      for (const it of prev) {
+        const key = `${it.id}__${it.colorSeleccionado ?? ''}`;
+        const existing = map.get(key);
+        if (existing) {
+          map.set(key, {
+            ...existing,
+            cantidad: (Number(existing.cantidad) || 0) + (Number(it.cantidad) || 0),
+            // conser vars y tomar el mayor maxStock conocido
+            maxStock: Math.max(
+              Number(existing.maxStock ?? 0) || 0,
+              Number(it.maxStock ?? 0) || 0
+            ) || existing.maxStock || it.maxStock,
+          });
+        } else {
+          map.set(key, { ...it });
+        }
+      }
+      return Array.from(map.values());
+    });
+    // Solo a la carga inicial
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Guardar favoritos en localStorage
   useEffect(() => {
     localStorage.setItem("favoritos", JSON.stringify(favoritos));
   }, [favoritos]);
 
+  const normalizeColor = (c) => {
+    try {
+      const s = (c ?? "").toString().trim();
+      return s ? s : null;
+    } catch {
+      return null;
+    }
+  };
+
   // 🚨 Validación con stock máximo (soporta variantes por color)
   const agregarAlCarrito = (producto, colorSeleccionado = null) => {
     setCarrito((prev) => {
+      const colorKey = normalizeColor(colorSeleccionado);
       // Identificar variante seleccionada (si aplica)
-      const variante = colorSeleccionado && Array.isArray(producto.variantes)
-        ? producto.variantes.find(v => v.color === colorSeleccionado)
+      const variante = colorKey && Array.isArray(producto.variantes)
+        ? producto.variantes.find(v => normalizeColor(v.color) === colorKey)
         : null;
 
       // Determinar el stock máximo permitido para esta línea (variante o producto)
@@ -61,22 +98,25 @@ export const CarritoProvider = ({ children }) => {
         (variante && Number(variante.cantidad)) ??
         (producto.maxStock !== undefined ? Number(producto.maxStock) : undefined) ??
         (producto.cantidad !== undefined ? Number(producto.cantidad) : undefined) ??
-        (producto.variantes?.[0]?.cantidad !== undefined ? Number(producto.variantes?.[0]?.cantidad) : undefined) ??
         Infinity;
 
       // Buscar en carrito por id y, si aplica, mismo color
-      const existe = prev.find((item) => item.id === producto.id && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null));
+      const existe = prev.find((item) => item.id === producto.id && normalizeColor(item.colorSeleccionado) === colorKey);
 
       if (existe) {
-        const tope = (existe.maxStock !== undefined ? Number(existe.maxStock) : stockMaxCalculado);
+        // Usar SIEMPRE el tope más reciente calculado
+        const topeActual = Number.isFinite(stockMaxCalculado) ? stockMaxCalculado : Infinity;
+        const tope = topeActual;
+
         if (existe.cantidad < tope) {
           return prev.map((item) =>
-            item.id === producto.id && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null)
-              ? { ...item, cantidad: item.cantidad + 1 }
+            item.id === producto.id && normalizeColor(item.colorSeleccionado) === colorKey
+              ? { ...item, cantidad: item.cantidad + 1, maxStock: topeActual }
               : item
           );
         }
-        return prev; // No sumar más si llegó al límite
+        // Sin cambios si alcanzó el límite
+        return prev;
       }
 
       if (stockMaxCalculado > 0) {
@@ -85,7 +125,7 @@ export const CarritoProvider = ({ children }) => {
           {
             ...producto,
             cantidad: 1,
-            colorSeleccionado: colorSeleccionado ?? null,
+            colorSeleccionado: colorKey,
             maxStock: stockMaxCalculado,
           },
         ];
@@ -96,10 +136,11 @@ export const CarritoProvider = ({ children }) => {
   };
 
   const eliminarUnidadDelCarrito = (productoId, colorSeleccionado = null) => {
+    const colorKey = normalizeColor(colorSeleccionado);
     setCarrito((prev) =>
       prev
         .map((item) =>
-          item.id === productoId && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null)
+          item.id === productoId && normalizeColor(item.colorSeleccionado) === colorKey
             ? { ...item, cantidad: item.cantidad - 1 }
             : item
         )
@@ -108,7 +149,8 @@ export const CarritoProvider = ({ children }) => {
   };
 
   const quitarDelCarrito = (productoId, colorSeleccionado = null) => {
-    setCarrito((prev) => prev.filter((item) => !(item.id === productoId && (item.colorSeleccionado ?? null) === (colorSeleccionado ?? null))));
+    const colorKey = normalizeColor(colorSeleccionado);
+    setCarrito((prev) => prev.filter((item) => !(item.id === productoId && normalizeColor(item.colorSeleccionado) === colorKey)));
   };
 
   const toggleCarrito = (producto) => {

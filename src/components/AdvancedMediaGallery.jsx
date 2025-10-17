@@ -28,9 +28,11 @@ const AdvancedMediaGallery = ({
   showControls = true,
   autoPlay = false,
   enableZoom = true,
-  enableFullscreen = true
+  enableFullscreen = true,
+  initialIndex = 0,
+  forceControls = false,
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex || 0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -49,6 +51,61 @@ const AdvancedMediaGallery = ({
   const [touchEnd, setTouchEnd] = useState(null);
 
   const currentMedia = mediaItems[currentIndex];
+
+  // Mantener el índice sincronizado con el prop initialIndex y cambios de longitud
+  useEffect(() => {
+    const safeIdx = Math.max(0, Math.min(initialIndex || 0, Math.max(0, mediaItems.length - 1)));
+    setCurrentIndex(safeIdx);
+    setIsZoomed(false);
+    setZoomLevel(1);
+  }, [initialIndex, mediaItems.length]);
+
+  // --- Helpers: YouTube/Vimeo detection & transforms ---
+  const isYouTube = (url = '') => {
+    const s = String(url || '').toLowerCase();
+    return s.includes('youtube.com/watch') || s.includes('youtu.be/');
+  };
+  const getYouTubeId = (url = '') => {
+    try {
+      const s = String(url || '');
+      if (s.includes('youtu.be/')) {
+        const id = s.split('youtu.be/')[1].split(/[?&#]/)[0];
+        return id || null;
+      }
+      const m = s.match(/[?&]v=([^&#]+)/);
+      return m && m[1] ? m[1] : null;
+    } catch { return null; }
+  };
+  const getYouTubeEmbed = (url = '') => {
+    const id = getYouTubeId(url);
+    return id ? `https://www.youtube.com/embed/${id}` : null;
+  };
+  const getYouTubeThumb = (url = '') => {
+    const id = getYouTubeId(url);
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+  };
+  const isVimeo = (url = '') => {
+    const s = String(url || '').toLowerCase();
+    return s.includes('vimeo.com/');
+  };
+  const getVimeoId = (url = '') => {
+    try {
+      const s = String(url || '');
+      // vimeo.com/{id} or vimeo.com/channels/.../{id}
+      const parts = s.split('/').filter(Boolean);
+      const last = parts.pop();
+      const id = (last || '').split(/[?#]/)[0];
+      return id && /\d+/.test(id) ? id : null;
+    } catch { return null; }
+  };
+  const getVimeoEmbed = (url = '') => {
+    const id = getVimeoId(url);
+    return id ? `https://player.vimeo.com/video/${id}` : null;
+  };
+  const getVimeoThumb = (url = '') => {
+    // Nota: Obtener thumbnail de Vimeo requiere API; devolvemos null para usar fallback de mini-video
+    return null;
+  };
 
   // Navegación
   const goToNext = useCallback(() => {
@@ -204,42 +261,45 @@ const AdvancedMediaGallery = ({
     if (!currentMedia) return null;
 
     if (currentMedia.type === 'video') {
+      const url = currentMedia.url || '';
+      const yt = isYouTube(url) ? getYouTubeEmbed(url) : null;
+      const vim = !yt && isVimeo(url) ? getVimeoEmbed(url) : null;
+      if (yt || vim) {
+        const iframeSrc = yt || vim;
+        return (
+          <div className="relative w-full h-full group">
+            <iframe
+              src={iframeSrc}
+              className="w-full h-full"
+              style={{ aspectRatio: '16/9', border: 0 }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              title={productName || 'Video'}
+            />
+          </div>
+        );
+      }
+      // HTML5 video (archivos subidos)
       return (
         <div className="relative w-full h-full group">
           <video
             ref={mainMediaRef}
-            src={currentMedia.url}
+            src={url}
             className="w-full h-full object-contain"
-            controls={isFullscreen}
+            controls={isFullscreen || forceControls}
             muted={isMuted}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            onLoadedData={() => {
-              if (autoPlay && mainMediaRef.current) {
-                mainMediaRef.current.play();
-              }
-            }}
+            onLoadedData={() => { if (autoPlay && mainMediaRef.current) { mainMediaRef.current.play(); } }}
             preload="metadata"
           />
-          
-          {/* Controles de video personalizados */}
           {showControls && (
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="flex items-center gap-4 bg-black/50 rounded-lg p-4">
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                  className="text-white hover:text-blue-400 transition-colors"
-                  title={isPlaying ? 'Pausar' : 'Reproducir'}
-                >
+                <button type="button" onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="text-white hover:text-blue-400 transition-colors" title={isPlaying ? 'Pausar' : 'Reproducir'}>
                   {isPlaying ? <FaPause size={24} /> : <FaPlay size={24} />}
                 </button>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                  className="text-white hover:text-blue-400 transition-colors"
-                  title={isMuted ? 'Activar sonido' : 'Silenciar'}
-                >
+                <button type="button" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:text-blue-400 transition-colors" title={isMuted ? 'Activar sonido' : 'Silenciar'}>
                   {isMuted ? <FaVolumeMute size={20} /> : <FaVolumeUp size={20} />}
                 </button>
               </div>
@@ -298,7 +358,7 @@ const AdvancedMediaGallery = ({
     <>
       <div className={`advanced-media-gallery ${className}`} ref={containerRef}>
         {/* Contenedor principal */}
-        <div className="relative bg-white rounded-lg overflow-hidden aspect-square md:aspect-video">
+        <div className="relative amg-surface rounded-lg overflow-hidden aspect-square md:aspect-video">
           <div
             className="w-full h-full group"
             onTouchStart={handleTouchStart}
@@ -359,11 +419,6 @@ const AdvancedMediaGallery = ({
               </button>
             )}
 
-            {/* Badge de tipo de media */}
-            <div className="absolute top-4 left-4 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-              {currentMedia?.type === 'video' ? <FaVideo /> : <FaImage />}
-              {currentMedia?.type === 'video' ? 'Video' : 'Imagen'}
-            </div>
           </div>
         </div>
 
@@ -388,25 +443,30 @@ const AdvancedMediaGallery = ({
                   `}
                 >
                   {media.type === 'video' ? (
-                    <div className="relative w-full h-full">
-                      <video 
-                        src={media.url} 
-                        className="w-full h-full object-contain"
-                        muted
-                        preload="metadata"
-                      />
-                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                        <FaPlay className="text-white text-sm" />
-                      </div>
-                    </div>
+                    (() => {
+                      const url = media.url || '';
+                      const ytThumb = isYouTube(url) ? getYouTubeThumb(url) : null;
+                      const vimThumb = !ytThumb && isVimeo(url) ? getVimeoThumb(url) : null;
+                      if (ytThumb || vimThumb) {
+                        return (
+                          <div className="relative w-full h-full">
+                            <img src={ytThumb || vimThumb} alt={`Video ${index + 1}`} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center"><FaPlay className="text-white text-sm" /></div>
+                          </div>
+                        );
+                      }
+                      // Fallback: mini video para archivos o vimeo sin thumb
+                      return (
+                        <div className="relative w-full h-full">
+                          <video src={url} className="w-full h-full object-contain" muted preload="metadata" />
+                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center"><FaPlay className="text-white text-sm" /></div>
+                        </div>
+                      );
+                    })()
                   ) : (
-                    <img 
-                      src={media.url} 
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-contain"
-                    />
+                    <img src={media.url} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-contain" />
                   )}
-                  
+
                   {/* Indicador activo */}
                   {index === currentIndex && (
                     <div className="absolute inset-0 bg-blue-500/20 border border-blue-500 rounded-lg" />
@@ -417,13 +477,11 @@ const AdvancedMediaGallery = ({
           </div>
         )}
       </div>
-
       {/* Modal Fullscreen */}
       <AnimatePresence>
         {isFullscreen && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black flex items-center justify-center"
             style={{ zIndex: 2147483647 }}
@@ -508,7 +566,7 @@ const AdvancedMediaGallery = ({
               <div className="absolute top-4 left-4 bg-black/50 text-white px-4 py-2 rounded-lg">
                 <p className="text-sm font-medium">{productName}</p>
                 <p className="text-xs opacity-75">
-                  {currentIndex + 1} de {mediaItems.length} • {currentMedia?.type === 'video' ? 'Video' : 'Imagen'}
+                  {currentIndex + 1} de {mediaItems.length}
                 </p>
               </div>
             </div>

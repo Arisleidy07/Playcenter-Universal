@@ -7,7 +7,12 @@ import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function AuthModal() {
-  const { modalAbierto, setModalAbierto, modo: modoGlobal, setModo } = useAuthModal();
+  const {
+    modalAbierto,
+    setModalAbierto,
+    modo: modoGlobal,
+    setModo,
+  } = useAuthModal();
   const { login, signup, usuario } = useAuth();
 
   const [modo, setModoLocal] = useState(modoGlobal);

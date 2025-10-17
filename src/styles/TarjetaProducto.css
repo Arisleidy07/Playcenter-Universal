@@ -1,84 +1,321 @@
-/* ----------- Desktop: vertical layout, SIN division de la imagen ------------ */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap");
+/* -----------/* TARJETA PRODUCTO ESTILO AMAZON */
 .tarjeta-producto {
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  overflow: hidden;
+  background: white;
   cursor: pointer;
-  transition: box-shadow 0.2s;
-  min-height: 320px;
-  margin-bottom: 16px;
   width: 100%;
+  height: 100%;
+  max-width: 270px;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  position: relative;
+  transition: all 0.2s ease;
+  margin: 4px;
+}
+
+.tarjeta-producto:hover {
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  transform: none;
+}
+
+/* Eliminar efecto de elevación en hover para mantener diseño Amazon */
+.tarjeta-producto:hover {
+  transform: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
+}
+
+/* Grid para escritorio */
+@media (min-width: 769px) {
+  .productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
+/* Diseño móvil */
+@media (max-width: 768px) {
+  .tarjeta-producto {
+    flex-direction: row;
+    max-width: none;
+    padding: 12px;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 0;
+  }
+}
+
+.tarjeta-producto:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+html.dark-theme .tarjeta-producto {
+  background: #0f172a;
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.tarjeta-producto:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: #3b82f6;
+}
+
+html.dark-theme .tarjeta-producto:hover {
+  background: #1e293b;
+  border-color: #60a5fa;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* Badges, wishlist, stock indicators removed by request */
 
-.tarjeta-producto:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.16);
-}
-
 .tarjeta-img-zone {
   width: 100%;
-  height: 180px;
+  height: 200px;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff; /* No division, no shadow, seamless */
-  padding: 0;
-  border: none;
+  background: transparent;
+  margin-bottom: 12px;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.tarjeta-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.tarjeta-producto:hover .tarjeta-img {
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .tarjeta-img-zone {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 0;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+}
+
+.tarjeta-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.tarjeta-producto:hover .tarjeta-img {
+  transform: scale(1.05);
+}
+html.dark-theme .tarjeta-img-zone {
+  background: #2a2a2a;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(75, 85, 99, 0.2);
+}
+
+html.dark-theme .tarjeta-producto:hover .tarjeta-img-zone {
+  background: #333333;
+  backdrop-filter: blur(12px);
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
 /* Image skeleton removed by request */
 
 .tarjeta-img {
   max-width: 100%;
-  max-height: 160px;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  background: #fff;
-  border-radius: 7px;
+  background: transparent; /* Evita contraste feo sobre zona */
+  border-radius: 0;
   box-shadow: none;
   display: block;
-  margin: auto;
+  object-position: center;
+  transition: transform 0.25s ease;
+  will-change: transform;
 }
 
-.tarjeta-info-zone {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  padding: 18px 14px 14px 14px;
-  min-width: 0;
+.tarjeta-producto:hover .tarjeta-img {
+  transform: scale(1.02);
+}
+
+html.dark-theme .tarjeta-img {
   background: transparent;
 }
 
+html.dark-theme .tarjeta-img-zone {
+  background: inherit;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.tarjeta-info-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+@media (max-width: 768px) {
+  .tarjeta-info-zone {
+    padding: 0;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+  }
+}
+
 .tarjeta-nombre {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #232f3e;
-  margin-bottom: 4px;
-  line-height: 1.2;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #0f1111;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  display: box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  box-orient: vertical;
+  height: 2.8em;
+}
+
+.tarjeta-nombre:hover {
+  color: #c7511f;
+  text-decoration: underline;
+}
+
+.tarjeta-producto:hover .tarjeta-nombre {
+  color: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .tarjeta-nombre {
+    font-size: 0.875rem;
+    margin: 0;
+    height: auto;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+}
+
+.tarjeta-nombre:hover {
+  color: #c7511f;
+  text-decoration: underline;
+}
+
+.tarjeta-nombre:hover {
+  color: #3b82f6;
+}
+
+html.dark-theme .tarjeta-nombre {
+  color: #e2e8f0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-theme .tarjeta-nombre:hover {
+  color: #60a5fa;
+  text-shadow: 0 0 12px rgba(96, 165, 250, 0.4);
+}
+
+html.dark-theme .tarjeta-nombre:hover {
+  color: #60a5fa;
 }
 
 .tarjeta-descripcion {
-  font-size: 0.97rem;
-  color: #555;
-  margin-bottom: 12px;
-  line-height: 1.25;
-  max-height: 2.6em;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none;
+}
+
+/* Stock info */
+.tarjeta-stock-info {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.stock-bajo {
+  color: #b12704;
+  font-weight: 600;
+}
+
+.stock-medio {
+  color: #ff9900;
+  font-weight: 500;
+}
+
+.stock-alto {
+  color: #007600;
+  font-weight: 500;
+}
+
+html.dark-theme .stock-bajo {
+  color: #f87171;
+}
+
+html.dark-theme .stock-medio {
+  color: #fbbf24;
+}
+
+html.dark-theme .stock-alto {
+  color: #4ade80;
 }
 
 .tarjeta-precio {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #006bb3;
-  margin-bottom: 10px;
-  min-width: 86px;
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: #0f1111;
+  margin: 4px 0;
+  min-width: auto;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.currency {
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin-right: 2px;
+  color: #0f1111;
+}
+
+.whole {
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.fraction {
+  font-size: 0.875rem;
+  font-weight: 400;
+  position: relative;
+  top: -4px;
+}
+
+html.dark-theme .tarjeta-precio {
+  color: #60a5fa;
+  text-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
 }
 
 /* Price row with old price */
@@ -86,355 +323,474 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
+  position: relative;
 }
 
 .tarjeta-precio-old {
-  color: #6b7280; /* gray-500 */
+  color: #64748b;
   text-decoration: line-through;
   font-weight: 500;
   font-size: 0.95rem;
+  position: relative;
+  top: -2px;
+}
+
+html.dark-theme .tarjeta-precio-old {
+  color: #94a3b8;
+}
+
+/* Estilo de precio tipo Amazon */
+.amazon-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  color: #0f1111;
+}
+
+html.dark-theme .amazon-price {
+  color: #f9fafb;
+}
+
+.amazon-price .currency {
+  font-size: 11px;
+  margin-right: 1px;
+  color: #64748b;
+  vertical-align: super;
+  font-weight: 400;
+}
+
+html.dark-theme .amazon-price .currency {
+  color: #d1d5db;
+}
+
+.amazon-price .whole {
+  font-size: 28px; /* Tamaño grande y prominente */
+  font-weight: 700; /* Bold para destacar */
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #059669; /* Verde elegante para precios */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+html.dark-theme .amazon-price .whole {
+  color: #10b981; /* Verde cristal brillante */
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.6); /* Glow verde cristal */
+}
+
+.amazon-price .fraction {
+  font-size: 11px;
+  align-self: flex-start;
+  vertical-align: super;
+  font-weight: 400;
+}
+
+html.dark-theme .amazon-price .fraction {
+  color: #d1d5db;
 }
 
 /* Botones */
 .botones-wrapper {
   width: 100%;
-  margin-top: 8px;
-  min-height: 52px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.carrito-main-btn {
-  position: relative;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-  padding-block: 0.5rem;
-  padding-inline: 1.25rem;
-  background-color: rgb(0 107 179);
-  border-radius: 8px;
+  margin-top: auto;
+  padding-top: 0;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  gap: 10px;
-  font-weight: bold;
-  border: 3px solid #ffffff4d;
-  font-size: 15px;
+  gap: 8px;
+}
+
+/* Quantity number (middle) */
+.botones-wrapper .font-semibold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 32px;
+  margin: 0;
+  padding: 0 8px;
+  font-weight: 400;
+  font-size: 14px;
+  color: #0f1111;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #d5d9d9;
+  animation: numberPulse 0.2s ease;
+}
+
+html.dark-theme .botones-wrapper .font-semibold {
+  color: #f9fafb;
+  background: #374151;
+  border-color: #4b5563;
+}
+
+@keyframes numberPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+    background: #e3f2fd;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Target trash button inside card (if not using class) */
+.botones-wrapper button[title="Quitar del carrito"] {
+  background: transparent;
+  border: none;
+  color: #c45500;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transition: none;
+  font-size: 18px;
+}
+
+/* Shine animation */
+@keyframes btnShine {
+  0% {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  }
+  50% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+  }
+}
+
+.carrito-main-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 12px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
-  overflow: hidden;
+  transition: all 0.15s ease;
+  margin-top: 8px;
 }
 
 .carrito-main-btn:hover {
-  transform: scale(1.05);
-  border-color: #fff9;
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.carrito-main-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.carrito-main-btn svg {
+  font-size: 1.125rem;
+}
+
+.carrito-main-btn:hover {
+  background-color: #1d4ed8;
+}
+
+@media (max-width: 768px) {
+  .carrito-main-btn {
+    width: auto;
+    margin-top: 4px;
+    padding: 6px 12px;
+  }
+}
+
+.carrito-main-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3),
+    0 6px 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+html.dark-theme .carrito-main-btn {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #0f172a;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+html.dark-theme .carrito-main-btn:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 12px 24px rgba(96, 165, 250, 0.4),
+    0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* glossy overlay removed */
+
+.carrito-main-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 8px 16px rgba(2, 6, 23, 0.28);
+  filter: brightness(0.98);
+}
+
+.carrito-main-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45),
+    0 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+html.dark-theme .carrito-main-btn {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.8) 0%,
+    rgba(30, 64, 175, 0.9) 100%
+  ); /* Degradado cristal */
+  backdrop-filter: blur(10px); /* Efecto cristal */
+  border: 1px solid rgba(59, 130, 246, 0.4); /* Borde cristal */
+  color: #f8fafc; /* Blanco cristal */
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra azul cristal */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
 }
 
 .carrito-btn {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
-  border: none;
-  background-color: #3b82f6;
-  color: white;
-  font-weight: bold;
-  font-size: 18px;
+  border: 1px solid #d5d9d9;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f6f7 100%);
+  color: #0f1111;
+  font-weight: 400;
+  font-size: 16px;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s ease-in-out;
+  transition: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+html.dark-theme .carrito-btn {
+  background: linear-gradient(180deg, #4b5563 0%, #374151 100%);
+  color: #f9fafb;
+  border-color: #4b5563;
 }
 
 .carrito-btn:disabled {
-  background: #b4b4b4;
+  background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
   cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.8;
 }
 
-.carrito-btn:hover:not(:disabled) {
-  background: #005091;
-  transform: scale(1.1);
-  border-color: #fff9;
+.carrito-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45),
+    0 0 0 6px rgba(255, 255, 255, 0.8);
 }
 
 .carrito-quitar {
-  background: none;
+  background: transparent;
   border: none;
-  color: #ea4335;
-  font-size: 1.15rem;
-  margin-left: 6px;
+  color: #c45500;
+  font-size: 18px;
+  margin-left: 0;
   cursor: pointer;
-  transition: color 0.18s;
+  transition: none;
   padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-.carrito-quitar:hover {
-  color: #b12704;
-}
-
-/* ----------- Responsive: Horizontal estilo Amazon SIN division ----------- */
-@media (max-width: 900px) {
+/* Mobile: Layout similar a Amazon */
+@media (max-width: 780px) {
   .tarjeta-producto {
-    flex-direction: row;
-    min-height: 140px;
-    max-height: 210px;
-    width: 100%;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    padding: 0;
-    background: #fff;
-    overflow: hidden;
+    flex-direction: row !important;
+    min-height: 120px !important; /* Altura Amazon móvil */
+    max-height: none !important;
+    height: auto !important;
+    padding: 12px !important; /* Padding Amazon */
+    gap: 12px; /* Gap Amazon */
+    align-items: flex-start;
+    border-radius: 4px !important; /* Bordes Amazon móvil */
   }
 
   .tarjeta-img-zone {
-    flex: 0 0 50vw;
-    height: 100%;
-    min-width: 120px;
-    max-width: 200px;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    background: #fff;
-    border: none;
+    width: 140px !important;
+    min-width: 140px !important;
+    height: 140px !important;
+    flex-shrink: 0;
+    margin: 0 !important;
+    padding: 4px !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    background: transparent !important;
   }
 
   .tarjeta-img {
-    width: 95%;
-    height: 95%;
-    max-width: 180px;
-    max-height: 200px;
-    min-width: 110px;
-    min-height: 110px;
-    margin: auto;
-    object-fit: contain;
-    display: block;
-    border-radius: 8px;
-    box-shadow: none;
-  }
-
-  .tarjeta-price-row {
-    margin-bottom: 6px;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-  }
-
-  .tarjeta-info-zone {
-    flex: 1 1 0;
-    padding: 15px 13px 15px 15px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 7px;
-    background: transparent;
-    min-width: 0;
-  }
-
-  .tarjeta-nombre {
-    font-size: 1.09rem;
-    margin-bottom: 2px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .tarjeta-descripcion {
-    font-size: 0.93rem;
-    margin-bottom: 7px;
-    max-height: 2.2em;
-    white-space: normal;
-    color: #555;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .tarjeta-precio {
-    font-size: 1.13rem;
-    color: #006bb3;
-    margin-bottom: 8px;
-    font-weight: bold;
-    min-width: 68px;
-  }
-
-  .botones-wrapper {
-    margin-top: 4px;
-    min-height: 40px;
-    justify-content: flex-end;
-    align-items: center;
-    width: 100%;
-  }
-
-  .carrito-main-btn {
-    position: relative;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-    padding-block: 0.5rem;
-    padding-inline: 1.25rem;
-    background-color: rgb(0 107 179);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    gap: 10px;
-    font-weight: bold;
-    border: 3px solid #ffffff4d;
-    font-size: 15px;
-    cursor: pointer;
-    overflow: hidden;
-  }
-
-  .carrito-btn {
-    font-size: 1rem;
-    width: 33px;
-    height: 33px;
-    margin: 0 2px;
-  }
-}
-
-/* ----------- Móvil: layout horizontal optimizado ----------- */
-@media (max-width: 768px) {
-  .tarjeta-producto {
-    flex-direction: row;
-    min-height: 140px;
-    max-height: 160px;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-
-  .tarjeta-img-zone {
-    width: 100px;
-    min-width: 100px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    padding: 6px;
-    border: none;
-  }
-
-  .tarjeta-img {
-    max-width: 88px;
-    max-height: 88px;
-    object-fit: contain;
-    border-radius: 4px;
-    box-shadow: none;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
   }
 
   .tarjeta-info-zone {
     flex: 1;
-    padding: 14px 12px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 6px;
-    background: transparent;
+    gap: 0;
+    padding: 0 !important;
     min-width: 0;
-    overflow: hidden;
   }
 
   .tarjeta-nombre {
-    font-size: 0.95rem;
-    margin-bottom: 2px;
-    font-weight: 600;
-    line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-height: 2.4em;
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 4px !important;
+    -webkit-line-clamp: 3 !important;
+    line-clamp: 3 !important;
+    min-height: auto !important;
+    font-weight: 500 !important;
   }
 
-  .tarjeta-descripcion {
-    font-size: 0.8rem;
-    margin-bottom: 4px;
-    line-height: 1.3;
-    color: #666;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .tarjeta-price-row {
+    margin: 4px 0 6px 0 !important; /* Margen Amazon */
   }
 
-  .tarjeta-precio {
-    font-size: 1rem;
-    color: #006bb3;
-    margin-bottom: 8px;
-    font-weight: bold;
-    white-space: nowrap;
-    background: transparent;
-    padding: 0;
+  .amazon-price .whole {
+    font-size: 16px !important; /* Tamaño Amazon móvil */
+  }
+
+  .amazon-price .currency,
+  .amazon-price .fraction {
+    font-size: 10px !important;
   }
 
   .botones-wrapper {
-    margin-top: auto;
-    min-height: 32px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    width: 100%;
-    gap: 4px;
+    margin-top: 8px !important;
+    padding-top: 0 !important;
+    min-height: 36px !important;
+    gap: 8px !important;
   }
 
   .carrito-main-btn {
-    position: relative;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-    padding-block: 0.5rem;
-    padding-inline: 1.25rem;
-    background-color: rgb(0 107 179);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    gap: 10px;
-    font-weight: bold;
-    border: 3px solid #ffffff4d;
-    font-size: 0;
-    cursor: pointer;
-    overflow: hidden;
-    min-width: 36px;
-    width: 36px;
-    height: 36px;
-  }
-  
-  .carrito-main-btn svg {
-    width: 18px;
-    height: 18px;
+    padding: 6px 10px !important;
+    font-size: 0.875rem !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+    min-height: 32px !important;
   }
 
   .carrito-btn {
-    font-size: 0.9rem;
-    width: 28px;
-    height: 28px;
-    margin: 0 1px;
-    border-radius: 4px;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 15px !important;
   }
 
-  .carrito-quitar {
-    padding: 4px;
-    font-size: 0.8rem;
+  .botones-wrapper .font-semibold {
+    min-width: 36px !important;
+    height: 32px !important;
+    font-size: 14px !important;
   }
 }
 
-/* ----------- Grid padre: una columna en móvil/tableta ----------- */
-@media (max-width: 900px) {
-  .productos-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0.5rem !important;
+/* Tablet: Layout HORIZONTAL EXACTO AMAZON (640px - 1279px) */
+@media (min-width: 781px) and (max-width: 1080px) {
+  .tarjeta-producto {
+    flex-direction: row !important;
+    min-height: 140px !important; /* Altura Amazon tablet */
+    max-height: none !important;
+    height: auto !important;
+    padding: 16px !important; /* Padding Amazon tablet */
+    gap: 16px; /* Gap Amazon tablet */
+    align-items: flex-start;
+    border-radius: 6px !important; /* Bordes Amazon tablet */
+  }
+
+  .tarjeta-img-zone {
+    width: 128px !important; /* Ancho Amazon tablet */
+    min-width: 128px !important;
+    height: 128px !important; /* Altura Amazon tablet */
+    flex-shrink: 0;
+    margin: 0 !important;
+    padding: 0 !important; /* Sin padding como Amazon */
+    border-radius: 0 !important; /* Sin bordes como Amazon */
+    overflow: hidden !important;
+    background: transparent !important; /* Sin fondo como Amazon */
+  }
+
+  .tarjeta-img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  .tarjeta-info-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 !important;
+    min-width: 0;
+  }
+
+  .tarjeta-nombre {
+    font-size: 14px !important; /* Tamaño Amazon tablet */
+    line-height: 1.3 !important;
+    margin-bottom: 6px !important; /* Margen Amazon */
+    -webkit-line-clamp: 2 !important; /* 2 líneas Amazon */
+    line-clamp: 2 !important;
+    min-height: auto !important;
+    font-weight: 400 !important; /* Peso Amazon normal */
+  }
+
+  .tarjeta-price-row {
+    margin: 6px 0 8px 0 !important; /* Margen Amazon */
+  }
+
+  .amazon-price .whole {
+    font-size: 18px !important; /* Tamaño Amazon tablet */
+  }
+
+  .amazon-price .currency,
+  .amazon-price .fraction {
+    font-size: 12px !important;
+  }
+
+  .botones-wrapper {
+    margin-top: 10px !important;
+    padding-top: 0 !important;
+    min-height: 40px !important; /* MÁS ALTO en tablet */
+    gap: 10px !important;
+  }
+
+  .carrito-main-btn {
+    padding: 12px 0 !important; /* MÁS PADDING en tablet */
+    font-size: 14px !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  .carrito-btn {
+    width: 36px !important; /* MÁS GRANDE en tablet */
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+
+  .botones-wrapper .font-semibold {
+    min-width: 40px !important;
+    height: 36px !important;
+    font-size: 15px !important;
   }
 }

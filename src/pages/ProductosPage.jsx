@@ -125,16 +125,19 @@ function ProductosPage() {
 
   return (
     <div
-      className="flex flex-col min-h-screen bg-white pb-[96px]"
+      className="flex flex-col min-h-screen bg-white dark:bg-gray-900 pb-[96px] transition-colors duration-300"
       style={{
         position: "relative",
-        marginTop: 0,
-        paddingTop: `${topbarHeight}px`,
+        margin: 0,
+        paddingTop: "var(--content-offset, 100px)",
         transition: "padding-top 0.2s",
         boxSizing: "border-box",
       }}
     >
-      <div className="flex-1 flex flex-col xl:flex-row w-full">
+      <div
+        className="flex-1 flex flex-col xl:flex-row w-full"
+        style={{ margin: 0 }}
+      >
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
           onCategoriaClick={handleCategoriaChange}
@@ -142,33 +145,42 @@ function ProductosPage() {
         />
 
         <main className="flex-1 p-0 xl:p-4 relative pb-32">
-          <div className="flex justify-between items-center mb-4 px-2 xl:hidden">
+          <div
+            className="flex justify-between items-center px-3 py-2 xl:hidden bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky transition-colors duration-300"
+            style={{
+              top: "var(--content-offset, 100px)",
+              zIndex: 40,
+              marginTop: 0,
+              paddingTop: 0,
+            }}
+          >
             <button
               onClick={() => setMostrarCategorias(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium transition-colors duration-300"
             >
               📂 Categorías
             </button>
             <BotonFiltro onClick={() => setFiltrosVisible(true)} />
           </div>
 
-          <div className="px-4 xl:px-0 mb-6 animate-fadeIn">
-            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-gradient bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 text-transparent bg-clip-text drop-shadow-md">
+          {/* TÍTULO ARRIBA DE LAS BOLITAS */}
+          <div className="px-4 xl:px-0 mb-6 mt-4">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               {categoriaActiva === "Todos"
                 ? "Todos los productos"
                 : categoriaActiva}
             </h1>
             {categoriaActiva !== "Todos" && (
-              <p className="text-gray-500 text-base sm:text-lg mt-2">
+              <p className="text-gray-600 dark:text-gray-400 text-base">
                 Encuentra lo mejor en{" "}
-                <span className="font-semibold text-blue-700">
+                <span className="font-semibold text-blue-700 dark:text-blue-400">
                   {categoriaActiva}
                 </span>
               </p>
             )}
           </div>
 
-          <div className="flex flex-wrap gap-4 sm:gap-5 px-4 xl:px-0 mb-10 justify-center sm:justify-start">
+          <div className="flex flex-wrap gap-3 sm:gap-4 px-4 xl:px-0 mb-6 justify-center sm:justify-start">
             {logosEmpresa.map((empresa) => {
               const isActive = brandFilter.norm === empresa.norm;
               return (
@@ -180,7 +192,7 @@ function ProductosPage() {
                       display: empresa.nombre,
                     })
                   }
-                  className={`group relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
+                  className={`group relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-gray-800 border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
                     isActive
                       ? "border-blue-700 ring-4 ring-offset-2 ring-blue-500 animate-spin-slow"
                       : "border-gray-300 hover:border-blue-400"
@@ -208,18 +220,16 @@ function ProductosPage() {
             </button>
           </div>
 
-          {isLoading ? null : (
-            productosFiltrados.length === 0 ? (
-              <p className="text-center text-gray-600 mt-10">
-                No hay productos que coincidan con tus filtros.
-              </p>
-            ) : (
-              <div className="productos-grid px-4 xl:px-0">
-                {productosFiltrados.map((producto) => (
-                  <TarjetaProducto key={producto.id} producto={producto} />
-                ))}
-              </div>
-            )
+          {isLoading ? null : productosFiltrados.length === 0 ? (
+            <p className="text-center text-gray-600 dark:text-gray-400 mt-10">
+              No hay productos que coincidan con tus filtros.
+            </p>
+          ) : (
+            <div className="productos-grid-clean">
+              {productosFiltrados.map((producto) => (
+                <TarjetaProducto key={producto.id} producto={producto} />
+              ))}
+            </div>
           )}
         </main>
 

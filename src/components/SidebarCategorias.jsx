@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { useCategories } from '../hooks/useProducts';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useCategories } from "../hooks/useProducts";
 import WaveBackground from "./WaveBackground";
+import "../styles/SidebarCategorias.css";
 
 const buttonVariants = {
   initial: { scale: 1, boxShadow: "none" },
@@ -33,7 +34,11 @@ const titleVariants = {
   },
 };
 
-function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil }) {
+function SidebarCategorias({
+  categoriaActiva,
+  mostrarEnMovil,
+  setMostrarEnMovil,
+}) {
   const navigate = useNavigate();
   const { categories, loading, error } = useCategories();
 
@@ -47,7 +52,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
   // Create categories array with "Todos" option and database categories
   const allCategories = [
     { nombre: "Todos", ruta: "", id: "todos" },
-    ...categories
+    ...categories,
   ];
 
   if (loading) {
@@ -77,6 +82,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
         className="hidden xl:flex flex-col w-56 px-2 relative z-40"
         style={{
           height: "100vh",
+          paddingTop: 0,
           backgroundColor: "transparent",
           border: "none",
           boxShadow: "none",
@@ -97,42 +103,45 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
         </div>
 
         {/* Lista scrollable */}
-        <div
-          className="scrollbar-light relative z-10 flex-1"
-          style={{
-            overflowY: "auto",
-            backgroundColor: "transparent",
-            paddingRight: "0.25rem",
-          }}
-        >
-          <motion.h2
-            className="text-lg font-semibold mb-4 text-center tracking-wide text-blue-700 select-none"
-            variants={titleVariants}
-            animate="animate"
-          >
-            Categorías
-          </motion.h2>
-          <ul className="space-y-2 text-sm">
-            {allCategories.map((cat, idx) => (
-              <motion.li key={cat.id || idx} whileHover={{ scale: 1.02 }}>
-                <motion.button
-                  onClick={() => handleClick(cat)}
-                  initial="initial"
-                  whileHover="hover"
-                  whileTap="tap"
-                  variants={buttonVariants}
-                  className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
-                    isActiva(cat.nombre)
-                      ? "bg-blue-100 text-blue-900 font-semibold"
-                      : "bg-transparent text-blue-700 hover:bg-blue-100"
-                  }`}
-                  style={{ border: "none", boxShadow: "none" }}
-                >
-                  {cat.nombre}
-                </motion.button>
-              </motion.li>
-            ))}
-          </ul>
+        <div className="sidebar-scroll" style={{ height: "calc(100vh - 64px)" }}>
+            <div className="relative z-10">
+              <motion.h2
+                className="text-lg font-semibold mb-4 text-center tracking-wide text-blue-700 dark:text-blue-400 select-none"
+                variants={titleVariants}
+                animate="animate"
+              >
+                Categorías
+              </motion.h2>
+              <ul className="space-y-2 text-sm">
+                {allCategories.map((cat, idx) => (
+                  <motion.li key={cat.id || idx} whileHover={{ scale: 1.02 }}>
+                    <motion.button
+                      onClick={() => handleClick(cat)}
+                      initial="initial"
+                      whileHover="hover"
+                      whileTap="tap"
+                      variants={buttonVariants}
+                      className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+                        isActiva(cat.nombre)
+                          ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 font-semibold"
+                          : "bg-transparent text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
+                      }`}
+                      style={{ border: "none", boxShadow: "none" }}
+                    >
+                      {cat.nombre}
+                    </motion.button>
+                  </motion.li>
+                ))}
+              </ul>
+              <div className="scroll-indicator">
+                <div className="scroll-dots">
+                  <div className="scroll-dot"></div>
+                  <div className="scroll-dot"></div>
+                  <div className="scroll-dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -141,7 +150,7 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
         {mostrarEnMovil && (
           <>
             <motion.div
-              className="fixed inset-0 bg-gray-200 bg-opacity-40 backdrop-blur-sm z-[9998]"
+              className="fixed inset-0 bg-gray-200 dark:bg-gray-900 bg-opacity-40 backdrop-blur-sm z-[9998]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -152,10 +161,10 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 250, damping: 30 }}
-              className="fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-300 z-[9999] flex flex-col shadow-md"
+              className="fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-300 dark:border-gray-700 z-[9999] flex flex-col shadow-md transition-colors duration-300"
             >
-              <div className="flex justify-between items-center px-4 py-4 border-b border-gray-300">
-                <h2 className="text-lg font-semibold text-blue-700 tracking-wide select-none">
+              <div className="flex justify-between items-center px-4 py-4 border-b border-gray-300 dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-400 tracking-wide select-none">
                   Categorías
                 </h2>
                 <button
@@ -179,8 +188,8 @@ function SidebarCategorias({ categoriaActiva, mostrarEnMovil, setMostrarEnMovil 
                         variants={buttonVariants}
                         className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
                           isActiva(cat.nombre)
-                            ? "bg-blue-100 text-blue-900 font-semibold"
-                            : "bg-transparent text-blue-700 hover:bg-blue-100"
+                            ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 font-semibold"
+                            : "bg-transparent text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
                         }`}
                         style={{ border: "none", boxShadow: "none" }}
                       >

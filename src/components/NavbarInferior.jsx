@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaHome, FaThList, FaShoppingCart, FaUser, FaStore } from "react-icons/fa";
+import {
+  FaHome,
+  FaThList,
+  FaShoppingCart,
+  FaUser,
+  FaStore,
+} from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "./ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext"; // <-- asegurate que tienes este contexto
@@ -24,7 +30,7 @@ function NavbarInferior() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-md flex justify-around items-center h-14 text-sm xl:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t dark:border-gray-700 shadow-md flex justify-around items-center h-14 text-sm xl:hidden transition-colors duration-300">
         <NavItem
           onClick={() => handleClick("/")}
           icon={<FaHome />}
@@ -73,8 +79,10 @@ function NavItem({ onClick, icon, label, active }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center transition text-xs w-full py-1 ${
-        active ? "text-blue-600 font-semibold" : "text-gray-500"
+      className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
+        active
+          ? "text-[#4FC3F7] font-semibold"
+          : "text-gray-600 dark:text-gray-300 hover:text-[#4FC3F7] dark:hover:text-[#60a5fa]"
       }`}
       aria-label={label}
       type="button"

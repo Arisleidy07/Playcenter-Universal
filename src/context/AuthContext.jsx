@@ -68,6 +68,13 @@ export function AuthProvider({ children }) {
             telefono: "",
             direccion: "",
             admin: false,
+            role: "buyer",
+            isSeller: false,
+            storeName: "",
+            storeDescription: "",
+            storeImage: "",
+            storePhone: "",
+            storeAddress: "",
             codigo: nuevoCodigo,
             displayName: user.displayName || "",
             email: user.email || "",
@@ -91,6 +98,13 @@ export function AuthProvider({ children }) {
               displayName: user.displayName || data.displayName || "",
               email: user.email || data.email || "",
               isAdmin: data.admin === true,
+              role: data.role || "buyer",
+              isSeller: data.isSeller === true || data.role === "seller",
+              storeName: data.storeName || "",
+              storeDescription: data.storeDescription || "",
+              storeImage: data.storeImage || "",
+              storePhone: data.storePhone || "",
+              storeAddress: data.storeAddress || "",
             };
             setUsuarioInfo(merged);
           } else {
@@ -163,6 +177,13 @@ export function AuthProvider({ children }) {
       telefono: "",
       direccion: "",
       admin: false,
+      role: "buyer",
+      isSeller: false,
+      storeName: "",
+      storeDescription: "",
+      storeImage: "",
+      storePhone: "",
+      storeAddress: "",
       codigo: nuevoCodigo,
       displayName: name,
       email,
@@ -177,6 +198,13 @@ export function AuthProvider({ children }) {
       telefono: "",
       direccion: "",
       admin: false,
+      role: "buyer",
+      isSeller: false,
+      storeName: "",
+      storeDescription: "",
+      storeImage: "",
+      storePhone: "",
+      storeAddress: "",
       codigo: nuevoCodigo,
       displayName: name,
       email,
@@ -248,6 +276,58 @@ export function AuthProvider({ children }) {
     return photoURL;
   }
 
+  async function convertirseEnVendedor(storeData) {
+    if (!usuario) throw new Error("No user logged in");
+    const docRef = doc(db, "users", usuario.uid);
+    
+    try {
+      const payload = {
+        role: "seller",
+        isSeller: true,
+        storeName: storeData.storeName || "",
+        storeDescription: storeData.storeDescription || "",
+        storeImage: storeData.storeImage || "",
+        storePhone: storeData.storePhone || "",
+        storeAddress: storeData.storeAddress || "",
+        sellerActivatedAt: new Date(),
+      };
+      
+      await setDoc(docRef, payload, { merge: true });
+      
+      // Actualizar estado local
+      setUsuarioInfo((prev) => ({
+        ...prev,
+        ...payload,
+      }));
+      
+      return true;
+    } catch (err) {
+      console.error("Error al convertirse en vendedor:", err);
+      throw err;
+    }
+  }
+
+  async function actualizarTienda(storeData) {
+    if (!usuario) throw new Error("No user logged in");
+    if (!usuarioInfo?.isSeller) throw new Error("User is not a seller");
+    
+    const docRef = doc(db, "users", usuario.uid);
+    
+    try {
+      await setDoc(docRef, storeData, { merge: true });
+      
+      setUsuarioInfo((prev) => ({
+        ...prev,
+        ...storeData,
+      }));
+      
+      return true;
+    } catch (err) {
+      console.error("Error al actualizar tienda:", err);
+      throw err;
+    }
+  }
+
   const value = {
     usuario,
     usuarioInfo,
@@ -256,6 +336,8 @@ export function AuthProvider({ children }) {
     logout,
     actualizarUsuarioInfo,
     subirImagen,
+    convertirseEnVendedor,
+    actualizarTienda,
   };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

@@ -1,0 +1,144 @@
+/* ===========================
+   MODO OSCURO - VISTA PRODUCTO
+=========================== */
+html.dark-theme .vp-title {
+  color: #f9fafb;
+}
+
+html.dark-theme .vp-desc {
+  color: #d1d5db;
+}
+
+html.dark-theme .vp-price {
+  color: #60a5fa;
+}
+
+html.dark-theme .vp-seller-info {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+html.dark-theme .vp-sticky-cta {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+html.dark-theme .vp-add-btn {
+  background: linear-gradient(to bottom, #42a5f5, #2196f3);
+  border-color: #1976d2;
+}
+
+html.dark-theme .vp-qty-btn {
+  background: #374151;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+html.dark-theme .vp-qty {
+  background: #374151;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+/* ===========================
+   CONTENEDORES Y FONDOS
+=========================== */
+html.dark-theme .vp-main {
+  background: #0f172a; /* slate-900 */
+  color: #e5e7eb; /* gray-200 */
+}
+
+html.dark-theme .vp-mobile-topbar {
+  background: rgba(17, 24, 39, 0.92); /* gray-900 */
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+html.dark-theme .vp-topbar-title { color: #e5e7eb; }
+html.dark-theme .vp-icon-btn {
+  background: #111827; /* gray-900 */
+  border-color: #374151; /* gray-700 */
+  color: #f9fafb; /* gray-50 */
+}
+html.dark-theme .vp-back-fab {
+  background: #111827;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+/* Escenario principal e imagen */
+html.dark-theme .vp-main-stage {
+  background: #111827;
+  border-color: #374151;
+}
+html.dark-theme .vp-image-zoom-wrap {
+  background: #0f172a;
+}
+html.dark-theme .vp-zoom-float {
+  background-color: #111827;
+  border-color: #374151;
+}
+
+/* Galería Amazon */
+html.dark-theme .amazon-main-image-wrap {
+  background: #111827;
+  border-color: #374151;
+}
+html.dark-theme .amazon-thumb,
+html.dark-theme .amazon-thumb-video,
+html.dark-theme .vp-thumb-btn {
+  background: #0b1220;
+  border-color: #374151;
+}
+
+/* Fullscreen / Overlay */
+html.dark-theme .fullscreen-main-container {
+  background: #0b0b0b; /* keep it very dark on desktop too */
+}
+html.dark-theme .fullscreen-image-wrapper {
+  background: #0b1220;
+}
+
+/* Tarjeta de compra */
+html.dark-theme .vp-buy-inner {
+  background: #111827;
+  border-color: #374151;
+}
+html.dark-theme .vp-buy-price { color: #93c5fd; }
+html.dark-theme .vp-stock { color: #e5e7eb; }
+
+/* Variantes */
+html.dark-theme .vp-variants button:not(.selected) {
+  background: #111827;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+html.dark-theme .vp-variants button.selected {
+  background: #1f2937; /* gray-800 */
+}
+
+/* Mobile thumbnails - dark theme */
+html.dark-theme .mobile-thumb {
+  background: #111827;
+  border-color: #374151;
+}
+html.dark-theme .mobile-thumb.active {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
+}
+
+/* Lower galleries and featured sections */
+html.dark-theme .vp-moreinfo-title {
+  color: #e5e7eb;
+}
+html.dark-theme .vp-featured-container {
+  background-color: #0f172a;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+html.dark-theme .vp-secondary-item {
+  background-color: #0b1220;
+  border-color: #374151;
+}
+html.dark-theme .imagen-modal-thumbnails {
+  background: rgba(31, 41, 55, 0.5);
+}

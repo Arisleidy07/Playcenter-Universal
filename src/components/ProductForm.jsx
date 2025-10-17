@@ -16,12 +16,28 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { db, storage } from "../firebase";
+import { useAuth } from "../context/AuthContext";
 import VistaProductoMini from "./VistaProductoMini";
-import RichTextEditor from "./RichTextEditor";
 
+// Enhanced components
 import UniversalFileUploader from "./UniversalFileUploader";
+import ProductValidationPanel from "./ProductValidationPanel";
+import VisualVariantSelector from "./VisualVariantSelector";
 
-const ProductForm = ({ product, onClose, onSave }) => {
+// Enhanced utilities
+import { validateProduct, useProductValidation } from "../utils/productValidation";
+import { submitForPublication, PRODUCT_STATUS } from "../utils/productStatusWorkflow";
+import { batchProcessImages, generateImageSizes, optimizeForWeb } from "../utils/imageProcessing";
+import { initializePerformanceOptimizations } from "../utils/performanceOptimization";
+
+// Import CSS
+import "../styles/UniversalFileUploader.css";
+
+const ProductForm = ({ product, onClose, onSave, sellerId }) => {
+  const { usuario, usuarioInfo } = useAuth();
+  
+  // Enhanced validation hook
+  const { validation, isValid, getFieldError } = useProductValidation();
   const [formData, setFormData] = useState({
     nombre: "",
     empresa: "",
@@ -53,9 +69,15 @@ const ProductForm = ({ product, onClose, onSave }) => {
     etiquetas: [""],
     activo: true,
     fechaPublicacion: new Date().toISOString().split("T")[0],
-    sku: "",
     peso: "",
     dimensiones: "",
+    // Enhanced fields
+    imagenPrincipal: [],
+    galeriaImagenes: [],
+    tresArchivosExtras: [],
+    productStatus: PRODUCT_STATUS.DRAFT,
+    validationScore: 0,
+    lastValidated: null,
   });
 
   const [categorias, setCategorias] = useState([]);
@@ -77,8 +99,18 @@ const ProductForm = ({ product, onClose, onSave }) => {
   });
   // Cola de subidas por archivo (con progreso/cancelar/reintentar)
   const [uploadQueue, setUploadQueue] = useState([]); // {id,name,file,type:'image'|'video',progress,status:'uploading'|'done'|'error'|'canceled', target:{level:'product'|'variant', field, variantIndex|null}, task}
+  
+  // Enhanced state
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [showValidationPanel, setShowValidationPanel] = useState(true);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [processingImages, setProcessingImages] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState(0);
 
   useEffect(() => {
+    // Initialize performance optimizations
+    initializePerformanceOptimizations();
+    
     loadCategorias();
     loadBrands();
     if (product) {
@@ -95,6 +127,11 @@ const ProductForm = ({ product, onClose, onSave }) => {
         videoUrl: product.videoUrl || "",
         videoUrls: product.videoUrls || [],
         videoAcercaArticulo: product.videoAcercaArticulo || [],
+        // Enhanced fields with legacy support
+        imagenPrincipal: product.imagenPrincipal || (product.imagen ? [{url: product.imagen}] : []),
+        galeriaImagenes: product.galeriaImagenes || product.imagenes || [],
+        tresArchivosExtras: product.tresArchivosExtras || product.imagenesExtra || [],
+        productStatus: product.productStatus || product.estado || PRODUCT_STATUS.DRAFT,
       });
     }
   }, [product]);
@@ -317,6 +354,23 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
   // Auto-guardado desactivado para evitar guardados ocultos de campos de texto/base.
 
+  // Enhanced validation effect
+  useEffect(() => {
+    const runValidation = async () => {
+      const result = await validateProduct(formData);
+      setValidationErrors(result.errors || []);
+      setFormData(prev => ({
+        ...prev,
+        validationScore: result.score || 0,
+        lastValidated: new Date().toISOString()
+      }));
+    };
+    
+    // Debounce validation
+    const timeoutId = setTimeout(runValidation, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.nombre, formData.precio, formData.categoria, formData.descripcion, formData.imagenPrincipal, formData.galeriaImagenes]);
+
   // Datos para Vista Previa Mini: combinar formData + tempPreviews para feedback instantáneo
   const productIdForPreview = currentId || product?.id || null;
   const miniDraft = useMemo(() => {
@@ -325,9 +379,16 @@ const ProductForm = ({ product, onClose, onSave }) => {
     draft.name = formData.nombre || "";
     draft.price = parseFloat(formData.precio) || 0;
     draft.stock = Number(formData.cantidad) || 0;
-    draft.mainImage = (tempPreviews.imagen || formData.imagen || "").trim();
+    // Enhanced image handling
+    draft.mainImage = (
+      tempPreviews.imagen || 
+      formData.imagenPrincipal?.[0]?.url || 
+      formData.imagen || 
+      ""
+    ).trim();
     draft.gallery = [
       ...(Array.isArray(tempPreviews.imagenes) ? tempPreviews.imagenes : []),
+      ...(Array.isArray(formData.galeriaImagenes) ? formData.galeriaImagenes.map(img => img.url || img) : []),
       ...(Array.isArray(formData.imagenes) ? formData.imagenes : []),
     ];
     // Videos de galería (se muestran en la galería principal)
@@ -350,6 +411,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
     ];
     draft.extraMedia = [
       ...(Array.isArray(tempPreviews.extras) ? tempPreviews.extras : []),
+      ...(Array.isArray(formData.tresArchivosExtras) ? formData.tresArchivosExtras.map(extra => extra.url || extra) : []),
       ...(Array.isArray(formData.imagenesExtra) ? formData.imagenesExtra : []),
     ];
     draft.variants = (
@@ -361,11 +423,13 @@ const ProductForm = ({ product, onClose, onSave }) => {
       stock: v.cantidad ?? v.stock ?? null,
       mainImage: (
         tempPreviews.variantes?.[idx]?.imagen ||
+        v.imagenPrincipal?.[0]?.url ||
         v.imagen ||
         ""
       ).trim(),
       gallery: [
         ...(tempPreviews.variantes?.[idx]?.imagenes || []),
+        ...(Array.isArray(v.galeriaImagenes) ? v.galeriaImagenes.map(img => img.url || img) : []),
         ...(Array.isArray(v.imagenes) ? v.imagenes : []),
       ],
       videos: [
@@ -376,13 +440,49 @@ const ProductForm = ({ product, onClose, onSave }) => {
     return draft;
   }, [productIdForPreview, formData, tempPreviews]);
 
-  // Obtener ID del producto actual. No crear borradores automáticamente para evitar duplicados.
+  // Obtener/crear ID del producto actual.
+  // Política: no creamos nada al abrir el formulario, PERO si el usuario
+  // inicia una acción de medios (imagen/video), creamos el documento para
+  // habilitar la sincronización en tiempo real inmediatamente.
   const ensureCurrentId = async () => {
     if (product?.id) return product.id;
     if (formData?.id) return formData.id;
     if (currentId) return currentId;
-    // No auto-crear: los handlers deben abortar subida si no hay ID todavía
-    return null;
+    try {
+      const newId = `prod_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const payload = {
+        id: newId,
+        nombre: formData?.nombre || "",
+        descripcion: formData?.descripcion || "",
+        empresa: formData?.empresa || "",
+        categoria: formData?.categoria || "",
+        precio: parseFloat(formData?.precio) || 0,
+        cantidad: Number(formData?.cantidad) || 0,
+        etiquetas: Array.isArray(formData?.etiquetas) ? formData.etiquetas : [],
+        acerca: Array.isArray(formData?.acerca) ? formData.acerca : [],
+        variantes: Array.isArray(formData?.variantes) ? formData.variantes : [],
+        imagen: "",
+        imagenPrincipal: [],
+        imagenes: [],
+        videoUrls: [],
+        videoAcercaArticulo: [],
+        imagenesExtra: [],
+        activo: false, // no público hasta que el admin lo active
+        ownerUid: usuario?.uid || null,
+        ownerName: usuarioInfo?.displayName || usuario?.displayName || "",
+        sellerId: sellerId || usuario?.uid || null,
+        sellerName: sellerId ? (usuarioInfo?.storeName || usuarioInfo?.displayName || "") : "",
+        fechaCreacion: new Date(),
+        fechaActualizacion: new Date(),
+      };
+      await setDoc(doc(db, "productos", newId), payload);
+      setCurrentId(newId);
+      setFormData((prev) => ({ ...prev, id: newId }));
+      return newId;
+    } catch (e) {
+      // si falla, no bloquear; el handler abortará el upload y mantendrá la preview local
+      return null;
+    }
   };
 
   // Persistir un campo específico de inmediato (safe, solo actualiza ese campo)
@@ -409,6 +509,13 @@ const ProductForm = ({ product, onClose, onSave }) => {
   };
 
   // -------- Helpers de rutas y IDs estables --------
+  const slugify = (s) =>
+    String(s || "")
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .slice(0, 80);
   const makeUniqueName = (file) => {
     const base = (file?.name || "file").replace(/[^a-zA-Z0-9_.-]/g, "_");
     return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${base}`;
@@ -454,13 +561,14 @@ const ProductForm = ({ product, onClose, onSave }) => {
     return newId;
   };
 
-  // Guardar borrador explícitamente y cerrar el formulario
+  // Enhanced save draft with validation
   const handleSaveDraft = async () => {
     const draft = { ...formData };
     // Normalizar listas
     draft.acerca = (draft.acerca || []).filter((x) => (x || "").trim());
     draft.etiquetas = (draft.etiquetas || []).filter((x) => (x || "").trim());
     draft.activo = false; // siempre como borrador
+    draft.productStatus = PRODUCT_STATUS.DRAFT;
     draft.fechaActualizacion = new Date();
     delete draft.nuevaCategoria;
     delete draft._tempVideoUrl;
@@ -471,18 +579,61 @@ const ProductForm = ({ product, onClose, onSave }) => {
         id = `prod_${Date.now()}`;
         draft.id = id;
         draft.fechaCreacion = new Date();
+        draft.sellerId = sellerId || usuario?.uid || null;
+        draft.sellerName = sellerId ? (usuarioInfo?.storeName || usuarioInfo?.displayName || "") : "";
         await setDoc(doc(db, "productos", id), draft);
         setCurrentId(id);
       } else {
         await updateDoc(doc(db, "productos", id), draft);
       }
+      if (onSave) onSave(draft);
       if (onClose) onClose();
     } catch (e) {
       console.error("Error al guardar borrador:", e);
-      alert(
-        "No se pudo guardar el borrador. Revisa tu conexión e intenta nuevamente."
-      );
+      const errorMessage = e.code === 'permission-denied' 
+        ? "No tienes permisos para guardar este producto"
+        : e.code === 'network-request-failed'
+        ? "Error de conexión. Verifica tu internet"
+        : `Error al guardar: ${e.message}`;
+      alert(errorMessage);
     }
+  };
+
+  // Enhanced publish handler
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      const productData = { ...formData };
+      const result = await submitForPublication(
+        currentId || product?.id,
+        productData,
+        usuario?.uid
+      );
+      
+      if (result.success) {
+        setFormData(prev => ({
+          ...prev,
+          productStatus: result.status
+        }));
+        if (onSave) onSave({ ...productData, productStatus: result.status });
+        if (result.status === PRODUCT_STATUS.ACTIVE && onClose) {
+          onClose();
+        }
+      } else {
+        alert(result.message || 'Error al publicar el producto');
+      }
+    } catch (error) {
+      console.error('Error publishing product:', error);
+      alert('Error al publicar el producto. Intenta nuevamente.');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  // Enhanced preview handler
+  const handlePreview = () => {
+    // Open preview in new tab or modal
+    console.log('Preview product:', miniDraft);
   };
 
   // Helpers para reordenar videos del producto (persistencia inmediata)
@@ -620,6 +771,35 @@ const ProductForm = ({ product, onClose, onSave }) => {
     persistFieldImmediate(field, value);
   };
 
+  // Enhanced image processing handler
+  const handleImageProcessing = async (files, field) => {
+    if (!files?.length) return;
+    
+    setProcessingImages(true);
+    try {
+      const processedFiles = await batchProcessImages(files, {
+        generateThumbnail: true,
+        generateSmall: true,
+        generateMedium: true,
+        generateLarge: false
+      });
+      
+      // Update form data with processed images
+      setFormData(prev => ({
+        ...prev,
+        [field]: [...(prev[field] || []), ...processedFiles]
+      }));
+      
+      // Persist to Firestore
+      persistFieldImmediate(field, [...(formData[field] || []), ...processedFiles]);
+    } catch (error) {
+      console.error('Error processing images:', error);
+      alert('Error al procesar las imágenes. Intenta nuevamente.');
+    } finally {
+      setProcessingImages(false);
+    }
+  };
+
   const handleArrayChange = (field, index, value) => {
     setFormData((prev) => {
       const nextArr = prev[field].map((item, i) =>
@@ -686,6 +866,87 @@ const ProductForm = ({ product, onClose, onSave }) => {
         });
       } catch {}
     }
+  };
+
+  // Enhanced variant selector change handler
+  const handleVariantSelectionChange = (variantIndex) => {
+    setSelectedVariant(variantIndex);
+  };
+
+  // Enhanced media handlers for new structure
+  const handleImagenPrincipal = (files) => {
+    if (!files?.length) return;
+    handleImageProcessing(files, 'imagenPrincipal');
+  };
+
+  const handleGaleriaImagenes = (files) => {
+    if (!files?.length) return;
+    handleImageProcessing(files, 'galeriaImagenes');
+  };
+
+  const handleTresArchivosExtras = (files) => {
+    if (!files?.length) return;
+    const processedFiles = Array.from(files).map(file => ({
+      id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      file
+    }));
+    
+    setFormData(prev => ({
+      ...prev,
+      tresArchivosExtras: [...(prev.tresArchivosExtras || []), ...processedFiles].slice(0, 3)
+    }));
+  };
+
+  const handleVideoAcercaArticulo = (files) => {
+    if (!files?.length) return;
+    const videoFiles = Array.from(files).map(file => ({
+      id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      file
+    }));
+    
+    setFormData(prev => ({
+      ...prev,
+      videoAcercaArticulo: [...(prev.videoAcercaArticulo || []), ...videoFiles]
+    }));
+  };
+
+  const handleVariantMediaFiles = (files, variantIndex, mediaType) => {
+    if (!files?.length) return;
+    
+    const processedFiles = Array.from(files).map(file => ({
+      id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      file
+    }));
+    
+    setFormData(prev => {
+      const newVariants = [...prev.variantes];
+      if (!newVariants[variantIndex]) {
+        newVariants[variantIndex] = { color: "", imagen: "", imagenes: [], cantidad: 0 };
+      }
+      
+      if (mediaType === 'imagenPrincipal') {
+        newVariants[variantIndex].imagenPrincipal = processedFiles;
+      } else if (mediaType === 'galeriaImagenes') {
+        newVariants[variantIndex].galeriaImagenes = [
+          ...(newVariants[variantIndex].galeriaImagenes || []),
+          ...processedFiles
+        ];
+      }
+      
+      return { ...prev, variantes: newVariants };
+    });
   };
 
   const uploadImage = async (file, destPath, queueId) => {
@@ -848,16 +1109,54 @@ const ProductForm = ({ product, onClose, onSave }) => {
   // Detectar tipo a partir de la URL (para extras guardados)
   const detectTypeFromUrl = (url) => {
     try {
-      const clean = String(url).split("?")[0].split("#")[0].toLowerCase();
-      const ext = clean.split(".").pop() || "";
-      if (["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(ext))
-        return "image";
-      if (["mp4", "mov", "avi", "mkv", "webm", "m4v"].includes(ext))
+      const str = String(url).trim().toLowerCase();
+      // Detectar plataformas de video por URL (YouTube/Vimeo)
+      if (str.includes("youtube.com") || str.includes("youtu.be") || str.includes("vimeo.com")) {
         return "video";
+      }
+      const clean = str.split("?")[0].split("#")[0];
+      const ext = clean.split(".").pop() || "";
+      if (["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(ext)) return "image";
+      if (["mp4", "mov", "avi", "mkv", "webm", "m4v"].includes(ext)) return "video";
       return "document";
     } catch {
       return "document";
     }
+  };
+
+  // Remove media item handler
+  const removeMediaItem = (field, index) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+    persistFieldImmediate(field, formData[field].filter((_, i) => i !== index));
+  };
+
+  // Set main image handler
+  const setMainImage = (field, index) => {
+    if (field === 'galeriaImagenes') {
+      const selectedImage = formData.galeriaImagenes[index];
+      if (selectedImage) {
+        setFormData(prev => ({
+          ...prev,
+          imagenPrincipal: [selectedImage],
+          galeriaImagenes: prev.galeriaImagenes.filter((_, i) => i !== index)
+        }));
+      }
+    }
+  };
+
+  // Reorder media items
+  const reorderMediaItems = (field, fromIndex, toIndex) => {
+    setFormData(prev => {
+      const items = [...prev[field]];
+      const [movedItem] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, movedItem);
+      
+      persistFieldImmediate(field, items);
+      return { ...prev, [field]: items };
+    });
   };
 
   const handleVideoFilesUpload = async (files) => {
@@ -1226,22 +1525,37 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
   // ====== UniversalFileUploader Handlers (instant preview + background upload) ======
   const handleMainImageUFU = async (filesList) => {
+    console.log("🎯 handleMainImageUFU llamado con:", filesList);
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
+      console.log("📋 Array procesado:", arr);
       if (arr.length === 0) {
+        console.log("📭 No hay archivos, limpiando imagen principal");
         setTempPreviews((prev) => ({ ...prev, imagen: "" }));
         await removeMainImage();
         return;
       }
       const first = arr[0];
+      console.log("📄 Primer archivo:", first);
       const url0 = first?.url || "";
+      console.log("🔗 URL del primer archivo:", url0);
       if (first?.file) {
+        console.log("📦 Archivo detectado, procesando subida...");
         // show local preview immediately
+        console.log("👁️ Mostrando preview local:", url0);
         setTempPreviews((prev) => ({ ...prev, imagen: url0 }));
         let targetId = currentId || product?.id;
-        if (!targetId) targetId = await ensureCurrentId();
-        if (!targetId) return; // aún sin ID: mantener preview y abortar subida
+        console.log("🆔 Target ID:", targetId);
+        if (!targetId) {
+          console.log("🆕 No hay ID, creando uno...");
+          targetId = await ensureCurrentId();
+        }
+        if (!targetId) {
+          console.warn("⚠️ No se pudo obtener ID, abortando subida");
+          return;
+        }
+        console.log("✅ ID confirmado:", targetId);
         const queueId = `${Date.now()}_${first.file.name}_${Math.random()
           .toString(36)
           .slice(2, 7)}`;
@@ -1250,12 +1564,14 @@ const ProductForm = ({ product, onClose, onSave }) => {
           section: "main",
           file: first.file,
         });
+        console.log("⬆️ Iniciando subida a Firebase Storage...");
         const remoteUrl = await uploadWithRetry(
           uploadImage,
           first.file,
           destPath,
           queueId
         );
+        console.log("✅ Imagen subida exitosamente! URL:", remoteUrl);
         setFormData((prev) => {
           const imgs = Array.isArray(prev.imagenes) ? [...prev.imagenes] : [];
           // Asegurar que la imagen principal también esté en la galería (al inicio)
@@ -1267,12 +1583,17 @@ const ProductForm = ({ product, onClose, onSave }) => {
             imagenPrincipal,
             imagenes: imgs,
           };
+          console.log("💾 Guardando en Firestore y actualizando formData...", next);
           updateDoc(doc(db, "productos", targetId), {
             imagen: remoteUrl,
             imagenPrincipal,
             imagenes: imgs,
             fechaActualizacion: new Date(),
-          }).catch(() => {});
+          }).then(() => {
+            console.log("✅ Documento actualizado en Firestore");
+          }).catch((err) => {
+            console.error("❌ Error actualizando Firestore:", err);
+          });
           return next;
         });
       } else if (url0 && !url0.startsWith("blob:")) {
@@ -1327,15 +1648,8 @@ const ProductForm = ({ product, onClose, onSave }) => {
         ? formData.videoUrls
         : [];
 
-      // Detectar y borrar eliminados por tipo
-      const removedImages = savedOldImages.filter(
-        (u) => !savedNewImages.includes(u)
-      );
-      const removedVideos = savedOldVideos.filter(
-        (u) => !savedNewVideos.includes(u)
-      );
-      for (const r of removedImages) await deleteFromStorageByUrl(r);
-      for (const r of removedVideos) await deleteFromStorageByUrl(r);
+      // No borrar en masa desde este handler; las eliminaciones individuales
+      // se hacen mediante los iconos de eliminar por cada thumbnail.
 
       // Persistir órdenes existentes (si cambiaron)
       if (JSON.stringify(savedNewImages) !== JSON.stringify(savedOldImages)) {
@@ -1363,18 +1677,8 @@ const ProductForm = ({ product, onClose, onSave }) => {
         });
       }
 
-      // Asegurar que si la primera del arreglo visible es imagen, actúe como principal
-      const firstImage = arr.find(
-        (f) =>
-          (f?.file && f.file.type?.startsWith?.("image/")) ||
-          (!f?.file && f?.url && detectTypeFromUrl(f.url) === "image")
-      );
-      if (firstImage) {
-        if (firstImage.file)
-          setTempPreviews((prev) => ({ ...prev, imagen: firstImage.url }));
-        else if (firstImage.url && !firstImage.url.startsWith("blob:"))
-          handleInputChange("imagen", firstImage.url);
-      }
+      // No reemplazar la imagen principal automáticamente al subir a galería.
+      // La principal solo se establece si no existe aún (más abajo, en shouldSetMain).
 
       // Subir nuevos archivos en background por tipo
       let targetId = currentId || product?.id;
@@ -2091,6 +2395,63 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validaciones mínimas y coherentes antes de guardar
+    const errors = [];
+    const nombre = String(formData.nombre || "").trim();
+    if (!nombre) errors.push("El nombre del producto es obligatorio");
+    // Empresa opcional: no bloquear guardado si falta
+    const empresa = String(formData.empresa || "").trim();
+    // Parser que soporta coma o punto y separadores de miles
+    const toNumber = (val) => {
+      if (typeof val === "number") return val;
+      let s = String(val ?? "").trim();
+      if (!s) return NaN;
+      s = s.replace(/\s/g, "");
+      if (s.includes(",") && /,\d{1,2}$/.test(s)) {
+        // Formato tipo 1.999,99 → 1999.99
+        s = s.replace(/\./g, "").replace(",", ".");
+      } else {
+        // Formato tipo 1,999.99 o 1999.99 → 1999.99
+        s = s.replace(/,/g, "");
+      }
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : NaN;
+    };
+
+    const precioNum = toNumber(formData.precio);
+    if (!Number.isFinite(precioNum) || precioNum < 0)
+      errors.push("Precio inválido");
+    const cantidadNum = parseInt(formData.cantidad);
+    if (!Number.isFinite(cantidadNum) || cantidadNum < 0)
+      errors.push("Cantidad inválida");
+    // Categoría opcional: si se elige crear nueva, exigir nombre; si no, permitir vacío
+    if (showNewCategoryInput) {
+      if (!String(formData.nuevaCategoria || "").trim())
+        errors.push("Escribe el nombre de la nueva categoría");
+    }
+    let autoUnsetOffer = false;
+    if (formData.oferta) {
+      const rawOferta = String(formData.precioOferta ?? "").trim();
+      if (!rawOferta) {
+        autoUnsetOffer = true; // no bloquear guardado
+      } else {
+        const ofertaNum = toNumber(rawOferta);
+        if (!Number.isFinite(ofertaNum) || ofertaNum < 0) {
+          autoUnsetOffer = true; // no bloquear guardado por formato
+        } else if (Number.isFinite(precioNum) && ofertaNum >= precioNum) {
+          autoUnsetOffer = true; // no bloquear guardado, desactivar oferta
+        }
+      }
+    }
+    if (errors.length) {
+      alert(
+        "Corrige los siguientes campos antes de guardar:\n- " +
+          errors.join("\n- ")
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -2106,16 +2467,36 @@ const ProductForm = ({ product, onClose, onSave }) => {
       let productData = {
         ...formData,
         categoria: finalCategoryId,
-        precio: parseFloat(formData.precio) || 0,
+        precio: Number.isFinite(precioNum) ? precioNum : 0,
         fechaActualizacion: new Date(),
         acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter((item) => String(item || "").trim()),
         etiquetas: (Array.isArray(formData.etiquetas) ? formData.etiquetas : []).filter((item) => String(item || "").trim()),
-        // Mantener TODAS las variantes tal cual para no perder medios ni IDs
-        variantes: Array.isArray(formData.variantes) ? formData.variantes : [],
+        // Normalizar variantes sin perder medios ni IDs
+        variantes: (Array.isArray(formData.variantes) ? formData.variantes : []).map((v) => {
+          const cantidadSan = Number.isFinite(parseInt(v?.cantidad))
+            ? parseInt(v.cantidad)
+            : 0;
+          const hasPrecio =
+            v?.precio !== undefined &&
+            v?.precio !== null &&
+            String(v.precio).trim() !== "";
+          const precioSan = hasPrecio ? (toNumber(v.precio) || 0) : undefined;
+          return {
+            ...v,
+            cantidad: cantidadSan,
+            ...(hasPrecio ? { precio: precioSan } : {}),
+          };
+        }),
       };
 
-      // Publicar el producto al guardar: marcar activo=true para que aparezca en categorías
-      productData.activo = true;
+      // Desactivar oferta si es inválida o vacía
+      if (autoUnsetOffer) {
+        productData.oferta = false;
+        delete productData.precioOferta;
+      }
+
+      // Respetar el estado del checkbox 'Producto activo' del formulario
+      productData.activo = Boolean(productData.activo);
 
       delete productData.nuevaCategoria;
       delete productData._tempVideoUrl;
@@ -2153,17 +2534,29 @@ const ProductForm = ({ product, onClose, onSave }) => {
         productData.empresaNorm = productData.empresa.toLowerCase();
       }
 
-      // Determinar modo: edición vs creación (a prueba de duplicados)
-      // En edición, exigir SIEMPRE product.id; si falta, abortar para no crear copias
-      const editingId = product?.id || null;
-      if (product && !editingId) {
+      // Determinar modo de trabajo: edición vs creación (anti-duplicados)
+      // Si hay product.id o currentId o formData.id, SIEMPRE editar ese documento
+      const canonicalId = product?.id || currentId || formData?.id || null;
+      if (product && !product.id) {
         throw new Error("Producto en edición sin ID válido. No se guardó para evitar duplicados.");
       }
-      const targetId = editingId || formData?.id || currentId || `prod_${Date.now()}`;
+      const isNew = !canonicalId;
+      const targetId = isNew ? `prod_${Date.now()}` : canonicalId;
       productData.id = targetId;
-      const isNew = !editingId && !formData?.id && !currentId;
+      // Establecer slug consistente del nombre (no obligatorio, útil para rutas y búsqueda)
+      if (productData.nombre && !productData.slug) {
+        productData.slug = slugify(productData.nombre);
+      }
+      // Propietario del producto (multi-tenant): solo al crear
       if (isNew) {
         productData.fechaCreacion = new Date();
+        if (!productData.ownerUid) {
+          productData.ownerUid = usuario?.uid || usuarioInfo?.uid || null;
+        }
+        if (!productData.ownerName) {
+          productData.ownerName =
+            (usuarioInfo?.displayName || usuario?.email || "").toString();
+        }
       }
       // Usar setDoc con merge para crear o actualizar sin fallar
       await setDoc(
@@ -2177,7 +2570,15 @@ const ProductForm = ({ product, onClose, onSave }) => {
       if (typeof onClose === "function") onClose();
     } catch (error) {
       console.error("Error saving product:", error);
-      alert("Error al guardar el producto");
+      let msg = "Error al guardar el producto";
+      if (error?.code === "permission-denied") {
+        msg = "No tienes permisos para guardar este producto";
+      } else if (error?.code === "network-request-failed") {
+        msg = "Error de conexión. Verifica tu internet e inténtalo de nuevo";
+      } else if (typeof error?.message === "string" && error.message) {
+        msg = error.message;
+      }
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -2295,31 +2696,17 @@ const ProductForm = ({ product, onClose, onSave }) => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Código de inventario (SKU) — opcional
-                </label>
-                <input
-                  type="text"
-                  value={formData.sku}
-                  onChange={(e) => handleInputChange("sku", e.target.value)}
-                  placeholder="Ej. NIN-SWITCH-NEON-01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  El SKU es un identificador interno para gestionar tu
-                  inventario.
-                </p>
-              </div>
+              
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Descripción *
+                  Descripción
                 </label>
-                <RichTextEditor
-                  value={formData.descripcion}
-                  onChange={(html) => handleInputChange("descripcion", html)}
-                  placeholder="Describe el producto (negrita, listas, imágenes, enlaces)"
+                <textarea
+                  value={formData.descripcion || ""}
+                  onChange={(e) => handleInputChange("descripcion", e.target.value)}
+                  placeholder="Escribe la descripción del producto..."
+                  className="w-full min-h-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -2346,7 +2733,6 @@ const ProductForm = ({ product, onClose, onSave }) => {
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required={!showNewCategoryInput}
                   >
                     <option value="">Seleccionar categoría</option>
                     {categorias.map((cat) => (
@@ -2662,11 +3048,30 @@ const ProductForm = ({ product, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Variants Section */}
+          {/* Enhanced Variants Section */}
           <div className="mt-8 space-y-4">
-            <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
-              Variantes del Producto
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
+                Variantes del Producto
+              </h3>
+              {formData.variantes && formData.variantes.length > 1 && (
+                <div className="mb-4">
+                  <VisualVariantSelector
+                    variants={formData.variantes.map((v, idx) => ({
+                      id: v.id || `var_${idx}`,
+                      name: v.color || `Variante ${idx + 1}`,
+                      price: v.precio,
+                      stock: v.cantidad,
+                      image: v.imagenPrincipal?.[0]?.url || v.imagen,
+                      isSelected: selectedVariant === idx
+                    }))}
+                    productMainImage={formData.imagenPrincipal?.[0]?.url || formData.imagen}
+                    onVariantChange={handleVariantSelectionChange}
+                    className="max-w-md"
+                  />
+                </div>
+              )}
+            </div>
 
             {formData.variantes.map((variant, index) => (
               <div
@@ -2931,6 +3336,20 @@ const ProductForm = ({ product, onClose, onSave }) => {
             />
           </div>
 
+          {/* Enhanced Validation Panel */}
+          {showValidationPanel && (
+            <div className="mt-8">
+              <ProductValidationPanel
+                formData={formData}
+                onPublish={handlePublish}
+                onSaveDraft={handleSaveDraft}
+                onPreview={handlePreview}
+                isPublishing={isPublishing}
+                isSaving={loading}
+              />
+            </div>
+          )}
+
           {/* Submit Buttons */}
           <div className="mt-8 flex justify-end space-x-4 pt-6 border-t">
             <button
@@ -2951,6 +3370,21 @@ const ProductForm = ({ product, onClose, onSave }) => {
               className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
             >
               Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handlePublish}
+              disabled={loading || isPublishing || validationErrors.length > 0}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              {isPublishing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Publicando...</span>
+                </>
+              ) : (
+                <span>Publicar Producto</span>
+              )}
             </button>
             <button
               type="submit"

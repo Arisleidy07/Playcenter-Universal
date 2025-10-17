@@ -1,32 +1,35 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaMapMarkerAlt, FaBuilding, FaRocket, FaPhoneAlt } from "react-icons/fa";
+import {
+  FaMapMarkerAlt,
+  FaBuilding,
+  FaRocket,
+  FaPhoneAlt,
+} from "react-icons/fa";
 import Wave from "../components/wave";
 
 function Nosotros() {
   return (
     <div
-      className="relative min-h-screen flex flex-col items-center px-4 pt-12 pb-20 font-sans text-gray-800
-                 bg-transparent overflow-hidden"
+      className="relative min-h-screen flex flex-col items-center px-4 pb-20 font-sans text-gray-800 dark:text-gray-100
+                 bg-gradient-to-r from-yellow-200 via-red-200 to-orange-200 dark:from-gray-800 dark:via-gray-900 dark:to-black overflow-hidden"
+      style={{ paddingTop: "var(--content-offset, 100px)" }}
     >
-      {/* Fondo animado */}
       <Wave />
 
-      {/* Títulos */}
       <h1
-        className="text-5xl font-extrabold mb-4 text-center text-gray-800 z-10"
+        className="text-5xl font-extrabold mb-4 text-center text-gray-800 dark:text-gray-100 z-10"
         style={{ fontFamily: "'Orbitron', sans-serif" }}
       >
         NOSOTROS
       </h1>
       <h2
-        className="text-2xl font-semibold mb-10 text-center text-gray-600 z-10"
+        className="text-2xl font-semibold mb-10 text-center text-gray-600 dark:text-gray-300 z-10"
         style={{ fontFamily: "'Montserrat', sans-serif" }}
       >
         PlayCenter Universal
       </h2>
 
-      {/* Caja cristal */}
       <div
         className="relative w-full max-w-3xl flex flex-col items-center gap-6 text-lg z-10"
         style={{
@@ -39,24 +42,6 @@ function Nosotros() {
           border: "1px solid rgba(255, 255, 255, 0.3)",
         }}
       >
-        {/* Imagen asomándose afuera del cuadro (arriba a la derecha) */}
-{/* Imagen asomándose afuera del cuadro (arriba a la derecha) */}
-<img
-  src="/toy/asoman.png"
-  alt="Muñeco asomándose"
-  className="hidden xl:block absolute z-20" // solo se muestra en desktop grande
-  style={{
-    top: "-160px",
-    right: "-230px",
-    width: "300px",
-    height: "auto",
-  }}
-/>
-
-
-
-
-
         <InfoItem
           icon={<FaBuilding className="text-yellow-400" />}
           label="Quiénes somos"
@@ -73,7 +58,6 @@ function Nosotros() {
           text="PlayCenter Universal no solo vende productos, crea experiencias memorables con cada compra. ¡Gracias por confiar en nosotros!"
         />
 
-        {/* Botón cristal */}
         <div className="flex justify-center mt-6">
           <Link
             to="/contacto"
@@ -110,10 +94,10 @@ function Nosotros() {
 
 const InfoItem = ({ icon, label, text }) => (
   <div className="flex items-start gap-4 w-full z-10">
-    <div className="text-2xl text-gray-400">{icon}</div>
+    <div className="text-2xl text-gray-400 dark:text-gray-300">{icon}</div>
     <div>
-      <p className="font-semibold text-gray-700">{label}:</p>
-      <p className="text-gray-600 break-words">{text}</p>
+      <p className="font-semibold text-gray-700 dark:text-gray-300">{label}:</p>
+      <p className="text-gray-600 dark:text-gray-400 break-words">{text}</p>
     </div>
   </div>
 );

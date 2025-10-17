@@ -8,9 +8,6 @@ import App from "./App.jsx";
 import "./index.css";
 import "rc-slider/assets/index.css";
 
-// Importar utilidades de debug (disponibles globalmente)
-import "./utils/productDebug.js";
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter
