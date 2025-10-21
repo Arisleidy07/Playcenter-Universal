@@ -1,5 +1,5 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase';
+// ✅ ACTUALIZADO PARA CLOUDINARY
+import { uploadToCloudinary } from '../cloudinary';
 
 /**
  * Sube un archivo a Firebase Storage y devuelve la URL de descarga.
@@ -19,15 +19,10 @@ export const uploadFile = async (file, productId) => {
   };
 
   const fileType = getFileType(file.type);
-  const timestamp = Date.now();
-  const randomId = Math.random().toString(36).substring(2, 9);
-  const fileName = `${timestamp}_${randomId}_${file.name}`;
-  const storagePath = `productos/${productId}/${fileType}s/${fileName}`;
-  const storageRef = ref(storage, storagePath);
+  const cloudinaryFolder = `products/${productId}/${fileType}s`;
 
   try {
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const downloadURL = await uploadToCloudinary(file, cloudinaryFolder);
 
     return {
       url: downloadURL,

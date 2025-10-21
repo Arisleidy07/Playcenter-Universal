@@ -68,7 +68,7 @@ export default function PaymentSuccess() {
 
   return (
     <motion.div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-3 sm:px-6 overflow-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-4 sm:px-6 md:px-8 overflow-auto py-4 sm:py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
@@ -130,7 +130,7 @@ export default function PaymentSuccess() {
       </div>
 
       <motion.div 
-        className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-3xl w-full text-center relative overflow-hidden border border-white/30 my-4"
+        className="bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 lg:p-12 max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl w-full text-center relative overflow-hidden border border-white/30 my-4"
         initial={{ scale: 0.94, y: 28 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 22, stiffness: 280 }}
@@ -150,7 +150,7 @@ export default function PaymentSuccess() {
               animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
-              <CheckCircle className="w-28 h-28 text-green-500 mx-auto drop-shadow-lg" />
+              <CheckCircle className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 text-green-500 mx-auto drop-shadow-lg" />
               <motion.div
                 className="absolute -top-3 -right-3 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center"
                 animate={{ scale: [1, 1.25, 1], rotate: [0, 12, -12, 0] }}
@@ -176,7 +176,7 @@ export default function PaymentSuccess() {
             transition={{ delay: 0.3 }}
           >
             <motion.h1 
-              className="text-5xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-4"
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 sm:mb-4"
               animate={{ scale: [1, 1.04, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -190,12 +190,12 @@ export default function PaymentSuccess() {
             >
               {[...Array(5)].map((_, i) => (
                 <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.7 + i * 0.08, type: "spring" }}>
-                  <Star className="w-6 h-6 text-yellow-400 fill-current" />
+                  <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 fill-current" />
                 </motion.div>
               ))}
             </motion.div>
             <motion.p 
-              className="text-gray-700 text-lg leading-relaxed"
+              className="text-gray-700 text-sm sm:text-base md:text-lg leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
@@ -213,45 +213,45 @@ export default function PaymentSuccess() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.0 }}
             >
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <Gift className="w-6 h-6 text-green-600" />
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-green-200">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                     Resumen de tu compra
                   </h3>
-                  <motion.div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold" whileHover={{ scale: 1.05 }}>
+                  <motion.div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold" whileHover={{ scale: 1.05 }}>
                     ✓ Completado
                   </motion.div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Orden ID:</span>
-                      <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Orden ID:</span>
+                      <span className="font-mono text-xs sm:text-sm bg-gray-100 px-2 py-1 rounded break-all">
                         {order.numeroOrden || order.id?.slice(-8)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Email:</span>
-                      <span className="font-medium">{order.userEmail}</span>
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Email:</span>
+                      <span className="font-medium text-xs sm:text-sm break-all text-right">{order.userEmail}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Fecha:</span>
-                      <span className="font-medium">{formatDate(order.fecha)}</span>
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Fecha:</span>
+                      <span className="font-medium text-xs sm:text-sm text-right">{formatDate(order.fecha)}</span>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Método de pago:</span>
-                      <span className="font-medium flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-blue-500" />
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Método de pago:</span>
+                      <span className="font-medium text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                        <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
                         CardNet
                       </span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total:</span>
-                      <span className="text-2xl font-bold text-green-600">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-gray-600 text-xs sm:text-sm">Total:</span>
+                      <span className="text-xl sm:text-2xl font-bold text-green-600">
                         {formatCurrency(order.total)}
                       </span>
                     </div>
@@ -262,7 +262,7 @@ export default function PaymentSuccess() {
                   <div>
                     <button
                       onClick={() => setShowDetails(v => !v)}
-                      className="flex items-center gap-2 text-green-600 hover:text-green-800 font-medium mb-4 transition-colors"
+                      className="flex items-center gap-2 text-green-600 hover:text-green-800 font-medium mb-3 sm:mb-4 transition-colors text-sm sm:text-base"
                       type="button"
                     >
                       <span>Ver productos ({order.productos.length})</span>
@@ -274,7 +274,7 @@ export default function PaymentSuccess() {
                     <AnimatePresence>
                       {showDetails && (
                         <motion.div
-                          className="space-y-3"
+                          className="space-y-2 sm:space-y-3"
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
@@ -283,24 +283,24 @@ export default function PaymentSuccess() {
                           {order.productos.map((p, i) => (
                             <motion.div
                               key={`${p.id}-${i}`}
-                              className="flex items-center justify-between bg-white rounded-xl p-4 border border-green-100"
+                              className="flex items-center justify-between bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-100 gap-3"
                               initial={{ opacity: 0, x: -16 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.06 }}
                               whileHover={{ scale: 1.02 }}
                             >
-                              <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
                                   🎮
                                 </div>
-                                <div>
-                                  <span className="font-semibold text-gray-800">{p.nombre}</span>
-                                  <div className="text-sm text-gray-600">
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-semibold text-gray-800 text-sm sm:text-base block truncate">{p.nombre}</span>
+                                  <div className="text-xs sm:text-sm text-gray-600">
                                     Cantidad: {p.cantidad} × {formatCurrency(p.precio)}
                                   </div>
                                 </div>
                               </div>
-                              <span className="font-bold text-green-600">
+                              <span className="font-bold text-green-600 text-sm sm:text-base flex-shrink-0">
                                 {formatCurrency((Number(p.precio) || 0) * p.cantidad)}
                               </span>
                             </motion.div>
@@ -316,7 +316,7 @@ export default function PaymentSuccess() {
 
           {/* Botones */}
           <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2 }}
@@ -324,9 +324,9 @@ export default function PaymentSuccess() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg sm:rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
-                <Home className="w-5 h-5" />
+                <Home className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Seguir comprando</span>
               </Link>
             </motion.div>
@@ -334,9 +334,9 @@ export default function PaymentSuccess() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/profile"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-700 rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
+                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 rounded-lg sm:rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
-                <Download className="w-5 h-5" />
+                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Ver historial</span>
               </Link>
             </motion.div>
@@ -350,10 +350,10 @@ export default function PaymentSuccess() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.6 }}
             >
-              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium mb-2">
+              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium mb-2 text-xs sm:text-sm">
                 Detalles técnicos de la transacción
               </summary>
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 max-h-64 overflow-y-auto">
+              <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200 max-h-48 sm:max-h-64 overflow-y-auto">
                 <pre className="whitespace-pre-wrap text-gray-600 text-xs font-mono">
                   {JSON.stringify(status, null, 2)}
                 </pre>

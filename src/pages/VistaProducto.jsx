@@ -5,18 +5,20 @@ import { FaArrowLeft, FaTimes, FaTrash, FaShareSquare } from "react-icons/fa";
 import { useProduct } from "../hooks/useProducts";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext";
 import BotonCardnet from "../components/BotonCardnet";
 
 // Components necesarios
-import AdvancedMediaGallery from "../components/AdvancedMediaGallery";
 import VisualVariantSelector from "../components/VisualVariantSelector";
 import EnhancedRelatedProducts from "../components/EnhancedRelatedProducts";
+import ProductGallery from "../components/ProductGallery";
 
 // Styles
 import "../styles/VistaProducto.css";
 import "../styles/VistaProducto-dark.css";
+import "../styles/ProductGallery.css";
 
 function formatPriceRD(value) {
   const pesos = Math.round(Number(value) || 0);
@@ -61,6 +63,7 @@ function VistaProducto() {
   } = useCarrito();
   const { usuario } = useAuth();
   const { abrirModal } = useAuthModal();
+  const { theme, isDark } = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -69,7 +72,7 @@ function VistaProducto() {
   const [desktopMediaIndex, setDesktopMediaIndex] = useState(0);
   const [imagenModalAbierta, setImagenModalAbierta] = useState(false);
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(0);
-  
+
   // Enhanced state for new components
   const [isFavorite, setIsFavorite] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(true);
@@ -85,10 +88,16 @@ function VistaProducto() {
   const [fullscreenPan, setFullscreenPan] = useState({ x: 0, y: 0 });
   const [initialDistance, setInitialDistance] = useState(0);
   const [initialZoom, setInitialZoom] = useState(1);
-  
+
   // Estados para zoom en modal de imagen
   const [modalZoom, setModalZoom] = useState(1);
   const [modalPan, setModalPan] = useState({ x: 0, y: 0 });
+
+  // Estados para modal de "Más información del producto" - Imágenes grandes
+  const [productInfoModalOpen, setProductInfoModalOpen] = useState(false);
+  const [productInfoImageIndex, setProductInfoImageIndex] = useState(0);
+  const [productInfoZoom, setProductInfoZoom] = useState(1);
+  const [productInfoPan, setProductInfoPan] = useState({ x: 0, y: 0 });
 
   // refs/estado para swipe en modal
   const touchStartX = useRef(0);
@@ -111,7 +120,9 @@ function VistaProducto() {
   // Asegurar que el índice activo esté dentro de rango si cambia la lista de variantes con color
   useEffect(() => {
     if (producto) {
-      const allVariantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
+      const allVariantes = Array.isArray(producto?.variantes)
+        ? producto.variantes
+        : [];
       const variantesConColor = allVariantes.filter(
         (v) => v && typeof v.color === "string" && v.color.trim()
       );
@@ -131,13 +142,23 @@ function VistaProducto() {
     setFullscreenPan({ x: 0, y: 0 });
   }, [mediaOverlayIndex, mediaOverlayTab]);
 
+  // Reset zoom cuando cambia imagen de "Más información del producto"
+  useEffect(() => {
+    setProductInfoZoom(1);
+    setProductInfoPan({ x: 0, y: 0 });
+  }, [productInfoImageIndex]);
+
   // Auto-scroll thumbnails móvil/tablet (debajo de la imagen) cuando cambia el medio activo
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
-      const cont = document.querySelector('.mobile-tablet-thumbs');
-      const active = cont && cont.querySelector('.mt-thumb.active');
-      if (cont && active && typeof active.scrollIntoView === 'function') {
-        active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (typeof window !== "undefined" && window.innerWidth < 1280) {
+      const cont = document.querySelector(".mobile-tablet-thumbs");
+      const active = cont && cont.querySelector(".mt-thumb.active");
+      if (cont && active && typeof active.scrollIntoView === "function") {
+        active.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest",
+        });
       }
     }
   }, [desktopMediaIndex]);
@@ -145,7 +166,7 @@ function VistaProducto() {
   // Handle scroll for mobile actions visibility
   useEffect(() => {
     let lastScrollY = window.scrollY;
-    
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
@@ -156,22 +177,26 @@ function VistaProducto() {
       lastScrollY = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Update cart quantity when carrito changes
   useEffect(() => {
     if (producto) {
-      const allVariantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
+      const allVariantes = Array.isArray(producto?.variantes)
+        ? producto.variantes
+        : [];
       const variantesConColor = allVariantes.filter(
         (v) => v && typeof v.color === "string" && v.color.trim()
       );
       const varianteActivaUI = variantesConColor[varianteSeleccionada] || null;
-      
-      const currentInCart = carrito.find(item => 
-        item.id === producto.id && 
-        (!varianteActivaUI || item.variante?.color === varianteActivaUI?.color)
+
+      const currentInCart = carrito.find(
+        (item) =>
+          item.id === producto.id &&
+          (!varianteActivaUI ||
+            item.variante?.color === varianteActivaUI?.color)
       );
       setCartQuantity(currentInCart?.cantidad || 0);
     }
@@ -187,7 +212,7 @@ function VistaProducto() {
       if (window.history && window.history.length > 1) navigate(-1);
       else navigate("/productos");
     };
-    
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-700 p-4">
         <div className="text-center max-w-md">
@@ -232,7 +257,7 @@ function VistaProducto() {
       </div>
     );
   }
-  
+
   // Procesar variantes DESPUÉS de todos los hooks para mantener orden consistente
   const allVariantes = Array.isArray(producto?.variantes)
     ? producto.variantes
@@ -240,15 +265,17 @@ function VistaProducto() {
   const variantesConColor = allVariantes.filter(
     (v) => v && typeof v.color === "string" && v.color.trim()
   );
-  
+
   // Enhanced variant processing
   const varianteActivaUI = variantesConColor[varianteSeleccionada] || null;
   const varianteActiva = varianteActivaUI; // For compatibility with existing code
 
   // Enhanced media processing - NOW varianteActiva is defined
   const getMainImage = () => {
-    if (varianteActiva?.imagenPrincipal?.[0]?.url) return varianteActiva.imagenPrincipal[0].url;
-    if (producto.imagenPrincipal?.[0]?.url) return producto.imagenPrincipal[0].url;
+    if (varianteActiva?.imagenPrincipal?.[0]?.url)
+      return varianteActiva.imagenPrincipal[0].url;
+    if (producto.imagenPrincipal?.[0]?.url)
+      return producto.imagenPrincipal[0].url;
     // Legacy fallback
     if (varianteActiva?.imagen) return varianteActiva.imagen;
     if (producto.imagen) return producto.imagen;
@@ -256,34 +283,39 @@ function VistaProducto() {
   };
 
   const getGalleryMedia = () => {
-    const sourceData = varianteActiva?.galeriaImagenes?.length > 0 
-      ? varianteActiva.galeriaImagenes 
-      : producto.galeriaImagenes || producto.imagenes || [];
-    return sourceData.filter(item => item?.url || typeof item === 'string').map(item => 
-      typeof item === 'string' ? item : item.url
-    );
+    const sourceData =
+      varianteActiva?.galeriaImagenes?.length > 0
+        ? varianteActiva.galeriaImagenes
+        : producto.galeriaImagenes || producto.imagenes || [];
+    return sourceData
+      .filter((item) => item?.url || typeof item === "string")
+      .map((item) => (typeof item === "string" ? item : item.url));
   };
 
   const getMainVideo = () => {
-    if (producto.videoAcercaArticulo?.[0]?.url) return producto.videoAcercaArticulo[0].url;
+    if (producto.videoAcercaArticulo?.[0]?.url)
+      return producto.videoAcercaArticulo[0].url;
     if (producto.videoUrl) return producto.videoUrl; // Legacy
     return null;
   };
 
   const getExtraFiles = () => {
-    const extraMedia = producto.tresArchivosExtras || producto.imagenesExtra || [];
-    return extraMedia.filter(item => item?.url || typeof item === 'string').slice(0, 3).map(item => 
-      typeof item === 'string' ? item : item.url
-    );
+    const extraMedia =
+      producto.tresArchivosExtras || producto.imagenesExtra || [];
+    return extraMedia
+      .filter((item) => item?.url || typeof item === "string")
+      .slice(0, 3)
+      .map((item) => (typeof item === "string" ? item : item.url));
   };
 
   const getGalleryVideos = () => {
-    const sourceData = varianteActiva?.videoUrls?.length > 0 
-      ? varianteActiva.videoUrls 
-      : producto.videoUrls || [];
-    return sourceData.filter(item => item?.url || typeof item === 'string').map(item => 
-      typeof item === 'string' ? item : item.url
-    );
+    const sourceData =
+      varianteActiva?.videoUrls?.length > 0
+        ? varianteActiva.videoUrls
+        : producto.videoUrls || [];
+    return sourceData
+      .filter((item) => item?.url || typeof item === "string")
+      .map((item) => (typeof item === "string" ? item : item.url));
   };
 
   // All useEffect hooks have been moved above to maintain consistent hook order
@@ -299,14 +331,15 @@ function VistaProducto() {
       abrirModal();
       return;
     }
-    
+
     const variantToUse = variant || varianteActivaUI;
     agregarAlCarrito(product, variantToUse, quantity);
-    
+
     // Update cart quantity for mobile actions
-    const currentInCart = carrito.find(item => 
-      item.id === product.id && 
-      (!variantToUse || item.variante?.color === variantToUse?.color)
+    const currentInCart = carrito.find(
+      (item) =>
+        item.id === product.id &&
+        (!variantToUse || item.variante?.color === variantToUse?.color)
     );
     setCartQuantity((currentInCart?.cantidad || 0) + quantity);
   };
@@ -314,7 +347,7 @@ function VistaProducto() {
   const handleToggleFavorite = (product) => {
     setIsFavorite(!isFavorite);
     // Here you would typically save to localStorage or backend
-    console.log('Toggled favorite for:', product.nombre);
+    console.log("Toggled favorite for:", product.nombre);
   };
 
   // handleShare already exists below, using that one
@@ -555,154 +588,61 @@ function VistaProducto() {
   const hasVariantsUI = Boolean(
     variantesConColor && variantesConColor.length > 1
   );
-  const showLeftColumn = hasImageGallery || hasVariantsUI;
+  const showLeftColumn = hasImageGallery;
   const isSingleImage = imagenes.length === 1;
   const compactMedia = isSingleImage && !hasVariantsUI;
 
-  // Unificar galería: imágenes + videos (producto y variante) en una sola galería estilo Amazon
-  const toMediaObj = (u, t = null) => {
-    const url = u || "";
-    const isVid = /(\.mp4|\.mov|\.avi|\.mkv|\.webm|\.m4v)$/i.test(
-      url.split("?")[0]
-    );
-    return { type: t || (isVid ? "video" : "image"), url };
+  // Galería unificada: SOLO IMÁGENES (sin videos)
+  const toMediaObj = (u) => {
+    return { type: "image", url: u || "" };
   };
-  const variantVideos = [
-    ...(Array.isArray(varianteActivaParaMedios?.videoUrls)
-      ? varianteActivaParaMedios.videoUrls
-      : []),
-    ...(varianteActivaParaMedios?.media || [])
-      .filter((m) => m && m.type === "video" && m.url)
-      .map((m) => m.url),
-  ];
-  const productVideos = [
-    ...(Array.isArray(producto?.videoUrls) ? producto.videoUrls : []),
-    ...(producto?.media || [])
-      .filter((m) => m && m.type === "video" && m.url)
-      .map((m) => m.url),
-  ];
-  const combinedMedia = [
-    ...imagenes.map((u) => toMediaObj(u, "image")),
-    ...variantVideos.map((u) => toMediaObj(u, "video")),
-    ...productVideos.map((u) => toMediaObj(u, "video")),
-  ].filter((m) => m && m.url);
-  // Dedupe por URL normalizada, mantener orden (imagen principal primero)
+
+  const mediaItems = imagenes.filter(Boolean).map((u) => toMediaObj(u));
+
+  // Dedupe por URL normalizada
   const seenGallery = new Set();
-  const mediaItems = combinedMedia.filter((m) => {
+  const imageItemsMedia = mediaItems.filter((m) => {
     const key = (m.url || "").split("?")[0].split("#")[0].trim().toLowerCase();
     if (!key || seenGallery.has(key)) return false;
     seenGallery.add(key);
     return true;
   });
-  // Separación para overlay por tipo
-  const imageItemsMedia = mediaItems.filter((m) => m.type === "image");
-  const videoItemsMedia = mediaItems.filter((m) => m.type === "video");
-  // Índice seguro para compatibilidad con estados previos (ya no usado para render)
+  // Índice seguro para compatibilidad con estados previos
   const mainIndex = Math.min(
     Math.max(imagenActualIndex, 0),
     Math.max(0, (imagenes.length || 1) - 1)
   );
-  // Video principal único (archivo subido). Preferir el primer video subido.
-  const mainVideoSrc =
-    producto.videoUrl ||
-    (Array.isArray(producto.videoAcercaArticulo) &&
-      producto.videoAcercaArticulo[0]?.url) ||
-    producto.video /* legacy */ ||
-    null;
-  const hasSingleVideo = Boolean(mainVideoSrc);
-  // Videos "Acerca de este artículo" (preferir arreglo dedicado)
-  const acercaList = Array.isArray(producto?.videoAcercaArticulo)
-    ? producto.videoAcercaArticulo
-        .map((v) =>
-          typeof v === "string" ? v : v && v.url ? v.url : ""
-        )
-        .filter(Boolean)
-    : mainVideoSrc
-    ? [mainVideoSrc]
-    : [];
-  const acercaItems = acercaList.map((u) => ({ type: "video", url: u }));
-  const hasAcerca = acercaItems.length > 0;
-  // Filtrar imágenes extra que dupliquen la galería principal
-  const normalize = (u) =>
-    u ? String(u).split("?")[0].split("#")[0].trim().toLowerCase() : "";
-  const imagenesSet = new Set(imagenes.map(normalize));
-  // Solo usar los "Tres Archivos Extras" definidos explícitamente en el producto
-  const rawExtra = Array.isArray(producto.imagenesExtra)
-    ? producto.imagenesExtra
-    : [];
-  const combinedExtras = rawExtra
-    .map((u) => (typeof u === "string" ? u : u && u.url ? u.url : ""))
-    .filter(Boolean);
-  // Dedupe y excluir los ya presentes en la galería principal (para que sean realmente "extras")
-  const mainVideoKey = mainVideoSrc ? normalize(mainVideoSrc) : null;
-  const seenExtra = new Set();
-  const extraFiles = combinedExtras.filter(Boolean).filter((u) => {
-    const key = normalize(u);
-    if (imagenesSet.has(key)) return false; // no duplicar galería
-    if (mainVideoKey && key === mainVideoKey) return false; // no duplicar video principal
-    if (seenExtra.has(key)) return false; // no duplicar dentro de extras
-    seenExtra.add(key);
-    return true;
-  });
+  // NO mostrar archivos extras ni videos - SOLO IMÁGENES
+  const imagenesModal = [...imagenes];
+  const hasRowFiles = false;
+  const rowFiles = [];
 
-  // Separar archivos extras por tipo
-  const extraImages = extraFiles.filter((url) => {
-    const ext = url.split(".").pop()?.toLowerCase() || "";
-    return ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(ext);
-  });
-  const extraVideos = extraFiles.filter((url) => {
-    const ext = url.split(".").pop()?.toLowerCase() || "";
-    return ["mp4", "mov", "avi", "mkv", "webm", "m4v"].includes(ext);
-  });
-  const extraDocuments = extraFiles.filter((url) => {
-    const ext = url.split(".").pop()?.toLowerCase() || "";
-    return ![
-      "jpg",
-      "jpeg",
-      "png",
-      "gif",
-      "webp",
-      "bmp",
-      "svg",
-      "mp4",
-      "mov",
-      "avi",
-      "mkv",
-      "webm",
-      "m4v",
-    ].includes(ext);
-  });
-
-  const hasExtraFiles = extraFiles.length > 0;
-  // Fila bajo el video: solo archivos reales, sin placeholders ni cajas vacías
-  const rowFiles = extraFiles.slice(0, 3);
-  const hasRowFiles = rowFiles.length > 0;
-  // Modal: solo principal + galería (sin extras)
-  // Modal: incluir también hasta 3 imágenes extras para que aparezcan como miniaturas abajo
-  const imagenesModal = [...imagenes, ...extraImages.slice(0, 3)];
-
-  // Videos para overlay (galería completa): incluir acercaItems
-  const videoItemsOverlay = (() => {
-    const seenV = new Set();
-    const arr = [...videoItemsMedia, ...acercaItems];
-    return arr.filter((m) => {
-      const key = (m.url || "").split("?")[0].split("#")[0].trim().toLowerCase();
-      if (!key || seenV.has(key)) return false;
-      seenV.add(key);
-      return true;
-    });
-  })();
-
-  // Lista combinada para desktop y modal eBay (imágenes primero, luego videos)
-  const desktopMediaItems = [
-    ...imageItemsMedia,
-    ...videoItemsOverlay,
-  ];
+  // Lista para desktop: SOLO imágenes
+  const desktopMediaItems = [...imageItemsMedia];
   // Índice seguro derivado (sin hooks) para evitar cambios en orden de hooks
   const safeDesktopIndex = Math.max(
     0,
     Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1))
   );
+
+  // Preparar datos para ProductGallery - incluir videos de galería si existen
+  const galleryItems = [];
+  
+  // Agregar imágenes de galería
+  const galleryImages = getGalleryMedia();
+  galleryImages.forEach(url => {
+    if (url && !galleryItems.find(item => item.url === url)) {
+      galleryItems.push({ url, type: 'image' });
+    }
+  });
+  
+  // Agregar videos de galería si existen
+  const galleryVideos = getGalleryVideos();
+  galleryVideos.forEach(url => {
+    if (url && !galleryItems.find(item => item.url === url)) {
+      galleryItems.push({ url, type: 'video', poster: url + '?poster' });
+    }
+  });
 
   // (debug removido para respetar el orden de hooks y evitar renderizaciones diferentes)
 
@@ -722,9 +662,10 @@ function VistaProducto() {
 
   // ---------- Handlers ZOOM (desktop) ----------
   const handleMouseEnter = () => {
-    if (typeof window === 'undefined' || window.innerWidth < 1280) return; // solo desktop (xl)
-    const current = (desktopMediaItems && desktopMediaItems[safeDesktopIndex]) || null;
-    if (!current || current.type !== "image") return; // zoom solo para imágenes
+    if (typeof window === "undefined" || window.innerWidth < 1280) return; // solo desktop (xl)
+    const current =
+      (desktopMediaItems && desktopMediaItems[safeDesktopIndex]) || null;
+    if (!current) return; // zoom solo para imágenes
 
     const url = current.url;
     setZoomBg(url);
@@ -762,15 +703,25 @@ function VistaProducto() {
   };
 
   const handleMouseMove = (e) => {
-    if (!isZooming || (typeof window !== 'undefined' && window.innerWidth < 1280)) return;
+    if (
+      !isZooming ||
+      (typeof window !== "undefined" && window.innerWidth < 1280)
+    )
+      return;
     const rect =
       zoomRectRef.current ||
       (mainImgRef.current && mainImgRef.current.getBoundingClientRect()) ||
       (imgWrapRef.current && imgWrapRef.current.getBoundingClientRect());
     if (!rect) return;
 
-    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    const x = Math.max(
+      0,
+      Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)
+    );
+    const y = Math.max(
+      0,
+      Math.min(100, ((e.clientY - rect.top) / rect.height) * 100)
+    );
     lastPosRef.current = { x, y };
     if (!rafPendingRef.current) {
       rafPendingRef.current = true;
@@ -798,27 +749,30 @@ function VistaProducto() {
   const handleMainImageTouchMove = (e) => {
     if (window.innerWidth >= 1280) return; // Solo en móvil/tablet
     if (touchStartX.current === 0) return;
-    
+
     const deltaX = e.touches[0].clientX - touchStartX.current;
     touchDeltaX.current = deltaX;
-    
+
     // Detectar swipe horizontal (sin preventDefault para evitar warning)
   };
 
   const handleMainImageTouchEnd = (e) => {
     if (window.innerWidth >= 1280) return; // Solo en móvil/tablet
     const threshold = 50;
-    
+
     if (Math.abs(touchDeltaX.current) > threshold) {
       if (touchDeltaX.current > 0 && imagenActualIndex > 0) {
         // Swipe derecha - imagen anterior
         setImagenActualIndex(imagenActualIndex - 1);
-      } else if (touchDeltaX.current < 0 && imagenActualIndex < imagenes.length - 1) {
+      } else if (
+        touchDeltaX.current < 0 &&
+        imagenActualIndex < imagenes.length - 1
+      ) {
         // Swipe izquierda - imagen siguiente
         setImagenActualIndex(imagenActualIndex + 1);
       }
     }
-    
+
     touchStartX.current = 0;
     touchDeltaX.current = 0;
   };
@@ -827,8 +781,8 @@ function VistaProducto() {
 
   const getDistance = (touch1, touch2) => {
     return Math.sqrt(
-      Math.pow(touch2.clientX - touch1.clientX, 2) + 
-      Math.pow(touch2.clientY - touch1.clientY, 2)
+      Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
     );
   };
 
@@ -847,7 +801,7 @@ function VistaProducto() {
 
   const handleFullscreenTouchMove = (e) => {
     // Removido preventDefault para evitar warning
-    
+
     if (e.touches.length === 2) {
       // Pinch zoom
       const distance = getDistance(e.touches[0], e.touches[1]);
@@ -875,7 +829,7 @@ function VistaProducto() {
         setFullscreenZoom(1);
         setFullscreenPan({ x: 0, y: 0 });
       }
-      
+
       // Swipe navigation when not zoomed
       if (fullscreenZoom === 1) {
         const threshold = 50;
@@ -885,7 +839,10 @@ function VistaProducto() {
           if (touchDeltaX.current > 0 && mediaOverlayIndex > 0) {
             // Swipe derecha - anterior
             setMediaOverlayIndex(mediaOverlayIndex - 1);
-          } else if (touchDeltaX.current < 0 && mediaOverlayIndex < currentArray.length - 1) {
+          } else if (
+            touchDeltaX.current < 0 &&
+            mediaOverlayIndex < currentArray.length - 1
+          ) {
             // Swipe izquierda - siguiente
             setMediaOverlayIndex(mediaOverlayIndex + 1);
           }
@@ -913,7 +870,7 @@ function VistaProducto() {
 
   const onTouchMoveModal = (e) => {
     // Removido preventDefault para evitar warning
-    
+
     if (e.touches.length === 2) {
       // Pinch zoom
       const distance = getDistance(e.touches[0], e.touches[1]);
@@ -941,7 +898,7 @@ function VistaProducto() {
         setModalZoom(1);
         setModalPan({ x: 0, y: 0 });
       }
-      
+
       // Swipe navigation when not zoomed
       if (modalZoom === 1) {
         const threshold = 50;
@@ -950,7 +907,10 @@ function VistaProducto() {
           if (touchDeltaX.current > 0 && imagenActualIndex > 0) {
             // Swipe derecha - anterior
             setImagenActualIndex(imagenActualIndex - 1);
-          } else if (touchDeltaX.current < 0 && imagenActualIndex < imagenesModal.length - 1) {
+          } else if (
+            touchDeltaX.current < 0 &&
+            imagenActualIndex < imagenesModal.length - 1
+          ) {
             // Swipe izquierda - siguiente
             setImagenActualIndex(imagenActualIndex + 1);
           }
@@ -965,7 +925,8 @@ function VistaProducto() {
   // --- Compartir ---
   const handleShare = async () => {
     try {
-      const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+      const shareUrl =
+        typeof window !== "undefined" ? window.location.href : "";
       const data = {
         title: producto?.nombre || "Producto",
         text: `Mira este producto: ${producto?.nombre || ""}`,
@@ -987,7 +948,8 @@ function VistaProducto() {
   // Compartir dentro del overlay (usa Web Share si está disponible; si no, copia el enlace)
   const handleShareOverlay = async () => {
     try {
-      const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+      const shareUrl =
+        typeof window !== "undefined" ? window.location.href : "";
       const data = {
         title: producto?.nombre || document.title || "Producto",
         text: producto?.nombre || "",
@@ -1014,7 +976,7 @@ function VistaProducto() {
     <>
       {/* Sin topbar móvil: solo contenido */}
       <main className="vp-main min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800 flex flex-col items-stretch overflow-visible">
-        {/* Botón Volver (solo desktop) debajo del topbar y por ENCIMA del grid para alinear imagen y título */}
+        {/* Botón Volver circular (solo desktop) */}
         <div className="hidden xl:flex w-full mb-3">
           <button
             type="button"
@@ -1022,8 +984,7 @@ function VistaProducto() {
             onClick={onBack}
             aria-label="Volver"
           >
-            <FaArrowLeft size={14} />
-            <span>Volver</span>
+            <FaArrowLeft size={16} />
           </button>
         </div>
 
@@ -1031,317 +992,30 @@ function VistaProducto() {
           {/* Columna Izquierda - Galería (6 columnas) */}
           {showLeftColumn && (
             <motion.div className="relative flex flex-col items-start w-full xl:col-span-6 overflow-visible">
-
-              {/* Galería estilo eBay - Visible en todos los dispositivos */}
-              {desktopMediaItems.length > 0 && (
-                <div className="amazon-gallery-layout flex">
-                  {/* Thumbnails verticales (a la IZQUIERDA en desktop) */}
-                  <div className="amazon-thumbs-sidebar">
-                    {desktopMediaItems.map((item, i) => (
-                      <button
-                        key={`thumb-${i}`}
-                        type="button"
-                        className={`amazon-thumb ${i === safeDesktopIndex ? "active" : ""}`}
-                        onClick={() => {
-                          setDesktopMediaIndex(i);
-                          // Si es imagen, sincronizar índice de imágenes para zoom y móvil
-                          if (item.type === "image") {
-                            const norm = (u) => (u ? String(u).split("?")[0].split("#")[0].trim().toLowerCase() : "");
-                            const idx = imagenes.findIndex((u) => norm(u) === norm(item.url));
-                            if (idx >= 0) setImagenActualIndex(idx);
-                          }
-                        }}
-                        aria-label={`Miniatura ${i + 1}`}
-                      >
-                        {item.type === "video" ? (
-                          <div className="relative w-full h-full">
-                            <video src={item.url} className="w-full h-full object-contain" muted preload="metadata" />
-                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                          </div>
-                        ) : (
-                          <img
-                            src={item.url}
-                            alt={`Miniatura ${i + 1}`}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/Productos/N.jpg";
-                            }}
-                          />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Imagen principal */}
-                  <div className="amazon-main-image-container">
-                    {/* Botón de regreso sobre la imagen */}
-                    <button
-                      className="vp-back-fab xl:hidden"
-                      onClick={onBack}
-                      aria-label="Volver"
-                      type="button"
-                    >
-                      <FaArrowLeft size={18} />
-                    </button>
-                    <div
-                      ref={imgWrapRef}
-                      className={`amazon-main-image-wrap ${isZooming ? "zooming" : ""}`}
-                      onMouseEnter={handleMouseEnter}
-                      onMouseMove={handleMouseMove}
-                      onMouseLeave={handleMouseLeave}
-                      onClick={() => {
-                        // eBay overlay unificado: usar índice combinado directamente
-                        openMediaOverlay("images", safeDesktopIndex);
-                      }}
-                      onTouchStart={handleMainImageTouchStart}
-                      onTouchMove={handleMainImageTouchMove}
-                      onTouchEnd={handleMainImageTouchEnd}
-                      role="button"
-                      aria-label="Ver imagen en pantalla completa"
-                      tabIndex={0}
-                    >
-                      {(() => {
-                        const current = desktopMediaItems[safeDesktopIndex];
-                        if (!current) return null;
-                        if (current.type === "video") {
-                          return (
-                            <video
-                              src={current.url}
-                              className="w-full h-full object-contain"
-                              controls
-                              preload="metadata"
-                            />
-                          );
-                        }
-                        return (
-                          <img
-                            ref={mainImgRef}
-                            key={`main-img-${safeDesktopIndex}`}
-                            src={current.url}
-                            alt={producto.nombre}
-                            className="w-full h-full object-contain transition-opacity duration-300"
-                            draggable={false}
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/Productos/N.jpg";
-                            }}
-                          />
-                        );
-                      })()}
-
-                      {/* share removed en móvil/desktop para vista limpia */}
-                    </div>
-
-                    {/* Panel de zoom flotante a la derecha */}
-                    <div
-                      ref={zoomOverlayRef}
-                      className="vp-zoom-float vp-zoom-stage"
-                      style={{
-                        display: isZooming ? "block" : "none",
-                        backgroundImage: zoomBg ? `url(${zoomBg})` : "none",
-                        backgroundRepeat: "no-repeat",
-                        backgroundSize: `${zoomBgSize.w}px ${zoomBgSize.h}px`,
-                        backgroundPosition: `${lastPosRef.current.x}% ${lastPosRef.current.y}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {desktopMediaItems.length > 1 && (
-                <div className="xl:hidden w-full mt-3">
-                  <div className="mobile-tablet-thumbs flex gap-3 overflow-x-auto pb-2">
-                    {desktopMediaItems.map((item, i) => (
-                      <button
-                        key={`mt-thumb-${i}`}
-                        type="button"
-                        className={`mt-thumb ${i === safeDesktopIndex ? "active" : ""}`}
-                        onClick={() => setDesktopMediaIndex(i)}
-                        aria-label={`Vista ${i + 1}`}
-                      >
-                        {item.type === "video" ? (
-                          <div className="relative w-full h-full">
-                            <video src={item.url} className="w-full h-full object-contain" muted preload="metadata" />
-                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                          </div>
-                        ) : (
-                          <img
-                            src={item.url}
-                            alt={`Miniatura ${i + 1}`}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/Productos/N.jpg";
-                            }}
-                          />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Enlace removido para vista limpia tipo eBay */}
-
-
-              {/* Enhanced Visual Variant Selector - Always render to avoid hook order issues */}
-              <div className={`vp-variants mt-6 ${(!variantesConColor || variantesConColor.length <= 1) ? 'hidden' : ''}`}>
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
-                  Variantes disponibles:
-                </h4>
-                <VisualVariantSelector
-                  variants={variantesConColor ? variantesConColor.map((v, idx) => ({
-                    id: v.id || `var_${idx}`,
-                    name: v.color || `Variante ${idx + 1}`,
-                    price: v.precio,
-                    stock: v.cantidad || 0,
-                    image: v.imagenPrincipal?.[0]?.url || v.imagen,
-                    isSelected: varianteSeleccionada === idx
-                  })) : []}
-                  productMainImage={getMainImage()}
-                  onVariantChange={handleVariantChange}
-                  className="w-full"
-                />
-                  {/* Fallback to original selector if VisualVariantSelector fails */}
-                  <div className="flex flex-wrap gap-3 hidden">
-                    {variantesConColor.map((variante, index) => {
-                      // Determinar la imagen principal de la variante para mostrarla como vista previa
-                      const pickUrl = (u) => {
-                        try {
-                          if (!u) return "";
-                          if (typeof u === "string") return u;
-                          if (typeof u === "object" && u !== null)
-                            return u.url || "";
-                          return String(u || "");
-                        } catch {
-                          return "";
-                        }
-                      };
-                      const varianteMedia =
-                        Array.isArray(variante?.media) &&
-                        variante.media.length > 0
-                          ? variante.media
-                          : [];
-                      const varianteImagen =
-                        // new schema media image
-                        varianteMedia.find((m) => m?.type === "image" && m?.url)
-                          ?.url ||
-                        // variante principal (nuevo/legacy)
-                        pickUrl(variante?.imagenPrincipal?.[0]) ||
-                        variante?.imagen ||
-                        (Array.isArray(variante?.imagenes) &&
-                          variante.imagenes[0]) ||
-                        // fallback a imagen del producto (nuevo schema)
-                        (Array.isArray(producto?.media) &&
-                          producto.media.find((m) => m?.type === "image")
-                            ?.url) ||
-                        // producto principal (nuevo/legacy)
-                        pickUrl(producto?.imagenPrincipal?.[0]) ||
-                        producto?.imagen ||
-                        (Array.isArray(producto?.imagenes) &&
-                          producto.imagenes[0]) ||
-                        null;
-
-                      // Verificar si la variante tiene stock disponible
-                      const tieneStock = variante.cantidad > 0;
-                      const activa = varianteSeleccionada === index;
-
-                      return (
-                        <button
-                          key={`${variante.color}-${index}`}
-                          className={`relative flex items-center gap-3 p-2 rounded-lg border-2 transition-all ${
-                            activa
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          } ${!tieneStock ? "opacity-70" : ""}`}
-                          onClick={() => setVarianteSeleccionada(index)}
-                          aria-label={`Seleccionar variante ${variante.color}${
-                            !tieneStock ? " (Agotado)" : ""
-                          }`}
-                          disabled={!tieneStock && !activa}
-                        >
-                          {/* Vista previa de la variante */}
-                          <div className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
-                            {varianteImagen ? (
-                              <img
-                                src={varianteImagen}
-                                alt={`${variante.color}`}
-                                className="w-full h-full object-contain"
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src =
-                                    "https://via.placeholder.com/50?text=No+imagen";
-                                }}
-                              />
-                            ) : (
-                              <div
-                                className="w-full h-full"
-                                style={{
-                                  backgroundColor: variante.colorHex || "#ccc",
-                                }}
-                              />
-                            )}
-
-                            {/* Overlay para variantes agotadas */}
-                            {!tieneStock && (
-                              <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                                <span className="text-xs font-medium text-red-600">
-                                  Agotado
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Info de variante */}
-                          <div className="text-left">
-                            <span className="block font-medium text-gray-900">
-                              {variante.color}
-                            </span>
-                            {variante.cantidad !== undefined && (
-                              <span
-                                className={`text-xs ${
-                                  variante.cantidad > 0
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                }`}
-                              >
-                                {variante.cantidad > 0
-                                  ? `${variante.cantidad} disponible${
-                                      variante.cantidad !== 1 ? "s" : ""
-                                    }`
-                                  : "Agotado"}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Indicador activo */}
-                          {activa && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
-                              <svg
-                                className="w-3 h-3 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+              {/* Botón de volver móvil */}
+              <button
+                className="vp-back-fab xl:hidden absolute top-4 left-4 z-10"
+                onClick={onBack}
+                aria-label="Volver"
+                type="button"
+              >
+                <FaArrowLeft size={18} />
+              </button>
+              
+              {/* Nueva galería estilo Amazon */}
+              <ProductGallery
+                items={galleryItems}
+                productId={producto.id}
+                onThumbClick={(index, item) => {
+                  console.log('Thumb clicked:', index, item);
+                }}
+                onLightboxOpen={(index) => {
+                  console.log('Lightbox opened at index:', index);
+                }}
+                onVideoPlay={(videoId) => {
+                  console.log('Video playing:', videoId);
+                }}
+              />
             </motion.div>
           )}
 
@@ -1358,7 +1032,154 @@ function VistaProducto() {
               }}
             />
             <p className="vp-price">DOP {formatPriceRD(precioProducto)}</p>
-            
+
+            {/* Enhanced Visual Variant Selector - Always render to avoid hook order issues */}
+            <div
+              className={`vp-variants mt-6 ${
+                !variantesConColor || variantesConColor.length <= 1
+                  ? "hidden"
+                  : ""
+              }`}
+            >
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                Variantes disponibles:
+              </h4>
+              <VisualVariantSelector
+                variants={
+                  variantesConColor
+                    ? variantesConColor.map((v, idx) => ({
+                        id: v.id || `var_${idx}`,
+                        name: v.color || `Variante ${idx + 1}`,
+                        price: v.precio,
+                        stock: v.cantidad || 0,
+                        image: v.imagenPrincipal?.[0]?.url || v.imagen,
+                        isSelected: varianteSeleccionada === idx,
+                      }))
+                    : []
+                }
+                productMainImage={getMainImage()}
+                onVariantChange={handleVariantChange}
+                className="w-full"
+              />
+              {/* Fallback to original selector if VisualVariantSelector fails */}
+              <div className="flex flex-wrap gap-3 hidden">
+                {variantesConColor.map((variante, index) => {
+                  const pickUrl = (u) => {
+                    try {
+                      if (!u) return "";
+                      if (typeof u === "string") return u;
+                      if (typeof u === "object" && u !== null)
+                        return u.url || "";
+                      return String(u || "");
+                    } catch {
+                      return "";
+                    }
+                  };
+                  const varianteMedia =
+                    Array.isArray(variante?.media) && variante.media.length > 0
+                      ? variante.media
+                      : [];
+                  const varianteImagen =
+                    varianteMedia.find((m) => m?.type === "image" && m?.url)
+                      ?.url ||
+                    pickUrl(variante?.imagenPrincipal?.[0]) ||
+                    variante?.imagen ||
+                    (Array.isArray(variante?.imagenes) &&
+                      variante.imagenes[0]) ||
+                    (Array.isArray(producto?.media) &&
+                      producto.media.find((m) => m?.type === "image")?.url) ||
+                    pickUrl(producto?.imagenPrincipal?.[0]) ||
+                    producto?.imagen ||
+                    (Array.isArray(producto?.imagenes) &&
+                      producto.imagenes[0]) ||
+                    null;
+
+                  const tieneStock = variante.cantidad > 0;
+                  const activa = varianteSeleccionada === index;
+
+                  return (
+                    <button
+                      key={`${variante.color}-${index}`}
+                      className={`relative flex items-center gap-3 p-2 rounded-lg border-2 transition-all ${
+                        activa
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      } ${!tieneStock ? "opacity-70" : ""}`}
+                      onClick={() => setVarianteSeleccionada(index)}
+                      aria-label={`Seleccionar variante ${variante.color}${
+                        !tieneStock ? " (Agotado)" : ""
+                      }`}
+                      disabled={!tieneStock && !activa}
+                    >
+                      <div className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+                        {varianteImagen ? (
+                          <img
+                            src={varianteImagen}
+                            alt={`${variante.color}`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://via.placeholder.com/50?text=No+imagen";
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full"
+                            style={{
+                              backgroundColor: variante.colorHex || "#ccc",
+                            }}
+                          />
+                        )}
+                        {!tieneStock && (
+                          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                            <span className="text-xs font-medium text-red-600">
+                              Agotado
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <span className="block font-medium text-gray-900">
+                          {variante.color}
+                        </span>
+                        {variante.cantidad !== undefined && (
+                          <span
+                            className={`text-xs ${
+                              variante.cantidad > 0
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {variante.cantidad > 0
+                              ? `${variante.cantidad} disponible${
+                                  variante.cantidad !== 1 ? "s" : ""
+                                }`
+                              : "Agotado"}
+                          </span>
+                        )}
+                      </div>
+                      {activa && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Información del Vendedor */}
             {producto.sellerId && (
               <div className="vp-seller-info">
@@ -1368,81 +1189,81 @@ function VistaProducto() {
                     className="seller-name"
                     onClick={() => navigate(`/tienda/${producto.sellerId}`)}
                   >
-                    {producto.sellerName || 'Ver Tienda'}
+                    {producto.sellerName || "Ver Tienda"}
                   </button>
                 </div>
               </div>
             )}
 
-          {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL/TABLET (restaurado) */}
-          <div className="xl:hidden flex flex-col gap-3 overflow-visible">
-            <div
-              className={`vp-stock ${
-                restante === 0
-                  ? "vp-stock-out"
-                  : restante <= 2
-                  ? "vp-stock-low"
-                  : "vp-stock-ok"
-              }`}
-            >
-              {restante === 0
-                ? "No disponible"
-                : Number.isFinite(restante)
-                ? `Quedan ${restante} disponibles`
-                : "Disponible"}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 overflow-visible">
-              {enCarrito ? (
-                <div className="vp-qty-row w-full sm:w-1/2">
-                  <button onClick={handleDecremento} className="vp-qty-btn">
-                    −
-                  </button>
-                  <span className="vp-qty">{cantidadEnCarrito}</span>
-                  <button
-                    onClick={handleIncremento}
-                    className="vp-qty-btn"
-                    disabled={cantidadEnCarrito >= stockDisponible}
-                    title={
-                      cantidadEnCarrito >= stockDisponible
-                        ? "Has alcanzado el máximo disponible"
-                        : "Agregar una unidad"
-                    }
-                  >
-                    +
-                  </button>
-                  <button onClick={handleQuitar} className="vp-remove">
-                    <FaTrash />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className={`button w-full sm:w-1/2 ${
-                    !disponible ? "opacity-60 cursor-not-allowed" : ""
-                  }`}
-                  onClick={handleAgregar}
-                  disabled={!disponible}
-                  title={!disponible ? "No disponible" : "Agregar al carrito"}
-                >
-                  Agregar al carrito
-                </button>
-              )}
-
-              {/* “Comprar ahora” SOLO este producto */}
+            {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL/TABLET (restaurado) */}
+            <div className="xl:hidden flex flex-col gap-3 overflow-visible">
               <div
-                className="w-full sm:w-1/2"
-                onClick={() =>
-                  setCheckoutPayload("single", itemsBuyNow, precioProducto)
-                }
+                className={`vp-stock ${
+                  restante === 0
+                    ? "vp-stock-out"
+                    : restante <= 2
+                    ? "vp-stock-low"
+                    : "vp-stock-ok"
+                }`}
               >
-                <BotonCardnet
-                  className="w-full"
-                  total={precioProducto * 100}
-                  label="Comprar ahora"
-                />
+                {restante === 0
+                  ? "No disponible"
+                  : Number.isFinite(restante)
+                  ? `Quedan ${restante} disponibles`
+                  : "Disponible"}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 overflow-visible">
+                {enCarrito ? (
+                  <div className="vp-qty-row w-full sm:w-1/2">
+                    <button onClick={handleDecremento} className="vp-qty-btn">
+                      −
+                    </button>
+                    <span className="vp-qty">{cantidadEnCarrito}</span>
+                    <button
+                      onClick={handleIncremento}
+                      className="vp-qty-btn"
+                      disabled={cantidadEnCarrito >= stockDisponible}
+                      title={
+                        cantidadEnCarrito >= stockDisponible
+                          ? "Has alcanzado el máximo disponible"
+                          : "Agregar una unidad"
+                      }
+                    >
+                      +
+                    </button>
+                    <button onClick={handleQuitar} className="vp-remove">
+                      <FaTrash />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className={`button w-full sm:w-1/2 ${
+                      !disponible ? "opacity-60 cursor-not-allowed" : ""
+                    }`}
+                    onClick={handleAgregar}
+                    disabled={!disponible}
+                    title={!disponible ? "No disponible" : "Agregar al carrito"}
+                  >
+                    Agregar al carrito
+                  </button>
+                )}
+
+                {/* “Comprar ahora” SOLO este producto */}
+                <div
+                  className="w-full sm:w-1/2"
+                  onClick={() =>
+                    setCheckoutPayload("single", itemsBuyNow, precioProducto)
+                  }
+                >
+                  <BotonCardnet
+                    className="w-full"
+                    total={precioProducto * 100}
+                    label="Comprar ahora"
+                  />
+                </div>
               </div>
             </div>
-          </div>
             {Array.isArray(producto.acerca) && producto.acerca.length > 0 && (
               <div>
                 <h3 className="vp-subtitle">Acerca de este artículo</h3>
@@ -1531,242 +1352,269 @@ function VistaProducto() {
           </aside>
         </section>
 
-        {/* Secciones inferiores ocupan todo el ancho */}
-        <section className="w-full mt-8 flex flex-col items-stretch">
-          {/* Productos relacionados - Estilo Amazon */}
-          <div className="w-full">
-            <EnhancedRelatedProducts
-              productoActual={producto}
-            />
-          </div>
+        {/* Productos relacionados - ARRIBA */}
+        {producto && (
+          <section className="w-full mt-8 px-4 sm:px-6">
+            <EnhancedRelatedProducts productoActual={producto} />
+          </section>
+        )}
 
-          {/* Acerca de este artículo */}
-          {hasAcerca && (
-            <div className="vp-featured-section w-full mt-8">
-              <h4 className="vp-featured-title text-center">
-                Acerca de este artículo
-              </h4>
-              <div className="vp-featured-container">
-                <AdvancedMediaGallery
-                  mediaItems={acercaItems}
-                  productName={producto.nombre}
-                  className=""
-                  showThumbnails={acercaItems.length > 1}
-                  showControls={true}
-                  autoPlay={false}
-                  enableZoom={false}
-                  enableFullscreen={true}
-                />
-              </div>
-            </div>
-          )}
+        {/* Secciones de archivos extras eliminadas */}
 
-          {/* Tres archivos extras */}
-          {hasRowFiles && (
-            <div className="vp-secondary-row mt-6 w-full">
-              <h4 className="vp-moreinfo-title">Más información del producto</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 justify-items-center">
-                {rowFiles.map((file, i) => {
-                  const fileName =
-                    file.split("/").pop()?.split("?")[0] || `archivo-${i + 1}`;
-                  const fileExtension =
-                    fileName.split(".").pop()?.toLowerCase() || "";
-                  const isImage = [
-                    "jpg",
-                    "jpeg",
-                    "png",
-                    "gif",
-                    "webp",
-                    "bmp",
-                    "svg",
-                  ].includes(fileExtension);
-                  const isVideo = [
-                    "mp4",
-                    "mov",
-                    "avi",
-                    "mkv",
-                    "webm",
-                    "m4v",
-                  ].includes(fileExtension);
+        {/* 📸 MÁS INFORMACIÓN DEL PRODUCTO - Imágenes grandes estilo Amazon */}
+        {(() => {
+          const extraImages = getExtraFiles();
+          if (!extraImages || extraImages.length === 0) return null;
 
-                  if (isImage) {
-                    const norm = normalize(file);
-                    // índice dentro de las extras de imagen para abrir correctamente en el modal
-                    const idxExtra = extraImages.findIndex(
-                      (u) => normalize(u) === norm
-                    );
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        className="vp-secondary-item"
-                        aria-label={`Vista adicional ${i + 1}`}
-                        onClick={() => {
-                          const base = imagenes.length;
-                          const idxModal =
-                            idxExtra >= 0 ? base + Math.min(idxExtra, 2) : base;
-                          abrirImagenModal(
-                            Math.min(idxModal, imagenesModal.length - 1)
-                          );
-                        }}
-                      >
-                        <img
-                          src={file}
-                          alt={`Vista extra ${i + 1}`}
-                          className="w-full h-full object-contain rounded"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </button>
-                    );
-                  } else if (isVideo) {
-                    return (
-                      <div key={i} className="vp-secondary-item">
-                        <video
-                          src={file}
-                          controls
-                          className="w-full h-full object-contain rounded"
-                          preload="metadata"
-                        />
-                        <p className="text-xs text-gray-600 mt-1 truncate">
-                          {fileName}
-                        </p>
+          return (
+            <section className="w-full mt-12 mb-8 px-4 sm:px-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">
+                Más información del producto
+              </h2>
+              <div className="max-w-[1500px] mx-auto space-y-4">
+                {extraImages.map((imageUrl, index) => (
+                  <div
+                    key={`product-info-${index}`}
+                    className="relative w-full cursor-pointer group"
+                    onClick={() => {
+                      setProductInfoImageIndex(index);
+                      setProductInfoModalOpen(true);
+                    }}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`${producto.nombre} - Información ${index + 1}`}
+                      className="w-full h-auto object-contain bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
+                      style={{
+                        maxWidth: "1500px",
+                        margin: "0 auto",
+                        display: "block",
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "/Productos/N.jpg";
+                      }}
+                    />
+                    {/* Overlay hover */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 rounded-lg flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-3 shadow-lg">
+                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
                       </div>
-                    );
-                  } else {
-                    return (
-                      <a
-                        key={i}
-                        href={file}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="vp-secondary-item flex flex-col items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 transition-colors"
-                      >
-                        <div className="text-4xl mb-2">📄</div>
-                        <p className="text-xs text-gray-700 text-center truncate w-full">
-                          {fileName}
-                        </p>
-                        <p className="text-xs text-blue-600 mt-1">Descargar</p>
-                      </a>
-                    );
-                  }
-                })}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
-        </section>
+            </section>
+          );
+        })()}
       </main>
 
-      {/* Modal de galería fullscreen - PERFECTO COMO AMAZON/EBAY */}
-      {mediaOverlayOpen && (
-        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col" onClick={closeMediaOverlay}>
-          {/* Solo botón X arriba a la derecha */}
-          <div className="absolute top-4 right-4 z-20">
-            <button 
-              type="button" 
-              className="bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-colors"
-              aria-label="Cerrar" 
+      {/* Modal de galería fullscreen - ESTILO AMAZON EXACTO */}
+      {mediaOverlayOpen && (() => {
+        // Obtener videos para las pestañas
+        const galleryVideos = getGalleryVideos();
+        const hasVideos = galleryVideos.length > 0;
+        
+        // Determinar qué contenido mostrar según la pestaña activa
+        const currentMediaItems = mediaOverlayTab === 'videos' ? 
+          galleryVideos.map(url => ({ type: 'video', url })) : 
+          desktopMediaItems;
+        
+        // Asegurar que el índice esté dentro del rango
+        const safeMediaIndex = Math.min(mediaOverlayIndex, Math.max(0, currentMediaItems.length - 1));
+        
+        return (
+        <div className={`fixed inset-0 z-[9999] flex flex-col ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+          {/* Barra superior con pestañas y botón X */}
+          <div className={`border-b px-4 py-3 flex items-center justify-between ${isDark ? 'border-gray-700 bg-gray-800' : 'border-[#DDD] bg-white'}`}>
+            {/* Pestañas IMÁGENES / VIDEOS */}
+            <div className="flex gap-1">
+              <button
+                type="button"
+                className={`px-4 py-2 text-sm font-medium transition-all rounded-t ${
+                  mediaOverlayTab === 'images'
+                    ? isDark ? 'text-blue-400 border-b-2 border-blue-400 bg-gray-700' : 'text-[#007185] border-b-2 border-[#007185] bg-gray-50'
+                    : isDark ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  setMediaOverlayTab('images');
+                  setMediaOverlayIndex(0);
+                  setFullscreenZoom(1);
+                  setFullscreenPan({ x: 0, y: 0 });
+                }}
+              >
+                IMÁGENES
+              </button>
+              {hasVideos && (
+                <button
+                  type="button"
+                  className={`px-4 py-2 text-sm font-medium transition-all rounded-t ${
+                    mediaOverlayTab === 'videos'
+                      ? isDark ? 'text-blue-400 border-b-2 border-blue-400 bg-gray-700' : 'text-[#007185] border-b-2 border-[#007185] bg-gray-50'
+                      : isDark ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setMediaOverlayTab('videos');
+                    setMediaOverlayIndex(0);
+                    setFullscreenZoom(1);
+                    setFullscreenPan({ x: 0, y: 0 });
+                  }}
+                >
+                  VIDEOS
+                </button>
+              )}
+            </div>
+            
+            {/* Botón X a la derecha */}
+            <button
+              type="button"
+              className={`transition-colors ${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+              aria-label="Cerrar"
               onClick={closeMediaOverlay}
             >
-              <FaTimes size={20} />
+              <FaTimes className="text-2xl" />
             </button>
           </div>
 
-          {/* Área principal de la imagen/video - CENTRADA CON SWIPE Y ZOOM */}
-          <div 
-            className="flex-1 flex items-center justify-center p-4 xl:p-8 relative overflow-hidden" 
-            onClick={(e) => e.stopPropagation()}
-            onTouchStart={handleFullscreenTouchStart}
-            onTouchMove={handleFullscreenTouchMove}
-            onTouchEnd={handleFullscreenTouchEnd}
-          >
-            {/* Flechas SOLO en desktop */}
-            {desktopMediaItems.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  className="hidden xl:flex absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-colors z-10"
-                  aria-label="Anterior"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMediaOverlayIndex((prev) => (prev - 1 + desktopMediaItems.length) % desktopMediaItems.length);
-                  }}
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  className="hidden xl:flex absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-colors z-10"
-                  aria-label="Siguiente"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMediaOverlayIndex((prev) => (prev + 1) % desktopMediaItems.length);
-                  }}
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </>
-            )}
-
-            {/* Imagen/Video principal CENTRADA CON ZOOM Y SWIPE */}
-            <div className="w-full h-full flex items-center justify-center">
-              {(() => {
-                const current = desktopMediaItems[mediaOverlayIndex];
-                if (!current) return null;
-                if (current.type === "video") {
-                  return (
-                    <video 
-                      src={current.url} 
-                      className="max-w-full max-h-full object-contain" 
-                      controls 
-                      autoPlay 
-                      preload="metadata"
-                      style={{
-                        transform: `scale(${fullscreenZoom}) translate(${fullscreenPan.x}px, ${fullscreenPan.y}px)`
+          {/* Contenido - 2 columnas desktop (izq: imagen/video, der: miniaturas) */}
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+            {/* Columna IZQUIERDA - Imagen/Video grande */}
+            <div
+              className={`flex-1 flex items-center justify-center p-4 md:p-8 relative ${isDark ? 'bg-gray-900' : 'bg-white'}`}
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={mediaOverlayTab === 'images' ? handleFullscreenTouchStart : undefined}
+              onTouchMove={mediaOverlayTab === 'images' ? handleFullscreenTouchMove : undefined}
+              onTouchEnd={mediaOverlayTab === 'images' ? handleFullscreenTouchEnd : undefined}
+            >
+              <div className="relative w-full h-full flex items-center justify-center max-w-[1500px]">
+                {/* Flechas SOLO en desktop (≥1280px) - Móvil/tablet usan swipe */}
+                {currentMediaItems.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 text-gray-700 hover:text-gray-900 transition-all hidden xl:flex items-center justify-center"
+                      aria-label="Anterior"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMediaOverlayIndex(
+                          (prev) =>
+                            (prev - 1 + currentMediaItems.length) %
+                            currentMediaItems.length
+                        );
                       }}
-                    />
-                  );
-                }
-                return (
-                  <img
-                    src={current.url}
-                    alt={`${producto?.nombre || "Imagen"}`}
-                    className="max-w-full max-h-full object-contain select-none"
-                    style={{
-                      transform: `scale(${fullscreenZoom}) translate(${fullscreenPan.x}px, ${fullscreenPan.y}px)`,
-                      transition: fullscreenZoom === 1 ? 'transform 0.3s ease' : 'none'
-                    }}
-                    draggable={false}
-                    onDoubleClick={() => {
-                      if (fullscreenZoom === 1) {
-                        setFullscreenZoom(2);
-                      } else {
-                        setFullscreenZoom(1);
-                        setFullscreenPan({ x: 0, y: 0 });
-                      }
-                    }}
-                  />
-                );
-              })()}
-            </div>
-          </div>
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 text-gray-700 hover:text-gray-900 transition-all hidden xl:flex items-center justify-center"
+                      aria-label="Siguiente"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMediaOverlayIndex(
+                          (prev) => (prev + 1) % currentMediaItems.length
+                        );
+                      }}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </>
+                )}
 
-          {/* Thumbnails como slider horizontal abajo SOLO si hay más de 1 imagen */}
-          {desktopMediaItems.length > 1 && (
-            <div className="p-4 xl:p-6" onClick={(e) => e.stopPropagation()}>
-              {/* Desktop: thumbnails verticales a la derecha */}
-              <div className="hidden xl:block absolute right-4 top-1/2 transform -translate-y-1/2 w-24">
-                <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
-                  {desktopMediaItems.map((item, i) => (
+                {/* Contenido principal: Imagen o Video - Acoplado perfectamente */}
+                <div className="w-full h-full flex items-center justify-center px-2 md:px-4">
+                  {(() => {
+                    const current = currentMediaItems[safeMediaIndex];
+                    if (!current) return null;
+                    
+                    // Si es video, mostrar video player
+                    if (mediaOverlayTab === 'videos') {
+                      return (
+                        <video
+                          key={`video-${safeMediaIndex}`}
+                          src={current.url}
+                          controls
+                          className="w-full h-full object-contain"
+                          style={{
+                            maxWidth: "min(100vw - 2rem, 1500px)",
+                            maxHeight: "min(90vh, 100%)",
+                          }}
+                          onError={(e) => {
+                            console.error('Error loading video:', current.url);
+                          }}
+                        />
+                      );
+                    }
+                    
+                    // Si es imagen, mostrar con zoom - Acoplado para vertical/horizontal
+                    return (
+                      <img
+                        src={current.url}
+                        alt={`${producto?.nombre || "Imagen"}`}
+                        className="w-full h-full object-contain select-none"
+                        style={{
+                          maxWidth: "min(100vw - 2rem, 1500px)",
+                          maxHeight: "min(90vh, 100%)",
+                          transform: `scale(${fullscreenZoom}) translate(${fullscreenPan.x}px, ${fullscreenPan.y}px)`,
+                          transition: fullscreenZoom === 1 ? "transform 0.3s ease" : "none",
+                          cursor: fullscreenZoom > 1 ? 'grab' : 'zoom-in',
+                        }}
+                        draggable={false}
+                        onDoubleClick={() => {
+                          if (fullscreenZoom === 1) {
+                            setFullscreenZoom(2);
+                          } else {
+                            setFullscreenZoom(1);
+                            setFullscreenPan({ x: 0, y: 0 });
+                          }
+                        }}
+                      />
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Indicador móvil/tablet con hint de swipe */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 xl:hidden flex flex-col items-center gap-2">
+                <div className={`px-4 py-2 rounded-full text-sm font-medium shadow-lg ${isDark ? 'bg-gray-800 text-white' : 'bg-white/95 text-gray-900'}`}>
+                  {safeMediaIndex + 1} / {currentMediaItems.length}
+                </div>
+                {currentMediaItems.length > 1 && (
+                  <div className={`text-xs px-3 py-1 rounded-full flex items-center gap-1 ${isDark ? 'bg-gray-800/90 text-gray-300' : 'bg-white/90 text-gray-600'}`}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                    </svg>
+                    <span>Desliza</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Columna DERECHA - Miniaturas verticales con scroll (Desktop 768px+) */}
+            <div className={`hidden md:block w-64 lg:w-80 border-l overflow-y-auto p-4 ${isDark ? 'border-gray-700 bg-gray-800' : 'border-[#DDD] bg-gray-50'}`} onClick={(e) => e.stopPropagation()}>
+              <div className="space-y-3">
+                <h3 className={`text-sm font-semibold mb-4 uppercase ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                  {mediaOverlayTab === 'videos' ? 'Videos' : 'Imágenes'}
+                </h3>
+                {/* Grid de miniaturas 2 columnas - Desktop 120x120px con scroll vertical */}
+                <div className="grid grid-cols-2 gap-3">
+                  {currentMediaItems.map((item, i) => (
                     <button
                       key={`desktop-thumb-${i}`}
                       type="button"
-                      className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                        i === mediaOverlayIndex ? "border-white" : "border-gray-600 hover:border-gray-400"
+                      className={`w-full aspect-square overflow-hidden rounded border-2 transition-all ${
+                        i === safeMediaIndex
+                          ? "border-blue-500 ring-2 ring-blue-500/30"
+                          : "border-gray-300 hover:border-blue-500/50"
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1776,64 +1624,85 @@ function VistaProducto() {
                       }}
                       aria-label={`Vista ${i + 1}`}
                     >
-                      {item.type === "video" ? (
-                        <div className="relative w-full h-full">
-                          <video src={item.url} className="w-full h-full object-contain" muted preload="metadata" />
-                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M8 5v14l11-7z"/>
-                            </svg>
+                      {mediaOverlayTab === 'videos' ? (
+                        <div className="relative w-full h-full bg-black flex items-center justify-center">
+                          <video
+                            src={item.url}
+                            className="w-full h-full object-contain"
+                            muted
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="bg-white/90 rounded-full p-2">
+                              <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                              </svg>
+                            </div>
                           </div>
                         </div>
                       ) : (
-                        <img src={item.url} alt={`Miniatura ${i + 1}`} className="w-full h-full object-contain" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Móvil/Tablet: slider horizontal abajo */}
-              <div className="xl:hidden">
-                <div 
-                  className="flex gap-3 overflow-x-auto pb-2 px-2 scrollbar-hide" 
-                  style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}
-                >
-                  {desktopMediaItems.map((item, i) => (
-                    <button
-                      key={`mobile-thumb-${i}`}
-                      type="button"
-                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                        i === mediaOverlayIndex ? "border-white border-opacity-100" : "border-gray-600 border-opacity-50"
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setMediaOverlayIndex(i);
-                        setFullscreenZoom(1);
-                        setFullscreenPan({ x: 0, y: 0 });
-                      }}
-                      aria-label={`Vista ${i + 1}`}
-                    >
-                      {item.type === "video" ? (
-                        <div className="relative w-full h-full">
-                          <video src={item.url} className="w-full h-full object-contain" muted preload="metadata" />
-                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M8 5v14l11-7z"/>
-                            </svg>
-                          </div>
-                        </div>
-                      ) : (
-                        <img src={item.url} alt={`Miniatura ${i + 1}`} className="w-full h-full object-contain" />
+                        <img
+                          src={item.url}
+                          alt={`Miniatura ${i + 1}`}
+                          className="w-full h-full object-contain bg-white p-1"
+                        />
                       )}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Miniaturas horizontales (Móvil - debajo de la imagen/video) */}
+            <div className={`md:hidden border-t p-4 overflow-x-auto ${isDark ? 'border-gray-700 bg-gray-800' : 'border-[#DDD] bg-gray-50'}`} onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-3 min-w-min">
+                {/* Móvil 80x80px con scroll horizontal */}
+                {currentMediaItems.map((item, i) => (
+                  <button
+                    key={`mobile-thumb-${i}`}
+                    type="button"
+                    className={`flex-shrink-0 w-20 h-20 overflow-hidden rounded border-2 transition-all ${
+                      i === safeMediaIndex
+                        ? "border-blue-500 ring-2 ring-blue-500/30"
+                        : "border-gray-300 hover:border-blue-500/50"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMediaOverlayIndex(i);
+                      setFullscreenZoom(1);
+                      setFullscreenPan({ x: 0, y: 0 });
+                    }}
+                    aria-label={`Vista ${i + 1}`}
+                  >
+                    {mediaOverlayTab === 'videos' ? (
+                      <div className="relative w-full h-full bg-black flex items-center justify-center">
+                        <video
+                          src={item.url}
+                          className="w-full h-full object-contain"
+                          muted
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="bg-white/90 rounded-full p-1.5">
+                            <svg className="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={`Miniatura ${i + 1}`}
+                        className="w-full h-full object-contain bg-white p-1"
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+        );
+      })()}
 
       <ModalLoginAlert
         isOpen={modalAbierto}
@@ -1849,7 +1718,10 @@ function VistaProducto() {
 
       {/* Modal de imagen fullscreen - PERFECTO CON SWIPE Y ZOOM */}
       {imagenModalAbierta && (
-        <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col" onClick={cerrarImagenModal}>
+        <div
+          className="fixed inset-0 bg-black/95 z-[9999] flex flex-col"
+          onClick={cerrarImagenModal}
+        >
           {/* Solo botón X arriba a la derecha */}
           <div className="absolute top-4 right-4 z-20">
             <button
@@ -1862,7 +1734,7 @@ function VistaProducto() {
           </div>
 
           {/* Imagen principal CENTRADA CON SWIPE Y ZOOM */}
-          <div 
+          <div
             className="flex-1 flex items-center justify-center p-4 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={onTouchStartModal}
@@ -1874,8 +1746,11 @@ function VistaProducto() {
               alt={`${producto?.nombre}`}
               className="max-w-full max-h-full object-contain select-none"
               style={{
-                transform: `scale(${modalZoom || 1}) translate(${modalPan?.x || 0}px, ${modalPan?.y || 0}px)`,
-                transition: (modalZoom || 1) === 1 ? 'transform 0.3s ease' : 'none'
+                transform: `scale(${modalZoom || 1}) translate(${
+                  modalPan?.x || 0
+                }px, ${modalPan?.y || 0}px)`,
+                transition:
+                  (modalZoom || 1) === 1 ? "transform 0.3s ease" : "none",
               }}
               draggable={false}
               onDoubleClick={() => {
@@ -1896,15 +1771,17 @@ function VistaProducto() {
           {/* Thumbnails como slider horizontal abajo SOLO si hay más de 1 imagen */}
           {imagenesModal.length > 1 && (
             <div className="p-4" onClick={(e) => e.stopPropagation()}>
-              <div 
-                className="flex gap-3 justify-center overflow-x-auto pb-2 scrollbar-hide" 
-                style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}
+              <div
+                className="flex gap-3 justify-center overflow-x-auto pb-2 scrollbar-hide"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 {imagenesModal.map((img, index) => (
                   <button
                     key={index}
                     className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                      index === imagenActualIndex ? "border-white border-opacity-100" : "border-gray-600 border-opacity-50"
+                      index === imagenActualIndex
+                        ? "border-white border-opacity-100"
+                        : "border-gray-600 border-opacity-50"
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1932,31 +1809,132 @@ function VistaProducto() {
         </div>
       )}
 
-      {/* Productos relacionados */}
-      {producto && (
-        <div className="bg-gray-50 py-6">
-          <div className="max-w-7xl mx-auto px-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Artículos similares que pueden enviarse rápidamente
-            </h2>
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-              {/* Aquí irían los productos relacionados */}
-              <div className="flex-shrink-0 w-48 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                <div className="aspect-square bg-gray-50 rounded-t-lg"></div>
-                <div className="p-3">
-                  <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                    Producto relacionado
-                  </h3>
-                  <div className="text-lg font-bold text-gray-900">
-                    RD$ 1,500
-                  </div>
+      {/* 🖼️ Modal de "Más información del producto" - Imágenes grandes fullscreen */}
+      {productInfoModalOpen && (() => {
+        const extraImages = getExtraFiles();
+        if (!extraImages || extraImages.length === 0) return null;
+
+        const currentImage = extraImages[productInfoImageIndex];
+        const hasMultipleImages = extraImages.length > 1;
+
+        return (
+          <div className={`fixed inset-0 z-[9999] flex flex-col ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+            {/* Barra superior simple con X */}
+            <div className={`border-b px-4 py-3 flex items-center justify-between ${isDark ? 'border-gray-700 bg-gray-800' : 'border-[#DDD] bg-white'}`}>
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Información del producto ({productInfoImageIndex + 1} / {extraImages.length})
+              </h2>
+              <button
+                type="button"
+                className={`transition-colors ${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                aria-label="Cerrar"
+                onClick={() => setProductInfoModalOpen(false)}
+              >
+                <FaTimes className="text-2xl" />
+              </button>
+            </div>
+
+            {/* Contenedor de imagen centrada */}
+            <div className={`flex-1 flex items-center justify-center p-4 md:p-8 relative overflow-auto ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+              <div className="relative w-full h-full flex items-center justify-center max-w-[1500px]">
+                {/* Flechas SOLO en desktop - Móvil/tablet usan swipe */}
+                {hasMultipleImages && (
+                  <>
+                    <button
+                      type="button"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 text-gray-700 hover:text-gray-900 transition-all hidden xl:flex items-center justify-center"
+                      aria-label="Anterior"
+                      onClick={() => {
+                        setProductInfoImageIndex(
+                          (prev) => (prev - 1 + extraImages.length) % extraImages.length
+                        );
+                      }}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 text-gray-700 hover:text-gray-900 transition-all hidden xl:flex items-center justify-center"
+                      aria-label="Siguiente"
+                      onClick={() => {
+                        setProductInfoImageIndex(
+                          (prev) => (prev + 1) % extraImages.length
+                        );
+                      }}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+
+                {/* Imagen principal con zoom - Acoplado perfectamente */}
+                <div className="w-full h-full flex items-center justify-center overflow-hidden px-2 md:px-4">
+                  <img
+                    src={currentImage}
+                    alt={`${producto?.nombre} - Información ${productInfoImageIndex + 1}`}
+                    className="w-full h-full object-contain select-none"
+                    style={{
+                      maxWidth: "min(100vw - 2rem, 1500px)",
+                      maxHeight: "min(90vh, 100%)",
+                      transform: `scale(${productInfoZoom}) translate(${productInfoPan.x}px, ${productInfoPan.y}px)`,
+                      transition: productInfoZoom === 1 ? "transform 0.3s ease" : "none",
+                      cursor: productInfoZoom > 1 ? 'grab' : 'zoom-in',
+                    }}
+                    draggable={false}
+                    onDoubleClick={() => {
+                      if (productInfoZoom === 1) {
+                        setProductInfoZoom(2);
+                      } else {
+                        setProductInfoZoom(1);
+                        setProductInfoPan({ x: 0, y: 0 });
+                      }
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = "/Productos/N.jpg";
+                    }}
+                  />
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
 
+            {/* Miniaturas horizontales (solo si hay más de 1 imagen) */}
+            {hasMultipleImages && (
+              <div className={`border-t p-4 overflow-x-auto ${isDark ? 'border-gray-700 bg-gray-800' : 'border-[#DDD] bg-gray-50'}`}>
+                <div className="flex gap-3 justify-center min-w-min">
+                  {extraImages.map((imageUrl, i) => (
+                    <button
+                      key={`product-info-thumb-${i}`}
+                      type="button"
+                      className={`flex-shrink-0 w-20 h-20 overflow-hidden rounded border-2 transition-all ${
+                        i === productInfoImageIndex
+                          ? "border-blue-500 ring-2 ring-blue-500/30"
+                          : "border-gray-300 hover:border-blue-500/50"
+                      }`}
+                      onClick={() => setProductInfoImageIndex(i)}
+                      aria-label={`Vista ${i + 1}`}
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Miniatura ${i + 1}`}
+                        className="w-full h-full object-contain bg-white p-1"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/Productos/N.jpg";
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </>
   );
 }

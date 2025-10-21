@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../styles/BotonCardnet.css";
 
 // Detecta automáticamente si estás en localhost o en producción
@@ -12,55 +12,131 @@ const AUTHORIZE_URL =
     ? "https://lab.cardnet.com.do/authorize"
     : "https://ecommerce.cardnet.com.do/authorize";
 
+// Función para despertar el servidor (evitar cold start de Render)
+const wakeUpServer = async () => {
+  if (import.meta.env.DEV) return; // Solo en producción
+  try {
+    await fetch(`${API_BASE}/cardnet/health`, { 
+      method: "GET",
+      signal: AbortSignal.timeout(5000)
+    });
+  } catch (e) {
+    console.log("Wake-up call al servidor");
+  }
+};
+
+// Fetch con timeout y retry
+const fetchWithRetry = async (url, options, retries = 2) => {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000); // 30 segundos
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return response;
+    } catch (error) {
+      if (i === retries) throw error;
+      // Esperar antes de reintentar (backoff exponencial)
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+    }
+  }
+};
+
 export default function BotonCardnet({ className, total, label }) {
   const [session, setSession] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const displayAmount = typeof total === 'number' ? total / 100 : null; // total llega en centavos
   const formatted = Number.isFinite(displayAmount)
     ? new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(displayAmount)
     : null;
   const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
 
+  // Despertar servidor al montar el componente
+  useEffect(() => {
+    wakeUpServer();
+  }, []);
+
   const iniciarPago = async () => {
+    if (isProcessing) return; // Prevenir clicks múltiples
+    
+    setIsProcessing(true);
+    const button = document.querySelector('.pay-btn');
+    
     try {
-      // Immediate visual feedback like Amazon
-      const button = document.querySelector('.pay-btn');
+      // Visual feedback inmediato
       if (button) {
         button.disabled = true;
         button.classList.add('loading');
       }
 
-      const res = await fetch(`${API_BASE}/cardnet/create-session`, {
+      console.log("🚀 Iniciando pago con Cardnet...");
+
+      // Fetch con retry y timeout extendido
+      const res = await fetchWithRetry(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ total })
       });
 
       const data = await res.json();
+      console.log("✅ Sesión creada:", data.SESSION);
+
       if (!data.SESSION) {
-        alert("❌ No se pudo crear la sesión de pago");
-        if (button) {
-          button.disabled = false;
-          button.classList.remove('loading');
-        }
-        return;
+        throw new Error("No se recibió SESSION del servidor");
       }
 
       setSession(data.SESSION);
-      // Immediate submission - no delay like Amazon
-      document.getElementById("cardnetForm").submit();
+      
+      // Submit automático después de crear la sesión
+      setTimeout(() => {
+        const form = document.getElementById("cardnetForm");
+        if (form) {
+          console.log("📤 Redirigiendo a Cardnet...");
+          form.submit();
+        }
+      }, 100);
+
     } catch (error) {
-      alert("❌ No se pudo conectar al backend");
-      const button = document.querySelector('.pay-btn');
+      console.error("❌ Error en pago:", error);
+      
+      // Mensaje de error específico
+      let errorMsg = "No se pudo procesar el pago";
+      if (error.name === 'AbortError') {
+        errorMsg = "La conexión está tardando demasiado. Por favor, intenta de nuevo.";
+      } else if (error.message.includes('HTTP')) {
+        errorMsg = "Error del servidor. Por favor, intenta de nuevo.";
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMsg = "Error de conexión. Verifica tu internet e intenta de nuevo.";
+      }
+      
+      alert(`❌ ${errorMsg}`);
+      
+      // Restaurar botón
       if (button) {
         button.disabled = false;
         button.classList.remove('loading');
       }
+      setIsProcessing(false);
     }
   };
 
   return (
     <>
-      <button onClick={iniciarPago} className={`pay-btn ${className || ""}`}>
+      <button 
+        onClick={iniciarPago} 
+        className={`pay-btn ${className || ""}`}
+        disabled={isProcessing}
+      >
         <span className="btn-text">{buttonLabel}</span>
         <div className="icon-container">
           <svg viewBox="0 0 24 24" className="icon card-icon">

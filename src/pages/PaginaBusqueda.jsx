@@ -7,6 +7,46 @@ import FiltroDrawer from "../components/FiltroDrawer";
 import BotonFiltro from "../components/BotonFiltro";
 import { useProducts } from "../hooks/useProducts";
 
+// Función para normalizar texto (quitar acentos, minúsculas, etc.)
+const normalizarTexto = (texto) => {
+  if (!texto) return "";
+  return texto
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+};
+
+// Función para calcular similitud entre dos textos (Levenshtein simplificado)
+const esSimilar = (texto1, texto2, umbral = 0.6) => {
+  if (!texto1 || !texto2) return false;
+  
+  const t1 = texto1.toLowerCase();
+  const t2 = texto2.toLowerCase();
+  
+  // Coincidencia exacta
+  if (t1 === t2) return true;
+  
+  // Contiene
+  if (t1.includes(t2) || t2.includes(t1)) return true;
+  
+  // Similitud por caracteres comunes
+  const len1 = t1.length;
+  const len2 = t2.length;
+  const maxLen = Math.max(len1, len2);
+  
+  if (maxLen === 0) return false;
+  
+  let matches = 0;
+  for (let i = 0; i < Math.min(len1, len2); i++) {
+    if (t1[i] === t2[i]) matches++;
+  }
+  
+  const similarity = matches / maxLen;
+  return similarity >= umbral;
+};
+
 function PaginaBusqueda() {
   const location = useLocation();
   const { products: productosActivos, loading } = useProducts();
@@ -21,6 +61,7 @@ function PaginaBusqueda() {
 
   const queryParams = new URLSearchParams(location.search);
   const queryOriginal = queryParams.get("q") || "";
+  const queryNorm = normalizarTexto(queryOriginal);
 
   // Filtra por nombre o empresa, tolerando errores de escritura
   const productosFiltrados = useMemo(
@@ -105,7 +146,7 @@ function PaginaBusqueda() {
             <span className="font-bold">{queryOriginal}</span>.
           </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
             {resultadosFiltrados.map((producto) => (
               <TarjetaProducto key={producto.id} producto={producto} />
             ))}

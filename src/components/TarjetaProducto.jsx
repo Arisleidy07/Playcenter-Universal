@@ -137,246 +137,229 @@ function TarjetaProducto({ producto }) {
 
   // (sin acciones de compartir ni eliminar desde la tarjeta)
 
+  // Obtener imagen del producto
+  const pickUrl = (u) => {
+    try {
+      if (!u) return "";
+      if (typeof u === "string") return u;
+      if (typeof u === "object" && u !== null) return u.url || "";
+      return String(u || "");
+    } catch {
+      return "";
+    }
+  };
+
+  const getProductImage = () => {
+    const principalNueva = pickUrl(producto?.imagenPrincipal?.[0]);
+    if (principalNueva) return principalNueva;
+    const principalLegacy = pickUrl(producto?.imagen);
+    if (principalLegacy) return principalLegacy;
+    const imgsLegacy = Array.isArray(producto?.imagenes)
+      ? producto.imagenes
+      : [];
+    if (imgsLegacy.length > 0) return pickUrl(imgsLegacy[0]);
+    return null;
+  };
+
+  const imagen = getProductImage();
+
   return (
     <>
-      <div
-        onClick={(e) => {
-          if (!e.target.closest("button")) irADetalle();
+      {/* DESKTOP: Tarjeta vertical cuadrada */}
+      <article
+        className="hidden lg:flex flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200"
+        style={{
+          width: "250px",
+          minWidth: "250px",
+          maxWidth: "250px",
+          flexShrink: 0,
         }}
-        className="tarjeta-producto group bg-white dark:bg-gray-900 shadow-md rounded-lg transition-transform transform hover:scale-105"
       >
-        {/* Imagen + Info */}
-        <div className="tarjeta-img-zone relative">
-          {(() => {
-            const pickUrl = (u) => {
-              try {
-                if (!u) return "";
-                if (typeof u === "string") return u;
-                if (typeof u === "object" && u !== null) return u.url || "";
-                return String(u || "");
-              } catch {
-                return "";
-              }
-            };
-            const getProductImage = () => {
-              // 1) Imagen principal nueva
-              const principalNueva = pickUrl(producto?.imagenPrincipal?.[0]);
-              if (principalNueva) return principalNueva;
-              // 2) Legacy principal
-              const principalLegacy = pickUrl(producto?.imagen);
-              if (principalLegacy) return principalLegacy;
-              // 3) Media (buscar una imagen)
-              const mediaArr = Array.isArray(producto?.media)
-                ? producto.media
-                : [];
-              const mediaImg = mediaArr.find((m) => {
-                const t = (m?.type || "").toLowerCase();
-                return (
-                  pickUrl(m) &&
-                  (!t || t.includes("image") || t === "img" || t === "photo")
-                );
-              });
-              if (mediaImg) return pickUrl(mediaImg);
-              // 4) Galería (primera imagen)
-              const galArr = Array.isArray(producto?.galeriaImagenes)
-                ? producto.galeriaImagenes
-                : [];
-              const galImg = galArr.find((g) => {
-                const t = (g?.type || "").toLowerCase();
-                return (
-                  pickUrl(g) &&
-                  (!t || t.includes("image") || t === "img" || t === "photo")
-                );
-              });
-              if (galImg) return pickUrl(galImg);
-              // 5) Legacy imagenes[] (string)
-              const imgsLegacy = Array.isArray(producto?.imagenes)
-                ? producto.imagenes
-                : [];
-              if (imgsLegacy.length > 0) return pickUrl(imgsLegacy[0]);
-              // 6) Variantes: intentar imagen principal/legacy/media de la primera variante con contenido
-              const vars = Array.isArray(producto?.variantes)
-                ? producto.variantes
-                : [];
-              for (const v of vars) {
-                const vPrincipal = pickUrl(v?.imagenPrincipal?.[0]);
-                if (vPrincipal) return vPrincipal;
-                const vLegacy = pickUrl(v?.imagen);
-                if (vLegacy) return vLegacy;
-                const vMediaArr = Array.isArray(v?.media) ? v.media : [];
-                const vMediaImg = vMediaArr.find((mm) => {
-                  const t = (mm?.type || "").toLowerCase();
-                  return (
-                    pickUrl(mm) &&
-                    (!t || t.includes("image") || t === "img" || t === "photo")
-                  );
-                });
-                if (vMediaImg) return pickUrl(vMediaImg);
-                const vGalArr = Array.isArray(v?.galeriaImagenes)
-                  ? v.galeriaImagenes
-                  : [];
-                const vGalImg = vGalArr.find((gg) => {
-                  const t = (gg?.type || "").toLowerCase();
-                  return (
-                    pickUrl(gg) &&
-                    (!t || t.includes("image") || t === "img" || t === "photo")
-                  );
-                });
-                if (vGalImg) return pickUrl(vGalImg);
-              }
-              return null;
-            };
-
-            const mainImage = getProductImage();
-
-            const Placeholder = () => (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background:
-                    "linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%)",
-                }}
-                aria-label="Imagen no disponible"
-              >
-                <svg
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  style={{ color: "#9ca3af" }}
-                >
-                  <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
-                  <circle cx="8.5" cy="10.5" r="1.5"></circle>
-                  <path d="M21 19l-5.5-5.5a2 2 0 00-2.9 0L7 19"></path>
-                </svg>
-              </div>
-            );
-
-            // Mostrar imagen si existe y no falló, en caso contrario mostrar placeholder
-            if (mainImage && !imageFailed) {
-              return (
-                <img
-                  key={mainImage}
-                  src={mainImage}
-                  alt={producto.nombre}
-                  className="tarjeta-img"
-                  onError={() => {
-                    setImageFailed(true);
-                  }}
-                />
-              );
-            }
-            return <Placeholder />;
-          })()}
+        {/* Imagen cuadrada */}
+        <div
+          onClick={irADetalle}
+          className="w-full h-[250px] flex items-center justify-center overflow-hidden mb-3 cursor-pointer"
+          style={{ backgroundColor: "transparent" }}
+        >
+          {imagen ? (
+            <img
+              src={imagen}
+              alt={producto.nombre}
+              className="w-full h-full object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <div className="text-gray-400 text-sm">Sin imagen</div>
+          )}
         </div>
-        <div className="tarjeta-info-zone">
-          <h2 className="tarjeta-nombre">{producto.nombre}</h2>
-          {/* Stock disponible */}
-          {Number.isFinite(restante) && restante > 0 && restante <= 10 && (
-            <div className="tarjeta-stock-info">
-              {restante <= 3 ? (
-                <span className="stock-bajo">
-                  Solo quedan {restante} unidades
-                </span>
-              ) : (
-                <span className="stock-medio">Quedan {restante} unidades</span>
-              )}
-            </div>
-          )}
-          {Number.isFinite(restante) && restante > 10 && (
-            <div className="tarjeta-stock-info">
-              <span className="stock-alto">Disponible</span>
-            </div>
-          )}
-          <div className="tarjeta-price-row">
-            {hasOffer && (
-              <span className="descuento-badge">
-                {Math.round(
-                  (1 -
-                    Number(producto?.precioOferta) / Number(producto?.precio)) *
-                    100
-                )}
-                % OFF
-              </span>
-            )}
-            <div className="tarjeta-precio">
-              <span className="currency">RD$</span>
-              <span className="whole">{priceParts.wholeFormatted}</span>
-            </div>
+
+        <h3
+          onClick={irADetalle}
+          className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 mb-2 cursor-pointer"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            lineHeight: "1.4em",
+            height: "2.8em",
+            fontSize: "0.95rem",
+          }}
+        >
+          {producto.nombre}
+        </h3>
+
+        <div className="flex items-baseline gap-1 mb-3">
+          <span className="text-sm text-gray-600 dark:text-gray-400">RD$</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {Number(producto.precio).toFixed(2)}
+          </span>
+        </div>
+
+        {enCarrito ? (
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={handleDecremento}
+              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
+              −
+            </button>
+            <span className="font-semibold">{cantidadEnCarrito}</span>
+            <button
+              onClick={handleIncremento}
+              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
+              +
+            </button>
+            <button
+              onClick={handleQuitar}
+              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              <FaTrashAlt />
+            </button>
           </div>
-          {hasOffer && (
-            <div className="precio-original">
-              RD$ {formatPriceRD(producto.precio)}
-            </div>
-          )}
-          <div className="botones-wrapper">
-            {enCarrito ? (
-              <>
-                <button onClick={handleDecremento} className="carrito-btn">
-                  −
-                </button>
-                <span className="font-semibold">{cantidadEnCarrito}</span>
-                <button
-                  onClick={handleIncremento}
-                  className="carrito-btn"
-                  disabled={
-                    Number.isFinite(stockDisponible) &&
-                    cantidadEnCarrito >= stockDisponible
-                  }
-                  title={
-                    Number.isFinite(stockDisponible) &&
-                    cantidadEnCarrito >= stockDisponible
-                      ? "Has alcanzado el máximo disponible"
-                      : "Agregar una unidad"
-                  }
-                >
-                  +
-                </button>
-                <button
-                  onClick={handleQuitar}
-                  type="button"
-                  className="carrito-quitar"
-                  title="Quitar del carrito"
-                  aria-label="Quitar del carrito"
-                >
-                  <FaTrashAlt />
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleAgregar}
-                className={`carrito-main-btn ${
-                  !disponible
-                    ? "opacity-60 cursor-not-allowed bg-gray-300 text-gray-600 hover:bg-gray-300"
-                    : ""
-                }`}
-                disabled={!disponible}
-                title={
-                  !disponible ? "No quedan productos" : "Agregar al carrito"
-                }
-                aria-label="Agregar al carrito"
-              >
-                <FaShoppingCart aria-hidden="true" />
-                <span>Agregar al carrito</span>
-              </button>
-            )}
-          </div>
-          <ModalLoginAlert
-            isOpen={modalAlertaAbierto}
-            onClose={() => setModalAlertaAbierto(false)}
-            onIniciarSesion={() => {
-              setModalAlertaAbierto(false);
-              abrirModal();
+        ) : (
+          <button
+            onClick={handleAgregar}
+            className="w-full py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: "#0066C0",
+              color: "#FFFFFF",
+              border: "1px solid #0066C0",
             }}
-          />
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#004F9A")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#0066C0")
+            }
+            disabled={!disponible}
+          >
+            <FaShoppingCart />
+            Agregar al Carrito
+          </button>
+        )}
+      </article>
+
+      {/* MÓVIL/TABLET: Tarjeta horizontal */}
+      <article className="flex lg:hidden flex-row bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 w-full">
+        <div
+          onClick={irADetalle}
+          className="w-32 h-32 flex-shrink-0 flex items-center justify-center overflow-hidden mr-3 cursor-pointer"
+          style={{ backgroundColor: "transparent" }}
+        >
+          {imagen ? (
+            <img
+              src={imagen}
+              alt={producto.nombre}
+              className="w-full h-full object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <div className="text-gray-400 text-xs">Sin imagen</div>
+          )}
         </div>
-      </div>
+
+        <div className="flex-1 flex flex-col justify-between">
+          <div>
+            <h3
+              onClick={irADetalle}
+              className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 mb-2 cursor-pointer text-sm font-medium"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                lineHeight: "1.3em",
+              }}
+            >
+              {producto.nombre}
+            </h3>
+
+            <div className="flex items-baseline gap-1 mb-2">
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                RD$
+              </span>
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                {Number(producto.precio).toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          {enCarrito ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDecremento}
+                className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+              >
+                −
+              </button>
+              <span className="text-sm font-semibold">{cantidadEnCarrito}</span>
+              <button
+                onClick={handleIncremento}
+                className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs"
+              >
+                +
+              </button>
+              <button
+                onClick={handleQuitar}
+                className="px-2 py-1 bg-red-500 text-white rounded text-xs"
+              >
+                <FaTrashAlt size={10} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleAgregar}
+              className="w-full py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
+              style={{
+                backgroundColor: "#0066C0",
+                color: "#FFFFFF",
+                border: "1px solid #0066C0",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#004F9A")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#0066C0")
+              }
+              disabled={!disponible}
+            >
+              <FaShoppingCart size={12} />
+              Agregar al Carrito
+            </button>
+          )}
+        </div>
+      </article>
+
+      <ModalLoginAlert
+        isOpen={modalAlertaAbierto}
+        onClose={() => setModalAlertaAbierto(false)}
+        onIniciarSesion={() => {
+          setModalAlertaAbierto(false);
+          abrirModal();
+        }}
+      />
     </>
   );
 }

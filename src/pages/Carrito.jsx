@@ -113,7 +113,28 @@ export default function Carrito() {
   return (
     <main className="carrito-page" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
       {carrito.length === 0 ? (
-        <p className="carrito-empty">Tu carrito está vacío.</p>
+        <div className="carrito-empty-wrap">
+          <div className="carrito-empty-box">
+            <img
+              src="/toy/asoma.png"
+              alt="Explora nuestros productos"
+              className="carrito-empty-figure"
+              loading="lazy"
+            />
+            <div className="carrito-empty-glass">
+              <div className="carrito-empty-icon" aria-hidden="true">🛒</div>
+              <h2 className="carrito-empty-title">No hay nada en el carrito</h2>
+              <p className="carrito-empty-sub">Explora nuestros productos</p>
+              <button
+                type="button"
+                className="carrito-empty-cta"
+                onClick={() => navigate('/categorias')}
+              >
+                Ver productos
+              </button>
+            </div>
+          </div>
+        </div>
       ) : (
         <>
           <div className="carrito-grid">

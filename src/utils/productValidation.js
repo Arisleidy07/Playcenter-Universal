@@ -3,6 +3,8 @@
  * Ensures products meet quality standards before publication
  */
 
+import React from 'react';
+
 export const VALIDATION_RULES = {
   // Required fields
   REQUIRED_FIELDS: ['nombre', 'precio', 'categoria', 'descripcion'],
@@ -280,6 +282,11 @@ export const validateVariants = (variants = []) => {
   const variantNames = [];
   
   variants.forEach((variant, index) => {
+    // Skip undefined or null variants
+    if (!variant || typeof variant !== 'object') {
+      return;
+    }
+    
     const name = variant.color || variant.name || '';
     
     // Check variant name length
@@ -376,24 +383,49 @@ export const validateMediaArrays = (formData) => {
  * Comprehensive product validation
  */
 export const validateProduct = (formData) => {
+  // Validar que formData existe y es un objeto
+  if (!formData || typeof formData !== 'object') {
+    return [{
+      field: 'general',
+      message: 'Datos del producto no válidos',
+      severity: VALIDATION_SEVERITY.ERROR
+    }];
+  }
+
   let errors = [];
   
   // Validate required fields
   VALIDATION_RULES.REQUIRED_FIELDS.forEach(field => {
-    errors = errors.concat(validateField(field, formData[field], formData));
+    try {
+      errors = errors.concat(validateField(field, formData[field], formData));
+    } catch (error) {
+      console.error(`Error validating field ${field}:`, error);
+    }
   });
   
   // Validate optional fields if present
   if (formData.cantidad !== undefined) {
-    errors = errors.concat(validateField('cantidad', formData.cantidad, formData));
+    try {
+      errors = errors.concat(validateField('cantidad', formData.cantidad, formData));
+    } catch (error) {
+      console.error('Error validating cantidad:', error);
+    }
   }
   
   // Validate media
-  errors = errors.concat(validateMediaArrays(formData));
+  try {
+    errors = errors.concat(validateMediaArrays(formData));
+  } catch (error) {
+    console.error('Error validating media:', error);
+  }
   
   // Validate variants
-  if (formData.variantes && formData.variantes.length > 0) {
-    errors = errors.concat(validateVariants(formData.variantes));
+  if (formData.variantes && Array.isArray(formData.variantes) && formData.variantes.length > 0) {
+    try {
+      errors = errors.concat(validateVariants(formData.variantes));
+    } catch (error) {
+      console.error('Error validating variants:', error);
+    }
   }
   
   return errors;
@@ -412,6 +444,22 @@ export const isProductReadyForPublication = (formData) => {
  * Get validation summary
  */
 export const getValidationSummary = (formData) => {
+  // Validación segura contra undefined/null
+  if (!formData || typeof formData !== 'object') {
+    return {
+      isReady: false,
+      errorCount: 1,
+      warningCount: 0,
+      errors: [{
+        field: 'general',
+        message: 'Datos del producto no válidos',
+        severity: VALIDATION_SEVERITY.ERROR
+      }],
+      canPublish: false,
+      status: 'incomplete'
+    };
+  }
+
   const errors = validateProduct(formData);
   const errorCount = errors.filter(e => e.severity === VALIDATION_SEVERITY.ERROR).length;
   const warningCount = errors.filter(e => e.severity === VALIDATION_SEVERITY.WARNING).length;

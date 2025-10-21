@@ -10,17 +10,17 @@ export const IMAGE_CONFIG = {
   MEDIUM_QUALITY: 0.85,
   HIGH_QUALITY: 0.9,
   
-  // Size configurations
-  THUMBNAIL_SIZE: { width: 150, height: 150 },
-  SMALL_SIZE: { width: 300, height: 300 },
-  MEDIUM_SIZE: { width: 600, height: 600 },
-  LARGE_SIZE: { width: 1200, height: 1200 },
+  // Size configurations (aligned with PDP spec)
+  THUMBNAIL_SIZE: { width: 200, height: 200 },
+  SMALL_SIZE: { width: 400, height: 400 },
+  MEDIUM_SIZE: { width: 800, height: 800 },
+  LARGE_SIZE: { width: 1600, height: 1600 },
   
-  // File size limits (bytes)
-  MAX_THUMBNAIL_SIZE: 50 * 1024,      // 50KB
-  MAX_SMALL_SIZE: 150 * 1024,         // 150KB
-  MAX_MEDIUM_SIZE: 500 * 1024,        // 500KB
-  MAX_LARGE_SIZE: 2 * 1024 * 1024,    // 2MB
+  // File size limits (bytes) tuned for the new sizes
+  MAX_THUMBNAIL_SIZE: 80 * 1024,       // ~80KB
+  MAX_SMALL_SIZE: 220 * 1024,          // ~220KB
+  MAX_MEDIUM_SIZE: 900 * 1024,         // ~900KB
+  MAX_LARGE_SIZE: 3 * 1024 * 1024,     // ~3MB
   
   // Supported formats
   SUPPORTED_FORMATS: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],

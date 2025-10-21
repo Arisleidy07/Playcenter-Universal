@@ -1,22 +1,86 @@
-.sidebar-scroll {
-    overflow-y: auto;
-    overflow-x: hidden;
+.categorias-sidebar {
+  position: relative;
+  height: calc(100vh - 100px);
 }
 
-.sidebar-scroll::-webkit-scrollbar {
-    width: 6px;
+.categorias-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.sidebar-scroll::-webkit-scrollbar-track {
-    background: transparent;
+/* Estilo minimalista del scrollbar */
+.categorias-scroll::-webkit-scrollbar {
+  width: 4px;
 }
 
-.sidebar-scroll::-webkit-scrollbar-thumb {
-    background-color: transparent;
-    transition: background-color 0.2s;
+.categorias-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.sidebar-scroll:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(59, 130, 246, 0.5);
-    border-radius: 3px;
+.categorias-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.categorias-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+}
+
+/* Indicador de scroll */
+.scroll-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scroll-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.scroll-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #2563eb;
+  opacity: 0;
+  animation: dotFade 1.5s infinite;
+}
+
+.scroll-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.scroll-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotFade {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Tema oscuro */
+html.dark-theme .categorias-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html.dark-theme .categorias-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(209, 213, 219, 0.2);
 }

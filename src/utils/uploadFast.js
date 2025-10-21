@@ -1,8 +1,8 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase';
+// ✅ ACTUALIZADO PARA CLOUDINARY - Sin problemas de CORS
+import { uploadToCloudinary } from '../cloudinary';
 
 /**
- * Sube una imagen a Firebase Storage de forma rápida y devuelve la URL de descarga.
+ * Subida rápida de imagen a Cloudinary con preview instantáneo
  * Esta función está optimizada para mostrar una vista previa inmediata mientras se sube en segundo plano.
  * 
  * @param {File} file - El archivo de imagen a subir.
@@ -14,16 +14,11 @@ export const uploadImageFast = async (file, productId) => {
     throw new Error('Se requiere un archivo y un ID de producto para la subida.');
   }
 
-  const timestamp = Date.now();
-  const randomId = Math.random().toString(36).substring(2, 9);
-  const fileName = `${timestamp}_${randomId}_${file.name}`;
-  const storagePath = `productos/${productId}/imagenes/${fileName}`;
-  const storageRef = ref(storage, storagePath);
-
   try {
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
+    // Subir a Cloudinary con folder personalizado
+    const folder = `products/${productId}/images`;
+    const url = await uploadToCloudinary(file, folder);
+    return url;
   } catch (error) {
     console.error(`Error subiendo imagen ${file.name}:`, error);
     throw new Error(`No se pudo subir la imagen ${file.name}.`);
@@ -31,7 +26,7 @@ export const uploadImageFast = async (file, productId) => {
 };
 
 /**
- * Sube un video a Firebase Storage de forma rápida y devuelve la URL de descarga.
+ * Sube un video a Cloudinary de forma rápida y devuelve la URL de descarga.
  * Esta función está optimizada para mostrar una vista previa inmediata mientras se sube en segundo plano.
  * 
  * @param {File} file - El archivo de video a subir.
@@ -43,16 +38,11 @@ export const uploadVideoFast = async (file, productId) => {
     throw new Error('Se requiere un archivo y un ID de producto para la subida.');
   }
 
-  const timestamp = Date.now();
-  const randomId = Math.random().toString(36).substring(2, 9);
-  const fileName = `${timestamp}_${randomId}_${file.name}`;
-  const storagePath = `productos/${productId}/videos/${fileName}`;
-  const storageRef = ref(storage, storagePath);
-
   try {
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
+    // Subir a Cloudinary con folder personalizado
+    const folder = `products/${productId}/videos`;
+    const url = await uploadToCloudinary(file, folder);
+    return url;
   } catch (error) {
     console.error(`Error subiendo video ${file.name}:`, error);
     throw new Error(`No se pudo subir el video ${file.name}.`);
@@ -60,7 +50,7 @@ export const uploadVideoFast = async (file, productId) => {
 };
 
 /**
- * Sube cualquier tipo de archivo a Firebase Storage y devuelve la URL de descarga.
+ * Sube cualquier tipo de archivo a Cloudinary y devuelve la URL de descarga.
  * Esta función está optimizada para mostrar una vista previa inmediata mientras se sube en segundo plano.
  * 
  * @param {File} file - El archivo a subir.
@@ -82,19 +72,14 @@ export const uploadFileFast = async (file, productId, fileType = null) => {
   };
 
   const type = getFileType(fileType);
-  const timestamp = Date.now();
-  const randomId = Math.random().toString(36).substring(2, 9);
-  const fileName = `${timestamp}_${randomId}_${file.name}`;
-  const folder = type === 'image' ? 'imagenes' : type === 'video' ? 'videos' : 'documentos';
-  const storagePath = `productos/${productId}/${folder}/${fileName}`;
-  const storageRef = ref(storage, storagePath);
+  const folderName = type === 'image' ? 'images' : type === 'video' ? 'videos' : 'documents';
+  const folder = `products/${productId}/${folderName}`;
 
   try {
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const url = await uploadToCloudinary(file, folder);
 
     return {
-      url: downloadURL,
+      url,
       type,
       name: file.name,
     };

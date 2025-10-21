@@ -103,8 +103,9 @@ function SidebarCategorias({
         </div>
 
         {/* Lista scrollable */}
-        <div className="sidebar-scroll" style={{ height: "calc(100vh - 64px)" }}>
-            <div className="relative z-10">
+        <div className="categorias-sidebar">
+          <div className="categorias-scroll">
+            <div className="relative z-10 flex-1 pr-2">
               <motion.h2
                 className="text-lg font-semibold mb-4 text-center tracking-wide text-blue-700 dark:text-blue-400 select-none"
                 variants={titleVariants}
@@ -141,6 +142,7 @@ function SidebarCategorias({
                 </div>
               </div>
             </div>
+          </div>
         </div>
       </aside>
 

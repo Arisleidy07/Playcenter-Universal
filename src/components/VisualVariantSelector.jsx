@@ -1,295 +1,147 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Check, AlertTriangle, X, Package, Truck, Clock } from 'lucide-react';
+import React from "react";
+import { motion } from "framer-motion";
 
+/**
+ * VisualVariantSelector - Selector visual de variantes con imágenes
+ * Muestra las variantes del producto con sus imágenes, stock y precios
+ */
 const VisualVariantSelector = ({
-  variants = [],
-  selectedIndex = 0,
-  onVariantChange,
-  productMainImage = null,
-  showPrices = true,
+  variantes = [],
+  varianteSeleccionada = 0,
+  onVarianteChange,
   showStock = true,
-  className = ''
+  showPrice = true,
+  className = "",
 }) => {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-
-  // Ensure selected index is valid
-  useEffect(() => {
-    if (selectedIndex >= variants.length || selectedIndex < 0) {
-      onVariantChange?.(0);
-    }
-  }, [variants.length, selectedIndex, onVariantChange]);
-
-  // Get variant image with fallbacks
-  const getVariantImage = (variant) => {
-    // Try variant-specific images first
-    if (variant.imagen && variant.imagen.trim()) return variant.imagen;
-    if (variant.imagenPrincipal && variant.imagenPrincipal[0]?.url) return variant.imagenPrincipal[0].url;
-    if (variant.imagenes && variant.imagenes[0]) return variant.imagenes[0];
-    if (variant.media && variant.media[0]?.url) return variant.media[0].url;
-    
-    // Fallback to product main image
-    return productMainImage;
-  };
-
-  // Get stock status
-  const getStockStatus = (variant) => {
-    const stock = parseInt(variant.cantidad || variant.stock || 0);
-    
-    if (stock <= 0) {
-      return { status: 'out_of_stock', label: 'Agotado', color: 'text-red-600', bgColor: 'bg-red-50', icon: X };
-    } else if (stock <= 5) {
-      return { status: 'low_stock', label: `Quedan ${stock}`, color: 'text-yellow-600', bgColor: 'bg-yellow-50', icon: AlertTriangle };
-    } else if (stock <= 20) {
-      return { status: 'medium_stock', label: `${stock} disponibles`, color: 'text-blue-600', bgColor: 'bg-blue-50', icon: Package };
-    } else {
-      return { status: 'in_stock', label: 'En stock', color: 'text-green-600', bgColor: 'bg-green-50', icon: Check };
-    }
-  };
-
-  // Get variant price
-  const getVariantPrice = (variant, basePrice = 0) => {
-    const variantPrice = parseFloat(variant.precio || variant.price || 0);
-    const productPrice = parseFloat(basePrice);
-    
-    if (variantPrice > 0) {
-      const difference = variantPrice - productPrice;
-      return {
-        price: variantPrice,
-        difference,
-        hasCustomPrice: true
-      };
-    }
-    
-    return {
-      price: productPrice,
-      difference: 0,
-      hasCustomPrice: false
-    };
-  };
-
-  // Format price for display
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-DO', {
-      style: 'currency',
-      currency: 'DOP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(price);
-  };
-
-  if (!variants.length) {
+  if (!variantes || variantes.length === 0) {
     return null;
   }
 
-  return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Variantes disponibles
-        </h3>
-        <span className="text-sm text-gray-500">
-          {variants.length} opcion{variants.length !== 1 ? 'es' : ''}
-        </span>
-      </div>
+  // Filtrar variantes que tienen color definido
+  const variantesConColor = variantes.filter(
+    (v) => v && typeof v.color === "string" && v.color.trim()
+  );
 
-      {/* Variant Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3">
-        {variants.map((variant, index) => {
-          const isSelected = index === selectedIndex;
-          const isHovered = index === hoveredIndex;
-          const stockInfo = getStockStatus(variant);
-          const priceInfo = getVariantPrice(variant);
-          const variantImage = getVariantImage(variant);
-          const isOutOfStock = stockInfo.status === 'out_of_stock';
+  if (variantesConColor.length === 0) {
+    return null;
+  }
+
+  const handleVariantClick = (index) => {
+    if (onVarianteChange) {
+      onVarianteChange(index);
+    }
+  };
+
+  return (
+    <div className={`visual-variant-selector ${className}`}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {variantesConColor.map((variante, index) => {
+          const isSelected = index === varianteSeleccionada;
+          const isOutOfStock = variante.cantidad <= 0;
           
+          // Obtener imagen de la variante
+          const imagenVariante =
+            variante.imagenPrincipal?.[0]?.url ||
+            variante.imagen ||
+            variante.imagenes?.[0] ||
+            null;
+
           return (
             <motion.button
-              key={variant.id || index}
-              onClick={() => !isOutOfStock && onVariantChange?.(index)}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
+              key={index}
+              type="button"
+              onClick={() => !isOutOfStock && handleVariantClick(index)}
               disabled={isOutOfStock}
+              whileHover={!isOutOfStock ? { scale: 1.05 } : {}}
+              whileTap={!isOutOfStock ? { scale: 0.95 } : {}}
               className={`
-                relative p-3 rounded-xl border-2 transition-all duration-200 text-left
-                ${isSelected 
-                  ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' 
-                  : isOutOfStock
-                    ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+                relative p-3 rounded-lg border-2 transition-all duration-200
+                ${
+                  isSelected
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                 }
-                ${isHovered && !isSelected && !isOutOfStock ? 'transform scale-[1.02]' : ''}
+                ${
+                  isOutOfStock
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:border-blue-300 dark:hover:border-blue-600 cursor-pointer"
+                }
               `}
-              whileTap={!isOutOfStock ? { scale: 0.98 } : {}}
             >
-              {/* Selection Indicator */}
+              {/* Imagen de la variante */}
+              {imagenVariante && (
+                <div className="aspect-square mb-2 rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  <img
+                    src={imagenVariante}
+                    alt={variante.color}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              )}
+
+              {/* Color */}
+              <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                {variante.color}
+              </div>
+
+              {/* Stock */}
+              {showStock && (
+                <div
+                  className={`text-xs ${
+                    isOutOfStock
+                      ? "text-red-600 dark:text-red-400"
+                      : variante.cantidad < 5
+                      ? "text-orange-600 dark:text-orange-400"
+                      : "text-green-600 dark:text-green-400"
+                  }`}
+                >
+                  {isOutOfStock
+                    ? "Agotado"
+                    : `${variante.cantidad} disponibles`}
+                </div>
+              )}
+
+              {/* Precio específico de variante */}
+              {showPrice && variante.precio && (
+                <div className="text-sm font-semibold text-green-600 dark:text-green-400 mt-1">
+                  RD$ {Number(variante.precio).toFixed(2)}
+                </div>
+              )}
+
+              {/* Indicador de selección */}
               {isSelected && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
+                  className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
                 >
-                  <Check className="w-4 h-4 text-white" />
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
                 </motion.div>
               )}
 
-              {/* Out of Stock Overlay */}
+              {/* Overlay de agotado */}
               {isOutOfStock && (
-                <div className="absolute inset-0 bg-gray-900/20 rounded-xl flex items-center justify-center">
-                  <div className="bg-white px-3 py-1 rounded-full text-sm font-medium text-gray-600">
+                <div className="absolute inset-0 bg-gray-900/50 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">
                     Agotado
-                  </div>
+                  </span>
                 </div>
               )}
-
-              <div className="flex items-start space-x-3">
-                {/* Variant Image */}
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                    {variantImage ? (
-                      <img
-                        src={variantImage}
-                        alt={variant.color || variant.name || `Variante ${index + 1}`}
-                        className="w-full h-full object-contain"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-6 h-6 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Variant Info */}
-                <div className="flex-1 min-w-0">
-                  {/* Variant Name */}
-                  <h4 className="font-medium text-gray-900 truncate">
-                    {variant.color || variant.name || `Variante ${index + 1}`}
-                  </h4>
-
-                  {/* Description */}
-                  {variant.descripcion && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                      {variant.descripcion}
-                    </p>
-                  )}
-
-                  {/* Price */}
-                  {showPrices && priceInfo.price > 0 && (
-                    <div className="mt-2">
-                      <span className="text-lg font-bold text-gray-900">
-                        {formatPrice(priceInfo.price)}
-                      </span>
-                      {priceInfo.hasCustomPrice && priceInfo.difference !== 0 && (
-                        <span className={`ml-2 text-sm ${
-                          priceInfo.difference > 0 ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          ({priceInfo.difference > 0 ? '+' : ''}{formatPrice(priceInfo.difference)})
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Stock Status */}
-                  {showStock && (
-                    <div className={`inline-flex items-center space-x-1 mt-2 px-2 py-1 rounded-full text-xs font-medium ${stockInfo.bgColor} ${stockInfo.color}`}>
-                      <stockInfo.icon className="w-3 h-3" />
-                      <span>{stockInfo.label}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Hover Effect */}
-              <AnimatePresence>
-                {isHovered && !isSelected && !isOutOfStock && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-blue-500/5 rounded-xl pointer-events-none"
-                  />
-                )}
-              </AnimatePresence>
             </motion.button>
           );
         })}
-      </div>
-
-      {/* Selected Variant Summary */}
-      <AnimatePresence>
-        {variants[selectedIndex] && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-blue-50 border border-blue-200 rounded-lg p-4"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-blue-200">
-                  {getVariantImage(variants[selectedIndex]) ? (
-                    <img
-                      src={getVariantImage(variants[selectedIndex])}
-                      alt="Variante seleccionada"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-5 h-5 text-blue-400" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-medium text-blue-900">
-                    {variants[selectedIndex].color || variants[selectedIndex].name || `Variante ${selectedIndex + 1}`}
-                  </h4>
-                  <p className="text-sm text-blue-700">Seleccionado actualmente</p>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="flex items-center space-x-2 text-sm text-blue-600">
-                {getStockStatus(variants[selectedIndex]).status === 'in_stock' && (
-                  <div className="flex items-center space-x-1">
-                    <Truck className="w-4 h-4" />
-                    <span>Envío disponible</span>
-                  </div>
-                )}
-                {getStockStatus(variants[selectedIndex]).status === 'low_stock' && (
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
-                    <span>¡Últimas unidades!</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Stock Legend */}
-      <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-        <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 bg-green-100 rounded-full flex items-center justify-center">
-            <Check className="w-2 h-2 text-green-600" />
-          </div>
-          <span>En stock</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 bg-yellow-100 rounded-full flex items-center justify-center">
-            <AlertTriangle className="w-2 h-2 text-yellow-600" />
-          </div>
-          <span>Pocas unidades</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 bg-red-100 rounded-full flex items-center justify-center">
-            <X className="w-2 h-2 text-red-600" />
-          </div>
-          <span>Agotado</span>
-        </div>
       </div>
     </div>
   );

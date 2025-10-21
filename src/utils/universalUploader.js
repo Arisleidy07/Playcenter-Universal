@@ -1,5 +1,5 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase';
+// ✅ ACTUALIZADO PARA CLOUDINARY
+import { uploadToCloudinary } from '../cloudinary';
 
 /**
  * Subida universal de archivos a Firebase Storage
@@ -30,33 +30,23 @@ export const uploadFileUniversal = async (file, productId, fileType = 'media') =
       throw new Error(`Archivo muy grande (máximo ${Math.round(maxSize / 1024 / 1024)}MB)`);
     }
 
-    // Crear nombre único
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 15);
-    const extension = file.name.split('.').pop() || 'bin';
-    const fileName = `${timestamp}_${randomId}.${extension}`;
-
-    // Crear referencia
-    const fileRef = ref(storage, `productos/${productId}/${folder}/${fileName}`);
-
-    // Subir archivo
-    console.log(`🚀 Subiendo ${file.type} (${(file.size / 1024 / 1024).toFixed(2)}MB) a ${folder}/`);
-    const snapshot = await uploadBytes(fileRef, file);
-
-    // Obtener URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    // Subir archivo a Cloudinary
+    console.log(`🚀 Subiendo ${file.type} (${(file.size / 1024 / 1024).toFixed(2)}MB) a Cloudinary ${folder}/`);
+    
+    const cloudinaryFolder = `products/${productId}/${folder}`;
+    const downloadURL = await uploadToCloudinary(file, cloudinaryFolder);
 
     if (!downloadURL) {
       throw new Error('No se pudo obtener la URL de descarga');
     }
 
-    console.log(`✅ Archivo subido exitosamente: ${downloadURL}`);
+    console.log(`✅ Archivo subido exitosamente a Cloudinary: ${downloadURL}`);
     return {
       url: downloadURL,
       type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'document',
       name: file.name,
       size: file.size,
-      path: `productos/${productId}/${folder}/${fileName}`
+      path: cloudinaryFolder
     };
   } catch (error) {
     console.error('❌ Error en uploadFileUniversal:', error);

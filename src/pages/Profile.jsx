@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "firebase/auth";
 import { subirImagenCloudinary } from "../utils/subirImagenCloudinary";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   collection,

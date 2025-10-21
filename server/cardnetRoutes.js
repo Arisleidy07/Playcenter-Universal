@@ -27,6 +27,11 @@ const MERCHANT_NAME =
 // Guardar SESSION → session-key en memoria (⚠️ se borra si Render reinicia el server)
 const sessions = {};
 
+// Health check endpoint para despertar el servidor
+router.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: Date.now() });
+});
+
 // Crear sesión con CardNet
 router.post("/create-session", async (req, res) => {
   try {

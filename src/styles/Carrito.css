@@ -61,6 +61,119 @@
   animation: fadeIn 0.5s ease;
 }
 
+.carrito-empty-wrap {
+  width: 100%;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.carrito-empty-glass {
+  width: 100%;
+  max-width: 560px;
+  padding: 2.6rem 1.8rem 1.8rem; /* extra top space under the attached illustration */
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.15);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  text-align: center;
+  animation: fadeInUp 0.6s ease;
+  position: relative;
+  z-index: 0;
+}
+
+/* Wrapper to anchor the figure above the glass card */
+.carrito-empty-box {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Illustration sits just above the glass and stays attached (negative margin) */
+.carrito-empty-figure {
+  width: clamp(140px, 40vw, 220px);
+  height: auto;
+  margin-bottom: -36px; /* attach to top edge of glass */
+  filter: drop-shadow(0 10px 20px rgba(2, 6, 23, 0.15));
+  user-select: none;
+  pointer-events: none;
+  position: relative;
+  z-index: 1; /* keep above the glass */
+}
+
+.carrito-empty-icon {
+  font-size: 2.6rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 6px 14px rgba(2, 6, 23, 0.12));
+}
+
+.carrito-empty-title {
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+}
+
+.carrito-empty-sub {
+  margin-top: 0.25rem;
+  margin-bottom: 1.1rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.carrito-empty-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.85rem 1.4rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(to bottom right, #3b82f6, #2563eb);
+  color: #ffffff;
+  font-weight: 800;
+  border: 1px solid rgba(37, 99, 235, 0.85);
+  box-shadow: 0 10px 22px rgba(59, 130, 246, 0.28);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.carrito-empty-cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.36);
+}
+
+.carrito-empty-cta:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 768px) {
+  .carrito-empty-glass {
+    max-width: 480px;
+    padding: 2.2rem 1.2rem 1.2rem; /* preserve top clearance */
+    border-radius: 0.9rem;
+  }
+  .carrito-empty-box {
+    max-width: 480px;
+  }
+  .carrito-empty-figure {
+    margin-bottom: -28px;
+  }
+  .carrito-empty-title {
+    font-size: 1.35rem;
+  }
+  .carrito-empty-sub {
+    font-size: 0.95rem;
+  }
+}
+
 /* Grid */
 .carrito-grid {
   display: grid;
@@ -562,6 +675,24 @@ html.dark-theme .carrito-nombre {
 
 html.dark-theme .carrito-subtotal {
   color: #60a5fa;
+}
+
+html.dark-theme .carrito-empty-glass {
+  background: rgba(17, 24, 39, 0.45);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+html.dark-theme .carrito-empty-title {
+  color: #f9fafb;
+}
+
+html.dark-theme .carrito-empty-sub {
+  color: #9ca3af;
+}
+
+html.dark-theme .carrito-empty-cta {
+  box-shadow: 0 10px 22px rgba(59, 130, 246, 0.3);
 }
 
 html.dark-theme .resumen-card {

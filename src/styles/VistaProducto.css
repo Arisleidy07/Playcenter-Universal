@@ -2,21 +2,23 @@
    TIPOGRAFÍA Y TEXTOS
 =========================== */
 .vp-title {
-  font-weight: 600; /* Menos bold como Amazon */
-  color: #0f1111; /* Color Amazon */
-  font-size: 1.5rem; /* Más grande */
-  line-height: 1.4; /* Mejor espaciado */
+  font-weight: 700;
+  color: #0f1111;
+  font-size: 1.5rem;
+  line-height: 1.3;
   margin: 0;
-  font-family: "Amazon Ember", Arial, sans-serif; /* Fuente Amazon */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.01em;
 }
 @media (min-width: 640px) {
   .vp-title {
-    font-size: 1.75rem; /* Más grande en tablet */
+    font-size: 1.875rem;
   }
 }
 @media (min-width: 1024px) {
   .vp-title {
-    font-size: 2rem; /* Más grande en desktop */
+    font-size: 2.25rem;
   }
 }
 
@@ -32,21 +34,23 @@
 }
 
 .vp-price {
-  color: #b12704; /* Rojo de Amazon para precios */
-  font-weight: 700;
-  font-size: 1.75rem; /* Más grande como Amazon */
+  color: #2563eb !important;
+  font-weight: 800;
+  font-size: 1.75rem;
   display: flex;
   align-items: baseline;
   gap: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.02em;
 }
 @media (min-width: 640px) {
   .vp-price {
-    font-size: 2rem; /* Más grande en tablet */
+    font-size: 2.125rem;
   }
 }
 @media (min-width: 1024px) {
   .vp-price {
-    font-size: 2.25rem; /* Más grande en desktop como Amazon */
+    font-size: 2.5rem;
   }
 }
 
@@ -445,8 +449,9 @@
 }
 
 .mobile-slider-item.active {
-  border-color: #ff9900;
-  box-shadow: 0 0 0 1px #ff9900;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* ===========================
@@ -622,8 +627,9 @@
 }
 
 .fullscreen-thumbnail.active {
-  border-color: #ff9900;
-  box-shadow: 0 0 0 1px #ff9900;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* Responsive para desktop */
@@ -663,61 +669,99 @@
 .amazon-thumbs-sidebar {
   display: none;
   flex-direction: column;
-  gap: 8px;
-  width: 104px;
+  gap: 12px;
+  width: 100px;
   flex-shrink: 0;
   padding-top: 0;
   align-self: flex-start;
+  max-height: 650px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.amazon-thumbs-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.amazon-thumbs-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.amazon-thumbs-sidebar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.amazon-thumbs-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 @media (min-width: 1280px) {
   .amazon-thumbs-sidebar {
     display: flex;
-    /* Sin límite: que baje si hay muchas imágenes */
   }
 }
 
 /* En desktop, miniaturas a la IZQUIERDA del área principal */
 @media (min-width: 1280px) {
-  .amazon-thumbs-sidebar { order: 1; }
-  .amazon-main-image-container { 
-    order: 2; 
-    flex: 0 0 320px; 
-    width: 320px; 
+  .amazon-thumbs-sidebar {
+    order: 1;
+  }
+  .amazon-main-image-container {
+    order: 2;
+    flex: 0 0 480px;
+    width: 480px;
+    max-width: 480px;
   }
 }
 
 .amazon-thumb {
-  width: 96px;
-  height: 96px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
+  width: 90px;
+  height: 90px;
+  min-width: 90px;
+  min-height: 90px;
+  max-width: 90px;
+  max-height: 90px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: 6px;
+  flex-shrink: 0;
 }
 
 .amazon-thumb:hover {
-  border-color: #007185;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-color: #9ca3af;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .amazon-thumb.active {
-  border-color: #3665f3; /* eBay blue */
-  box-shadow: 0 0 0 2px rgba(54, 101, 243, 0.25);
+  border: 3px solid #0654ba;
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px rgba(6, 84, 186, 0.25), 0 4px 12px rgba(6, 84, 186, 0.3);
+  padding: 5px;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e3f2fd 100%);
+  transform: translateY(-2px);
 }
 
 /* Thumbnail de videos - estilo Amazon */
 .amazon-thumb-video {
-  width: 96px;
-  height: 96px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
+  max-width: 80px;
+  max-height: 80px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
   background: #1a1a1a;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -725,6 +769,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .amazon-thumb-video:hover {
@@ -757,8 +802,8 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -766,10 +811,18 @@
   align-items: center;
   justify-content: center;
   touch-action: pan-y;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.amazon-main-image-wrap:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .amazon-main-image-wrap.zooming {
   cursor: crosshair;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 1279px) {
@@ -804,8 +857,9 @@
   border-color: #d1d5db;
 }
 .mobile-thumb.active {
-  border-color: #2563eb; /* blue-600 */
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* Responsive para móvil - SOLO imagen principal */
@@ -949,8 +1003,8 @@
   height: 40px;
   border-radius: 50%;
   background: #fff;
-  border: 1px solid rgba(0,0,0,.1);
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -965,42 +1019,62 @@
   height: 40px;
   border-radius: 50%;
   background: #fff;
-  border: 1px solid rgba(0,0,0,.1);
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #111;
   z-index: 3;
 }
- 
-.vp-back-fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-/* En desktop mismo lugar relativo */
-@media (min-width: 1024px) {
-  .vp-back-fab {
-    top: 10px;
-    left: 10px;
-  }
-}
 
-/* Botón superior de volver (desktop, debajo del topbar) */
-.vp-back-top-btn {
+/* Botón volver - Circular con tema */
+.vp-back-fab {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  font-weight: 600;
+  justify-content: center;
   color: #111827;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  z-index: 9998;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
-.vp-back-top-btn:hover { background: #f9fafb; }
+
+.vp-back-fab:hover {
+  background: #f9fafb;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Desktop: botón top-left también circular */
+.vp-back-top-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vp-back-top-btn:hover {
+  background: #f9fafb;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
 
 /* ===========================
    VARIANTES
@@ -1229,7 +1303,7 @@
   gap: 12px;
 }
 .vp-buy-price {
-  color: #3b82f6;
+  color: #2563eb !important;
   font-weight: 800;
   font-size: 1.25rem;
 }
@@ -1483,7 +1557,9 @@
   z-index: 2;
 }
 @media (max-width: 1279px) {
-  .ebay-header { display: none; }
+  .ebay-header {
+    display: none;
+  }
 }
 .ebay-header-title {
   font-weight: 600;
@@ -1564,29 +1640,45 @@
   cursor: pointer;
   z-index: 2;
 }
-.ebay-arrow.left { left: 12px; }
-.ebay-arrow.right { right: 12px; }
+.ebay-arrow.left {
+  left: 12px;
+}
+.ebay-arrow.right {
+  right: 12px;
+}
 
 @media (max-width: 1279px) {
   .ebay-body {
     grid-template-columns: 1fr; /* ocultar rail en móvil, lo mostramos abajo si se desea */
   }
-  .ebay-main { aspect-ratio: 1 / 1; width: 100%; }
+  .ebay-main {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+  }
   .ebay-thumbs {
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
     order: 2;
   }
-  .ebay-thumb { width: 56px; min-width: 56px; }
-  .ebay-main-media { width: 100%; height: 100%; object-fit: contain; }
+  .ebay-thumb {
+    width: 56px;
+    min-width: 56px;
+  }
+  .ebay-main-media {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
 /* ===========================
    Thumbnails horizontales en tablet (lg)
 =========================== */
 @media (min-width: 1024px) and (max-width: 1279px) {
-  .tablet-thumbs { scrollbar-width: none; }
+  .tablet-thumbs {
+    scrollbar-width: none;
+  }
   .tablet-thumb {
     width: 72px;
     height: 72px;
@@ -1598,8 +1690,16 @@
     align-items: center;
     justify-content: center;
   }
-  .tablet-thumb.active { border-color: #3665f3; box-shadow: 0 0 0 2px rgba(54,101,243,.25); }
-  .tablet-thumb img, .tablet-thumb video { width: 100%; height: 100%; object-fit: contain; }
+  .tablet-thumb.active {
+    border-color: #3665f3;
+    box-shadow: 0 0 0 2px rgba(54, 101, 243, 0.25);
+  }
+  .tablet-thumb img,
+  .tablet-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
 /* ===========================
@@ -1610,21 +1710,43 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Firefox */
   }
-  .mobile-tablet-thumbs::-webkit-scrollbar { display: none; }
+  .mobile-tablet-thumbs::-webkit-scrollbar {
+    display: none;
+  }
   .mt-thumb {
-    width: 64px;
-    height: 64px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: #fff;
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    min-height: 80px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
     overflow: hidden;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
+    padding: 5px;
   }
-  .mt-thumb.active { border-color: #3665f3; box-shadow: 0 0 0 2px rgba(54,101,243,.25); }
-  .mt-thumb img, .mt-thumb video { width: 100%; height: 100%; object-fit: contain; }
+  .mt-thumb:hover {
+    border-color: #9ca3af;
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+  .mt-thumb.active {
+    border: 3px solid #0654ba;
+    box-shadow: 0 0 0 2px rgba(6, 84, 186, 0.2);
+    padding: 4px;
+    background: #f0f8ff;
+  }
+  .mt-thumb img,
+  .mt-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
 /* Imagen principal grande centrada */
@@ -1673,24 +1795,30 @@
 }
 
 .amazon-thumb {
-  aspect-ratio: 1 / 1;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  overflow: hidden;
+  position: relative;
+  width: 100%;
+  min-width: 60px;
+  height: 60px;
   cursor: pointer;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
   transition: all 0.2s ease;
+  flex-shrink: 0;
   background: #fff;
   padding: 2px;
 }
 
 .amazon-thumb:hover {
-  border-color: #007185;
-  transform: scale(1.02);
+  border-color: #9ca3af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .amazon-thumb.active {
-  border-color: #ff9900;
-  box-shadow: 0 0 0 1px #ff9900;
+  border-color: #d1d5db;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
 .amazon-thumb img,

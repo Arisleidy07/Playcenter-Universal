@@ -12,8 +12,8 @@ function Nosotros() {
   return (
     <div
       className="relative min-h-screen flex flex-col items-center px-4 pb-20 font-sans text-gray-800 dark:text-gray-100
-                 bg-gradient-to-r from-yellow-200 via-red-200 to-orange-200 dark:from-gray-800 dark:via-gray-900 dark:to-black overflow-hidden"
-      style={{ paddingTop: "var(--content-offset, 100px)" }}
+                 bg-gradient-to-b from-blue-50 via-blue-50 to-blue-100 dark:from-blue-950 dark:via-blue-950 dark:to-blue-900 overflow-hidden"
+      style={{ paddingTop: "calc(var(--content-offset, 100px) + 48px)" }}
     >
       <Wave />
 
@@ -31,61 +31,84 @@ function Nosotros() {
       </h2>
 
       <div
-        className="relative w-full max-w-3xl flex flex-col items-center gap-6 text-lg z-10"
-        style={{
-          background: "rgba(255, 255, 255, 0.25)",
-          borderRadius: "1rem",
-          padding: "2rem",
-          backdropFilter: "blur(30px)",
-          WebkitBackdropFilter: "blur(30px)",
-          boxShadow: "0 0 40px rgba(255, 255, 255, 0.2)",
-          border: "1px solid rgba(255, 255, 255, 0.3)",
-        }}
+        className="w-full max-w-3xl flex flex-col items-center z-10"
+        style={{ position: "relative" }}
       >
-        <InfoItem
-          icon={<FaBuilding className="text-yellow-400" />}
-          label="Quiénes somos"
-          text="Somos una empresa dominicana ubicada en Santiago, especializada en brindar lo último en tecnología, innovación y productos para el estilo de vida moderno."
+        <img
+          src="/toy/asoma.png"
+          alt="Muñeco asomándose"
+          className="pointer-events-none select-none absolute hidden sm:block"
+          style={{
+            top: "-118px",
+            right: "0px",
+            width: "min(220px, 40vw)",
+            height: "auto",
+            zIndex: 50,
+            filter: "drop-shadow(0 10px 20px rgba(2, 6, 23, 0.15))",
+            pointerEvents: "none",
+          }}
         />
-        <InfoItem
-          icon={<FaRocket className="text-cyan-500" />}
-          label="Nuestra misión"
-          text="Superar las expectativas de nuestros clientes ofreciendo artículos de calidad como consolas, videojuegos, tablets, móviles, accesorios y más, con un servicio humano, eficiente y profesional."
-        />
-        <InfoItem
-          icon={<FaMapMarkerAlt className="text-green-500" />}
-          label="Nuestro compromiso"
-          text="PlayCenter Universal no solo vende productos, crea experiencias memorables con cada compra. ¡Gracias por confiar en nosotros!"
-        />
+        <div
+          className="relative w-full flex flex-col items-center gap-6 text-lg"
+          style={{
+            background: "rgba(239, 246, 255, 0.35)",
+            borderRadius: "1rem",
+            padding: "1.8rem",
+            paddingTop: "2.6rem",
+            backdropFilter: "blur(30px)",
+            WebkitBackdropFilter: "blur(30px)",
+            boxShadow: "0 0 40px rgba(255, 255, 255, 0.2)",
+            border: "1px solid rgba(59, 130, 246, 0.25)",
+            overflow: "visible",
+          }}
+        >
+          <InfoItem
+            icon={<FaBuilding className="text-blue-500 dark:text-blue-400" />}
+            label="Quiénes somos"
+            text="Somos una empresa dominicana ubicada en Santiago, especializada en brindar lo último en tecnología, innovación y productos para el estilo de vida moderno."
+          />
+          <InfoItem
+            icon={<FaRocket className="text-blue-500 dark:text-blue-400" />}
+            label="Nuestra misión"
+            text="Superar las expectativas de nuestros clientes ofreciendo artículos de calidad como consolas, videojuegos, tablets, móviles, accesorios y más, con un servicio humano, eficiente y profesional."
+          />
+          <InfoItem
+            icon={
+              <FaMapMarkerAlt className="text-blue-500 dark:text-blue-400" />
+            }
+            label="Nuestro compromiso"
+            text="PlayCenter Universal no solo vende productos, crea experiencias memorables con cada compra. ¡Gracias por confiar en nosotros!"
+          />
 
-        <div className="flex justify-center mt-6">
-          <Link
-            to="/contacto"
-            className="flex items-center gap-3 px-6 py-3 text-base font-bold
-                       rounded-xl transition-transform z-10 animate-fade-in"
-            style={{
-              background: "rgba(255, 255, 255, 0.25)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
-              boxShadow: "0 0 20px rgba(255, 255, 255, 0.2)",
-              color: "#333",
-              transition: "all 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow =
-                "0 0 30px rgba(255, 255, 255, 0.4)";
-              e.currentTarget.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow =
-                "0 0 20px rgba(255, 255, 255, 0.2)";
-              e.currentTarget.style.transform = "scale(1)";
-            }}
-          >
-            <FaPhoneAlt className="text-xl text-cyan-500" />
-            Contáctanos
-          </Link>
+          <div className="flex justify-center mt-6">
+            <Link
+              to="/contacto"
+              className="flex items-center gap-3 px-6 py-3 text-base font-bold
+                         rounded-xl transition-transform z-10 animate-fade-in"
+              style={{
+                background: "rgba(255, 255, 255, 0.25)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                border: "1px solid rgba(255, 255, 255, 0.3)",
+                boxShadow: "0 0 20px rgba(255, 255, 255, 0.2)",
+                color: "#333",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 0 30px rgba(255, 255, 255, 0.4)";
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 0 20px rgba(255, 255, 255, 0.2)";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            >
+              <FaPhoneAlt className="text-xl text-blue-500 dark:text-blue-400" />
+              Contáctanos
+            </Link>
+          </div>
         </div>
       </div>
     </div>

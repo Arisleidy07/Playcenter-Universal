@@ -135,13 +135,13 @@ function ProductosPage() {
       }}
     >
       <div
-        className="flex-1 flex flex-col xl:flex-row w-full"
+        className="flex-1 flex flex-col xl:grid xl:grid-cols-[auto_1fr_auto] w-full"
         style={{ margin: 0 }}
       >
         <SidebarCategorias
           categoriaActiva={categoriaActiva}
           onCategoriaClick={handleCategoriaChange}
-          className="bg-transparent border-none shadow-none"
+          className="bg-transparent border-none shadow-none xl:row-span-2"
         />
 
         <main className="flex-1 p-0 xl:p-4 relative pb-32">
@@ -164,16 +164,16 @@ function ProductosPage() {
           </div>
 
           {/* TÍTULO ARRIBA DE LAS BOLITAS */}
-          <div className="px-4 xl:px-0 mb-6 mt-4">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <div className="mb-6 mt-4 px-4 xl:px-0">
+            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
               {categoriaActiva === "Todos"
                 ? "Todos los productos"
                 : categoriaActiva}
             </h1>
             {categoriaActiva !== "Todos" && (
-              <p className="text-gray-600 dark:text-gray-400 text-base">
+              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
                 Encuentra lo mejor en{" "}
-                <span className="font-semibold text-blue-700 dark:text-blue-400">
+                <span className="font-bold text-blue-700 dark:text-blue-400">
                   {categoriaActiva}
                 </span>
               </p>
@@ -225,7 +225,7 @@ function ProductosPage() {
               No hay productos que coincidan con tus filtros.
             </p>
           ) : (
-            <div className="productos-grid-clean">
+            <div className="grid grid-cols-1 lg:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
               {productosFiltrados.map((producto) => (
                 <TarjetaProducto key={producto.id} producto={producto} />
               ))}
@@ -237,7 +237,7 @@ function ProductosPage() {
           filtros={filtros}
           setFiltros={setFiltros}
           productosOriginales={productosOriginales}
-          className="bg-transparent border-none shadow-none"
+          className="bg-transparent border-none shadow-none xl:row-span-2"
         />
       </div>
 

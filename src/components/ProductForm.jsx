@@ -21,7 +21,6 @@ import VistaProductoMini from "./VistaProductoMini";
 
 // Enhanced components
 import UniversalFileUploader from "./UniversalFileUploader";
-import ProductValidationPanel from "./ProductValidationPanel";
 import VisualVariantSelector from "./VisualVariantSelector";
 
 // Enhanced utilities
@@ -102,7 +101,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   
   // Enhanced state
   const [isPublishing, setIsPublishing] = useState(false);
-  const [showValidationPanel, setShowValidationPanel] = useState(true);
   const [validationErrors, setValidationErrors] = useState([]);
   const [processingImages, setProcessingImages] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(0);
@@ -3266,132 +3264,78 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             </button>
           </div>
 
-          {/* Video principal (Acerca de este artículo) */}
-          <div className="mt-8 space-y-4 rounded-2xl border-2 border-rose-200/70 bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-4 shadow-sm">
-            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 border-b-4 border-rose-200 pb-2">
-              Video principal (Acerca de este artículo)
-            </h3>
-            <UniversalFileUploader
-              files={[
-                ...(Array.isArray(formData.videoAcercaArticulo)
-                  ? formData.videoAcercaArticulo
-                  : []),
-                ...(Array.isArray(tempPreviews.acercaVideos)
-                  ? tempPreviews.acercaVideos.map((u, i) => ({
-                      id: `temp-acerca-video-${i}`,
-                      url: u,
-                      type: "video",
-                      name: `acerca-${i + 1}`,
-                      size: 0,
-                      isUploaded: false,
-                    }))
-                  : []),
-              ]}
-              onFilesChange={handleAcercaVideosUFU}
-              acceptedTypes="video/*"
-              multiple={true}
-              label="Videos de 'Acerca de este artículo'"
-              placeholder="Arrastra o selecciona videos para 'Acerca de este artículo'"
-              allowReorder={true}
-              allowSetMain={false}
-            />
-          </div>
-
-          {/* Upload queue UI removido: el uploader maneja previews y acciones inline */}
-
-          {/* Tres Archivos Extras */}
-          <div className="mt-8 space-y-4 rounded-2xl border-2 border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-fuchsia-50 p-4 shadow-sm">
-            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 border-b-4 border-violet-200 pb-2">
-              Tres Archivos Extras
-            </h3>
+          {/* 📸 Imágenes con más información del artículo */}
+          <div className="mt-8 space-y-4 rounded-2xl border-2 border-blue-200/70 bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 p-6 shadow-sm">
+            <div className="space-y-2">
+              <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 border-b-4 border-blue-200 pb-2">
+                📸 Imágenes con más información del artículo
+              </h3>
+              <p className="text-sm text-gray-600 bg-blue-50 border-l-4 border-blue-400 pl-4 py-2 rounded">
+                💡 <strong>¿Para qué sirve?</strong> Estas imágenes se mostrarán en la sección "Más información del producto" debajo de la descripción. Son perfectas para:
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1 ml-6 list-disc">
+                <li>Mostrar especificaciones técnicas detalladas en imagen</li>
+                <li>Comparativas de tamaño o características</li>
+                <li>Instrucciones de uso o instalación</li>
+                <li>Detalles ampliados del producto</li>
+              </ul>
+              <p className="text-xs text-blue-600 font-medium bg-blue-100 px-3 py-2 rounded-lg inline-block">
+                📐 <strong>Recomendación:</strong> Usa imágenes de alta resolución (al menos 1200px de ancho) para que se vean perfectas en todos los dispositivos.
+              </p>
+            </div>
             <UniversalFileUploader
               files={[
                 ...(formData.imagenesExtra || []).map((u, i) => ({
-                  id: `saved-extra-${i}`,
+                  id: `saved-info-${i}`,
                   url: u,
                   type: detectTypeFromUrl(u),
-                  name: (String(u).split("/").pop() || `extra-${i + 1}`).split(
+                  name: (String(u).split("/").pop() || `info-${i + 1}`).split(
                     "?"
                   )[0],
                   size: 0,
                   isUploaded: true,
                 })),
                 ...(tempPreviews.extras || []).map((u, i) => ({
-                  id: `temp-extra-${i}`,
+                  id: `temp-info-${i}`,
                   url: u,
-                  type: "document",
-                  name: `extra-${i + 1}`,
+                  type: "image",
+                  name: `info-${i + 1}`,
                   size: 0,
                   isUploaded: false,
                 })),
               ]}
               onFilesChange={handleExtrasUFU}
-              acceptedTypes="image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
+              acceptedTypes="image/*"
               multiple={true}
-              maxFiles={3}
-              label="Tres Archivos Extras"
-              placeholder="Sube hasta 3 archivos (imágenes, videos, documentos)"
+              label="Imágenes informativas del producto"
+              placeholder="📸 Arrastra o selecciona imágenes de alta resolución con información adicional del producto"
               allowReorder={true}
               allowSetMain={false}
             />
           </div>
 
-          {/* Enhanced Validation Panel */}
-          {showValidationPanel && (
-            <div className="mt-8">
-              <ProductValidationPanel
-                formData={formData}
-                onPublish={handlePublish}
-                onSaveDraft={handleSaveDraft}
-                onPreview={handlePreview}
-                isPublishing={isPublishing}
-                isSaving={loading}
-              />
-            </div>
-          )}
-
-          {/* Submit Buttons */}
+          {/* Submit Buttons - SIMPLE COMO AMAZON (solo 2 botones) */}
           <div className="mt-8 flex justify-end space-x-4 pt-6 border-t">
             <button
               type="button"
-              onClick={async () => {
-                try {
-                  await handleSaveDraft();
-                } catch (e) {}
-              }}
-              className="px-6 py-2 border border-amber-300 rounded-lg text-amber-700 hover:bg-amber-50"
-              title="Guardar para más tarde"
-            >
-              Guardar para más tarde
-            </button>
-            <button
-              type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              className="px-8 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-lg"
             >
               Cancelar
             </button>
             <button
-              type="button"
-              onClick={handlePublish}
-              disabled={loading || isPublishing || validationErrors.length > 0}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-            >
-              {isPublishing ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Publicando...</span>
-                </>
-              ) : (
-                <span>Publicar Producto</span>
-              )}
-            </button>
-            <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center space-x-2"
             >
-              {loading ? "Guardando..." : "Guardar Producto"}
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Guardando...</span>
+                </>
+              ) : (
+                <span>Guardar Producto</span>
+              )}
             </button>
           </div>
 

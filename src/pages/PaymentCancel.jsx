@@ -113,7 +113,7 @@ export default function PaymentCancel() {
 
   return (
     <motion.div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-rose-50 via-red-50 to-pink-50 px-3 sm:px-6 overflow-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-rose-50 via-red-50 to-pink-50 px-4 sm:px-6 md:px-8 overflow-auto py-4 sm:py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
@@ -145,7 +145,7 @@ export default function PaymentCancel() {
       </div>
 
       <motion.div 
-        className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 lg:p-10 max-w-lg sm:max-w-2xl w-full text-center relative overflow-hidden border border-white/30 my-4"
+        className="bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 lg:p-12 max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-3xl w-full text-center relative overflow-hidden border border-white/30 my-4"
         initial={{ scale: 0.94, y: 28 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 22, stiffness: 280 }}
@@ -164,7 +164,7 @@ export default function PaymentCancel() {
               animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
-              <XCircle className="w-24 h-24 text-red-500 mx-auto drop-shadow-lg" />
+              <XCircle className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 text-red-500 mx-auto drop-shadow-lg" />
               <motion.div
                 className="absolute -top-2 -right-2 w-6 h-6 bg-red-100 rounded-full flex items-center justify-center"
                 animate={{ scale: [1, 1.2, 1] }}
@@ -176,7 +176,7 @@ export default function PaymentCancel() {
           </motion.div>
 
           <motion.h1 
-            className="text-4xl font-extrabold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-6"
+            className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-4 sm:mb-6"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -190,7 +190,7 @@ export default function PaymentCancel() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
           >
-            <p className="text-gray-700 text-lg leading-relaxed mb-4">
+            <p className="text-gray-700 text-base sm:text-lg leading-relaxed mb-4">
               Tu transacción no pudo ser completada.
             </p>
             <motion.div 
@@ -224,7 +224,7 @@ export default function PaymentCancel() {
             <AnimatePresence>
               {showDetails && (
                 <motion.div
-                  className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4"
+                  className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
@@ -233,19 +233,19 @@ export default function PaymentCancel() {
                   {reasons.map((reason, index) => (
                     <motion.div
                       key={index}
-                      className="bg-gray-50 rounded-xl p-4 border border-gray-200"
+                      className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200"
                       initial={{ opacity: 0, x: -16 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.08 }}
                       whileHover={{ scale: 1.02, backgroundColor: "#f8fafc" }}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-red-100 rounded-lg">
-                          <reason.icon className="w-5 h-5 text-red-600" />
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+                          <reason.icon className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
                         </div>
-                        <div className="text-left">
-                          <h4 className="font-semibold text-gray-800 mb-1">{reason.title}</h4>
-                          <p className="text-sm text-gray-600">{reason.desc}</p>
+                        <div className="text-left flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-800 mb-1 text-sm sm:text-base">{reason.title}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600 break-words">{reason.desc}</p>
                         </div>
                       </div>
                     </motion.div>
@@ -256,7 +256,7 @@ export default function PaymentCancel() {
           </motion.div>
 
           <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
@@ -264,9 +264,9 @@ export default function PaymentCancel() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/carrito"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg sm:rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Intentar de nuevo</span>
               </Link>
             </motion.div>
@@ -274,22 +274,22 @@ export default function PaymentCancel() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-700 rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
+                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 rounded-lg sm:rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
-                <Home className="w-5 h-5" />
+                <Home className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Ir al inicio</span>
               </Link>
             </motion.div>
           </motion.div>
 
           <motion.div
-            className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200"
+            className="mt-6 sm:mt-8 p-4 sm:p-5 bg-blue-50 rounded-lg sm:rounded-xl border border-blue-200"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0 }}
           >
-            <h3 className="font-semibold text-blue-800 mb-2">¿Necesitas ayuda?</h3>
-            <p className="text-blue-700 text-sm">
+            <h3 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">¿Necesitas ayuda?</h3>
+            <p className="text-blue-700 text-xs sm:text-sm">
               Si el problema persiste, contacta a nuestro equipo de soporte. 
               Estamos aquí para ayudarte a completar tu compra.
             </p>

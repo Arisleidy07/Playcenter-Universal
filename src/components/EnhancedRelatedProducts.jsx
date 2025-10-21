@@ -1,180 +1,182 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { collection, query, where, limit, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { useProductsByCategory } from "../hooks/useProducts";
-import ResponsiveProductCard from "./ResponsiveProductCard";
+import RelatedProductCard from "./RelatedProductCard";
 
+/**
+ * EnhancedRelatedProducts - Productos relacionados EXACTO como Amazon
+ * - Flechas FIJAS fuera del contenedor
+ * - Scroll snap para productos completos
+ * - Responsive: móvil (1-2), tablet (2-3), desktop (4-6)
+ * - Sin cortes, altura fija, line-clamp
+ */
 const EnhancedRelatedProducts = ({ productoActual, className = "" }) => {
-  const { products: productosCategoria, loading } = useProductsByCategory(
-    productoActual?.categoria
-  );
-  
-  const scrollContainerRef = useRef(null);
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isScrolling, setIsScrolling] = useState(false);
+  const containerRef = useRef(null);
 
-  // Filtrar productos relacionados (excluir el actual)
-  const productosRelacionados = productosCategoria.filter(
-    producto => producto.id !== productoActual?.id
-  ).slice(0, 12); // Máximo 12 productos relacionados
-
-  // Verificar capacidad de scroll
-  const checkScrollCapability = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const { scrollLeft, scrollWidth, clientWidth } = container;
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
-  };
-
-  // Scroll suave
-  const scrollTo = (direction) => {
-    const container = scrollContainerRef.current;
-    if (!container || isScrolling) return;
-
-    setIsScrolling(true);
-    const cardWidth = 280; // Ancho aproximado de cada tarjeta + gap
-    const scrollAmount = direction === 'left' ? -cardWidth * 2 : cardWidth * 2;
-
-    container.scrollBy({
-      left: scrollAmount,
-      behavior: 'smooth'
-    });
-
-    // Reset scrolling flag
-    setTimeout(() => {
-      setIsScrolling(false);
-      checkScrollCapability();
-    }, 300);
-  };
-
-  // Manejar scroll manual
-  const handleScroll = () => {
-    if (!isScrolling) {
-      checkScrollCapability();
-    }
-  };
-
-  // Touch events para móvil
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && canScrollRight) {
-      scrollTo('right');
-    }
-    if (isRightSwipe && canScrollLeft) {
-      scrollTo('left');
-    }
-  };
-
-  // Verificar scroll al cargar y redimensionar
+  // Cargar productos relacionados
   useEffect(() => {
-    checkScrollCapability();
-    
-    const handleResize = () => {
-      setTimeout(checkScrollCapability, 100);
+    const cargarProductosRelacionados = async () => {
+      if (!productoActual?.categoria) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // Buscar productos de la misma categoría
+        const q = query(
+          collection(db, "productos"),
+          where("categoria", "==", productoActual.categoria),
+          where("activo", "==", true),
+          limit(20)
+        );
+
+        const snapshot = await getDocs(q);
+        const productosData = snapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .filter((p) => p.id !== productoActual.id); // Excluir el producto actual
+
+        setProductos(productosData);
+      } catch (error) {
+        console.error("Error cargando productos relacionados:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [productosRelacionados]);
+    cargarProductosRelacionados();
+  }, [productoActual]);
 
-  // No mostrar si no hay productos relacionados
-  if (loading || productosRelacionados.length === 0) {
+  // Actualizar estado de botones de scroll
+  useEffect(() => {
+    const updateScrollButtons = () => {
+      if (!containerRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = containerRef.current;
+      setCanScrollLeft(scrollLeft > 5); // Margen de 5px
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      updateScrollButtons();
+      container.addEventListener("scroll", updateScrollButtons);
+      return () => container.removeEventListener("scroll", updateScrollButtons);
+    }
+  }, [productos]);
+
+  // Funciones de navegación - Scroll snap automático
+  const scrollLeft = () => {
+    if (containerRef.current) {
+      const cardWidth = 180; // Ancho del card
+      const gap = 12; // gap-3
+      const itemWidth = cardWidth + gap;
+      
+      // Responsive según ancho de ventana
+      const width = window.innerWidth;
+      const itemsToScroll = width < 640 ? 1 : width < 1024 ? 2 : 4;
+      
+      const scrollAmount = itemWidth * itemsToScroll;
+      
+      containerRef.current.scrollBy({
+        left: -scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const scrollRight = () => {
+    if (containerRef.current) {
+      const cardWidth = 180; // Ancho del card
+      const gap = 12; // gap-3
+      const itemWidth = cardWidth + gap;
+      
+      // Responsive según ancho de ventana
+      const width = window.innerWidth;
+      const itemsToScroll = width < 640 ? 1 : width < 1024 ? 2 : 4;
+      
+      const scrollAmount = itemWidth * itemsToScroll;
+      
+      containerRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={`enhanced-related-products ${className}`}>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (productos.length === 0) {
     return null;
   }
 
   return (
-    <section className={`py-8 ${className}`}>
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Productos relacionados
-          </h2>
-          
-          {/* Controles de navegación - Solo desktop */}
-          <div className="hidden md:flex gap-2">
-            <button
-              onClick={() => scrollTo('left')}
-              disabled={!canScrollLeft || isScrolling}
-              className="p-2 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              aria-label="Anterior"
-            >
-              <FaChevronLeft className="w-4 h-4 text-gray-600" />
-            </button>
-            <button
-              onClick={() => scrollTo('right')}
-              disabled={!canScrollRight || isScrolling}
-              className="p-2 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              aria-label="Siguiente"
-            >
-              <FaChevronRight className="w-4 h-4 text-gray-600" />
-            </button>
-          </div>
-        </div>
+    <div className={`enhanced-related-products ${className}`}>
+      {/* Título */}
+      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+        Productos relacionados
+      </h2>
 
-        {/* Carrusel de productos */}
-        <div className="relative">
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitScrollbar: { display: 'none' }
-            }}
-            onScroll={handleScroll}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+      {/* Contenedor principal con padding para flechas */}
+      <div className="relative">
+        {/* Flecha IZQUIERDA - CÍRCULO como Amazon */}
+        {canScrollLeft && (
+          <button
+            onClick={scrollLeft}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+            aria-label="Anterior"
           >
-            {productosRelacionados.map((producto) => (
-              <div
-                key={producto.id}
-                className="flex-shrink-0 w-64 md:w-72"
-              >
-                <ResponsiveProductCard 
-                  producto={producto}
-                  className="h-full"
-                />
-              </div>
+            <FaChevronLeft className="text-gray-700 dark:text-gray-300 text-lg" />
+          </button>
+        )}
+
+        {/* Contenedor de productos con scroll snap y PADDING para flechas */}
+        <div
+          ref={containerRef}
+          className="overflow-x-auto scrollbar-hide"
+          style={{
+            scrollSnapType: "x mandatory",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            paddingLeft: "56px", // Espacio para flecha izquierda
+            paddingRight: "56px", // Espacio para flecha derecha
+          }}
+        >
+          <div className="flex gap-3">
+            {productos.map((producto) => (
+              <RelatedProductCard key={producto.id} producto={producto} />
             ))}
           </div>
-
-          {/* Gradientes de fade en los bordes - Solo desktop */}
-          {canScrollLeft && (
-            <div className="hidden md:block absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
-          )}
-          {canScrollRight && (
-            <div className="hidden md:block absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
-          )}
         </div>
 
-        {/* Indicador de swipe para móvil */}
-        <div className="md:hidden mt-4 text-center">
-          <p className="text-sm text-gray-500">
-            Desliza para ver más productos →
-          </p>
-        </div>
+        {/* Flecha DERECHA - CÍRCULO como Amazon */}
+        {canScrollRight && (
+          <button
+            onClick={scrollRight}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+            aria-label="Siguiente"
+          >
+            <FaChevronRight className="text-gray-700 dark:text-gray-300 text-lg" />
+          </button>
+        )}
       </div>
-    </section>
+    </div>
   );
 };
 

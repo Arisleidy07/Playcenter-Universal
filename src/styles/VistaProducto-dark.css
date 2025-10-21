@@ -10,7 +10,7 @@ html.dark-theme .vp-desc {
 }
 
 html.dark-theme .vp-price {
-  color: #60a5fa;
+  color: #60a5fa !important;
 }
 
 html.dark-theme .vp-seller-info {
@@ -60,9 +60,27 @@ html.dark-theme .vp-icon-btn {
   color: #f9fafb; /* gray-50 */
 }
 html.dark-theme .vp-back-fab {
-  background: #111827;
-  border-color: #374151;
-  color: #f9fafb;
+  background: #1e3a8a;
+  border: 1px solid #1e40af;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+html.dark-theme .vp-back-fab:hover {
+  background: #1e40af;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+html.dark-theme .vp-back-top-btn {
+  background: #1e3a8a;
+  border: 1px solid #1e40af;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-theme .vp-back-top-btn:hover {
+  background: #1e40af;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Escenario principal e imagen */
@@ -121,9 +139,10 @@ html.dark-theme .mobile-thumb {
   background: #111827;
   border-color: #374151;
 }
-html.dark-theme .mobile-thumb.active {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
+html.dark-theme .amazon-thumb.active {
+  border-color: #4b5563;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Lower galleries and featured sections */

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import AdvancedMediaGallery from './AdvancedMediaGallery';
+import GaleriaImagenes from './GaleriaImagenes';
 import { db } from '../firebase';
 
 // Util: normalizar URL y detectar tipo
@@ -125,15 +125,10 @@ const VistaProductoMini = ({ productId, draftData, className = '' }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Media viewer (mezcla imágenes y videos si están en galería) */}
         {mediaItems.filter(Boolean).length > 0 && (
-          <AdvancedMediaGallery
-            mediaItems={mediaItems.filter(Boolean)}
-            productName={name}
-            className=""
-            showThumbnails={true}
-            showControls={true}
-            autoPlay={false}
-            enableZoom={true}
-            enableFullscreen={false}
+          <GaleriaImagenes
+            imagenes={mediaItems.filter(m => m.type === 'image').map(m => m.url)}
+            videos={mediaItems.filter(m => m.type === 'video').map(m => m.url)}
+            nombreProducto={name}
           />
         )}
 
@@ -187,15 +182,10 @@ const VistaProductoMini = ({ productId, draftData, className = '' }) => {
       {videoItems.length > 0 && (
         <div className="mt-6">
           <h5 className="text-sm font-medium text-gray-800 mb-2">Acerca de este artículo</h5>
-          <AdvancedMediaGallery
-            mediaItems={videoItems}
-            productName={name}
-            className=""
-            showThumbnails={videoItems.length > 1}
-            showControls={true}
-            autoPlay={false}
-            enableZoom={false}
-            enableFullscreen={false}
+          <GaleriaImagenes
+            imagenes={[]}
+            videos={videoItems.map(v => v.url)}
+            nombreProducto={name}
           />
         </div>
       )}

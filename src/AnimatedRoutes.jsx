@@ -12,7 +12,6 @@ import Vender from "./pages/Vender";
 import Tiendas from "./pages/Tiendas";
 import Historial from "./pages/Historial";
 import Nosotros from "./pages/Nosotros";
-import DetalleProducto from "./pages/DetalleProducto";
 import PaginaBusqueda from "./pages/PaginaBusqueda";
 import ProductosPage from "./pages/ProductosPage";
 import Estafetas from "./pages/estafetas";
@@ -58,14 +57,7 @@ export default function AnimatedRoutes() {
               </PageTransition>
             }
           />
-          <Route
-            path="/producto/:id/detalle"
-            element={
-              <PageTransition>
-                <DetalleProducto />
-              </PageTransition>
-            }
-          />
+
           <Route
             path="/carrito"
             element={
