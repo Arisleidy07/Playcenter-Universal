@@ -666,11 +666,11 @@
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Responsive para pantallas grandes */
+/* Escalado responsive para pantallas grandes */
 @media (min-width: 1440px) {
   .amazon-gallery-layout {
     gap: 20px;
@@ -683,13 +683,15 @@
   .amazon-gallery-layout {
     gap: 24px;
     padding: 28px;
+    border-radius: 28px;
   }
 }
 
 @media (min-width: 2560px) {
   .amazon-gallery-layout {
-    gap: 28px;
-    padding: 32px;
+    gap: 32px;
+    padding: 36px;
+    border-radius: 32px;
   }
 }
 
@@ -1309,31 +1311,6 @@
 
 .vp-variants .text-white {
   color: white;
-}
-
-/* ===========================
-   RESPONSIVE PARA PANTALLAS GRANDES
-=========================== */
-/* Mantener las mismas proporciones pero más grande */
-@media (min-width: 1440px) {
-  .vp-main {
-    padding-left: 3rem;
-    padding-right: 3rem;
-  }
-}
-
-@media (min-width: 1920px) {
-  .vp-main {
-    padding-left: 5rem;
-    padding-right: 5rem;
-  }
-}
-
-@media (min-width: 2560px) {
-  .vp-main {
-    padding-left: 8rem;
-    padding-right: 8rem;
-  }
 }
 
 /* ===========================
