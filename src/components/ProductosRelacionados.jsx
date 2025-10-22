@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback, useEffect } from "react";
+import React, { useMemo, useRef, useCallback, useEffect, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useProductsByCategory } from "../hooks/useProducts";
 import "../styles/ProductosRelacionados.css";
@@ -10,78 +10,8 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
 
   // Hooks MUST be declared unconditionally (before any early returns)
   const railRef = useRef(null);
-  const snapTimer = useRef(null);
-  const dragging = useRef(false);
-  const moved = useRef(false);
-
-  const getStep = useCallback(() => {
-    const rail = railRef.current;
-    if (!rail) return 0;
-    const card = rail.querySelector(".prl-card");
-    if (!card) return 0;
-    const styles = getComputedStyle(rail);
-    const gap = parseInt(styles.getPropertyValue("--gap") || "16", 10) || 16;
-    const w = card.getBoundingClientRect().width;
-    return w + gap;
-  }, []);
-
-  const snapToNearest = useCallback(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const step = getStep();
-    if (!step) return;
-    const index = Math.round(rail.scrollLeft / step);
-    const target = index * step;
-    rail.classList.add("no-smooth");
-    rail.scrollTo({ left: target });
-    setTimeout(() => rail.classList.remove("no-smooth"), 40);
-  }, [getStep]);
-
-  const onScroll = () => {
-    if (dragging.current) return;
-    if (snapTimer.current) clearTimeout(snapTimer.current);
-    snapTimer.current = setTimeout(snapToNearest, 90);
-  };
-
-  const onPointerDown = () => {
-    dragging.current = true;
-    moved.current = false;
-    railRef.current?.classList.add("no-smooth");
-  };
-
-  const onPointerMove = (e) => {
-    if (!dragging.current) return;
-    if (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2) {
-      moved.current = true;
-    }
-  };
-
-  const onPointerUp = () => {
-    dragging.current = false;
-    snapToNearest();
-  };
-
-  useEffect(() => {
-    return () => snapTimer.current && clearTimeout(snapTimer.current);
-  }, []);
-
-  const go = (id) => {
-    if (!id) return;
-    if (onProductoClick) onProductoClick(id);
-    else window.location.href = `/producto/${id}`;
-  };
-
-  const scrollBy = (dir) => {
-    const el = railRef.current;
-    if (el && el.firstChild) {
-      const cardWidth = el.firstChild.getBoundingClientRect().width;
-      const gap =
-        parseInt(getComputedStyle(el).getPropertyValue("--gap") || "16", 10) ||
-        16;
-      const scrollAmount = dir * (cardWidth + gap);
-      el.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const relacionados = useMemo(() => {
     if (!productoActual || !productosCategoria) return [];
@@ -89,6 +19,87 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
       .filter((p) => p?.id !== productoActual?.id)
       .slice(0, 20);
   }, [productosCategoria, productoActual?.id]);
+
+  // Calcular cuántos productos caben en la pantalla
+  const getVisibleCount = useCallback(() => {
+    const rail = railRef.current;
+    if (!rail) return 1;
+    
+    const containerWidth = rail.offsetWidth;
+    const card = rail.querySelector(".prl-card");
+    if (!card) return 1;
+    
+    const cardWidth = card.offsetWidth;
+    const gap = 20; // gap fijo de 20px
+    const cardWithGap = cardWidth + gap;
+    
+    // Calcular cuántos productos completos caben
+    return Math.floor(containerWidth / cardWithGap);
+  }, []);
+
+  // Actualizar estado de flechas
+  const updateScrollButtons = useCallback(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    
+    const { scrollLeft, scrollWidth, clientWidth } = rail;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  }, []);
+
+  // Scroll por página completa de productos
+  const scrollByPage = useCallback((direction) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    
+    const card = rail.querySelector(".prl-card");
+    if (!card) return;
+    
+    const cardWidth = card.offsetWidth;
+    const gap = 20;
+    const cardWithGap = cardWidth + gap;
+    const visibleCount = getVisibleCount();
+    
+    // Mover exactamente el número de productos visibles
+    const scrollAmount = direction * visibleCount * cardWithGap;
+    
+    rail.scrollBy({
+      left: scrollAmount,
+      behavior: 'smooth'
+    });
+  }, [getVisibleCount]);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    
+    updateScrollButtons();
+    
+    // Ocultar indicador "Desliza" después del primer scroll
+    const hideScrollHint = () => {
+      const wrapper = rail.parentElement;
+      if (wrapper && rail.scrollLeft > 10) {
+        wrapper.classList.add('scrolled');
+      }
+    };
+    
+    rail.addEventListener('scroll', updateScrollButtons);
+    rail.addEventListener('scroll', hideScrollHint);
+    window.addEventListener('resize', updateScrollButtons);
+    
+    return () => {
+      rail.removeEventListener('scroll', updateScrollButtons);
+      rail.removeEventListener('scroll', hideScrollHint);
+      window.removeEventListener('resize', updateScrollButtons);
+    };
+  }, [updateScrollButtons, relacionados]);
+
+  const go = (id) => {
+    if (!id) return;
+    if (onProductoClick) onProductoClick(id);
+    else window.location.href = `/producto/${id}`;
+  };
+
 
   const formatPriceRD = (value) => {
     const pesos = Math.round(Number(value) || 0);
@@ -112,32 +123,27 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
   }
 
   return (
-    <section className="prl-section" aria-label="Productos relacionados" style={{ overflow: 'visible' }}>
-      <div className="prl-container" style={{ overflow: 'visible' }}>
+    <section className="prl-section" aria-label="Productos relacionados">
+      <div className="prl-container">
         <h2 className="prl-title">Productos relacionados</h2>
 
-        <div className="prl-wrapper" aria-roledescription="carrusel" style={{ overflow: 'visible' }}>
-          {/* Flecha izquierda */}
-          <button
-            className="prl-arrow left"
-            onClick={() => scrollBy(-1)}
-            aria-label="Anterior"
-            type="button"
-          >
-            <FaChevronLeft size={16} />
-          </button>
+        <div className="prl-wrapper" aria-roledescription="carrusel">
+          {/* Flecha izquierda - solo desktop */}
+          {canScrollLeft && (
+            <button
+              className="prl-arrow left"
+              onClick={() => scrollByPage(-1)}
+              aria-label="Anterior"
+              type="button"
+            >
+              <FaChevronLeft size={18} />
+            </button>
+          )}
 
-          {/* Rail */}
+          {/* Rail con scroll snap */}
           <div
             ref={railRef}
             className="prl-rail"
-            style={{ overflowY: 'visible' }}
-            onScroll={onScroll}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            onPointerLeave={onPointerUp}
           >
             {relacionados.length > 0 ? (
               relacionados.map((rel) => {
@@ -150,10 +156,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
                     className="prl-card"
                     role="group"
                     aria-label={name}
-                    onClick={() => {
-                      if (moved.current) return;
-                      go(rel.slug || rel.id);
-                    }}
+                    onClick={() => go(rel.slug || rel.id)}
                   >
                     <div className="prl-imgbox">
                       {imgSrc ? (
@@ -192,15 +195,17 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
             )}
           </div>
 
-          {/* Flecha derecha */}
-          <button
-            className="prl-arrow right"
-            onClick={() => scrollBy(1)}
-            aria-label="Siguiente"
-            type="button"
-          >
-            <FaChevronRight size={16} />
-          </button>
+          {/* Flecha derecha - solo desktop */}
+          {canScrollRight && (
+            <button
+              className="prl-arrow right"
+              onClick={() => scrollByPage(1)}
+              aria-label="Siguiente"
+              type="button"
+            >
+              <FaChevronRight size={18} />
+            </button>
+          )}
         </div>
       </div>
     </section>

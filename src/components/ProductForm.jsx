@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import {
   ref,
+  uploadBytes,
   getDownloadURL,
   deleteObject,
   uploadBytesResumable,
@@ -24,9 +25,19 @@ import UniversalFileUploader from "./UniversalFileUploader";
 import VisualVariantSelector from "./VisualVariantSelector";
 
 // Enhanced utilities
-import { validateProduct, useProductValidation } from "../utils/productValidation";
-import { submitForPublication, PRODUCT_STATUS } from "../utils/productStatusWorkflow";
-import { batchProcessImages, generateImageSizes, optimizeForWeb } from "../utils/imageProcessing";
+import {
+  validateProduct,
+  useProductValidation,
+} from "../utils/productValidation";
+import {
+  submitForPublication,
+  PRODUCT_STATUS,
+} from "../utils/productStatusWorkflow";
+import {
+  batchProcessImages,
+  generateImageSizes,
+  optimizeForWeb,
+} from "../utils/imageProcessing";
 import { initializePerformanceOptimizations } from "../utils/performanceOptimization";
 
 // Import CSS
@@ -34,7 +45,7 @@ import "../styles/UniversalFileUploader.css";
 
 const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const { usuario, usuarioInfo } = useAuth();
-  
+
   // Enhanced validation hook
   const { validation, isValid, getFieldError } = useProductValidation();
   const [formData, setFormData] = useState({
@@ -98,7 +109,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   });
   // Cola de subidas por archivo (con progreso/cancelar/reintentar)
   const [uploadQueue, setUploadQueue] = useState([]); // {id,name,file,type:'image'|'video',progress,status:'uploading'|'done'|'error'|'canceled', target:{level:'product'|'variant', field, variantIndex|null}, task}
-  
+
   // Enhanced state
   const [isPublishing, setIsPublishing] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
@@ -108,7 +119,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   useEffect(() => {
     // Initialize performance optimizations
     initializePerformanceOptimizations();
-    
+
     loadCategorias();
     loadBrands();
     if (product) {
@@ -126,10 +137,14 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         videoUrls: product.videoUrls || [],
         videoAcercaArticulo: product.videoAcercaArticulo || [],
         // Enhanced fields with legacy support
-        imagenPrincipal: product.imagenPrincipal || (product.imagen ? [{url: product.imagen}] : []),
+        imagenPrincipal:
+          product.imagenPrincipal ||
+          (product.imagen ? [{ url: product.imagen }] : []),
         galeriaImagenes: product.galeriaImagenes || product.imagenes || [],
-        tresArchivosExtras: product.tresArchivosExtras || product.imagenesExtra || [],
-        productStatus: product.productStatus || product.estado || PRODUCT_STATUS.DRAFT,
+        tresArchivosExtras:
+          product.tresArchivosExtras || product.imagenesExtra || [],
+        productStatus:
+          product.productStatus || product.estado || PRODUCT_STATUS.DRAFT,
       });
     }
   }, [product]);
@@ -357,17 +372,24 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     const runValidation = async () => {
       const result = await validateProduct(formData);
       setValidationErrors(result.errors || []);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         validationScore: result.score || 0,
-        lastValidated: new Date().toISOString()
+        lastValidated: new Date().toISOString(),
       }));
     };
-    
+
     // Debounce validation
     const timeoutId = setTimeout(runValidation, 500);
     return () => clearTimeout(timeoutId);
-  }, [formData.nombre, formData.precio, formData.categoria, formData.descripcion, formData.imagenPrincipal, formData.galeriaImagenes]);
+  }, [
+    formData.nombre,
+    formData.precio,
+    formData.categoria,
+    formData.descripcion,
+    formData.imagenPrincipal,
+    formData.galeriaImagenes,
+  ]);
 
   // Datos para Vista Previa Mini: combinar formData + tempPreviews para feedback instantáneo
   const productIdForPreview = currentId || product?.id || null;
@@ -379,14 +401,16 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     draft.stock = Number(formData.cantidad) || 0;
     // Enhanced image handling
     draft.mainImage = (
-      tempPreviews.imagen || 
-      formData.imagenPrincipal?.[0]?.url || 
-      formData.imagen || 
+      tempPreviews.imagen ||
+      formData.imagenPrincipal?.[0]?.url ||
+      formData.imagen ||
       ""
     ).trim();
     draft.gallery = [
       ...(Array.isArray(tempPreviews.imagenes) ? tempPreviews.imagenes : []),
-      ...(Array.isArray(formData.galeriaImagenes) ? formData.galeriaImagenes.map(img => img.url || img) : []),
+      ...(Array.isArray(formData.galeriaImagenes)
+        ? formData.galeriaImagenes.map((img) => img.url || img)
+        : []),
       ...(Array.isArray(formData.imagenes) ? formData.imagenes : []),
     ];
     // Videos de galería (se muestran en la galería principal)
@@ -409,7 +433,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     ];
     draft.extraMedia = [
       ...(Array.isArray(tempPreviews.extras) ? tempPreviews.extras : []),
-      ...(Array.isArray(formData.tresArchivosExtras) ? formData.tresArchivosExtras.map(extra => extra.url || extra) : []),
+      ...(Array.isArray(formData.tresArchivosExtras)
+        ? formData.tresArchivosExtras.map((extra) => extra.url || extra)
+        : []),
       ...(Array.isArray(formData.imagenesExtra) ? formData.imagenesExtra : []),
     ];
     draft.variants = (
@@ -427,7 +453,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       ).trim(),
       gallery: [
         ...(tempPreviews.variantes?.[idx]?.imagenes || []),
-        ...(Array.isArray(v.galeriaImagenes) ? v.galeriaImagenes.map(img => img.url || img) : []),
+        ...(Array.isArray(v.galeriaImagenes)
+          ? v.galeriaImagenes.map((img) => img.url || img)
+          : []),
         ...(Array.isArray(v.imagenes) ? v.imagenes : []),
       ],
       videos: [
@@ -447,7 +475,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     if (formData?.id) return formData.id;
     if (currentId) return currentId;
     try {
-      const newId = `prod_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const newId = `prod_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
       const payload = {
         id: newId,
         nombre: formData?.nombre || "",
@@ -469,7 +499,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         ownerUid: usuario?.uid || null,
         ownerName: usuarioInfo?.displayName || usuario?.displayName || "",
         sellerId: sellerId || usuario?.uid || null,
-        sellerName: sellerId ? (usuarioInfo?.storeName || usuarioInfo?.displayName || "") : "",
+        sellerName: sellerId
+          ? usuarioInfo?.storeName || usuarioInfo?.displayName || ""
+          : "",
         fechaCreacion: new Date(),
         fechaActualizacion: new Date(),
       };
@@ -578,7 +610,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         draft.id = id;
         draft.fechaCreacion = new Date();
         draft.sellerId = sellerId || usuario?.uid || null;
-        draft.sellerName = sellerId ? (usuarioInfo?.storeName || usuarioInfo?.displayName || "") : "";
+        draft.sellerName = sellerId
+          ? usuarioInfo?.storeName || usuarioInfo?.displayName || ""
+          : "";
         await setDoc(doc(db, "productos", id), draft);
         setCurrentId(id);
       } else {
@@ -588,11 +622,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       if (onClose) onClose();
     } catch (e) {
       console.error("Error al guardar borrador:", e);
-      const errorMessage = e.code === 'permission-denied' 
-        ? "No tienes permisos para guardar este producto"
-        : e.code === 'network-request-failed'
-        ? "Error de conexión. Verifica tu internet"
-        : `Error al guardar: ${e.message}`;
+      const errorMessage =
+        e.code === "permission-denied"
+          ? "No tienes permisos para guardar este producto"
+          : e.code === "network-request-failed"
+          ? "Error de conexión. Verifica tu internet"
+          : `Error al guardar: ${e.message}`;
       alert(errorMessage);
     }
   };
@@ -607,22 +642,22 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         productData,
         usuario?.uid
       );
-      
+
       if (result.success) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          productStatus: result.status
+          productStatus: result.status,
         }));
         if (onSave) onSave({ ...productData, productStatus: result.status });
         if (result.status === PRODUCT_STATUS.ACTIVE && onClose) {
           onClose();
         }
       } else {
-        alert(result.message || 'Error al publicar el producto');
+        alert(result.message || "Error al publicar el producto");
       }
     } catch (error) {
-      console.error('Error publishing product:', error);
-      alert('Error al publicar el producto. Intenta nuevamente.');
+      console.error("Error publishing product:", error);
+      alert("Error al publicar el producto. Intenta nuevamente.");
     } finally {
       setIsPublishing(false);
     }
@@ -631,7 +666,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Enhanced preview handler
   const handlePreview = () => {
     // Open preview in new tab or modal
-    console.log('Preview product:', miniDraft);
+    console.log("Preview product:", miniDraft);
   };
 
   // Helpers para reordenar videos del producto (persistencia inmediata)
@@ -772,27 +807,30 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Enhanced image processing handler
   const handleImageProcessing = async (files, field) => {
     if (!files?.length) return;
-    
+
     setProcessingImages(true);
     try {
       const processedFiles = await batchProcessImages(files, {
         generateThumbnail: true,
         generateSmall: true,
         generateMedium: true,
-        generateLarge: false
+        generateLarge: false,
       });
-      
+
       // Update form data with processed images
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [field]: [...(prev[field] || []), ...processedFiles]
+        [field]: [...(prev[field] || []), ...processedFiles],
       }));
-      
+
       // Persist to Firestore
-      persistFieldImmediate(field, [...(formData[field] || []), ...processedFiles]);
+      persistFieldImmediate(field, [
+        ...(formData[field] || []),
+        ...processedFiles,
+      ]);
     } catch (error) {
-      console.error('Error processing images:', error);
-      alert('Error al procesar las imágenes. Intenta nuevamente.');
+      console.error("Error processing images:", error);
+      alert("Error al procesar las imágenes. Intenta nuevamente.");
     } finally {
       setProcessingImages(false);
     }
@@ -874,75 +912,83 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Enhanced media handlers for new structure
   const handleImagenPrincipal = (files) => {
     if (!files?.length) return;
-    handleImageProcessing(files, 'imagenPrincipal');
+    handleImageProcessing(files, "imagenPrincipal");
   };
 
   const handleGaleriaImagenes = (files) => {
     if (!files?.length) return;
-    handleImageProcessing(files, 'galeriaImagenes');
+    handleImageProcessing(files, "galeriaImagenes");
   };
 
   const handleTresArchivosExtras = (files) => {
     if (!files?.length) return;
-    const processedFiles = Array.from(files).map(file => ({
+    const processedFiles = Array.from(files).map((file) => ({
       id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
       url: URL.createObjectURL(file),
       name: file.name,
       type: file.type,
       size: file.size,
-      file
+      file,
     }));
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      tresArchivosExtras: [...(prev.tresArchivosExtras || []), ...processedFiles].slice(0, 3)
+      tresArchivosExtras: [
+        ...(prev.tresArchivosExtras || []),
+        ...processedFiles,
+      ].slice(0, 3),
     }));
   };
 
   const handleVideoAcercaArticulo = (files) => {
     if (!files?.length) return;
-    const videoFiles = Array.from(files).map(file => ({
+    const videoFiles = Array.from(files).map((file) => ({
       id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
       url: URL.createObjectURL(file),
       name: file.name,
       type: file.type,
       size: file.size,
-      file
+      file,
     }));
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      videoAcercaArticulo: [...(prev.videoAcercaArticulo || []), ...videoFiles]
+      videoAcercaArticulo: [...(prev.videoAcercaArticulo || []), ...videoFiles],
     }));
   };
 
   const handleVariantMediaFiles = (files, variantIndex, mediaType) => {
     if (!files?.length) return;
-    
-    const processedFiles = Array.from(files).map(file => ({
+
+    const processedFiles = Array.from(files).map((file) => ({
       id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
       url: URL.createObjectURL(file),
       name: file.name,
       type: file.type,
       size: file.size,
-      file
+      file,
     }));
-    
-    setFormData(prev => {
+
+    setFormData((prev) => {
       const newVariants = [...prev.variantes];
       if (!newVariants[variantIndex]) {
-        newVariants[variantIndex] = { color: "", imagen: "", imagenes: [], cantidad: 0 };
+        newVariants[variantIndex] = {
+          color: "",
+          imagen: "",
+          imagenes: [],
+          cantidad: 0,
+        };
       }
-      
-      if (mediaType === 'imagenPrincipal') {
+
+      if (mediaType === "imagenPrincipal") {
         newVariants[variantIndex].imagenPrincipal = processedFiles;
-      } else if (mediaType === 'galeriaImagenes') {
+      } else if (mediaType === "galeriaImagenes") {
         newVariants[variantIndex].galeriaImagenes = [
           ...(newVariants[variantIndex].galeriaImagenes || []),
-          ...processedFiles
+          ...processedFiles,
         ];
       }
-      
+
       return { ...prev, variantes: newVariants };
     });
   };
@@ -1109,13 +1155,19 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     try {
       const str = String(url).trim().toLowerCase();
       // Detectar plataformas de video por URL (YouTube/Vimeo)
-      if (str.includes("youtube.com") || str.includes("youtu.be") || str.includes("vimeo.com")) {
+      if (
+        str.includes("youtube.com") ||
+        str.includes("youtu.be") ||
+        str.includes("vimeo.com")
+      ) {
         return "video";
       }
       const clean = str.split("?")[0].split("#")[0];
       const ext = clean.split(".").pop() || "";
-      if (["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(ext)) return "image";
-      if (["mp4", "mov", "avi", "mkv", "webm", "m4v"].includes(ext)) return "video";
+      if (["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(ext))
+        return "image";
+      if (["mp4", "mov", "avi", "mkv", "webm", "m4v"].includes(ext))
+        return "video";
       return "document";
     } catch {
       return "document";
@@ -1124,22 +1176,25 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   // Remove media item handler
   const removeMediaItem = (field, index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
+      [field]: prev[field].filter((_, i) => i !== index),
     }));
-    persistFieldImmediate(field, formData[field].filter((_, i) => i !== index));
+    persistFieldImmediate(
+      field,
+      formData[field].filter((_, i) => i !== index)
+    );
   };
 
   // Set main image handler
   const setMainImage = (field, index) => {
-    if (field === 'galeriaImagenes') {
+    if (field === "galeriaImagenes") {
       const selectedImage = formData.galeriaImagenes[index];
       if (selectedImage) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           imagenPrincipal: [selectedImage],
-          galeriaImagenes: prev.galeriaImagenes.filter((_, i) => i !== index)
+          galeriaImagenes: prev.galeriaImagenes.filter((_, i) => i !== index),
         }));
       }
     }
@@ -1147,11 +1202,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   // Reorder media items
   const reorderMediaItems = (field, fromIndex, toIndex) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const items = [...prev[field]];
       const [movedItem] = items.splice(fromIndex, 1);
       items.splice(toIndex, 0, movedItem);
-      
+
       persistFieldImmediate(field, items);
       return { ...prev, [field]: items };
     });
@@ -1581,17 +1636,22 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             imagenPrincipal,
             imagenes: imgs,
           };
-          console.log("💾 Guardando en Firestore y actualizando formData...", next);
+          console.log(
+            "💾 Guardando en Firestore y actualizando formData...",
+            next
+          );
           updateDoc(doc(db, "productos", targetId), {
             imagen: remoteUrl,
             imagenPrincipal,
             imagenes: imgs,
             fechaActualizacion: new Date(),
-          }).then(() => {
-            console.log("✅ Documento actualizado en Firestore");
-          }).catch((err) => {
-            console.error("❌ Error actualizando Firestore:", err);
-          });
+          })
+            .then(() => {
+              console.log("✅ Documento actualizado en Firestore");
+            })
+            .catch((err) => {
+              console.error("❌ Error actualizando Firestore:", err);
+            });
           return next;
         });
       } else if (url0 && !url0.startsWith("blob:")) {
@@ -2467,10 +2527,18 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         categoria: finalCategoryId,
         precio: Number.isFinite(precioNum) ? precioNum : 0,
         fechaActualizacion: new Date(),
-        acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter((item) => String(item || "").trim()),
-        etiquetas: (Array.isArray(formData.etiquetas) ? formData.etiquetas : []).filter((item) => String(item || "").trim()),
+        acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter(
+          (item) => String(item || "").trim()
+        ),
+        etiquetas: (Array.isArray(formData.etiquetas)
+          ? formData.etiquetas
+          : []
+        ).filter((item) => String(item || "").trim()),
         // Normalizar variantes sin perder medios ni IDs
-        variantes: (Array.isArray(formData.variantes) ? formData.variantes : []).map((v) => {
+        variantes: (Array.isArray(formData.variantes)
+          ? formData.variantes
+          : []
+        ).map((v) => {
           const cantidadSan = Number.isFinite(parseInt(v?.cantidad))
             ? parseInt(v.cantidad)
             : 0;
@@ -2478,7 +2546,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             v?.precio !== undefined &&
             v?.precio !== null &&
             String(v.precio).trim() !== "";
-          const precioSan = hasPrecio ? (toNumber(v.precio) || 0) : undefined;
+          const precioSan = hasPrecio ? toNumber(v.precio) || 0 : undefined;
           return {
             ...v,
             cantidad: cantidadSan,
@@ -2536,7 +2604,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       // Si hay product.id o currentId o formData.id, SIEMPRE editar ese documento
       const canonicalId = product?.id || currentId || formData?.id || null;
       if (product && !product.id) {
-        throw new Error("Producto en edición sin ID válido. No se guardó para evitar duplicados.");
+        throw new Error(
+          "Producto en edición sin ID válido. No se guardó para evitar duplicados."
+        );
       }
       const isNew = !canonicalId;
       const targetId = isNew ? `prod_${Date.now()}` : canonicalId;
@@ -2552,8 +2622,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           productData.ownerUid = usuario?.uid || usuarioInfo?.uid || null;
         }
         if (!productData.ownerName) {
-          productData.ownerName =
-            (usuarioInfo?.displayName || usuario?.email || "").toString();
+          productData.ownerName = (
+            usuarioInfo?.displayName ||
+            usuario?.email ||
+            ""
+          ).toString();
         }
       }
       // Usar setDoc con merge para crear o actualizar sin fallar
@@ -2694,15 +2767,15 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 </div>
               </div>
 
-              
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Descripción
                 </label>
                 <textarea
                   value={formData.descripcion || ""}
-                  onChange={(e) => handleInputChange("descripcion", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("descripcion", e.target.value)
+                  }
                   placeholder="Escribe la descripción del producto..."
                   className="w-full min-h-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -3061,9 +3134,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                       price: v.precio,
                       stock: v.cantidad,
                       image: v.imagenPrincipal?.[0]?.url || v.imagen,
-                      isSelected: selectedVariant === idx
+                      isSelected: selectedVariant === idx,
                     }))}
-                    productMainImage={formData.imagenPrincipal?.[0]?.url || formData.imagen}
+                    productMainImage={
+                      formData.imagenPrincipal?.[0]?.url || formData.imagen
+                    }
                     onVariantChange={handleVariantSelectionChange}
                     className="max-w-md"
                   />
@@ -3271,7 +3346,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 📸 Imágenes con más información del artículo
               </h3>
               <p className="text-sm text-gray-600 bg-blue-50 border-l-4 border-blue-400 pl-4 py-2 rounded">
-                💡 <strong>¿Para qué sirve?</strong> Estas imágenes se mostrarán en la sección "Más información del producto" debajo de la descripción. Son perfectas para:
+                💡 <strong>¿Para qué sirve?</strong> Estas imágenes se mostrarán
+                en la sección "Más información del producto" debajo de la
+                descripción. Son perfectas para:
               </p>
               <ul className="text-sm text-gray-600 space-y-1 ml-6 list-disc">
                 <li>Mostrar especificaciones técnicas detalladas en imagen</li>
@@ -3280,7 +3357,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 <li>Detalles ampliados del producto</li>
               </ul>
               <p className="text-xs text-blue-600 font-medium bg-blue-100 px-3 py-2 rounded-lg inline-block">
-                📐 <strong>Recomendación:</strong> Usa imágenes de alta resolución (al menos 1200px de ancho) para que se vean perfectas en todos los dispositivos.
+                📐 <strong>Recomendación:</strong> Usa imágenes de alta
+                resolución (al menos 1200px de ancho) para que se vean perfectas
+                en todos los dispositivos.
               </p>
             </div>
             <UniversalFileUploader
