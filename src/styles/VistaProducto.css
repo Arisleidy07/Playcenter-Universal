@@ -758,23 +758,66 @@
   min-height: 90px;
   max-width: 90px;
   max-height: 90px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+/* Escalado responsive de miniaturas */
+@media (min-width: 1440px) {
+  .amazon-thumb {
+    width: 100px;
+    height: 100px;
+    min-width: 100px;
+    min-height: 100px;
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 18px;
+    padding: 10px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .amazon-thumb {
+    width: 110px;
+    height: 110px;
+    min-width: 110px;
+    min-height: 110px;
+    max-width: 110px;
+    max-height: 110px;
+    border-radius: 20px;
+    padding: 12px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .amazon-thumb {
+    width: 130px;
+    height: 130px;
+    min-width: 130px;
+    min-height: 130px;
+    max-width: 130px;
+    max-height: 130px;
+    border-radius: 24px;
+    padding: 14px;
+  }
 }
 
 .amazon-thumb:hover {
   border-color: #6b7280;
   transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
