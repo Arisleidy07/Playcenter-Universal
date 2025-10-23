@@ -14,6 +14,20 @@
   border-radius: 4px;
   transform-origin: center bottom;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Dark mode para loader bars */
+@media (prefers-color-scheme: dark) {
+  .loader__bar {
+    background: #60a5fa; /* azul más claro en dark mode */
+    box-shadow: 1px 1px 4px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.dark .loader__bar {
+  background: #60a5fa;
+  box-shadow: 1px 1px 4px rgba(59, 130, 246, 0.3);
 }
 
 .loader__bar:nth-child(1) { left: 0; animation: barUp1 4s infinite; }
@@ -31,6 +45,21 @@
   background: #10b981; /* verde éxito */
   border-radius: 50%;
   animation: ball624 4s infinite;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Dark mode para loader ball */
+@media (prefers-color-scheme: dark) {
+  .loader__ball {
+    background: #34d399;
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.6);
+  }
+}
+
+.dark .loader__ball {
+  background: #34d399;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.6);
 }
 
 @keyframes ball624 {
