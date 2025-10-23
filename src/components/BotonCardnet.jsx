@@ -37,11 +37,36 @@ const fetchWithTimeout = async (url, options, timeoutMs = 6000) => {
 export default function BotonCardnet({ className, total, label }) {
   const [session, setSession] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [sessionPreparada, setSessionPreparada] = useState(null);
   const displayAmount = typeof total === 'number' ? total / 100 : null; // total llega en centavos
   const formatted = Number.isFinite(displayAmount)
     ? new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(displayAmount)
     : null;
   const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
+
+  // Pre-crear SESSION al montar componente para redirección instantánea
+  useEffect(() => {
+    const prepararSession = async () => {
+      try {
+        const res = await fetchWithTimeout(`${API_BASE}/cardnet/create-session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ total })
+        });
+        const data = await res.json();
+        if (data.SESSION) {
+          setSessionPreparada(data.SESSION);
+        }
+      } catch (error) {
+        // Si falla, el botón funcionará con fetch normal
+        console.log('Pre-carga de session falló, se creará al hacer clic');
+      }
+    };
+
+    if (total && !import.meta.env.DEV) {
+      prepararSession();
+    }
+  }, [total]);
 
   const iniciarPago = async () => {
     if (isProcessing) return;
@@ -53,26 +78,30 @@ export default function BotonCardnet({ className, total, label }) {
       if (button) {
         button.disabled = true;
         button.classList.add('loading');
-        // Feedback visual inmediato
-        button.querySelector('.btn-text').textContent = 'Procesando...';
       }
 
-      // Fetch DIRECTO sin delays
-      const res = await fetchWithTimeout(`${API_BASE}/cardnet/create-session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ total })
-      });
+      let sessionId;
 
-      const data = await res.json();
-
-      if (!data.SESSION) {
-        throw new Error("No se recibió SESSION del servidor");
+      // Si ya tenemos SESSION pre-cargada, usarla INSTANTÁNEAMENTE
+      if (sessionPreparada) {
+        sessionId = sessionPreparada;
+      } else {
+        // Si no, crear nueva SESSION ahora
+        const res = await fetchWithTimeout(`${API_BASE}/cardnet/create-session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ total })
+        });
+        const data = await res.json();
+        if (!data.SESSION) {
+          throw new Error("No se recibió SESSION del servidor");
+        }
+        sessionId = data.SESSION;
       }
 
-      setSession(data.SESSION);
+      setSession(sessionId);
       
-      // Submit INMEDIATO como Amazon
+      // Submit INMEDIATO
       requestAnimationFrame(() => {
         const form = document.getElementById("cardnetForm");
         if (form) {
