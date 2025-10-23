@@ -165,21 +165,13 @@ function TarjetaProducto({ producto }) {
 
   return (
     <>
-      {/* DESKTOP: Tarjeta vertical cuadrada */}
       <article
-        className="hidden lg:flex flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200"
-        style={{
-          width: "250px",
-          minWidth: "250px",
-          maxWidth: "250px",
-          flexShrink: 0,
-        }}
+        className="flex flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 w-full h-full"
       >
-        {/* Imagen cuadrada */}
+        {/* Imagen */}
         <div
           onClick={irADetalle}
-          className="w-full h-[250px] flex items-center justify-center overflow-hidden mb-3 cursor-pointer"
-          style={{ backgroundColor: "transparent" }}
+          className="w-full aspect-square flex items-center justify-center overflow-hidden mb-3 cursor-pointer"
         >
           {imagen ? (
             <img
@@ -259,97 +251,6 @@ function TarjetaProducto({ producto }) {
             Agregar al Carrito
           </button>
         )}
-      </article>
-
-      {/* MÓVIL/TABLET: Tarjeta horizontal */}
-      <article className="flex lg:hidden flex-row bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 w-full">
-        <div
-          onClick={irADetalle}
-          className="w-32 h-32 flex-shrink-0 flex items-center justify-center overflow-hidden mr-3 cursor-pointer"
-          style={{ backgroundColor: "transparent" }}
-        >
-          {imagen ? (
-            <img
-              src={imagen}
-              alt={producto.nombre}
-              className="w-full h-full object-contain"
-              loading="lazy"
-            />
-          ) : (
-            <div className="text-gray-400 text-xs">Sin imagen</div>
-          )}
-        </div>
-
-        <div className="flex-1 flex flex-col justify-between">
-          <div>
-            <h3
-              onClick={irADetalle}
-              className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 mb-2 cursor-pointer text-sm font-medium"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                lineHeight: "1.3em",
-              }}
-            >
-              {producto.nombre}
-            </h3>
-
-            <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-xs text-gray-600 dark:text-gray-400">
-                RD$
-              </span>
-              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                {Number(producto.precio).toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {enCarrito ? (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleDecremento}
-                className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs"
-              >
-                −
-              </button>
-              <span className="text-sm font-semibold">{cantidadEnCarrito}</span>
-              <button
-                onClick={handleIncremento}
-                className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs"
-              >
-                +
-              </button>
-              <button
-                onClick={handleQuitar}
-                className="px-2 py-1 bg-red-500 text-white rounded text-xs"
-              >
-                <FaTrashAlt size={10} />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAgregar}
-              className="w-full py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
-              style={{
-                backgroundColor: "#0066C0",
-                color: "#FFFFFF",
-                border: "1px solid #0066C0",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#004F9A")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "#0066C0")
-              }
-              disabled={!disponible}
-            >
-              <FaShoppingCart size={12} />
-              Agregar al Carrito
-            </button>
-          )}
-        </div>
       </article>
 
       <ModalLoginAlert

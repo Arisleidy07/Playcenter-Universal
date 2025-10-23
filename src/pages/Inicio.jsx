@@ -244,7 +244,7 @@ function Inicio() {
       </motion.div>
 
       {/* BLOQUES CUADRADOS - CATEGORÍAS DINÁMICAS */}
-      <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-0 max-w-[95%] lg:max-w-[1600px] mx-auto px-2 sm:px-4 mt-8 sm:mt-14">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-[95%] lg:max-w-[1600px] mx-auto px-2 sm:px-4 mt-8 sm:mt-14">
         {categories.slice(0, 4).map((category, idx) => {
           const categoryProducts = productsByCategory[category.id] || [];
           const featuredProducts = categoryProducts.slice(0, 4);

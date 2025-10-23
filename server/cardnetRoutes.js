@@ -27,12 +27,12 @@ const MERCHANT_NAME =
 // Guardar SESSION → session-key en memoria (⚠️ se borra si Render reinicia el server)
 const sessions = {};
 
-// Health check endpoint - respuesta mínima y rápida
+// Health check endpoint - respuesta simple
 router.get("/health", (req, res) => {
-  res.status(200).end(); // Sin JSON, solo 200 OK
+  res.json({ status: "ok" });
 });
 
-// Crear sesión con CardNet - OPTIMIZADO
+// Crear sesión con CardNet
 router.post("/create-session", async (req, res) => {
   try {
     const { total } = req.body;
@@ -40,16 +40,15 @@ router.post("/create-session", async (req, res) => {
     const ordId = `ORD${now}`;
     const txId = String(Math.floor(100000 + Math.random() * 900000)); // 6 dígitos
 
-    // Timeout de 10 segundos para evitar esperas largas
+    // Timeout de 15 segundos para Cardnet
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
     try {
       const response = await fetch(`${CARDNET_BASE}/sessions`, {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json",
-          "Connection": "keep-alive"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           TransactionType: "0200",
@@ -82,20 +81,21 @@ router.post("/create-session", async (req, res) => {
 
       if (data.SESSION && data["session-key"]) {
         sessions[data.SESSION] = data["session-key"];
-        // Respuesta rápida sin data extra
-        return res.json({ SESSION: data.SESSION });
+        res.json({ SESSION: data.SESSION });
       } else {
-        return res.status(400).json({ error: "Sesión inválida" });
+        res.status(400).json({ error: "No se pudo crear la sesión" });
       }
     } catch (fetchError) {
       clearTimeout(timeout);
       if (fetchError.name === 'AbortError') {
-        return res.status(504).json({ error: "Timeout conectando con Cardnet" });
+        res.status(504).json({ error: "Timeout conectando con Cardnet" });
+      } else {
+        throw fetchError;
       }
-      throw fetchError;
     }
   } catch (error) {
-    return res.status(500).json({ error: "Error del servidor" });
+    console.error("Error creando sesión:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 });
 

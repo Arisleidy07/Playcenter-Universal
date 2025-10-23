@@ -425,7 +425,6 @@ function VistaProducto() {
     const extraMedia = producto.imagenesExtra || [];
     return extraMedia
       .filter((item) => item && (typeof item === "string" || item?.url))
-      .slice(0, 3)
       .map((item) => (typeof item === "string" ? item : item.url));
   };
 
@@ -1090,10 +1089,6 @@ function VistaProducto() {
                               alt={`Miniatura ${i + 1}`}
                               className="w-full h-full object-contain"
                               loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = "/Productos/N.jpg";
-                              }}
                             />
                           )}
                         </button>
@@ -1179,18 +1174,11 @@ function VistaProducto() {
                               <video
                                 key={`main-vid-${displayDesktopIndex}`}
                                 src={current.url}
+                                controls
                                 preload="metadata"
                                 playsInline
-                                muted
                                 className="w-full h-full object-contain"
                               />
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="bg-white/95 rounded-full p-4 shadow">
-                                  <svg className="w-7 h-7 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                                  </svg>
-                                </div>
-                              </div>
                             </div>
                           );
                         }
@@ -1217,10 +1205,6 @@ function VistaProducto() {
                                   thumbnailContainer.style.maxHeight = `${imageHeight}px`;
                                 }
                               }, 50);
-                            }}
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/Productos/N.jpg";
                             }}
                           />
                         );
@@ -1280,10 +1264,6 @@ function VistaProducto() {
                             alt={`Miniatura ${i + 1}`}
                             className="w-full h-full object-contain"
                             loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/Productos/N.jpg";
-                            }}
                           />
                         )}
                       </button>
@@ -1666,10 +1646,6 @@ function VistaProducto() {
                         maxWidth: "1500px",
                         margin: "0 auto",
                         display: "block",
-                      }}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = "/Productos/N.jpg";
                       }}
                     />
                     {/* Overlay hover */}
@@ -2165,10 +2141,6 @@ function VistaProducto() {
                   setModalPan && setModalPan({ x: 0, y: 0 });
                 }
               }}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/Productos/N.jpg";
-              }}
             />
           </div>
 
@@ -2200,10 +2172,6 @@ function VistaProducto() {
                       alt={`Miniatura ${index + 1}`}
                       className="w-full h-full object-contain"
                       loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = "/Productos/N.jpg";
-                      }}
                     />
                   </button>
                 ))}
@@ -2348,10 +2316,6 @@ function VistaProducto() {
                           setProductInfoPan({ x: 0, y: 0 });
                         }
                       }}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = "/Productos/N.jpg";
-                      }}
                     />
                   </div>
                 </div>
@@ -2383,10 +2347,6 @@ function VistaProducto() {
                           src={imageUrl}
                           alt={`Miniatura ${i + 1}`}
                           className="w-full h-full object-contain bg-white p-1"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/Productos/N.jpg";
-                          }}
                         />
                       </button>
                     ))}

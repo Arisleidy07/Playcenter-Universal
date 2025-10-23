@@ -13,23 +13,27 @@ const AUTHORIZE_URL =
     : "https://ecommerce.cardnet.com.do/authorize";
 
 // Función para despertar el servidor (evitar cold start de Render)
-// Se ejecuta silenciosamente en background
-const wakeUpServer = () => {
-  if (import.meta.env.DEV) return; // Solo en producción
+const wakeUpServer = async () => {
+  if (import.meta.env.DEV) return Promise.resolve();
   
-  // Fire and forget - no esperar respuesta
-  fetch(`${API_BASE}/cardnet/health`, { 
-    method: "GET",
-    signal: AbortSignal.timeout(3000)
-  }).catch(() => {}); // Silencioso, sin logs
+  try {
+    await fetch(`${API_BASE}/cardnet/health`, { 
+      method: "GET",
+      signal: AbortSignal.timeout(5000)
+    });
+  } catch (e) {
+    // Silencioso
+  }
 };
 
-// Fetch optimizado con timeout y retry rápido
-const fetchWithRetry = async (url, options, retries = 1) => {
-  for (let i = 0; i <= retries; i++) {
+// Fetch con timeout balanceado y retry inteligente
+const fetchWithRetry = async (url, options, maxRetries = 2) => {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000); // 15 segundos
+      // Timeout progresivo: 20s, 25s, 30s
+      const timeoutDuration = 20000 + (attempt * 5000);
+      const timeout = setTimeout(() => controller.abort(), timeoutDuration);
       
       const response = await fetch(url, {
         ...options,
@@ -44,9 +48,11 @@ const fetchWithRetry = async (url, options, retries = 1) => {
       
       return response;
     } catch (error) {
-      if (i === retries) throw error;
-      // Retry rápido (solo 500ms de espera)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === maxRetries) throw error;
+      
+      // Backoff: 1s, 2s
+      const backoff = (attempt + 1) * 1000;
+      await new Promise(resolve => setTimeout(resolve, backoff));
     }
   }
 };
@@ -60,28 +66,37 @@ export default function BotonCardnet({ className, total, label }) {
     : null;
   const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
 
-  // Despertar servidor silenciosamente al montar
+  // Despertar servidor al montar el componente
   useEffect(() => {
-    wakeUpServer(); // Fire and forget, no bloquea nada
+    // Despertar inmediatamente al cargar la página
+    wakeUpServer();
+    
+    // Despertar cada 30 segundos mientras el componente está montado
+    const interval = setInterval(wakeUpServer, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const iniciarPago = async () => {
-    if (isProcessing) return; // Prevenir clicks múltiples
+    if (isProcessing) return;
     
     setIsProcessing(true);
     const button = document.querySelector('.pay-btn');
     
     try {
-      // Visual feedback inmediato
       if (button) {
         button.disabled = true;
         button.classList.add('loading');
       }
 
-      // Wake-up en paralelo (no bloquea)
-      wakeUpServer();
+      // Despertar servidor y ESPERAR un momento para que se active
+      if (!import.meta.env.DEV) {
+        await wakeUpServer();
+        // Pequeña pausa para que el servidor responda
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
-      // Fetch con retry optimizado
+      // Fetch con retry inteligente
       const res = await fetchWithRetry(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -96,8 +111,7 @@ export default function BotonCardnet({ className, total, label }) {
 
       setSession(data.SESSION);
       
-      // Submit INMEDIATO - como Amazon
-      // Usar requestAnimationFrame para el siguiente frame
+      // Submit inmediato
       requestAnimationFrame(() => {
         const form = document.getElementById("cardnetForm");
         if (form) {
@@ -106,19 +120,20 @@ export default function BotonCardnet({ className, total, label }) {
       });
 
     } catch (error) {
-      // Mensaje de error específico
       let errorMsg = "No se pudo procesar el pago";
+      
       if (error.name === 'AbortError') {
-        errorMsg = "La conexión está tardando demasiado. Intenta de nuevo.";
+        errorMsg = "El servidor está tardando en responder. Por favor, intenta nuevamente en unos segundos.";
+      } else if (error.message.includes('HTTP 504') || error.message.includes('Timeout')) {
+        errorMsg = "El servidor no está disponible. Intenta de nuevo en un momento.";
       } else if (error.message.includes('HTTP')) {
         errorMsg = "Error del servidor. Intenta de nuevo.";
       } else if (error.message.includes('Failed to fetch')) {
-        errorMsg = "Sin conexión a internet. Verifica tu red.";
+        errorMsg = "Error de conexión. Verifica tu internet.";
       }
       
       alert(`❌ ${errorMsg}`);
       
-      // Restaurar botón
       if (button) {
         button.disabled = false;
         button.classList.remove('loading');
