@@ -13,24 +13,23 @@ const AUTHORIZE_URL =
     : "https://ecommerce.cardnet.com.do/authorize";
 
 // Función para despertar el servidor (evitar cold start de Render)
-const wakeUpServer = async () => {
+// Se ejecuta silenciosamente en background
+const wakeUpServer = () => {
   if (import.meta.env.DEV) return; // Solo en producción
-  try {
-    await fetch(`${API_BASE}/cardnet/health`, { 
-      method: "GET",
-      signal: AbortSignal.timeout(5000)
-    });
-  } catch (e) {
-    console.log("Wake-up call al servidor");
-  }
+  
+  // Fire and forget - no esperar respuesta
+  fetch(`${API_BASE}/cardnet/health`, { 
+    method: "GET",
+    signal: AbortSignal.timeout(3000)
+  }).catch(() => {}); // Silencioso, sin logs
 };
 
-// Fetch con timeout y retry
-const fetchWithRetry = async (url, options, retries = 2) => {
+// Fetch optimizado con timeout y retry rápido
+const fetchWithRetry = async (url, options, retries = 1) => {
   for (let i = 0; i <= retries; i++) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000); // 30 segundos
+      const timeout = setTimeout(() => controller.abort(), 15000); // 15 segundos
       
       const response = await fetch(url, {
         ...options,
@@ -46,8 +45,8 @@ const fetchWithRetry = async (url, options, retries = 2) => {
       return response;
     } catch (error) {
       if (i === retries) throw error;
-      // Esperar antes de reintentar (backoff exponencial)
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+      // Retry rápido (solo 500ms de espera)
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
 };
@@ -61,9 +60,9 @@ export default function BotonCardnet({ className, total, label }) {
     : null;
   const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
 
-  // Despertar servidor al montar el componente
+  // Despertar servidor silenciosamente al montar
   useEffect(() => {
-    wakeUpServer();
+    wakeUpServer(); // Fire and forget, no bloquea nada
   }, []);
 
   const iniciarPago = async () => {
@@ -79,9 +78,10 @@ export default function BotonCardnet({ className, total, label }) {
         button.classList.add('loading');
       }
 
-      console.log("🚀 Iniciando pago con Cardnet...");
+      // Wake-up en paralelo (no bloquea)
+      wakeUpServer();
 
-      // Fetch con retry y timeout extendido
+      // Fetch con retry optimizado
       const res = await fetchWithRetry(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,7 +89,6 @@ export default function BotonCardnet({ className, total, label }) {
       });
 
       const data = await res.json();
-      console.log("✅ Sesión creada:", data.SESSION);
 
       if (!data.SESSION) {
         throw new Error("No se recibió SESSION del servidor");
@@ -97,26 +96,24 @@ export default function BotonCardnet({ className, total, label }) {
 
       setSession(data.SESSION);
       
-      // Submit automático después de crear la sesión
-      setTimeout(() => {
+      // Submit INMEDIATO - como Amazon
+      // Usar requestAnimationFrame para el siguiente frame
+      requestAnimationFrame(() => {
         const form = document.getElementById("cardnetForm");
         if (form) {
-          console.log("📤 Redirigiendo a Cardnet...");
           form.submit();
         }
-      }, 100);
+      });
 
     } catch (error) {
-      console.error("❌ Error en pago:", error);
-      
       // Mensaje de error específico
       let errorMsg = "No se pudo procesar el pago";
       if (error.name === 'AbortError') {
-        errorMsg = "La conexión está tardando demasiado. Por favor, intenta de nuevo.";
+        errorMsg = "La conexión está tardando demasiado. Intenta de nuevo.";
       } else if (error.message.includes('HTTP')) {
-        errorMsg = "Error del servidor. Por favor, intenta de nuevo.";
+        errorMsg = "Error del servidor. Intenta de nuevo.";
       } else if (error.message.includes('Failed to fetch')) {
-        errorMsg = "Error de conexión. Verifica tu internet e intenta de nuevo.";
+        errorMsg = "Sin conexión a internet. Verifica tu red.";
       }
       
       alert(`❌ ${errorMsg}`);

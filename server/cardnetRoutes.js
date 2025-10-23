@@ -27,12 +27,12 @@ const MERCHANT_NAME =
 // Guardar SESSION → session-key en memoria (⚠️ se borra si Render reinicia el server)
 const sessions = {};
 
-// Health check endpoint para despertar el servidor
+// Health check endpoint - respuesta mínima y rápida
 router.get("/health", (req, res) => {
-  res.json({ status: "ok", timestamp: Date.now() });
+  res.status(200).end(); // Sin JSON, solo 200 OK
 });
 
-// Crear sesión con CardNet
+// Crear sesión con CardNet - OPTIMIZADO
 router.post("/create-session", async (req, res) => {
   try {
     const { total } = req.body;
@@ -40,43 +40,62 @@ router.post("/create-session", async (req, res) => {
     const ordId = `ORD${now}`;
     const txId = String(Math.floor(100000 + Math.random() * 900000)); // 6 dígitos
 
-    const response = await fetch(`${CARDNET_BASE}/sessions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        TransactionType: "0200",
-        CurrencyCode: "214",
-        AcquiringInstitutionCode: ACQUIRER_CODE,
-        MerchantType: MERCHANT_TYPE,
-        MerchantNumber: MERCHANT_NUMBER,
-        MerchantTerminal: MERCHANT_TERMINAL,
-        MerchantTerminal_amex: MERCHANT_TERMINAL_AMEX,
+    // Timeout de 10 segundos para evitar esperas largas
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
-        // 👉 Endpoints públicos donde CardNet hará POST de retorno/cancelación
-        ReturnUrl: `${SERVER_BASE}/cardnet/return`,
-        CancelUrl: `${SERVER_BASE}/cardnet/cancel`,
+    try {
+      const response = await fetch(`${CARDNET_BASE}/sessions`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Connection": "keep-alive"
+        },
+        body: JSON.stringify({
+          TransactionType: "0200",
+          CurrencyCode: "214",
+          AcquiringInstitutionCode: ACQUIRER_CODE,
+          MerchantType: MERCHANT_TYPE,
+          MerchantNumber: MERCHANT_NUMBER,
+          MerchantTerminal: MERCHANT_TERMINAL,
+          MerchantTerminal_amex: MERCHANT_TERMINAL_AMEX,
+          ReturnUrl: `${SERVER_BASE}/cardnet/return`,
+          CancelUrl: `${SERVER_BASE}/cardnet/cancel`,
+          PageLanguaje: "ESP",
+          OrdenId: ordId,
+          TransactionId: txId,
+          Tax: "000000000000",
+          MerchantName: MERCHANT_NAME,
+          AVS: "SANTO DOMINGO DO",
+          Amount: String(total),
+        }),
+        signal: controller.signal
+      });
 
-        PageLanguaje: "ESP",
-        OrdenId: ordId,
-        TransactionId: txId,
-        Tax: "000000000000",
-        MerchantName: MERCHANT_NAME,
-        AVS: "SANTO DOMINGO DO",
-        Amount: String(total),
-      }),
-    });
+      clearTimeout(timeout);
 
-    const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Cardnet HTTP ${response.status}`);
+      }
 
-    if (data.SESSION && data["session-key"]) {
-      sessions[data.SESSION] = data["session-key"];
-      res.json({ SESSION: data.SESSION });
-    } else {
-      res.status(400).json({ error: "No se pudo crear la sesión", raw: data });
+      const data = await response.json();
+
+      if (data.SESSION && data["session-key"]) {
+        sessions[data.SESSION] = data["session-key"];
+        // Respuesta rápida sin data extra
+        return res.json({ SESSION: data.SESSION });
+      } else {
+        return res.status(400).json({ error: "Sesión inválida" });
+      }
+    } catch (fetchError) {
+      clearTimeout(timeout);
+      if (fetchError.name === 'AbortError') {
+        return res.status(504).json({ error: "Timeout conectando con Cardnet" });
+      }
+      throw fetchError;
     }
   } catch (error) {
-    console.error("Error creando sesión:", error);
-    res.status(500).json({ error: "Error creando sesión" });
+    return res.status(500).json({ error: "Error del servidor" });
   }
 });
 
