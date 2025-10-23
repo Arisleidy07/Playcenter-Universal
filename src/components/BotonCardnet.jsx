@@ -7,10 +7,9 @@ const API_BASE =
     ? "" // en localhost usamos el proxy de Vite
     : "https://playcenter-universal.onrender.com"; // en producción Render
 
-const AUTHORIZE_URL =
-  import.meta.env.DEV
-    ? "https://lab.cardnet.com.do/authorize"
-    : "https://ecommerce.cardnet.com.do/authorize";
+// ⚠️ USANDO LAB PARA PRUEBAS EN PRODUCCIÓN
+// Cambiar a "https://ecommerce.cardnet.com.do/authorize" cuando esté listo para producción real
+const AUTHORIZE_URL = "https://lab.cardnet.com.do/authorize";
 
 // Función para despertar el servidor (evitar cold start de Render)
 const wakeUpServer = async () => {

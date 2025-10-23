@@ -11,9 +11,10 @@ const SERVER_BASE =
   (isProd
     ? "https://playcenter-universal.onrender.com"
     : "http://localhost:5000");
-const CARDNET_BASE = isProd
-  ? "https://ecommerce.cardnet.com.do"
-  : "https://lab.cardnet.com.do";
+
+// ⚠️ USANDO LAB PARA PRUEBAS EN PRODUCCIÓN
+// Cambiar a "https://ecommerce.cardnet.com.do" cuando esté listo para producción real
+const CARDNET_BASE = "https://lab.cardnet.com.do";
 
 // Merchant configuration (use env in prod)
 const ACQUIRER_CODE = process.env.CARDNET_ACQUIRER_CODE || "349";
