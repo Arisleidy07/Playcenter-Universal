@@ -128,12 +128,12 @@ function VistaProducto() {
     );
     const varianteActivaParaMedios = variantesConColor[varianteSeleccionada] || null;
     
+    // ProductForm guarda en producto.videoUrls como array de strings
     const sourceData =
       varianteActivaParaMedios?.videoUrls?.length > 0
         ? varianteActivaParaMedios.videoUrls
-        : producto?.videoUrls?.length > 0
-        ? producto.videoUrls
-        : [];
+        : producto?.videoUrls || [];
+    
     return Array.isArray(sourceData)
       ? sourceData.filter((u) => u && typeof u === "string" && u.trim())
       : [];
@@ -384,23 +384,32 @@ function VistaProducto() {
 
   // Enhanced media processing - NOW varianteActiva is defined
   const getMainImage = () => {
+    // ProductForm guarda en producto.imagen directamente como string
+    // Prioridad: variante.imagen → producto.imagen
+    if (varianteActiva?.imagen) return varianteActiva.imagen;
+    if (producto.imagen) return producto.imagen;
+    
+    // Fallback para formato legacy con arrays
     if (varianteActiva?.imagenPrincipal?.[0]?.url)
       return varianteActiva.imagenPrincipal[0].url;
     if (producto.imagenPrincipal?.[0]?.url)
       return producto.imagenPrincipal[0].url;
-    // Legacy fallback
-    if (varianteActiva?.imagen) return varianteActiva.imagen;
-    if (producto.imagen) return producto.imagen;
+    
     return null;
   };
 
-  const getGalleryMedia = () => {
+  const getGalleryImages = () => {
+    const varianteActiva =
+      variantesConColor && variantesConColor[varianteSeleccionada];
+    
+    // ProductForm guarda en producto.imagenes directamente como array de strings
     const sourceData =
-      varianteActiva?.galeriaImagenes?.length > 0
-        ? varianteActiva.galeriaImagenes
-        : producto.galeriaImagenes || producto.imagenes || [];
+      varianteActiva?.imagenes?.length > 0
+        ? varianteActiva.imagenes
+        : producto.imagenes || [];
+    
     return sourceData
-      .filter((item) => item?.url || typeof item === "string")
+      .filter((item) => item && (typeof item === "string" || item?.url))
       .map((item) => (typeof item === "string" ? item : item.url));
   };
 
@@ -412,10 +421,10 @@ function VistaProducto() {
   };
 
   const getExtraFiles = () => {
-    const extraMedia =
-      producto.tresArchivosExtras || producto.imagenesExtra || [];
+    // ProductForm guarda en producto.imagenesExtra como array de strings
+    const extraMedia = producto.imagenesExtra || [];
     return extraMedia
-      .filter((item) => item?.url || typeof item === "string")
+      .filter((item) => item && (typeof item === "string" || item?.url))
       .slice(0, 3)
       .map((item) => (typeof item === "string" ? item : item.url));
   };
