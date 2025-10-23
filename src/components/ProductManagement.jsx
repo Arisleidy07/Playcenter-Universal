@@ -212,20 +212,12 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         newProduct.imagenes = [...newProduct.imagenes];
       }
       
-      console.log(`✅ Producto duplicado creado con ID: ${newProductId}`);
-      console.log('📋 Datos del producto duplicado:', {
-        id: newProductId,
-        nombre: newProduct.nombre,
-        categoria: newProduct.categoria,
-        activo: newProduct.activo,
-        estado: newProduct.estado,
-        fechaCreacion: newProduct.fechaCreacion
-      });
+      // Producto duplicado creado exitosamente
       
       // Guardar el nuevo producto en Firestore
       await setDoc(doc(db, 'productos', newProductId), newProduct);
       
-      console.log('✅ Producto guardado en Firestore con ID:', newProductId);
+      // Producto guardado en Firestore
       
       // Pequeño delay para asegurar que Firebase procese el documento
       await new Promise(resolve => setTimeout(resolve, 500));

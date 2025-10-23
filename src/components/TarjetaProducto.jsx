@@ -195,7 +195,7 @@ function TarjetaProducto({ producto }) {
 
         <h3
           onClick={irADetalle}
-          className="text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 mb-2 cursor-pointer"
+          className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 mb-2 cursor-pointer"
           style={{
             display: "-webkit-box",
             WebkitLineClamp: 2,

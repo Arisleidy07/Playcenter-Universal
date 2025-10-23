@@ -70,6 +70,8 @@ function VistaProducto() {
   const [desktopMediaIndex, setDesktopMediaIndex] = useState(0);
   const [imagenModalAbierta, setImagenModalAbierta] = useState(false);
   const [varianteSeleccionada, setVarianteSeleccionada] = useState(0);
+  // Índice de thumbnail en HOVER (solo desktop). No cambia la selección.
+  const [hoverThumbIndex, setHoverThumbIndex] = useState(null);
 
   // Enhanced state for new components
   const [isFavorite, setIsFavorite] = useState(false);
@@ -117,6 +119,84 @@ function VistaProducto() {
 
   const { product: producto, loading, error } = useProduct(id);
 
+  // Helper functions for media processing - available throughout component
+  const getGalleryVideos = () => {
+    if (!producto) return [];
+    const allVariantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
+    const variantesConColor = allVariantes.filter(
+      (v) => v && typeof v.color === "string" && v.color.trim()
+    );
+    const varianteActivaParaMedios = variantesConColor[varianteSeleccionada] || null;
+    
+    const sourceData =
+      varianteActivaParaMedios?.videoUrls?.length > 0
+        ? varianteActivaParaMedios.videoUrls
+        : producto?.videoUrls?.length > 0
+        ? producto.videoUrls
+        : [];
+    return Array.isArray(sourceData)
+      ? sourceData.filter((u) => u && typeof u === "string" && u.trim())
+      : [];
+  };
+
+  const buildImageList = (prod, variante) => {
+    const norm = (u) => (u ? String(u).split("?")[0].split("#")[0].trim() : "");
+    const pickUrl = (u) => {
+      try {
+        return typeof u === "string" ? u : u?.url || u?.src || "";
+      } catch {
+        return "";
+      }
+    };
+
+    let result = [];
+    if (variante?.imagenes?.length > 0) {
+      result = variante.imagenes.map(pickUrl).filter(Boolean);
+    } else if (variante?.imagen) {
+      result = [pickUrl(variante.imagen)];
+    } else if (prod?.imagenes?.length > 0) {
+      result = prod.imagenes.map(pickUrl).filter(Boolean);
+    } else if (prod?.imagen) {
+      result = [pickUrl(prod.imagen)];
+    }
+    return [...new Set(result.map(norm).filter(Boolean))];
+  };
+
+  // Calculate essential variables needed by useEffect hooks and throughout component
+  // This must be done before useEffect hooks that depend on these variables
+  let desktopMediaItems = [];
+  let displayDesktopIndex = 0;
+  let safeDesktopIndex = 0;
+  let allVariantes = [];
+  let variantesConColor = [];
+  let varianteActivaParaMedios = null;
+  let imagenes = [];
+  
+  if (producto) {
+    // Build media items for desktop gallery
+    allVariantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
+    variantesConColor = allVariantes.filter(
+      (v) => v && typeof v.color === "string" && v.color.trim()
+    );
+    varianteActivaParaMedios = variantesConColor[varianteSeleccionada] || null;
+    imagenes = buildImageList(producto, varianteActivaParaMedios);
+    const imageItemsMedia = imagenes.map((url) => ({ type: "image", url }));
+    const galleryVideosList = getGalleryVideos();
+    const videoItemsMedia = (galleryVideosList || []).map((url) => ({
+      type: "video",
+      url,
+    }));
+    desktopMediaItems = [...imageItemsMedia, ...videoItemsMedia];
+    
+    // Calculate safe desktop index
+    safeDesktopIndex = Math.max(
+      0,
+      Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1))
+    );
+    // Display index (hover has priority over selection on desktop)
+    displayDesktopIndex = hoverThumbIndex !== null ? hoverThumbIndex : safeDesktopIndex;
+  }
+
   // ALL useEffect hooks MUST be called consistently - BEFORE any early returns
   // Asegurar que el índice activo esté dentro de rango si cambia la lista de variantes con color
   useEffect(() => {
@@ -163,6 +243,16 @@ function VistaProducto() {
       }
     }
   }, [desktopMediaIndex]);
+
+  // Si el elemento mostrado pasa a ser un video, desactivar zoom de inmediato
+  useEffect(() => {
+    const curr =
+      (Array.isArray(desktopMediaItems) && desktopMediaItems[displayDesktopIndex]) ||
+      null;
+    if (!curr || curr.type !== "image") {
+      setIsZooming(false);
+    }
+  }, [displayDesktopIndex]);
 
   // Handle scroll for mobile actions visibility
   useEffect(() => {
@@ -246,7 +336,7 @@ function VistaProducto() {
         <div className="text-center max-w-md">
           <div className="mb-4">
             <svg
-              className="mx-auto h-16 w-16 text-red-400"
+              className="mx-auto h-16 w-16 text-blue-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -259,7 +349,7 @@ function VistaProducto() {
               />
             </svg>
           </div>
-          <p className="text-lg sm:text-xl font-semibold mb-2 text-red-600">
+          <p className="text-lg sm:text-xl font-semibold mb-2 text-blue-600">
             {error ? "Error al cargar el producto" : "Producto no encontrado"}
           </p>
           <p className="text-sm text-gray-600 mb-4">
@@ -286,13 +376,7 @@ function VistaProducto() {
     );
   }
 
-  // Procesar variantes DESPUÉS de todos los hooks para mantener orden consistente
-  const allVariantes = Array.isArray(producto?.variantes)
-    ? producto.variantes
-    : [];
-  const variantesConColor = allVariantes.filter(
-    (v) => v && typeof v.color === "string" && v.color.trim()
-  );
+  // Variables already calculated earlier - using global definitions
 
   // Enhanced variant processing
   const varianteActivaUI = variantesConColor[varianteSeleccionada] || null;
@@ -336,15 +420,7 @@ function VistaProducto() {
       .map((item) => (typeof item === "string" ? item : item.url));
   };
 
-  const getGalleryVideos = () => {
-    const sourceData =
-      varianteActiva?.videoUrls?.length > 0
-        ? varianteActiva.videoUrls
-        : producto.videoUrls || [];
-    return sourceData
-      .filter((item) => item?.url || typeof item === "string")
-      .map((item) => (typeof item === "string" ? item : item.url));
-  };
+  // getGalleryVideos function moved earlier to avoid duplicate declaration
 
   // All useEffect hooks have been moved above to maintain consistent hook order
 
@@ -409,9 +485,7 @@ function VistaProducto() {
       return false;
     }
   };
-  const varianteActivaParaMedios = variantHasMedia(varianteActivaUI)
-    ? varianteActivaUI
-    : null; // si no hay medios en la variante activa, usar solo medios del producto
+  // varianteActivaParaMedios already calculated earlier - using global definition
 
   // Normalizar color: tratar "" y null como lo mismo para evitar duplicados
   const normalizeColor = (c) => {
@@ -525,92 +599,9 @@ function VistaProducto() {
     setImagenModalAbierta(false);
   };
 
-  // Construcción estricta de IMÁGENES (sin mezclar videos ni extras), soportando legacy y nuevo esquema
-  const buildImageList = (prod, variante) => {
-    const norm = (u) => (u ? String(u).split("?")[0].split("#")[0].trim() : "");
-    const pickUrl = (u) => {
-      try {
-        if (!u) return "";
-        if (typeof u === "string") {
-          const s = String(u).trim();
-          // mantener absolutas y blobs, y rutas ya absolutas
-          if (/^(https?:|blob:|data:|\/)/i.test(s)) return s;
-          // normalizar rutas locales guardadas sin '/'
-          return `/${s}`;
-        }
-        if (typeof u === "object" && u !== null) {
-          const s = String(u.url || "").trim();
-          if (!s) return "";
-          if (/^(https?:|blob:|data:|\/)/i.test(s)) return s;
-          return `/${s}`;
-        }
-        const s = String(u || "").trim();
-        if (/^(https?:|blob:|data:|\/)/i.test(s)) return s;
-        return `/${s}`;
-      } catch {
-        return "";
-      }
-    };
-    const onlyImages = (arr) =>
-      (Array.isArray(arr) ? arr : [])
-        .map(pickUrl)
-        .filter(Boolean)
-        .filter(
-          (url) => !/\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(url.split("?")[0])
-        )
-        .map((u) => u);
+  // buildImageList function moved earlier to avoid duplicate declaration
 
-    const images = [];
-
-    // 1) Imagen principal: preferir variante, luego producto (soporta imagenPrincipal[0].url e imagen)
-    const mainVarUrl =
-      pickUrl(variante?.imagenPrincipal?.[0]) || pickUrl(variante?.imagen);
-    const mainProdUrl = !mainVarUrl
-      ? pickUrl(prod?.imagenPrincipal?.[0]) || pickUrl(prod?.imagen)
-      : "";
-
-    // 2) Galería: preferir galería de variante; si no, la del producto.
-    // Soporta galeriaImagenes (array de strings u objetos {url}), media[] type==='image', e imagenes[] legacy
-    const variantGallery = onlyImages(
-      Array.isArray(variante?.galeriaImagenes) &&
-        variante.galeriaImagenes.length
-        ? variante.galeriaImagenes
-        : Array.isArray(variante?.media) && variante.media.length
-        ? variante.media.filter((m) => m?.type === "image")
-        : variante?.imagenes
-    );
-
-    const productGallery = variantGallery.length
-      ? []
-      : onlyImages(
-          Array.isArray(prod?.galeriaImagenes) && prod.galeriaImagenes.length
-            ? prod.galeriaImagenes
-            : Array.isArray(prod?.media) && prod.media.length
-            ? prod.media.filter((m) => m?.type === "image")
-            : prod?.imagenes
-        );
-
-    // Ensamblar en orden y deduplicar
-    const ordered = [
-      mainVarUrl,
-      mainProdUrl,
-      ...variantGallery,
-      ...productGallery,
-    ].filter(Boolean);
-    const seen = new Set();
-    for (const u of ordered) {
-      const key = norm(u).toLowerCase();
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      // Excluir videos por seguridad adicional
-      if (/\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(key)) continue;
-      images.push(u);
-    }
-    return images;
-  };
-
-  // Lista de imágenes para la galería principal
-  const imagenes = buildImageList(producto, varianteActivaParaMedios);
+  // imagenes already calculated earlier - using global definition
   // Estados derivados para layout compacto cuando no hay medios ni variantes
   const hasImageGallery = imagenes.length > 0;
   const hasVariantsUI = Boolean(
@@ -645,13 +636,8 @@ function VistaProducto() {
   const hasRowFiles = false;
   const rowFiles = [];
 
-  // Lista para desktop: SOLO imágenes
-  const desktopMediaItems = [...imageItemsMedia];
-  // Índice seguro derivado (sin hooks) para evitar cambios en orden de hooks
-  const safeDesktopIndex = Math.max(
-    0,
-    Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1))
-  );
+  // Note: desktopMediaItems and displayDesktopIndex are now calculated earlier in the component
+  // to avoid ReferenceError in useEffect hooks
 
   // (debug removido para respetar el orden de hooks y evitar renderizaciones diferentes)
 
@@ -673,8 +659,8 @@ function VistaProducto() {
   const handleMouseEnter = () => {
     if (typeof window === "undefined" || window.innerWidth < 1280) return; // solo desktop (xl)
     const current =
-      (desktopMediaItems && desktopMediaItems[safeDesktopIndex]) || null;
-    if (!current) return; // zoom solo para imágenes
+      (desktopMediaItems && desktopMediaItems[displayDesktopIndex]) || null;
+    if (!current || current.type !== "image") return; // zoom solo para imágenes
 
     const url = current.url;
     setZoomBg(url);
@@ -1015,10 +1001,7 @@ function VistaProducto() {
                             ".amazon-thumbs-sidebar"
                           );
                           if (container)
-                            container.scrollBy({
-                              top: -80,
-                              behavior: "smooth",
-                            });
+                            container.scrollBy({ top: -80, behavior: "smooth" });
                         }}
                       >
                         <svg
@@ -1046,6 +1029,7 @@ function VistaProducto() {
                         paddingBottom:
                           desktopMediaItems.length > 4 ? "28px" : "0",
                       }}
+                      onMouseLeave={() => setHoverThumbIndex(null)}
                     >
                       {desktopMediaItems.map((item, i) => (
                         <button
@@ -1070,18 +1054,39 @@ function VistaProducto() {
                             );
                             if (idx >= 0) setImagenActualIndex(idx);
                           }}
+                          onMouseEnter={() => setHoverThumbIndex(i)}
+                          onFocus={() => setHoverThumbIndex(i)}
+                          onMouseLeave={() => setHoverThumbIndex(null)}
                           aria-label={`Miniatura ${i + 1}`}
                         >
-                          <img
-                            src={item.url}
-                            alt={`Miniatura ${i + 1}`}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/Productos/N.jpg";
-                            }}
-                          />
+                          {item.type === "video" ? (
+                            <div className="relative w-full h-full bg-black flex items-center justify-center">
+                              <video
+                                src={item.url}
+                                preload="metadata"
+                                muted
+                                className="w-full h-full object-contain"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="bg-white/95 rounded-full p-2 shadow">
+                                  <svg className="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <img
+                              src={item.url}
+                              alt={`Miniatura ${i + 1}`}
+                              className="w-full h-full object-contain"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = "/Productos/N.jpg";
+                              }}
+                            />
+                          )}
                         </button>
                       ))}
                     </div>
@@ -1138,8 +1143,16 @@ function VistaProducto() {
                       onMouseMove={handleMouseMove}
                       onMouseLeave={handleMouseLeave}
                       onClick={() => {
-                        // eBay overlay unificado: usar índice combinado directamente
-                        openMediaOverlay("images", safeDesktopIndex);
+                        // Abrir overlay en pestaña correcta según tipo
+                        const current = desktopMediaItems[displayDesktopIndex];
+                        if (current?.type === "video") {
+                          const vidIdx = (galleryVideosList || []).findIndex(
+                            (u) => u === current.url
+                          );
+                          openMediaOverlay("videos", Math.max(0, vidIdx));
+                        } else {
+                          openMediaOverlay("images", displayDesktopIndex);
+                        }
                       }}
                       onTouchStart={handleMainImageTouchStart}
                       onTouchMove={handleMainImageTouchMove}
@@ -1149,8 +1162,29 @@ function VistaProducto() {
                       tabIndex={0}
                     >
                       {(() => {
-                        const current = desktopMediaItems[safeDesktopIndex];
+                        const current = desktopMediaItems[displayDesktopIndex];
                         if (!current) return null;
+                        if (current.type === "video") {
+                          return (
+                            <div className="relative w-full h-full flex items-center justify-center bg-white">
+                              <video
+                                key={`main-vid-${displayDesktopIndex}`}
+                                src={current.url}
+                                preload="metadata"
+                                playsInline
+                                muted
+                                className="w-full h-full object-contain"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="bg-white/95 rounded-full p-4 shadow">
+                                  <svg className="w-7 h-7 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
                         return (
                           <img
                             ref={mainImgRef}
@@ -1215,16 +1249,34 @@ function VistaProducto() {
                         onClick={() => setDesktopMediaIndex(i)}
                         aria-label={`Vista ${i + 1}`}
                       >
-                        <img
-                          src={item.url}
-                          alt={`Miniatura ${i + 1}`}
-                          className="w-full h-full object-contain"
-                          loading="lazy"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/Productos/N.jpg";
-                          }}
-                        />
+                        {item.type === "video" ? (
+                          <div className="relative w-full h-full bg-black flex items-center justify-center">
+                            <video
+                              src={item.url}
+                              preload="metadata"
+                              muted
+                              className="w-full h-full object-contain"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="bg-white/95 rounded-full p-2 shadow">
+                                <svg className="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={item.url}
+                            alt={`Miniatura ${i + 1}`}
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = "/Productos/N.jpg";
+                            }}
+                          />
+                        )}
                       </button>
                     ))}
                   </div>
@@ -1349,7 +1401,7 @@ function VistaProducto() {
                         )}
                         {!tieneStock && (
                           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                            <span className="text-xs font-medium text-red-600">
+                            <span className="text-xs font-medium text-blue-600">
                               Agotado
                             </span>
                           </div>
@@ -1364,7 +1416,7 @@ function VistaProducto() {
                             className={`text-xs ${
                               variante.cantidad > 0
                                 ? "text-green-600"
-                                : "text-red-600"
+                                : "text-blue-600"
                             }`}
                           >
                             {variante.cantidad > 0
@@ -1731,9 +1783,68 @@ function VistaProducto() {
                 </button>
               </div>
 
-              {/* Contenido - 2 columnas desktop (izq: imagen/video, der: miniaturas) */}
+              {/* Contenido - 2 columnas desktop (izq: miniaturas, der: imagen/video) */}
               <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                {/* Columna IZQUIERDA - Imagen/Video grande */}
+                {/* Miniaturas verticales - Izquierda (Desktop ≥ md) */}
+                <div
+                  className={`hidden md:block w-64 lg:w-80 border-r overflow-y-auto p-4 ${
+                    isDark ? "border-gray-700 bg-gray-800" : "border-[#DDD] bg-gray-50"
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="space-y-3">
+                    <h3
+                      className={`text-sm font-semibold mb-4 uppercase ${
+                        isDark ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      {mediaOverlayTab === "videos" ? "Videos" : "Imágenes"}
+                    </h3>
+                    {/* Grid de miniaturas 2 columnas - Desktop 120x120px con scroll vertical */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {currentMediaItems.map((item, i) => (
+                        <button
+                          key={`desktop-thumb-${i}`}
+                          type="button"
+                          className={`w-full aspect-square overflow-hidden rounded border-2 transition-all ${
+                            i === safeMediaIndex
+                              ? ""
+                              : "border-gray-300 hover:border-gray-400"
+                          }`}
+                          style={i === safeMediaIndex ? { borderColor: "#0064D2" } : undefined}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMediaOverlayIndex(i);
+                            setFullscreenZoom(1);
+                            setFullscreenPan({ x: 0, y: 0 });
+                          }}
+                          aria-label={`Vista ${i + 1}`}
+                        >
+                          {mediaOverlayTab === "videos" ? (
+                            <div className="relative w-full h-full bg-black flex items-center justify-center">
+                              <video src={item.url} className="w-full h-full object-contain" muted />
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="bg-white/90 rounded-full p-2">
+                                  <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <img
+                              src={item.url}
+                              alt={`Miniatura ${i + 1}`}
+                              className="w-full h-full object-contain bg-white p-1"
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Columna DERECHA - Imagen/Video grande */}
                 <div
                   className={`flex-1 flex items-center justify-center p-4 md:p-8 relative ${
                     isDark ? "bg-gray-900" : "bg-white"
@@ -1924,73 +2035,7 @@ function VistaProducto() {
                   </div>
                 </div>
 
-                {/* Columna DERECHA - Miniaturas verticales con scroll (Desktop 768px+) */}
-                <div
-                  className={`hidden md:block w-64 lg:w-80 border-l overflow-y-auto p-4 ${
-                    isDark
-                      ? "border-gray-700 bg-gray-800"
-                      : "border-[#DDD] bg-gray-50"
-                  }`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="space-y-3">
-                    <h3
-                      className={`text-sm font-semibold mb-4 uppercase ${
-                        isDark ? "text-gray-200" : "text-gray-700"
-                      }`}
-                    >
-                      {mediaOverlayTab === "videos" ? "Videos" : "Imágenes"}
-                    </h3>
-                    {/* Grid de miniaturas 2 columnas - Desktop 120x120px con scroll vertical */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {currentMediaItems.map((item, i) => (
-                        <button
-                          key={`desktop-thumb-${i}`}
-                          type="button"
-                          className={`w-full aspect-square overflow-hidden rounded border-2 transition-all ${
-                            i === safeMediaIndex
-                              ? "border-blue-500 ring-2 ring-blue-500/30"
-                              : "border-gray-300 hover:border-blue-500/50"
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMediaOverlayIndex(i);
-                            setFullscreenZoom(1);
-                            setFullscreenPan({ x: 0, y: 0 });
-                          }}
-                          aria-label={`Vista ${i + 1}`}
-                        >
-                          {mediaOverlayTab === "videos" ? (
-                            <div className="relative w-full h-full bg-black flex items-center justify-center">
-                              <video
-                                src={item.url}
-                                className="w-full h-full object-contain"
-                                muted
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="bg-white/90 rounded-full p-2">
-                                  <svg
-                                    className="w-6 h-6 text-gray-700"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <img
-                              src={item.url}
-                              alt={`Miniatura ${i + 1}`}
-                              className="w-full h-full object-contain bg-white p-1"
-                            />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                
 
                 {/* Miniaturas horizontales (Móvil - debajo de la imagen/video) */}
                 <div
@@ -2008,10 +2053,9 @@ function VistaProducto() {
                         key={`mobile-thumb-${i}`}
                         type="button"
                         className={`flex-shrink-0 w-20 h-20 overflow-hidden rounded border-2 transition-all ${
-                          i === safeMediaIndex
-                            ? "border-blue-500 ring-2 ring-blue-500/30"
-                            : "border-gray-300 hover:border-blue-500/50"
+                          i === safeMediaIndex ? "" : "border-gray-300 hover:border-gray-400"
                         }`}
+                        style={i === safeMediaIndex ? { borderColor: "#0064D2" } : undefined}
                         onClick={(e) => {
                           e.stopPropagation();
                           setMediaOverlayIndex(i);

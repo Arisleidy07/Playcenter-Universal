@@ -143,7 +143,7 @@ const FilePreview = ({
             alt={name}
             className="object-contain w-full h-full"
             loading="eager"
-            onLoad={() => console.log("✅ Imagen cargada:", name, url)}
+            onLoad={() => {/* Imagen cargada */}}
             onError={(e) => {
               // Evitar intentos de red a dominios externos para placeholder
               e.target.onerror = null;
@@ -174,15 +174,15 @@ const FilePreview = ({
           <div className="document-preview">
             <FileIcon />
             <span className="document-ext">
-              {name.split(".").pop().toUpperCase()}
+              {name ? name.split(".").pop()?.toUpperCase() || 'FILE' : 'FILE'}
             </span>
           </div>
         )}
       </div>
 
       <div className="ufu-preview-item-info">
-        <p className="ufu-preview-item-name" title={name}>
-          {name.length > 20 ? name.substring(0, 18) + "..." : name}
+        <p className="ufu-preview-item-name" title={name || 'Archivo'}>
+          {name && name.length > 20 ? name.substring(0, 18) + "..." : (name || 'Archivo')}
         </p>
         <p className="ufu-preview-item-size">{formatBytes(size)}</p>
       </div>
@@ -486,7 +486,7 @@ const FilePreview = ({
 };
 
 // --- Componente Principal Uploader Mejorado ---
-const UniversalFileUploader = ({
+const UniversalFileUploader = React.memo(({
   files: initialFiles = [],
   onFilesChange,
   acceptedTypes = "image/*,video/*,application/pdf",
@@ -511,10 +511,9 @@ const UniversalFileUploader = ({
 
   // Procesar archivos iniciales
   useEffect(() => {
-    console.log("🔄 useEffect initialFiles ejecutado:", initialFiles);
-
+    // Remover console.log excesivos para mejorar performance
+    
     if (!initialFiles || initialFiles.length === 0) {
-      console.log("📭 No hay archivos iniciales, limpiando estado");
       setFiles((prev) => {
         if (prev.length > 0) {
           shouldNotifyRef.current = true;
@@ -544,7 +543,6 @@ const UniversalFileUploader = ({
       return file;
     });
 
-    console.log("✅ Archivos procesados:", processedFiles);
     setFiles((prev) => {
       // Solo notificar si hay cambios reales
       const hasChanged = JSON.stringify(prev.map(f => f.id)) !== JSON.stringify(processedFiles.map(f => f.id));
@@ -558,12 +556,10 @@ const UniversalFileUploader = ({
   // Manejar archivos soltados o seleccionados
   const onDrop = useCallback(
     (acceptedFiles, fileRejections) => {
-      console.log("📁 onDrop llamado con archivos:", acceptedFiles);
+      // Remover console.log para mejorar performance
 
       // Crear vista previa inmediata para cada archivo
       const newFiles = acceptedFiles.map((file) => {
-        console.log("📄 Procesando archivo:", file.name, file.type);
-
         // Determinar tipo de archivo
         let fileType = "document";
         if (file.type.startsWith("image/")) fileType = "image";
@@ -571,7 +567,6 @@ const UniversalFileUploader = ({
 
         // Crear URL de objeto para vista previa instantánea
         const previewUrl = URL.createObjectURL(file);
-        console.log("🔗 URL de vista previa creada:", previewUrl);
 
         const fileObj = {
           id: `${file.name}-${Date.now()}-${Math.random()
@@ -589,7 +584,7 @@ const UniversalFileUploader = ({
           isUploaded: false, // Marcar como no subido aún
         };
 
-        console.log("✅ Objeto de archivo creado:", fileObj);
+        // Objeto de archivo creado
         return fileObj;
       });
 
@@ -615,7 +610,7 @@ const UniversalFileUploader = ({
           finalFiles = maxFiles
             ? combinedFiles.slice(0, maxFiles)
             : combinedFiles;
-          console.log("🔄 Actualizando archivos (múltiple):", finalFiles);
+          // Actualizando archivos (múltiple)
 
           // Mostrar advertencia si se alcanzó el límite
           if (maxFiles && combinedFiles.length > maxFiles) {
@@ -635,7 +630,7 @@ const UniversalFileUploader = ({
         } else {
           // En modo single, reemplazar archivos existentes
           finalFiles = newFiles;
-          console.log("🔄 Actualizando archivos (single):", finalFiles);
+          // Actualizando archivos (single)
         }
 
         // Marcar notificación para después del render
@@ -643,7 +638,7 @@ const UniversalFileUploader = ({
         return finalFiles;
       });
     },
-    [multiple, maxFiles, onFilesChange]
+    [multiple, maxFiles]
   );
 
   // Construir 'accept' solo si hay tipos válidos (evita warning con "*/*")
@@ -738,14 +733,14 @@ const UniversalFileUploader = ({
   useEffect(() => {
     if (shouldNotifyRef.current) {
       shouldNotifyRef.current = false;
-      console.log("📤 Notificando cambios al padre:", files);
+      // Remover console.log para mejorar performance
       if (typeof onFilesChange === "function") {
         onFilesChange(files);
       } else {
         console.warn("⚠️ onFilesChange no es una función");
       }
     }
-  }, [files, onFilesChange]);
+  }, [files]);
 
   // Abrir la cámara del dispositivo (móvil)
   const openCamera = (e) => {
@@ -852,7 +847,7 @@ const UniversalFileUploader = ({
           </div>
           <ul className="list-disc ml-5 mt-2">
             {rejected.map((r, idx) => (
-              <li key={idx}>
+              <li key={`rejected-${idx}-${r.name || 'unknown'}`}>
                 {r.name ? <span className="font-medium">{r.name}: </span> : null}
                 {Array.isArray(r.messages) ? r.messages.join(", ") : String(r)}
               </li>
@@ -866,14 +861,11 @@ const UniversalFileUploader = ({
         <div className="ufu-preview-grid">
           <AnimatePresence>
             {files.map((file, index) => {
-              console.log(
-                `🖼️ Renderizando archivo ${index + 1}:`,
-                file.name,
-                file.url
-              );
+              // Generar key único para evitar warnings
+              const uniqueKey = file.id || `file-${index}-${file.name || 'unknown'}-${Date.now()}`;
               return (
                 <FilePreview
-                  key={file.id}
+                  key={uniqueKey}
                   file={file}
                   onRemove={handleRemove}
                   onSetMain={allowSetMain ? handleSetMain : null}
@@ -892,6 +884,9 @@ const UniversalFileUploader = ({
       )}
     </div>
   );
-};
+});
+
+// Comparación personalizada para React.memo
+UniversalFileUploader.displayName = 'UniversalFileUploader';
 
 export default UniversalFileUploader;

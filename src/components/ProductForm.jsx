@@ -18,7 +18,7 @@ import {
 } from "firebase/storage";
 import { db, storage } from "../firebase";
 import { useAuth } from "../context/AuthContext";
-import VistaProductoMini from "./VistaProductoMini";
+// Vista previa removida por solicitud del usuario
 
 // Enhanced components
 import UniversalFileUploader from "./UniversalFileUploader";
@@ -391,80 +391,15 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     formData.galeriaImagenes,
   ]);
 
-  // Datos para Vista Previa Mini: combinar formData + tempPreviews para feedback instantáneo
-  const productIdForPreview = currentId || product?.id || null;
-  const miniDraft = useMemo(() => {
-    const draft = {};
-    draft.id = productIdForPreview || "draft";
-    draft.name = formData.nombre || "";
-    draft.price = parseFloat(formData.precio) || 0;
-    draft.stock = Number(formData.cantidad) || 0;
-    // Enhanced image handling
-    draft.mainImage = (
-      tempPreviews.imagen ||
-      formData.imagenPrincipal?.[0]?.url ||
-      formData.imagen ||
-      ""
-    ).trim();
-    draft.gallery = [
-      ...(Array.isArray(tempPreviews.imagenes) ? tempPreviews.imagenes : []),
-      ...(Array.isArray(formData.galeriaImagenes)
-        ? formData.galeriaImagenes.map((img) => img.url || img)
-        : []),
-      ...(Array.isArray(formData.imagenes) ? formData.imagenes : []),
-    ];
-    // Videos de galería (se muestran en la galería principal)
-    draft.productVideos = [
-      ...(Array.isArray(tempPreviews.productVideos)
-        ? tempPreviews.productVideos
-        : []),
-      ...(Array.isArray(formData.videoUrls) ? formData.videoUrls : []),
-    ];
-    // Videos de "Acerca de este artículo" (carrusel independiente)
-    draft.videoAcercaArticulo = [
-      ...(Array.isArray(tempPreviews.acercaVideos)
-        ? tempPreviews.acercaVideos
-        : []),
-      ...(Array.isArray(formData.videoAcercaArticulo)
-        ? formData.videoAcercaArticulo
-        : formData.videoUrl
-        ? [formData.videoUrl]
-        : []),
-    ];
-    draft.extraMedia = [
-      ...(Array.isArray(tempPreviews.extras) ? tempPreviews.extras : []),
-      ...(Array.isArray(formData.tresArchivosExtras)
-        ? formData.tresArchivosExtras.map((extra) => extra.url || extra)
-        : []),
-      ...(Array.isArray(formData.imagenesExtra) ? formData.imagenesExtra : []),
-    ];
-    draft.variants = (
-      Array.isArray(formData.variantes) ? formData.variantes : []
-    ).map((v, idx) => ({
-      id: v.id || `var_${idx}`,
-      name: v.name || v.color || `Variante ${idx + 1}`,
-      price: v.precio ?? v.price ?? null,
-      stock: v.cantidad ?? v.stock ?? null,
-      mainImage: (
-        tempPreviews.variantes?.[idx]?.imagen ||
-        v.imagenPrincipal?.[0]?.url ||
-        v.imagen ||
-        ""
-      ).trim(),
-      gallery: [
-        ...(tempPreviews.variantes?.[idx]?.imagenes || []),
-        ...(Array.isArray(v.galeriaImagenes)
-          ? v.galeriaImagenes.map((img) => img.url || img)
-          : []),
-        ...(Array.isArray(v.imagenes) ? v.imagenes : []),
-      ],
-      videos: [
-        ...(tempPreviews.variantes?.[idx]?.videos || []),
-        ...(Array.isArray(v.videoUrls) ? v.videoUrls : []),
-      ],
-    }));
-    return draft;
-  }, [productIdForPreview, formData, tempPreviews]);
+  // Datos básicos del producto para el formulario
+  const productData = useMemo(() => {
+    return {
+      id: currentId || product?.id || "nuevo",
+      nombre: formData.nombre || "",
+      precio: parseFloat(formData.precio) || 0,
+      cantidad: Number(formData.cantidad) || 0
+    };
+  }, [currentId, product?.id, formData.nombre, formData.precio, formData.cantidad]);
 
   // Obtener/crear ID del producto actual.
   // Política: no creamos nada al abrir el formulario, PERO si el usuario
@@ -666,7 +601,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Enhanced preview handler
   const handlePreview = () => {
     // Open preview in new tab or modal
-    console.log("Preview product:", miniDraft);
+    console.log("Preview product:", productData);
   };
 
   // Helpers para reordenar videos del producto (persistencia inmediata)
@@ -2108,7 +2043,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         }));
         let targetId = currentId || product?.id;
         if (!targetId) targetId = await ensureCurrentId();
-        if (!targetId) return; // sin ID: no subir aún
         const variantId = getOrCreateVariantId(variantIndex);
         const queueId = `${Date.now()}_${first.file.name}_${Math.random()
           .toString(36)
@@ -2382,7 +2316,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       }
     } catch (e) {
       setUploadQueue((prev) =>
-        prev.map((q) => (q.id === newId ? { ...q, status: "error" } : q))
+        prev.map((q) =>
+          q.id === newId ? { ...q, status: "error" } : q
+        )
       );
     }
   };
@@ -2684,41 +2620,54 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto p-4 md:p-6"
+          className="flex-1 overflow-y-auto p-6"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
-                Información Básica
+          {/* Información del Producto - Layout Simétrico */}
+          <div className="space-y-6">
+            
+            {/* Fila 1: Información Básica (ancho completo) */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>📝</span> Información Básica
               </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    <span className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      Nombre del Producto *
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.nombre}
+                    onChange={(e) => handleInputChange("nombre", e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg font-medium"
+                    placeholder="Ej: iPhone 15 Pro Max"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre del Producto *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.nombre}
-                  onChange={(e) => handleInputChange("nombre", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Marca / Empresa
-                </label>
-                <input
-                  type="text"
-                  list="brands-list"
-                  value={formData.empresa || ""}
-                  onChange={(e) => handleInputChange("empresa", e.target.value)}
-                  placeholder="Ej. Xbox, PlayStation, Nintendo... (puedes escribir una nueva)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    <span className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      Marca / Empresa
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    list="brands-list"
+                    value={formData.empresa || ""}
+                    onChange={(e) => handleInputChange("empresa", e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
+                    placeholder="Ej: Apple, Samsung, Sony"
+                  />
                 <datalist id="brands-list">
                   {brands.map((b) => (
                     <option key={b} value={b} />
@@ -2728,57 +2677,58 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                   Sugerencias basadas en tus marcas guardadas. Se guardará sin
                   importar mayúsculas/minúsculas.
                 </p>
-              </div>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Precio *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={formData.precio}
-                    onChange={(e) =>
-                      handleInputChange("precio", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Precio *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={formData.precio}
+                      onChange={(e) =>
+                        handleInputChange("precio", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Cantidad en Stock *
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={formData.cantidad}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "cantidad",
+                          parseInt(e.target.value) || 0
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cantidad en Stock *
+                    Descripción
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.cantidad}
+                  <textarea
+                    value={formData.descripcion || ""}
                     onChange={(e) =>
-                      handleInputChange(
-                        "cantidad",
-                        parseInt(e.target.value) || 0
-                      )
+                      handleInputChange("descripcion", e.target.value)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Escribe la descripción del producto..."
+                    className="w-full min-h-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Descripción
-                </label>
-                <textarea
-                  value={formData.descripcion || ""}
-                  onChange={(e) =>
-                    handleInputChange("descripcion", e.target.value)
-                  }
-                  placeholder="Escribe la descripción del producto..."
-                  className="w-full min-h-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
               </div>
             </div>
 
@@ -2952,26 +2902,18 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 </div>
               </div>
             </div>
-            {/* Vista Previa Mini (derecha en desktop, abajo en móvil) */}
-            <div className="xl:col-span-1">
-              <VistaProductoMini
-                productId={currentId || product?.id || null}
-                draftData={miniDraft}
-                className="sticky top-20"
-              />
-            </div>
-          </div>
 
-          {/* Images Section */}
-          <div className="mt-8 space-y-4">
-            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-600 border-b-4 border-rose-200 pb-2">
-              Imágenes y Multimedia
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-2xl border-2 border-rose-200/70 bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-4 shadow-sm">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Imagen Principal *
-                </label>
+            {/* Fila 2: Imágenes y Multimedia - Grid Simétrico */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>🖼️</span> Imágenes y Multimedia
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    📷 Imagen Principal *
+                  </label>
                 <UniversalFileUploader
                   files={[
                     ...(tempPreviews.imagen
@@ -2999,10 +2941,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 />
               </div>
 
-              <div className="rounded-2xl border-2 border-pink-200/70 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 p-4 shadow-sm">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Galería (Imágenes y Videos)
-                </label>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    🎬 Galería (Imágenes y Videos)
+                  </label>
                 <UniversalFileUploader
                   files={[
                     ...(Array.isArray(formData.imagenes)
@@ -3043,14 +2985,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               </div>
             </div>
 
-            {/* Sección de videos del producto removida; la galería ya acepta videos */}
-          </div>
-
-          {/* Details Section */}
-          <div className="mt-8 space-y-4">
-            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 border-b-4 border-blue-200 pb-2">
-              Detalles del Producto
-            </h3>
+            {/* Fila 3: Detalles y Extras */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>📋</span> Detalles del Producto
+              </h3>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -3339,30 +3278,15 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             </button>
           </div>
 
-          {/* 📸 Imágenes con más información del artículo */}
-          <div className="mt-8 space-y-4 rounded-2xl border-2 border-blue-200/70 bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 p-6 shadow-sm">
-            <div className="space-y-2">
-              <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 border-b-4 border-blue-200 pb-2">
-                📸 Imágenes con más información del artículo
+            {/* 📸 Imágenes con más información del artículo */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>📸</span> Imágenes con más información del artículo
               </h3>
-              <p className="text-sm text-gray-600 bg-blue-50 border-l-4 border-blue-400 pl-4 py-2 rounded">
-                💡 <strong>¿Para qué sirve?</strong> Estas imágenes se mostrarán
-                en la sección "Más información del producto" debajo de la
-                descripción. Son perfectas para:
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Imágenes que se mostrarán en la sección "Más información del producto"
               </p>
-              <ul className="text-sm text-gray-600 space-y-1 ml-6 list-disc">
-                <li>Mostrar especificaciones técnicas detalladas en imagen</li>
-                <li>Comparativas de tamaño o características</li>
-                <li>Instrucciones de uso o instalación</li>
-                <li>Detalles ampliados del producto</li>
-              </ul>
-              <p className="text-xs text-blue-600 font-medium bg-blue-100 px-3 py-2 rounded-lg inline-block">
-                📐 <strong>Recomendación:</strong> Usa imágenes de alta
-                resolución (al menos 1200px de ancho) para que se vean perfectas
-                en todos los dispositivos.
-              </p>
-            </div>
-            <UniversalFileUploader
+              <UniversalFileUploader
               files={[
                 ...(formData.imagenesExtra || []).map((u, i) => ({
                   id: `saved-info-${i}`,
@@ -3391,9 +3315,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               allowReorder={true}
               allowSetMain={false}
             />
+            </div>
           </div>
-
-          {/* Submit Buttons - SIMPLE COMO AMAZON (solo 2 botones) */}
+          
+          {/* Botones de Acción */}
           <div className="mt-8 flex justify-end space-x-4 pt-6 border-t">
             <button
               type="button"
@@ -3417,6 +3342,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               )}
             </button>
           </div>
+          
+          </div>
+          {/* Cierre del div space-y-6 */}
 
           {/* Mensaje de subida en segundo plano removido para evitar estados de carga visibles */}
         </form>

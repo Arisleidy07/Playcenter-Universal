@@ -511,9 +511,5 @@ export const initializePerformanceOptimizations = async () => {
   
   addResourceHints(criticalDomains, 'preconnect');
   
-  console.log('Performance optimizations initialized', {
-    webpSupport: PERFORMANCE_CONFIG.WEBP_SUPPORT,
-    avifSupport: PERFORMANCE_CONFIG.AVIF_SUPPORT,
-    cdnEnabled: !!PERFORMANCE_CONFIG.CDN_BASE_URL
-  });
+  // Performance optimizations initialized
 };

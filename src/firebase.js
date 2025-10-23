@@ -8,7 +8,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCraPDyyhOJs9IJtVMCe2b1VNFYkbtqWEg",
   authDomain: "playcenter-universal.firebaseapp.com",
   projectId: "playcenter-universal",
-  storageBucket: "playcenter-universal.appspot.com",
+  storageBucket: "playcenter-universal.firebasestorage.app",
   messagingSenderId: "876884906641",
   appId: "1:876884906641:web:a0a5b7526b7f4161452530",
   measurementId: "G-4MPL62WSKW",

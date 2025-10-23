@@ -48,9 +48,7 @@ export default function TopBar() {
           "--content-offset",
           `${totalOffset}px`
         );
-        console.log(
-          `🔧 Content offset calculado: Header=${h}px + TopBar=${th}px = ${totalOffset}px`
-        );
+        // Content offset calculado
       } catch {}
     };
 
