@@ -25,13 +25,13 @@ const wakeUpServer = async () => {
   }
 };
 
-// Fetch con timeout balanceado y retry inteligente
-const fetchWithRetry = async (url, options, maxRetries = 2) => {
+// Fetch con timeout RÁPIDO y 1 retry
+const fetchWithRetry = async (url, options, maxRetries = 1) => {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const controller = new AbortController();
-      // Timeout progresivo: 20s, 25s, 30s
-      const timeoutDuration = 20000 + (attempt * 5000);
+      // Timeout rápido: 10s primer intento, 12s segundo
+      const timeoutDuration = 10000 + (attempt * 2000);
       const timeout = setTimeout(() => controller.abort(), timeoutDuration);
       
       const response = await fetch(url, {
@@ -49,9 +49,8 @@ const fetchWithRetry = async (url, options, maxRetries = 2) => {
     } catch (error) {
       if (attempt === maxRetries) throw error;
       
-      // Backoff: 1s, 2s
-      const backoff = (attempt + 1) * 1000;
-      await new Promise(resolve => setTimeout(resolve, backoff));
+      // Backoff mínimo: 500ms
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
 };
@@ -67,13 +66,8 @@ export default function BotonCardnet({ className, total, label }) {
 
   // Despertar servidor al montar el componente
   useEffect(() => {
-    // Despertar inmediatamente al cargar la página
+    // Solo despertar UNA VEZ al cargar
     wakeUpServer();
-    
-    // Despertar cada 30 segundos mientras el componente está montado
-    const interval = setInterval(wakeUpServer, 30000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   const iniciarPago = async () => {
@@ -88,12 +82,7 @@ export default function BotonCardnet({ className, total, label }) {
         button.classList.add('loading');
       }
 
-      // Wake-up en paralelo (no bloqueante)
-      if (!import.meta.env.DEV) {
-        wakeUpServer(); // Fire and forget
-      }
-
-      // Fetch DIRECTO sin esperas
+      // Fetch DIRECTO - el wake-up ya se hizo en useEffect
       const res = await fetchWithRetry(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
