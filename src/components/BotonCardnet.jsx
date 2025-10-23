@@ -11,47 +11,26 @@ const API_BASE =
 // Cambiar a "https://ecommerce.cardnet.com.do/authorize" cuando esté listo para producción real
 const AUTHORIZE_URL = "https://lab.cardnet.com.do/authorize";
 
-// Función para despertar el servidor (evitar cold start de Render)
-const wakeUpServer = async () => {
-  if (import.meta.env.DEV) return Promise.resolve();
+// Fetch directo con timeout de 8 segundos
+const fetchWithTimeout = async (url, options, timeoutMs = 8000) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   
   try {
-    await fetch(`${API_BASE}/cardnet/health`, { 
-      method: "GET",
-      signal: AbortSignal.timeout(5000)
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
     });
-  } catch (e) {
-    // Silencioso
-  }
-};
-
-// Fetch con timeout RÁPIDO y 1 retry
-const fetchWithRetry = async (url, options, maxRetries = 1) => {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const controller = new AbortController();
-      // Timeout rápido: 10s primer intento, 12s segundo
-      const timeoutDuration = 10000 + (attempt * 2000);
-      const timeout = setTimeout(() => controller.abort(), timeoutDuration);
-      
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeout);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      return response;
-    } catch (error) {
-      if (attempt === maxRetries) throw error;
-      
-      // Backoff mínimo: 500ms
-      await new Promise(resolve => setTimeout(resolve, 500));
+    clearTimeout(timeout);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
+    
+    return response;
+  } catch (error) {
+    clearTimeout(timeout);
+    throw error;
   }
 };
 
@@ -63,12 +42,6 @@ export default function BotonCardnet({ className, total, label }) {
     ? new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(displayAmount)
     : null;
   const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
-
-  // Despertar servidor al montar el componente
-  useEffect(() => {
-    // Solo despertar UNA VEZ al cargar
-    wakeUpServer();
-  }, []);
 
   const iniciarPago = async () => {
     if (isProcessing) return;
@@ -82,8 +55,8 @@ export default function BotonCardnet({ className, total, label }) {
         button.classList.add('loading');
       }
 
-      // Fetch DIRECTO - el wake-up ya se hizo en useEffect
-      const res = await fetchWithRetry(`${API_BASE}/cardnet/create-session`, {
+      // Fetch DIRECTO sin delays
+      const res = await fetchWithTimeout(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ total })
@@ -109,13 +82,11 @@ export default function BotonCardnet({ className, total, label }) {
       let errorMsg = "No se pudo procesar el pago";
       
       if (error.name === 'AbortError') {
-        errorMsg = "El servidor está tardando. Intenta de nuevo.";
-      } else if (error.message.includes('HTTP 504') || error.message.includes('Timeout')) {
-        errorMsg = "Servidor no disponible. Intenta en un momento.";
-      } else if (error.message.includes('HTTP')) {
-        errorMsg = "Error del servidor. Intenta de nuevo.";
+        errorMsg = "Tiempo de espera agotado. Intenta de nuevo.";
       } else if (error.message.includes('Failed to fetch')) {
         errorMsg = "Sin conexión. Verifica tu internet.";
+      } else if (error.message.includes('HTTP')) {
+        errorMsg = "Error del servidor. Intenta de nuevo.";
       }
       
       alert(`❌ ${errorMsg}`);
