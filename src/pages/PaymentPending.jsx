@@ -163,7 +163,7 @@ export default function PaymentPending() {
 
   return (
     <motion.div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 sm:px-6 md:px-8 overflow-auto py-4 sm:py-6"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-gray-900 px-4 sm:px-6 md:px-8 overflow-auto py-4 sm:py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
@@ -175,7 +175,7 @@ export default function PaymentPending() {
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-blue-200 rounded-full opacity-30"
+            className="absolute w-2 h-2 bg-blue-200 dark:bg-blue-800 rounded-full opacity-30 dark:opacity-20"
             animate={{
               x: [Math.random() * window.innerWidth, Math.random() * window.innerWidth],
               y: [Math.random() * window.innerHeight, Math.random() * window.innerHeight],
@@ -194,21 +194,21 @@ export default function PaymentPending() {
       </div>
 
       <motion.div 
-        className="bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 lg:p-12 max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-3xl w-full text-center relative overflow-hidden border border-white/30 my-4"
+        className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 lg:p-12 max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-3xl w-full text-center relative overflow-hidden border border-white/30 dark:border-gray-700/50 my-4"
         initial={{ scale: 0.94, y: 28 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 22, stiffness: 280 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl sm:rounded-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-500/10 dark:to-purple-500/10 rounded-2xl sm:rounded-3xl" />
         
         <div className="relative z-10">
           {/* Barra de progreso */}
           <div className="mb-6 sm:mb-8">
             <div className="flex justify-between items-center mb-3 sm:mb-4">
-              <span className="text-xs sm:text-sm font-medium text-gray-600">Progreso</span>
-              <span className="text-xs sm:text-sm font-bold text-blue-600">{Math.round(progress)}%</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Progreso</span>
+              <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3 overflow-hidden">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-3 overflow-hidden">
               <motion.div 
                 className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
                 initial={{ width: 0 }}
@@ -231,8 +231,8 @@ export default function PaymentPending() {
                     transition={{ duration: 0.35, type: "spring" }}
                     className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl mb-2 sm:mb-3 ${
                       step === stepData.id 
-                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200' 
-                        : 'bg-gray-50 border border-gray-200'
+                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800' 
+                        : 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700'
                     }`}
                   >
                     <motion.div 
@@ -247,8 +247,8 @@ export default function PaymentPending() {
                       <stepData.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </motion.div>
                     <div className="text-left flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-800 text-base sm:text-lg">{stepData.title}</h3>
-                      <p className="text-gray-600 text-xs sm:text-sm break-words">{stepData.description}</p>
+                      <h3 className="font-bold text-gray-800 dark:text-gray-100 text-base sm:text-lg">{stepData.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm break-words">{stepData.description}</p>
                     </div>
                     {step > stepData.id && (
                       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-green-500 flex-shrink-0">
@@ -275,7 +275,7 @@ export default function PaymentPending() {
 
           {/* Título y descripción */}
           <motion.h1 
-            className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-3 sm:mb-4"
             animate={{ opacity: [0.85, 1, 0.85] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
@@ -283,18 +283,18 @@ export default function PaymentPending() {
           </motion.h1>
           
           <motion.p 
-            className="text-gray-600 mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base"
+            className="text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
             Estamos verificando tu transacción con CardNet de forma segura.<br />
-            <span className="font-semibold text-blue-600">Por favor, no cierres esta ventana.</span>
+            <span className="font-semibold text-blue-600 dark:text-blue-400">Por favor, no cierres esta ventana.</span>
           </motion.p>
 
           {/* Badges */}
           <motion.div 
-            className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500"
+            className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}

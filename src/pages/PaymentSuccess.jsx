@@ -68,7 +68,7 @@ export default function PaymentSuccess() {
 
   return (
     <motion.div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-4 sm:px-6 md:px-8 overflow-auto py-4 sm:py-6"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-950 dark:to-gray-900 px-4 sm:px-6 md:px-8 overflow-auto py-4 sm:py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
@@ -82,7 +82,7 @@ export default function PaymentSuccess() {
             {[...Array(50)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-3 h-3 rounded-full"
+                className="absolute w-3 h-3 rounded-full dark:opacity-70"
                 style={{
                   backgroundColor: ['#10b981', '#059669', '#34d399', '#6ee7b7', '#a7f3d0'][Math.floor(Math.random() * 5)],
                   left: Math.random() * 100 + '%',
@@ -111,7 +111,7 @@ export default function PaymentSuccess() {
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-green-200 rounded-full opacity-30"
+            className="absolute w-2 h-2 bg-green-200 dark:bg-green-800 rounded-full opacity-30 dark:opacity-20"
             animate={{
               x: [Math.random() * window.innerWidth, Math.random() * window.innerWidth],
               y: [Math.random() * window.innerHeight, Math.random() * window.innerHeight],
@@ -130,12 +130,12 @@ export default function PaymentSuccess() {
       </div>
 
       <motion.div 
-        className="bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 lg:p-12 max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl w-full text-center relative overflow-hidden border border-white/30 my-4"
+        className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 lg:p-12 max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl w-full text-center relative overflow-hidden border border-white/30 dark:border-gray-700/50 my-4"
         initial={{ scale: 0.94, y: 28 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 22, stiffness: 280 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 dark:from-green-500/10 dark:to-emerald-500/10 rounded-3xl" />
         
         <div className="relative z-10">
           {/* Icono success */}
@@ -176,7 +176,7 @@ export default function PaymentSuccess() {
             transition={{ delay: 0.3 }}
           >
             <motion.h1 
-              className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 sm:mb-4"
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent mb-3 sm:mb-4"
               animate={{ scale: [1, 1.04, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -195,13 +195,13 @@ export default function PaymentSuccess() {
               ))}
             </motion.div>
             <motion.p 
-              className="text-gray-700 text-sm sm:text-base md:text-lg leading-relaxed"
+              className="text-gray-700 dark:text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
             >
               Tu transacción fue procesada correctamente.<br />
-              ¡Gracias por tu compra en <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">PlayCenter Universal</span>!
+              ¡Gracias por tu compra en <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">PlayCenter Universal</span>!
             </motion.p>
           </motion.div>
 
@@ -213,13 +213,13 @@ export default function PaymentSuccess() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.0 }}
             >
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-green-200">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-green-200 dark:border-green-800">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                     <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                     Resumen de tu compra
                   </h3>
-                  <motion.div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold" whileHover={{ scale: 1.05 }}>
+                  <motion.div className="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold" whileHover={{ scale: 1.05 }}>
                     ✓ Completado
                   </motion.div>
                 </div>
@@ -227,31 +227,31 @@ export default function PaymentSuccess() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Orden ID:</span>
-                      <span className="font-mono text-xs sm:text-sm bg-gray-100 px-2 py-1 rounded break-all">
+                      <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm flex-shrink-0">Orden ID:</span>
+                      <span className="font-mono text-xs sm:text-sm bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-2 py-1 rounded break-all">
                         {order.numeroOrden || order.id?.slice(-8)}
                       </span>
                     </div>
                     <div className="flex justify-between items-start gap-2">
-                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Email:</span>
-                      <span className="font-medium text-xs sm:text-sm break-all text-right">{order.userEmail}</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm flex-shrink-0">Email:</span>
+                      <span className="font-medium dark:text-gray-200 text-xs sm:text-sm break-all text-right">{order.userEmail}</span>
                     </div>
                     <div className="flex justify-between items-start gap-2">
-                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Fecha:</span>
-                      <span className="font-medium text-xs sm:text-sm text-right">{formatDate(order.fecha)}</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm flex-shrink-0">Fecha:</span>
+                      <span className="font-medium dark:text-gray-200 text-xs sm:text-sm text-right">{formatDate(order.fecha)}</span>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between items-start gap-2">
-                      <span className="text-gray-600 text-xs sm:text-sm flex-shrink-0">Método de pago:</span>
-                      <span className="font-medium text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                      <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm flex-shrink-0">Método de pago:</span>
+                      <span className="font-medium dark:text-gray-200 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
                         <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
                         CardNet
                       </span>
                     </div>
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-gray-600 text-xs sm:text-sm">Total:</span>
-                      <span className="text-xl sm:text-2xl font-bold text-green-600">
+                      <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total:</span>
+                      <span className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                         {formatCurrency(order.total)}
                       </span>
                     </div>
@@ -262,7 +262,7 @@ export default function PaymentSuccess() {
                   <div>
                     <button
                       onClick={() => setShowDetails(v => !v)}
-                      className="flex items-center gap-2 text-green-600 hover:text-green-800 font-medium mb-3 sm:mb-4 transition-colors text-sm sm:text-base"
+                      className="flex items-center gap-2 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium mb-3 sm:mb-4 transition-colors text-sm sm:text-base"
                       type="button"
                     >
                       <span>Ver productos ({order.productos.length})</span>
@@ -283,7 +283,7 @@ export default function PaymentSuccess() {
                           {order.productos.map((p, i) => (
                             <motion.div
                               key={`${p.id}-${i}`}
-                              className="flex items-center justify-between bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-100 gap-3"
+                              className="flex items-center justify-between bg-white dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-100 dark:border-green-800 gap-3"
                               initial={{ opacity: 0, x: -16 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.06 }}
@@ -294,13 +294,13 @@ export default function PaymentSuccess() {
                                   🎮
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <span className="font-semibold text-gray-800 text-sm sm:text-base block truncate">{p.nombre}</span>
-                                  <div className="text-xs sm:text-sm text-gray-600">
+                                  <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm sm:text-base block truncate">{p.nombre}</span>
+                                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                                     Cantidad: {p.cantidad} × {formatCurrency(p.precio)}
                                   </div>
                                 </div>
                               </div>
-                              <span className="font-bold text-green-600 text-sm sm:text-base flex-shrink-0">
+                              <span className="font-bold text-green-600 dark:text-green-400 text-sm sm:text-base flex-shrink-0">
                                 {formatCurrency((Number(p.precio) || 0) * p.cantidad)}
                               </span>
                             </motion.div>
@@ -324,7 +324,7 @@ export default function PaymentSuccess() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/"
-                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg sm:rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-500 dark:to-emerald-500 text-white rounded-lg sm:rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
                 <Home className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Seguir comprando</span>
@@ -334,7 +334,7 @@ export default function PaymentSuccess() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/profile"
-                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 rounded-lg sm:rounded-xl font-bold shadow-lg border-2 border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+                className="inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg sm:rounded-xl font-bold shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
                 <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Ver historial</span>
@@ -350,11 +350,11 @@ export default function PaymentSuccess() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.6 }}
             >
-              <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium mb-2 text-xs sm:text-sm">
+              <summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium mb-2 text-xs sm:text-sm">
                 Detalles técnicos de la transacción
               </summary>
-              <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200 max-h-48 sm:max-h-64 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-gray-600 text-xs font-mono">
+              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200 dark:border-gray-700 max-h-48 sm:max-h-64 overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 text-xs font-mono">
                   {JSON.stringify(status, null, 2)}
                 </pre>
               </div>
