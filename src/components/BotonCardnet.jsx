@@ -89,14 +89,12 @@ export default function BotonCardnet({ className, total, label }) {
         button.classList.add('loading');
       }
 
-      // Despertar servidor y ESPERAR un momento para que se active
+      // Wake-up en paralelo (no bloqueante)
       if (!import.meta.env.DEV) {
-        await wakeUpServer();
-        // Pequeña pausa para que el servidor responda
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        wakeUpServer(); // Fire and forget
       }
 
-      // Fetch con retry inteligente
+      // Fetch DIRECTO sin esperas
       const res = await fetchWithRetry(`${API_BASE}/cardnet/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,7 +109,7 @@ export default function BotonCardnet({ className, total, label }) {
 
       setSession(data.SESSION);
       
-      // Submit inmediato
+      // Submit INMEDIATO como Amazon
       requestAnimationFrame(() => {
         const form = document.getElementById("cardnetForm");
         if (form) {
@@ -123,13 +121,13 @@ export default function BotonCardnet({ className, total, label }) {
       let errorMsg = "No se pudo procesar el pago";
       
       if (error.name === 'AbortError') {
-        errorMsg = "El servidor está tardando en responder. Por favor, intenta nuevamente en unos segundos.";
+        errorMsg = "El servidor está tardando. Intenta de nuevo.";
       } else if (error.message.includes('HTTP 504') || error.message.includes('Timeout')) {
-        errorMsg = "El servidor no está disponible. Intenta de nuevo en un momento.";
+        errorMsg = "Servidor no disponible. Intenta en un momento.";
       } else if (error.message.includes('HTTP')) {
         errorMsg = "Error del servidor. Intenta de nuevo.";
       } else if (error.message.includes('Failed to fetch')) {
-        errorMsg = "Error de conexión. Verifica tu internet.";
+        errorMsg = "Sin conexión. Verifica tu internet.";
       }
       
       alert(`❌ ${errorMsg}`);
