@@ -41,9 +41,9 @@ router.post("/create-session", async (req, res) => {
     const ordId = `ORD${now}`;
     const txId = String(Math.floor(100000 + Math.random() * 900000)); // 6 dígitos
 
-    // Timeout de 15 segundos para Cardnet
+    // Timeout de 5 segundos para Cardnet (RÁPIDO)
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
     try {
       const response = await fetch(`${CARDNET_BASE}/sessions`, {

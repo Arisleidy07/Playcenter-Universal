@@ -11,8 +11,8 @@ const API_BASE =
 // Cambiar a "https://ecommerce.cardnet.com.do/authorize" cuando esté listo para producción real
 const AUTHORIZE_URL = "https://lab.cardnet.com.do/authorize";
 
-// Fetch directo con timeout de 8 segundos
-const fetchWithTimeout = async (url, options, timeoutMs = 8000) => {
+// Fetch directo con timeout de 6 segundos
+const fetchWithTimeout = async (url, options, timeoutMs = 6000) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   
@@ -53,6 +53,8 @@ export default function BotonCardnet({ className, total, label }) {
       if (button) {
         button.disabled = true;
         button.classList.add('loading');
+        // Feedback visual inmediato
+        button.querySelector('.btn-text').textContent = 'Procesando...';
       }
 
       // Fetch DIRECTO sin delays
@@ -94,6 +96,8 @@ export default function BotonCardnet({ className, total, label }) {
       if (button) {
         button.disabled = false;
         button.classList.remove('loading');
+        // Restaurar texto original
+        button.querySelector('.btn-text').textContent = buttonLabel;
       }
       setIsProcessing(false);
     }
