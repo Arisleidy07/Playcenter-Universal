@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCategories } from "../hooks/useProducts";
 import { normalizar } from "../utils/normalizarCategoria";
 import { useTheme } from "../context/ThemeContext";
+import { FiArrowLeft } from "react-icons/fi";
 import "../styles/TopBar.css";
 import "../styles/ThemeToggle.css";
 
 export default function TopBar() {
   const { categories } = useCategories();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [headerHeight, setHeaderHeight] = useState(0);
   const topbarRef = useRef(null);
@@ -20,7 +23,8 @@ export default function TopBar() {
   const ticking = useRef(false);
 
   // Mostrar TopBar en desktop (xl ≥ 1280px)
-  const [showTopbar, setShowTopbar] = useState(true);
+  const [showTopbar, setShowTopbar] = useState(window.innerWidth >= 1280);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1280);
 
   // Sin método de entrega aquí: movido al Header
 
@@ -56,7 +60,9 @@ export default function TopBar() {
     const resizeHandler = () => {
       try {
         if (typeof window !== "undefined") {
-          setShowTopbar(window.innerWidth >= 1280);
+          const isDesktopNow = window.innerWidth >= 1280;
+          setShowTopbar(isDesktopNow);
+          setIsDesktop(isDesktopNow);
         }
       } catch {}
       measure();
@@ -86,29 +92,37 @@ export default function TopBar() {
     };
   }, []);
 
-  /* --- Mostrar / ocultar al hacer scroll --- */
+  /* --- Mostrar / ocultar al hacer scroll (solo desktop) --- */
   useEffect(() => {
+    if (!isDesktop) {
+      setVisible(true);
+      return;
+    }
+
     const onScroll = () => {
-      if (ticking.current) return;
-      ticking.current = true;
-      requestAnimationFrame(() => {
-        const currentY = window.scrollY;
-        const lastY = lastScrollY.current;
-        const delta = currentY - lastY;
+      if (!ticking.current) {
+        window.requestAnimationFrame(() => {
+          const currentY = window.scrollY;
+          const lastY = lastScrollY.current;
 
-        if (currentY <= 0) setVisible(true);
-        else if (Math.abs(delta) < 5) {
-        } else if (delta > 0 && currentY > 60) setVisible(false);
-        else if (delta < 0) setVisible(true);
+          if (currentY > lastY && currentY > 100) {
+            // Bajando y pasó 100px: ocultar
+            setVisible(false);
+          } else if (currentY < lastY || currentY === 0) {
+            // Subiendo o en top: mostrar
+            setVisible(true);
+          }
 
-        lastScrollY.current = currentY;
-        ticking.current = false;
-      });
+          lastScrollY.current = currentY;
+          ticking.current = false;
+        });
+        ticking.current = true;
+      }
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [isDesktop]);
 
   const topStyle = {
     position: "fixed",
@@ -132,8 +146,18 @@ export default function TopBar() {
       role="region"
       aria-label="Top bar"
     >
-      <div className="flex items-center text-[10px] sm:text-xs md:text-sm whitespace-nowrap theme-text text-gray-700 dark:text-gray-200">
-        <span>Sitio oficial de las tiendas de videojuegos de RD</span>
+      <div className="flex items-center gap-2 text-[10px] sm:text-xs md:text-sm whitespace-nowrap theme-text text-gray-700 dark:text-gray-200">
+        {/* Flecha de retroceso - SOLO visible en Vista Producto */}
+        {(location.pathname.startsWith('/producto/') || location.pathname.startsWith('/Producto/')) && (
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-200 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md"
+            aria-label="Volver atrás"
+          >
+            <FiArrowLeft className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          </button>
+        )}
+        <span>Sitio oficial de las tiendas de videojuegos en RD</span>
       </div>
 
       {/* Theme Toggle - Botón Luna/Sol */}

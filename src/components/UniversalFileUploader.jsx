@@ -157,13 +157,18 @@ const FilePreview = ({
               ref={videoRef}
               src={url}
               preload="metadata"
+              playsInline
               muted
+              loop
+              autoPlay
+              controls={false}
+              onLoadedMetadata={() => setVideoReady(true)}
               className={`object-contain w-full h-full ${
                 videoReady ? "opacity-100" : "opacity-0"
               }`}
               onError={(e) => {
                 e.target.onerror = null;
-                setVideoReady(true); // Mostrar overlay aunque haya error
+                setVideoReady(true);
               }}
             />
             <div className={`video-overlay ${videoReady ? "with-thumbnail" : ""}`}>
@@ -192,6 +197,46 @@ const FilePreview = ({
       </AnimatePresence>
 
       <div className="ufu-controls-overlay">
+        {/* Botón de descarga */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Descargar archivo
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name || 'archivo';
+            link.target = '_blank';
+            // Para URLs de Firebase Storage, agregar query params para forzar descarga
+            if (url.includes('firebase')) {
+              const downloadUrl = new URL(url);
+              downloadUrl.searchParams.set('response-content-disposition', `attachment; filename="${name || 'archivo'}"`);
+              link.href = downloadUrl.toString();
+            }
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+          className="ufu-control-button ufu-download-button"
+          title="Descargar archivo"
+          aria-label="Descargar archivo a tu dispositivo"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-4 h-4"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+            />
+          </svg>
+        </button>
+
         {/* Botón de vista previa (ojito) */}
         <button
           type="button"

@@ -111,7 +111,10 @@ export default function Carrito() {
   }));
 
   return (
-    <main className="carrito-page" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
+    <main
+      className="carrito-page"
+      style={{ paddingTop: "var(--content-offset, 100px)" }}
+    >
       {carrito.length === 0 ? (
         <div className="carrito-empty-wrap">
           <div className="carrito-empty-box">
@@ -122,13 +125,15 @@ export default function Carrito() {
               loading="lazy"
             />
             <div className="carrito-empty-glass">
-              <div className="carrito-empty-icon" aria-hidden="true">🛒</div>
+              <div className="carrito-empty-icon" aria-hidden="true">
+                🛒
+              </div>
               <h2 className="carrito-empty-title">No hay nada en el carrito</h2>
               <p className="carrito-empty-sub">Explora nuestros productos</p>
               <button
                 type="button"
                 className="carrito-empty-cta"
-                onClick={() => navigate('/categorias')}
+                onClick={() => navigate("/categorias")}
               >
                 Ver productos
               </button>
@@ -226,6 +231,10 @@ export default function Carrito() {
                   <div className="carrito-info">
                     <h2 className="carrito-nombre">{item.nombre}</h2>
 
+                    <div className="carrito-subtotal">
+                      RD$ {formatPriceRD((Number(item.precio) || 0) * item.cantidad)}
+                    </div>
+
                     <p
                       className={`carrito-stock ${
                         restante === 0
@@ -238,65 +247,67 @@ export default function Carrito() {
                       {restante === 0
                         ? "No disponible"
                         : Number.isFinite(restante) && restante <= 2
-                        ? `Casi agotado (${restante})`
+                        ? `Solo quedan ${restante}`
                         : Number.isFinite(restante)
-                        ? `Disponible (${restante})`
+                        ? `${restante} disponibles`
                         : "Disponible"}
                     </p>
 
                     <div className="carrito-actions">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          eliminarUnidadDelCarrito(
-                            item.id,
-                            item.colorSeleccionado ?? null
-                          );
-                        }}
-                        className="vp-qty-btn"
-                      >
-                        −
-                      </button>
-
-                      <span className="vp-qty">{item.cantidad}</span>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (
-                            !Number.isFinite(maxStock) ||
-                            item.cantidad < maxStock
-                          ) {
-                            agregarAlCarrito(
-                              item,
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            eliminarUnidadDelCarrito(
+                              item.id,
                               item.colorSeleccionado ?? null
                             );
+                          }}
+                          className="vp-qty-btn"
+                          aria-label="Disminuir cantidad"
+                        >
+                          −
+                        </button>
+
+                        <span className="vp-qty">{item.cantidad}</span>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (
+                              !Number.isFinite(maxStock) ||
+                              item.cantidad < maxStock
+                            ) {
+                              // Usar producto LIVE de Firestore para tener datos actualizados
+                              const productoCompleto = productosLive[item.id] || item;
+                              agregarAlCarrito(
+                                productoCompleto,
+                                item.colorSeleccionado ?? null
+                              );
+                            }
+                          }}
+                          className="vp-qty-btn"
+                          disabled={
+                            Number.isFinite(maxStock) && item.cantidad >= maxStock
                           }
-                        }}
-                        className="vp-qty-btn"
-                        disabled={
-                          Number.isFinite(maxStock) && item.cantidad >= maxStock
-                        }
-                      >
-                        +
-                      </button>
+                          aria-label="Aumentar cantidad"
+                        >
+                          +
+                        </button>
+                      </div>
 
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setProductoAEliminar(item); // abrir modal
+                          setProductoAEliminar(item);
                         }}
                         className="vp-remove"
-                        title="Quitar"
+                        title="Eliminar producto"
+                        aria-label="Eliminar del carrito"
                       >
                         <FaTrashAlt />
                       </button>
                     </div>
-                  </div>
-
-                  <div className="carrito-subtotal">
-                    DOP{" "}
-                    {formatPriceRD((Number(item.precio) || 0) * item.cantidad)}
                   </div>
                 </div>
               );

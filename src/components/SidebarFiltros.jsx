@@ -107,7 +107,9 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         </motion.h2>
 
         <div className="mb-6">
-          <h3 className="font-medium mb-2 text-gray-800 dark:text-gray-200">Estado</h3>
+          <h3 className="font-medium mb-2 text-gray-800 dark:text-gray-200">
+            Estado
+          </h3>
           <label className="switch-container">
             <input
               type="checkbox"
@@ -142,7 +144,12 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         </div>
 
         <div className="mb-6">
-          <Typography gutterBottom className="text-sm font-semibold text-blue-700 dark:text-blue-300">Precio (RD$)</Typography>
+          <Typography
+            gutterBottom
+            className="text-sm font-semibold text-blue-700 dark:text-blue-300"
+          >
+            Precio (RD$)
+          </Typography>
           <Box
             sx={{
               px: 1,

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaArrowLeft, FaTimes, FaTrash, FaShareSquare } from "react-icons/fa";
+import { FaTimes, FaTrash, FaShareSquare } from "react-icons/fa";
 import { useProduct } from "../hooks/useProducts";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
@@ -12,7 +12,10 @@ import BotonCardnet from "../components/BotonCardnet";
 
 // Components necesarios
 import VisualVariantSelector from "../components/VisualVariantSelector";
+const VP_DEBUG = false;
 import ProductosRelacionados from "../components/ProductosRelacionados";
+
+// Sistema simple directo
 
 // Styles
 import "../styles/VistaProducto.css";
@@ -52,6 +55,7 @@ function setCheckoutPayload(mode, items, total) {
 }
 
 function VistaProducto() {
+  const VP_DEBUG = false; // Toggle logs for debugging
   // TODOS LOS HOOKS AL PRINCIPIO - NUNCA CONDICIONALES
   const {
     carrito,
@@ -88,16 +92,19 @@ function VistaProducto() {
   const [fullscreenPan, setFullscreenPan] = useState({ x: 0, y: 0 });
   const [initialDistance, setInitialDistance] = useState(0);
   const [initialZoom, setInitialZoom] = useState(1);
+  const [fullscreenZoomMode, setFullscreenZoomMode] = useState(false); // Modo zoom con mouse
 
   // Estados para zoom en modal de imagen
   const [modalZoom, setModalZoom] = useState(1);
   const [modalPan, setModalPan] = useState({ x: 0, y: 0 });
+  const [modalZoomMode, setModalZoomMode] = useState(false); // Modo zoom con mouse
 
   // Estados para modal de "Más información del producto" - Imágenes grandes
   const [productInfoModalOpen, setProductInfoModalOpen] = useState(false);
   const [productInfoImageIndex, setProductInfoImageIndex] = useState(0);
   const [productInfoZoom, setProductInfoZoom] = useState(1);
-  const [productInfoPan, setProductInfoPan] = useState({ x: 0, y: 0 });
+  const [productInfoPan, setProductInfoPan] = useState({ x: 50, y: 50 });
+  const [productInfoZoomMode, setProductInfoZoomMode] = useState(false); // Modo zoom con mouse
 
   // Ref para medir altura de imagen principal
   const mainImageRef = useRef(null);
@@ -105,6 +112,10 @@ function VistaProducto() {
   // refs/estado para swipe en modal
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
+
+  // Estado para hover en galería de miniaturas
+  const [thumbnailsHover, setThumbnailsHover] = useState(false);
+  const thumbnailsRef = useRef(null);
 
   // ---------- ZOOM (desktop) ----------
   const imgWrapRef = useRef(null);
@@ -122,25 +133,61 @@ function VistaProducto() {
   // Helper functions for media processing - available throughout component
   const getGalleryVideos = () => {
     if (!producto) return [];
-    const allVariantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
+
+    const allVariantes = Array.isArray(producto?.variantes)
+      ? producto.variantes
+      : [];
     const variantesConColor = allVariantes.filter(
       (v) => v && typeof v.color === "string" && v.color.trim()
     );
-    const varianteActivaParaMedios = variantesConColor[varianteSeleccionada] || null;
-    
-    // ProductForm guarda en producto.videoUrls como array de strings
-    const sourceData =
-      varianteActivaParaMedios?.videoUrls?.length > 0
-        ? varianteActivaParaMedios.videoUrls
-        : producto?.videoUrls || [];
-    
-    return Array.isArray(sourceData)
+    const varianteActivaParaMedios =
+      variantesConColor[varianteSeleccionada] || null;
+
+    if (VP_DEBUG)
+      console.log(
+        "🎥 getGalleryVideos - Variante:",
+        varianteActivaParaMedios?.color || "producto base"
+      );
+
+    let sourceData = [];
+
+    // ⚠️ REGLA: Si hay variante, SOLO usar SUS videos
+    if (varianteActivaParaMedios) {
+      if (varianteActivaParaMedios.videoUrls?.length > 0) {
+        sourceData = varianteActivaParaMedios.videoUrls;
+        if (VP_DEBUG)
+          console.log(
+            `  ✅ ${sourceData.length} videos de variante "${varianteActivaParaMedios.color}"`
+          );
+      } else {
+        // Variante sin videos -> usar producto base como fallback
+        if (VP_DEBUG)
+          console.log(
+            `  ⚠️ Variante "${varianteActivaParaMedios.color}" sin videos, usando producto base`
+          );
+        sourceData = producto?.videoUrls || [];
+      }
+    } else {
+      // Sin variante -> videos del producto base
+      sourceData = producto?.videoUrls || [];
+      if (VP_DEBUG) console.log(`  ✅ ${sourceData.length} videos del producto base`);
+    }
+
+    const final = Array.isArray(sourceData)
       ? sourceData.filter((u) => u && typeof u === "string" && u.trim())
       : [];
+
+    if (VP_DEBUG) console.log(`  📋 FINAL: ${final.length} videos únicos`);
+    return final;
   };
 
   const buildImageList = (prod, variante) => {
-    const norm = (u) => (u ? String(u).split("?")[0].split("#")[0].trim() : "");
+    if (VP_DEBUG)
+      console.log(
+        "🖼️ buildImageList - Variante:",
+        variante?.color || "producto base"
+      );
+
     const pickUrl = (u) => {
       try {
         return typeof u === "string" ? u : u?.url || u?.src || "";
@@ -149,17 +196,63 @@ function VistaProducto() {
       }
     };
 
-    let result = [];
-    if (variante?.imagenes?.length > 0) {
-      result = variante.imagenes.map(pickUrl).filter(Boolean);
-    } else if (variante?.imagen) {
-      result = [pickUrl(variante.imagen)];
-    } else if (prod?.imagenes?.length > 0) {
-      result = prod.imagenes.map(pickUrl).filter(Boolean);
-    } else if (prod?.imagen) {
-      result = [pickUrl(prod.imagen)];
+    let mainImage = "";
+    let galleryImages = [];
+
+    // ⚠️ REGLA AMAZON: SIEMPRE mostrar imagen principal PRIMERO + galería
+    if (variante) {
+      // Variante seleccionada: usar SUS imágenes
+      mainImage = pickUrl(
+        variante.imagen || variante.imagenPrincipal?.[0]?.url
+      );
+      galleryImages = Array.isArray(variante.imagenes)
+        ? variante.imagenes.map(pickUrl).filter(Boolean)
+        : [];
+
+      if (VP_DEBUG) console.log(`  🎯 Variante "${variante.color}":`);
+      if (VP_DEBUG) console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
+      if (VP_DEBUG) console.log(`    - Galería: ${galleryImages.length} imágenes`);
+
+      // Fallback: si variante no tiene imágenes, usar producto base
+      if (!mainImage && galleryImages.length === 0) {
+        if (VP_DEBUG) console.log(`  ⚠️ Variante sin imágenes, usando producto base`);
+        mainImage = pickUrl(prod?.imagen || prod?.imagenPrincipal?.[0]?.url);
+        galleryImages = Array.isArray(prod?.imagenes)
+          ? prod.imagenes.map(pickUrl).filter(Boolean)
+          : [];
+      }
+    } else {
+      // Sin variante: usar producto base
+      mainImage = pickUrl(prod?.imagen || prod?.imagenPrincipal?.[0]?.url);
+      galleryImages = Array.isArray(prod?.imagenes)
+        ? prod.imagenes.map(pickUrl).filter(Boolean)
+        : [];
+
+      if (VP_DEBUG) console.log(`  📦 Producto base:`);
+      if (VP_DEBUG) console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
+      if (VP_DEBUG) console.log(`    - Galería: ${galleryImages.length} imágenes`);
     }
-    return [...new Set(result.map(norm).filter(Boolean))];
+
+    // 👉 AMAZON: Imagen principal PRIMERO, luego galería
+    const result = [];
+    if (mainImage) result.push(mainImage);
+    result.push(...galleryImages);
+
+    // ✅ FILTRAR AGRESIVAMENTE: Sin valores vacíos, null, undefined, o strings vacíos
+    const cleaned = result.filter(url => {
+      if (!url) return false;
+      if (typeof url !== 'string') return false;
+      if (url.trim() === '') return false;
+      return true;
+    });
+
+    // Eliminar duplicados (Set mantiene orden de inserción)
+    const final = [...new Set(cleaned)];
+    if (VP_DEBUG)
+      console.log(
+        `  📋 FINAL: ${final.length} imágenes únicas [Principal + Galería]`
+      );
+    return final;
   };
 
   // Calculate essential variables needed by useEffect hooks and throughout component
@@ -171,14 +264,19 @@ function VistaProducto() {
   let variantesConColor = [];
   let varianteActivaParaMedios = null;
   let imagenes = [];
-  
+
   if (producto) {
     // Build media items for desktop gallery
     allVariantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
     variantesConColor = allVariantes.filter(
       (v) => v && typeof v.color === "string" && v.color.trim()
     );
-    varianteActivaParaMedios = variantesConColor[varianteSeleccionada] || null;
+    // Si varianteSeleccionada es -1 o null, usar null (producto principal)
+    // Si es 0+, usar la variante correspondiente
+    varianteActivaParaMedios = 
+      varianteSeleccionada === -1 || varianteSeleccionada === null
+        ? null // Producto principal
+        : variantesConColor[varianteSeleccionada] || null;
     imagenes = buildImageList(producto, varianteActivaParaMedios);
     const imageItemsMedia = imagenes.map((url) => ({ type: "image", url }));
     const galleryVideosList = getGalleryVideos();
@@ -187,35 +285,28 @@ function VistaProducto() {
       url,
     }));
     desktopMediaItems = [...imageItemsMedia, ...videoItemsMedia];
-    
+
     // Calculate safe desktop index
     safeDesktopIndex = Math.max(
       0,
       Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1))
     );
     // Display index (hover has priority over selection on desktop)
-    displayDesktopIndex = hoverThumbIndex !== null ? hoverThumbIndex : safeDesktopIndex;
+    displayDesktopIndex =
+      hoverThumbIndex !== null ? hoverThumbIndex : safeDesktopIndex;
   }
 
   // ALL useEffect hooks MUST be called consistently - BEFORE any early returns
-  // Asegurar que el índice activo esté dentro de rango si cambia la lista de variantes con color
+  // Reset variant and gallery state when product id changes to avoid mixing between products
   useEffect(() => {
-    if (producto) {
-      const allVariantes = Array.isArray(producto?.variantes)
-        ? producto.variantes
-        : [];
-      const variantesConColor = allVariantes.filter(
-        (v) => v && typeof v.color === "string" && v.color.trim()
-      );
-      if (
-        variantesConColor.length > 0 &&
-        (varianteSeleccionada < 0 ||
-          varianteSeleccionada >= variantesConColor.length)
-      ) {
-        setVarianteSeleccionada(0);
-      }
-    }
-  }, [producto, varianteSeleccionada]);
+    setVarianteSeleccionada(-1); // seleccionar PRODUCTO PRINCIPAL por defecto
+    setImagenActualIndex(0);
+    setDesktopMediaIndex(0);
+    setHoverThumbIndex(null);
+  }, [id]);
+  // Mantener selección por defecto en "principal" (-1) a menos que el usuario cambie
+  // No forzar selección de variante aquí para evitar sobreescribir la opción principal
+  useEffect(() => {}, [varianteSeleccionada]);
 
   // Reset zoom when changing images
   useEffect(() => {
@@ -247,7 +338,8 @@ function VistaProducto() {
   // Si el elemento mostrado pasa a ser un video, desactivar zoom de inmediato
   useEffect(() => {
     const curr =
-      (Array.isArray(desktopMediaItems) && desktopMediaItems[displayDesktopIndex]) ||
+      (Array.isArray(desktopMediaItems) &&
+        desktopMediaItems[displayDesktopIndex]) ||
       null;
     if (!curr || curr.type !== "image") {
       setIsZooming(false);
@@ -379,38 +471,28 @@ function VistaProducto() {
   // Variables already calculated earlier - using global definitions
 
   // Enhanced variant processing
-  const varianteActivaUI = variantesConColor[varianteSeleccionada] || null;
+  // -1 o null = producto principal seleccionado
+  // 0+ = índice de variante seleccionada
+  const varianteActivaUI = 
+    varianteSeleccionada === -1 || varianteSeleccionada === null
+      ? null // Producto principal
+      : variantesConColor[varianteSeleccionada] || null;
   const varianteActiva = varianteActivaUI; // For compatibility with existing code
 
-  // Enhanced media processing - NOW varianteActiva is defined
+  // SIMPLE: Obtener imagen principal
   const getMainImage = () => {
-    // ProductForm guarda en producto.imagen directamente como string
-    // Prioridad: variante.imagen → producto.imagen
-    if (varianteActiva?.imagen) return varianteActiva.imagen;
-    if (producto.imagen) return producto.imagen;
-    
-    // Fallback para formato legacy con arrays
-    if (varianteActiva?.imagenPrincipal?.[0]?.url)
-      return varianteActiva.imagenPrincipal[0].url;
-    if (producto.imagenPrincipal?.[0]?.url)
-      return producto.imagenPrincipal[0].url;
-    
-    return null;
+    // Si no hay variante seleccionada (o es -1), usar imagen del producto
+    if (varianteSeleccionada === -1 || varianteSeleccionada === null) {
+      return producto?.imagen || producto?.imagenPrincipal?.[0]?.url || "";
+    }
+    // Si hay variante seleccionada, usar su imagen
+    return varianteActiva?.imagen || producto?.imagen || "";
   };
 
+  // AMAZON: Obtener imágenes de galería (Principal + Galería)
   const getGalleryImages = () => {
-    const varianteActiva =
-      variantesConColor && variantesConColor[varianteSeleccionada];
-    
-    // ProductForm guarda en producto.imagenes directamente como array de strings
-    const sourceData =
-      varianteActiva?.imagenes?.length > 0
-        ? varianteActiva.imagenes
-        : producto.imagenes || [];
-    
-    return sourceData
-      .filter((item) => item && (typeof item === "string" || item?.url))
-      .map((item) => (typeof item === "string" ? item : item.url));
+    // Usar buildImageList para consistencia
+    return buildImageList(producto, varianteActiva);
   };
 
   const getMainVideo = () => {
@@ -420,22 +502,14 @@ function VistaProducto() {
     return null;
   };
 
+  // SIMPLE: Obtener archivos extras
   const getExtraFiles = () => {
-    // ProductForm guarda en producto.imagenesExtra como array de strings
-    const extraMedia = producto.imagenesExtra || [];
-    return extraMedia
-      .filter((item) => item && (typeof item === "string" || item?.url))
-      .map((item) => (typeof item === "string" ? item : item.url));
+    return (producto?.imagenesExtra || []).slice(0, 3);
   };
 
   // getGalleryVideos function moved earlier to avoid duplicate declaration
 
   // All useEffect hooks have been moved above to maintain consistent hook order
-
-  const onBack = () => {
-    if (window.history && window.history.length > 1) navigate(-1);
-    else navigate("/productos");
-  };
 
   // Enhanced handlers for new components
   const handleAddToCart = (product, variant = null, quantity = 1) => {
@@ -624,7 +698,15 @@ function VistaProducto() {
     return { type: "image", url: u || "" };
   };
 
-  const mediaItems = imagenes.filter(Boolean).map((u) => toMediaObj(u));
+  // ✅ FILTRO ESTRICTO: Solo URLs válidas
+  const imagenesValidas = imagenes.filter(url => {
+    if (!url) return false;
+    if (typeof url !== 'string') return false;
+    if (url.trim() === '') return false;
+    return true;
+  });
+
+  const mediaItems = imagenesValidas.map((u) => toMediaObj(u));
 
   // Dedupe por URL normalizada
   const seenGallery = new Set();
@@ -637,10 +719,10 @@ function VistaProducto() {
   // Índice seguro para compatibilidad con estados previos
   const mainIndex = Math.min(
     Math.max(imagenActualIndex, 0),
-    Math.max(0, (imagenes.length || 1) - 1)
+    Math.max(0, (imagenesValidas.length || 1) - 1)
   );
-  // NO mostrar archivos extras ni videos - SOLO IMÁGENES
-  const imagenesModal = [...imagenes];
+  // NO mostrar archivos extras ni videos - SOLO IMÁGENES (CON FILTRO)
+  const imagenesModal = [...imagenesValidas];
   const hasRowFiles = false;
   const rowFiles = [];
 
@@ -664,7 +746,7 @@ function VistaProducto() {
   // Funciones de touch simplificadas - se usan las más completas abajo
 
   // ---------- Handlers ZOOM (desktop) ----------
-  const handleMouseEnter = () => {
+  const handleMouseEnter = (e) => {
     if (typeof window === "undefined" || window.innerWidth < 1280) return; // solo desktop (xl)
     const current =
       (desktopMediaItems && desktopMediaItems[displayDesktopIndex]) || null;
@@ -697,11 +779,24 @@ function VistaProducto() {
         ? imgWrapRef.current.getBoundingClientRect()
         : null;
     }
-    lastPosRef.current = { x: 50, y: 50 };
+    
+    // Calcular posición inicial basada en donde está el cursor
+    const rect = zoomRectRef.current || 
+                 (mainImgRef.current && mainImgRef.current.getBoundingClientRect()) ||
+                 (imgWrapRef.current && imgWrapRef.current.getBoundingClientRect());
+    
+    if (rect && e) {
+      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+      lastPosRef.current = { x, y };
+    } else {
+      lastPosRef.current = { x: 50, y: 50 };
+    }
+    
     setIsZooming(true);
     requestAnimationFrame(() => {
       const el = zoomOverlayRef.current;
-      if (el) el.style.backgroundPosition = `50% 50%`;
+      if (el) el.style.backgroundPosition = `${lastPosRef.current.x}% ${lastPosRef.current.y}%`;
     });
   };
 
@@ -764,15 +859,15 @@ function VistaProducto() {
     const threshold = 50;
 
     if (Math.abs(touchDeltaX.current) > threshold) {
-      if (touchDeltaX.current > 0 && imagenActualIndex > 0) {
+      if (touchDeltaX.current > 0 && desktopMediaIndex > 0) {
         // Swipe derecha - imagen anterior
-        setImagenActualIndex(imagenActualIndex - 1);
+        setDesktopMediaIndex(desktopMediaIndex - 1);
       } else if (
         touchDeltaX.current < 0 &&
-        imagenActualIndex < imagenes.length - 1
+        desktopMediaIndex < desktopMediaItems.length - 1
       ) {
         // Swipe izquierda - imagen siguiente
-        setImagenActualIndex(imagenActualIndex + 1);
+        setDesktopMediaIndex(desktopMediaIndex + 1);
       }
     }
 
@@ -925,6 +1020,73 @@ function VistaProducto() {
     }
   };
 
+  // --- Funciones de touch para modal de información del producto ---
+  const onTouchStartProductInfo = (e) => {
+    if (e.touches.length === 2) {
+      // Pinch start
+      const distance = getDistance(e.touches[0], e.touches[1]);
+      setInitialDistance(distance);
+      setInitialZoom(productInfoZoom);
+    } else if (e.touches.length === 1) {
+      // Pan start
+      touchStartX.current = e.touches[0].clientX;
+      touchDeltaX.current = 0;
+    }
+  };
+
+  const onTouchMoveProductInfo = (e) => {
+    if (e.touches.length === 2) {
+      // Pinch zoom
+      const distance = getDistance(e.touches[0], e.touches[1]);
+      const scale = distance / initialDistance;
+      const newZoom = Math.min(Math.max(initialZoom * scale, 1), 4);
+      setProductInfoZoom(newZoom);
+    } else if (e.touches.length === 1) {
+      if (productInfoZoom > 1) {
+        // Pan when zoomed
+        const deltaX = e.touches[0].clientX - touchStartX.current;
+        const deltaY = e.touches[0].clientY - (touchStartX.current || 0);
+        setProductInfoPan({ x: deltaX, y: deltaY });
+      } else {
+        // Track swipe for image navigation when not zoomed
+        const deltaX = e.touches[0].clientX - touchStartX.current;
+        touchDeltaX.current = deltaX;
+      }
+    }
+  };
+
+  const onTouchEndProductInfo = (e) => {
+    if (e.touches.length === 0) {
+      // Reset if zoom is too small
+      if (productInfoZoom < 1.1) {
+        setProductInfoZoom(1);
+        setProductInfoPan({ x: 50, y: 50 });
+      }
+
+      // Handle swipe navigation
+      const swipeThreshold = 50;
+      if (Math.abs(touchDeltaX.current) > swipeThreshold && productInfoZoom === 1) {
+        const extraImages = getExtraFiles();
+        if (touchDeltaX.current > 0) {
+          // Swipe derecha = anterior
+          setProductInfoImageIndex(
+            (prev) => (prev - 1 + extraImages.length) % extraImages.length
+          );
+        } else {
+          // Swipe izquierda = siguiente
+          setProductInfoImageIndex(
+            (prev) => (prev + 1) % extraImages.length
+          );
+        }
+        setProductInfoZoom(1);
+        setProductInfoPan({ x: 50, y: 50 });
+      }
+
+      touchStartX.current = 0;
+      touchDeltaX.current = 0;
+    }
+  };
+
   // --- Compartir ---
   const handleShare = async () => {
     try {
@@ -979,64 +1141,22 @@ function VistaProducto() {
     <>
       {/* Sin topbar móvil: solo contenido */}
       <main className="vp-main min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800 flex flex-col items-stretch overflow-visible">
-        {/* Botón Volver circular (solo desktop) */}
-        <div className="hidden xl:flex w-full mb-3">
-          <button
-            type="button"
-            className="vp-back-top-btn"
-            onClick={onBack}
-            aria-label="Volver"
-          >
-            <FaArrowLeft size={16} />
-          </button>
-        </div>
-
         <section className="w-full xl:grid xl:grid-cols-12 xl:gap-6 flex flex-col gap-8 overflow-visible">
-          {/* Columna Izquierda - Galería (6 columnas) */}
+          {/* Columna Izquierda - Galería (6 columnas) CON STICKY COMO AMAZON */}
           {showLeftColumn && (
             <motion.div className="relative flex flex-col items-start w-full xl:col-span-6 overflow-visible">
-              {/* Galería estilo eBay - Visible en todos los dispositivos */}
+              {/* Galería estilo eBay - Visible en todos los dispositivos - STICKY en desktop */}
               {desktopMediaItems.length > 0 && (
-                <div className="amazon-gallery-layout flex">
+                <div
+                  className="amazon-gallery-layout flex"
+                  style={{ zIndex: 10 }}
+                >
                   {/* Thumbnails verticales (a la IZQUIERDA en desktop) */}
-                  <div className="relative">
-                    {/* Flecha ARRIBA */}
-                    {desktopMediaItems.length > 4 && (
-                      <button
-                        className="absolute top-0 left-1/2 transform -translate-x-1/2 z-10 w-8 h-8 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
-                        onClick={() => {
-                          const container = document.querySelector(
-                            ".amazon-thumbs-sidebar"
-                          );
-                          if (container)
-                            container.scrollBy({ top: -80, behavior: "smooth" });
-                        }}
-                      >
-                        <svg
-                          className="w-4 h-4 text-gray-700"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M5 15l7-7 7 7"
-                          />
-                        </svg>
-                      </button>
-                    )}
-
+                  <div className="relative overflow-visible">
                     <div
                       className={`amazon-thumbs-sidebar ${
                         desktopMediaItems.length > 4 ? "has-overflow" : ""
                       }`}
-                      style={{
-                        paddingTop: desktopMediaItems.length > 4 ? "28px" : "0",
-                        paddingBottom:
-                          desktopMediaItems.length > 4 ? "28px" : "0",
-                      }}
                       onMouseLeave={() => setHoverThumbIndex(null)}
                     >
                       {desktopMediaItems.map((item, i) => (
@@ -1077,7 +1197,11 @@ function VistaProducto() {
                               />
                               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                 <div className="bg-white/95 rounded-full p-2 shadow">
-                                  <svg className="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                                  <svg
+                                    className="w-5 h-5 text-gray-800"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
                                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                                   </svg>
                                 </div>
@@ -1093,48 +1217,70 @@ function VistaProducto() {
                           )}
                         </button>
                       ))}
-                    </div>
+                      {/* Flechas OVERLAY estilo eBay - ENCIMA del contenido */}
+                      {desktopMediaItems.length > 4 && (
+                        <>
+                          {/* Flecha ARRIBA - OVERLAY */}
+                          <button
+                            className="ebay-arrow-overlay ebay-arrow-up"
+                            onClick={() => {
+                              const container = document.querySelector(
+                                ".amazon-thumbs-sidebar"
+                              );
+                              if (container)
+                                container.scrollBy({
+                                  top: -100,
+                                  behavior: "smooth",
+                                });
+                            }}
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 15l7-7 7 7"
+                              />
+                            </svg>
+                          </button>
 
-                    {/* Flecha ABAJO */}
-                    {desktopMediaItems.length > 4 && (
-                      <button
-                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-10 w-8 h-8 bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
-                        onClick={() => {
-                          const container = document.querySelector(
-                            ".amazon-thumbs-sidebar"
-                          );
-                          if (container)
-                            container.scrollBy({ top: 80, behavior: "smooth" });
-                        }}
-                      >
-                        <svg
-                          className="w-4 h-4 text-gray-700"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </button>
-                    )}
+                          {/* Flecha ABAJO - OVERLAY */}
+                          <button
+                            className="ebay-arrow-overlay ebay-arrow-down"
+                            onClick={() => {
+                              const container = document.querySelector(
+                                ".amazon-thumbs-sidebar"
+                              );
+                              if (container)
+                                container.scrollBy({ top: 100, behavior: "smooth" });
+                            }}
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Imagen principal */}
-                  <div className="amazon-main-image-container">
-                    {/* Botón de regreso sobre la imagen */}
-                    <button
-                      className="vp-back-fab xl:hidden"
-                      onClick={onBack}
-                      aria-label="Volver"
-                      type="button"
-                    >
-                      <FaArrowLeft size={18} />
-                    </button>
+                  <div className="amazon-main-image-container vp-main-image-sticky">
                     <div
                       ref={(el) => {
                         imgWrapRef.current = el;
@@ -1222,51 +1368,26 @@ function VistaProducto() {
                         backgroundImage: zoomBg ? `url(${zoomBg})` : "none",
                         backgroundRepeat: "no-repeat",
                         backgroundSize: `${zoomBgSize.w}px ${zoomBgSize.h}px`,
-                        backgroundPosition: `${lastPosRef.current.x}% ${lastPosRef.current.y}%`,
                       }}
                     />
                   </div>
                 </div>
               )}
 
+              {/* Bolitas indicadoras estilo Amazon - SOLO móvil/tablet */}
               {desktopMediaItems.length > 1 && (
-                <div className="xl:hidden w-full mt-3">
-                  <div className="mobile-tablet-thumbs flex gap-3 overflow-x-auto pb-2">
-                    {desktopMediaItems.map((item, i) => (
+                <div className="xl:hidden w-full mt-4 flex justify-center">
+                  <div className="flex gap-2 items-center">
+                    {desktopMediaItems.map((_, i) => (
                       <button
-                        key={`mt-thumb-${i}`}
+                        key={`dot-${i}`}
                         type="button"
-                        className={`mt-thumb ${
-                          i === safeDesktopIndex ? "active" : ""
+                        className={`dot-indicator ${
+                          i === safeDesktopIndex ? "dot-active" : ""
                         }`}
                         onClick={() => setDesktopMediaIndex(i)}
-                        aria-label={`Vista ${i + 1}`}
-                      >
-                        {item.type === "video" ? (
-                          <div className="relative w-full h-full bg-black flex items-center justify-center">
-                            <video
-                              src={item.url}
-                              preload="metadata"
-                              muted
-                              className="w-full h-full object-contain"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="bg-white/95 rounded-full p-2 shadow">
-                                <svg className="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <img
-                            src={item.url}
-                            alt={`Miniatura ${i + 1}`}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                          />
-                        )}
-                      </button>
+                        aria-label={`Imagen ${i + 1} de ${desktopMediaItems.length}`}
+                      />
                     ))}
                   </div>
                 </div>
@@ -1278,9 +1399,90 @@ function VistaProducto() {
 
           {/* Columna Centro - Información del producto (4 columnas) */}
           <motion.div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4 overflow-visible">
-            <h1 className="vp-title">{producto.nombre}</h1>
+            {/* ORDEN MÓVIL/TABLET: Imagen ya está arriba en showLeftColumn */}
+            
+            {/* Variantes PRIMERO en móvil/tablet, después en desktop */}
+            <div className={`vp-variants xl:order-4 order-1`}>
+              {/* Sin título - más limpio y elegante */}
+              {(() => {
+                // Incluir el producto principal como una variante más (si tiene color o imagen)
+                const mainColor = (producto.colorImagenPrincipal || producto.color || "").toString().trim();
+                const includeMainOption = Boolean(mainColor || producto.imagen || producto.imagenPrincipal?.[0]?.url);
+
+                const variantesForSelector = (() => {
+                  const all = [];
+                  if (includeMainOption) {
+                    all.push({
+                      color: mainColor || "Principal",
+                      cantidad: producto.cantidad || 0,
+                      precio: producto.precio,
+                      imagen: producto.imagen || producto.imagenPrincipal?.[0]?.url || "",
+                      imagenes: Array.isArray(producto.imagenes) ? producto.imagenes : [],
+                      videoUrls: Array.isArray(producto.videoUrls) ? producto.videoUrls : [],
+                      isMainProduct: true,
+                    });
+                  }
+                  if (Array.isArray(variantesConColor)) {
+                    const key = (s) => (s || "").toString().trim().toLowerCase();
+                    const mainK = key(mainColor);
+                    const filtered = variantesConColor.filter((v) => key(v?.color) !== mainK);
+                    all.push(...filtered);
+                  }
+                  return all;
+                })();
+
+                // Mapear selección: -1 => índice 0 (principal). N => N+1
+                const selectedIndexForSelector = includeMainOption
+                  ? (varianteSeleccionada === -1 || varianteSeleccionada === null ? 0 : Math.max(1, Math.min(varianteSeleccionada + 1, Math.max(1, variantesForSelector.length - 1))))
+                  : Math.max(0, Math.min(varianteSeleccionada || 0, Math.max(0, variantesForSelector.length - 1)));
+
+                const handleSelectorChange = (index) => {
+                  if (includeMainOption) {
+                    if (index === 0) {
+                      // Producto principal
+                      setVarianteSeleccionada(-1);
+                    } else {
+                      handleVariantChange(index - 1);
+                    }
+                  } else {
+                    handleVariantChange(index);
+                  }
+                };
+
+                // Solo mostrar si hay variantes REALES (más de 1 opción real)
+                // No contar el producto principal como "variante"
+                const variantesReales = variantesConColor.length;
+                if (variantesReales === 0) {
+                  // Sin variantes reales - NO mostrar selector
+                  return null;
+                }
+                if (variantesReales === 1 && !includeMainOption) {
+                  // Solo 1 variante y no incluimos principal - NO mostrar selector
+                  return null;
+                }
+                // Si hay 2+ opciones distintas (principal + 1 variante real), mostrar
+                if (variantesForSelector.length <= 1) {
+                  return null;
+                }
+
+                return (
+                  <VisualVariantSelector
+                    variantes={variantesForSelector}
+                    varianteSeleccionada={selectedIndexForSelector}
+                    onVarianteChange={handleSelectorChange}
+                    showStock={false}
+                    showPrice={true}
+                    basePrice={precioProducto}
+                    className="w-full"
+                  />
+                );
+              })()}
+            </div>
+
+            {/* Título, descripción y precio - DESPUÉS de variantes en móvil */}
+            <h1 className="vp-title xl:order-1 order-2">{producto.nombre}</h1>
             <div
-              className="vp-desc prose max-w-none"
+              className="vp-desc prose max-w-none xl:order-2 order-3"
               dangerouslySetInnerHTML={{
                 __html: sanitizeBasic(
                   producto.descripcion ||
@@ -1288,172 +1490,12 @@ function VistaProducto() {
                 ),
               }}
             />
-            <p className="vp-price">DOP {formatPriceRD(precioProducto)}</p>
+            <p className="vp-price xl:order-3 order-4">DOP {formatPriceRD(precioProducto)}</p>
 
-            {/* Enhanced Visual Variant Selector - Always render to avoid hook order issues */}
-            <div
-              className={`vp-variants mt-6 ${
-                !variantesConColor || variantesConColor.length <= 1
-                  ? "hidden"
-                  : ""
-              }`}
-            >
-              <h4 className="text-sm font-medium text-gray-700 mb-3">
-                Variantes disponibles:
-              </h4>
-              <VisualVariantSelector
-                variants={
-                  variantesConColor
-                    ? variantesConColor.map((v, idx) => ({
-                        id: v.id || `var_${idx}`,
-                        name: v.color || `Variante ${idx + 1}`,
-                        price: v.precio,
-                        stock: v.cantidad || 0,
-                        image: v.imagenPrincipal?.[0]?.url || v.imagen,
-                        isSelected: varianteSeleccionada === idx,
-                      }))
-                    : []
-                }
-                productMainImage={getMainImage()}
-                onVariantChange={handleVariantChange}
-                className="w-full"
-              />
-              {/* Fallback to original selector if VisualVariantSelector fails */}
-              <div className="flex flex-wrap gap-3 hidden">
-                {variantesConColor.map((variante, index) => {
-                  const pickUrl = (u) => {
-                    try {
-                      if (!u) return "";
-                      if (typeof u === "string") return u;
-                      if (typeof u === "object" && u !== null)
-                        return u.url || "";
-                      return String(u || "");
-                    } catch {
-                      return "";
-                    }
-                  };
-                  const varianteMedia =
-                    Array.isArray(variante?.media) && variante.media.length > 0
-                      ? variante.media
-                      : [];
-                  const varianteImagen =
-                    varianteMedia.find((m) => m?.type === "image" && m?.url)
-                      ?.url ||
-                    pickUrl(variante?.imagenPrincipal?.[0]) ||
-                    variante?.imagen ||
-                    (Array.isArray(variante?.imagenes) &&
-                      variante.imagenes[0]) ||
-                    (Array.isArray(producto?.media) &&
-                      producto.media.find((m) => m?.type === "image")?.url) ||
-                    pickUrl(producto?.imagenPrincipal?.[0]) ||
-                    producto?.imagen ||
-                    (Array.isArray(producto?.imagenes) &&
-                      producto.imagenes[0]) ||
-                    null;
-
-                  const tieneStock = variante.cantidad > 0;
-                  const activa = varianteSeleccionada === index;
-
-                  return (
-                    <button
-                      key={`${variante.color}-${index}`}
-                      className={`relative flex items-center gap-3 p-2 rounded-lg border-2 transition-all ${
-                        activa
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      } ${!tieneStock ? "opacity-70" : ""}`}
-                      onClick={() => setVarianteSeleccionada(index)}
-                      aria-label={`Seleccionar variante ${variante.color}${
-                        !tieneStock ? " (Agotado)" : ""
-                      }`}
-                      disabled={!tieneStock && !activa}
-                    >
-                      <div className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
-                        {varianteImagen ? (
-                          <img
-                            src={varianteImagen}
-                            alt={`${variante.color}`}
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src =
-                                "https://via.placeholder.com/50?text=No+imagen";
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className="w-full h-full"
-                            style={{
-                              backgroundColor: variante.colorHex || "#ccc",
-                            }}
-                          />
-                        )}
-                        {!tieneStock && (
-                          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                            <span className="text-xs font-medium text-blue-600">
-                              Agotado
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-left">
-                        <span className="block font-medium text-gray-900">
-                          {variante.color}
-                        </span>
-                        {variante.cantidad !== undefined && (
-                          <span
-                            className={`text-xs ${
-                              variante.cantidad > 0
-                                ? "text-green-600"
-                                : "text-blue-600"
-                            }`}
-                          >
-                            {variante.cantidad > 0
-                              ? `${variante.cantidad} disponible${
-                                  variante.cantidad !== 1 ? "s" : ""
-                                }`
-                              : "Agotado"}
-                          </span>
-                        )}
-                      </div>
-                      {activa && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Información del Vendedor */}
-            {producto.sellerId && (
-              <div className="vp-seller-info">
-                <div className="seller-content">
-                  <span className="seller-label">Vendido por:</span>
-                  <button
-                    className="seller-name"
-                    onClick={() => navigate(`/tienda/${producto.sellerId}`)}
-                  >
-                    {producto.sellerName || "Ver Tienda"}
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Información del Vendedor - Removido por solicitud del usuario */}
 
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL/TABLET (restaurado) */}
-            <div className="xl:hidden flex flex-col gap-3 overflow-visible">
+            <div className="xl:hidden flex flex-col gap-3 overflow-visible xl:order-5 order-5">
               <div
                 className={`vp-stock ${
                   restante === 0
@@ -1522,11 +1564,20 @@ function VistaProducto() {
               </div>
             </div>
             {Array.isArray(producto.acerca) && producto.acerca.length > 0 && (
-              <div>
-                <h3 className="vp-subtitle">Acerca de este artículo</h3>
-                <ul className="vp-bullets">
+              <div className="space-y-2 xl:order-6 order-6">
+                <h3 className="text-lg font-bold text-gray-900">
+                  Acerca de este artículo
+                </h3>
+                <ul className="space-y-1.5 text-gray-800">
                   {producto.acerca.map((detalle, i) => (
-                    <li key={i}>{detalle}</li>
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 text-sm leading-snug"
+                    >
+                      {/* Círculo azul en lugar de checkmark */}
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
+                      <span className="flex-1">{detalle}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -1632,7 +1683,7 @@ function VistaProducto() {
                 {extraImages.map((imageUrl, index) => (
                   <div
                     key={`product-info-${index}`}
-                    className="relative w-full cursor-pointer group"
+                    className="relative w-full cursor-pointer"
                     onClick={() => {
                       setProductInfoImageIndex(index);
                       setProductInfoModalOpen(true);
@@ -1641,31 +1692,13 @@ function VistaProducto() {
                     <img
                       src={imageUrl}
                       alt={`${producto.nombre} - Información ${index + 1}`}
-                      className="w-full h-auto object-contain bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
+                      className="w-full h-auto object-contain bg-white dark:bg-gray-800 rounded-lg"
                       style={{
                         maxWidth: "1500px",
                         margin: "0 auto",
                         display: "block",
                       }}
                     />
-                    {/* Overlay hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 rounded-lg flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-3 shadow-lg">
-                        <svg
-                          className="w-6 h-6 text-gray-700"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                          />
-                        </svg>
-                      </div>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -1677,15 +1710,24 @@ function VistaProducto() {
       {/* Modal de galería fullscreen - ESTILO AMAZON EXACTO */}
       {mediaOverlayOpen &&
         (() => {
-          // Obtener videos para las pestañas
+          // ⚠️ AMAZON: SOLO mostrar medios de la variante activa
           const galleryVideos = getGalleryVideos();
+          const galleryImages = buildImageList(
+            producto,
+            varianteActivaParaMedios
+          );
           const hasVideos = galleryVideos.length > 0;
 
-          // Determinar qué contenido mostrar según la pestaña activa
           const currentMediaItems =
             mediaOverlayTab === "videos"
               ? galleryVideos.map((url) => ({ type: "video", url }))
-              : desktopMediaItems;
+              : galleryImages.map((url) => ({ type: "image", url }));
+
+          console.log(
+            `🖼️ Modal - Variante: ${
+              varianteActivaParaMedios?.color || "base"
+            }, Medios: ${currentMediaItems.length}`
+          );
 
           // Asegurar que el índice esté dentro del rango
           const safeMediaIndex = Math.min(
@@ -1772,21 +1814,74 @@ function VistaProducto() {
               <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                 {/* Miniaturas verticales - Izquierda (Desktop ≥ md) */}
                 <div
-                  className={`hidden md:block w-64 lg:w-80 border-r overflow-y-auto p-4 ${
-                    isDark ? "border-gray-700 bg-gray-800" : "border-[#DDD] bg-gray-50"
+                  className={`hidden md:block w-64 lg:w-80 border-r relative group ${
+                    isDark
+                      ? "border-gray-700 bg-gray-800"
+                      : "border-[#DDD] bg-gray-50"
                   }`}
                   onClick={(e) => e.stopPropagation()}
+                  onMouseEnter={() => setThumbnailsHover(true)}
+                  onMouseLeave={() => setThumbnailsHover(false)}
                 >
-                  <div className="space-y-3">
-                    <h3
-                      className={`text-sm font-semibold mb-4 uppercase ${
-                        isDark ? "text-gray-200" : "text-gray-700"
-                      }`}
-                    >
-                      {mediaOverlayTab === "videos" ? "Videos" : "Imágenes"}
-                    </h3>
-                    {/* Grid de miniaturas 2 columnas - Desktop 120x120px con scroll vertical */}
-                    <div className="grid grid-cols-2 gap-3">
+                  {/* Flechas circulares estilo eBay - Solo aparecen con hover */}
+                  {thumbnailsHover && currentMediaItems.length > 4 && (
+                    <>
+                      <button
+                        type="button"
+                        className={`absolute top-2 left-1/2 -translate-x-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
+                          isDark
+                            ? "bg-gray-800 hover:bg-gray-700 text-white border-gray-600"
+                            : "bg-white hover:bg-gray-50 text-gray-800 border-gray-300"
+                        }`}
+                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
+                        onClick={() => {
+                          if (thumbnailsRef.current) {
+                            thumbnailsRef.current.scrollBy({ top: -200, behavior: 'smooth' });
+                          }
+                        }}
+                        aria-label="Scroll arriba"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        className={`absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
+                          isDark
+                            ? "bg-gray-800 hover:bg-gray-700 text-white border-gray-600"
+                            : "bg-white hover:bg-gray-50 text-gray-800 border-gray-300"
+                        }`}
+                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
+                        onClick={() => {
+                          if (thumbnailsRef.current) {
+                            thumbnailsRef.current.scrollBy({ top: 200, behavior: 'smooth' });
+                          }
+                        }}
+                        aria-label="Scroll abajo"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+
+                  <div 
+                    ref={thumbnailsRef}
+                    className="overflow-y-auto p-4 h-full"
+                    style={{ scrollbarWidth: 'thin' }}
+                  >
+                    <div className="space-y-3">
+                      <h3
+                        className={`text-sm font-semibold mb-4 uppercase ${
+                          isDark ? "text-gray-200" : "text-gray-700"
+                        }`}
+                      >
+                        {mediaOverlayTab === "videos" ? "Videos" : "Imágenes"}
+                      </h3>
+                      {/* Grid de miniaturas 2 columnas - SOLO de variante activa */}
+                      <div className="grid grid-cols-2 gap-3">
                       {currentMediaItems.map((item, i) => (
                         <button
                           key={`desktop-thumb-${i}`}
@@ -1796,7 +1891,11 @@ function VistaProducto() {
                               ? ""
                               : "border-gray-300 hover:border-gray-400"
                           }`}
-                          style={i === safeMediaIndex ? { borderColor: "#0064D2" } : undefined}
+                          style={
+                            i === safeMediaIndex
+                              ? { borderColor: "#0064D2" }
+                              : undefined
+                          }
                           onClick={(e) => {
                             e.stopPropagation();
                             setMediaOverlayIndex(i);
@@ -1807,10 +1906,18 @@ function VistaProducto() {
                         >
                           {mediaOverlayTab === "videos" ? (
                             <div className="relative w-full h-full bg-black flex items-center justify-center">
-                              <video src={item.url} className="w-full h-full object-contain" muted />
+                              <video
+                                src={item.url}
+                                className="w-full h-full object-contain"
+                                muted
+                              />
                               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                 <div className="bg-white/90 rounded-full p-2">
-                                  <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                                  <svg
+                                    className="w-6 h-6 text-gray-700"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
                                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                                   </svg>
                                 </div>
@@ -1827,6 +1934,7 @@ function VistaProducto() {
                       ))}
                     </div>
                   </div>
+                </div>
                 </div>
 
                 {/* Columna DERECHA - Imagen/Video grande */}
@@ -1852,8 +1960,8 @@ function VistaProducto() {
                   }
                 >
                   <div className="relative w-full h-full flex items-center justify-center max-w-[1500px]">
-                    {/* Flechas SOLO en desktop (≥1280px) - Móvil/tablet usan swipe */}
-                    {currentMediaItems.length > 1 && (
+                    {/* Flechas SOLO en desktop (≥1280px) Y cuando NO hay zoom - Móvil/tablet usan swipe */}
+                    {currentMediaItems.length > 1 && fullscreenZoom === 1 && (
                       <>
                         <button
                           type="button"
@@ -1910,7 +2018,7 @@ function VistaProducto() {
                       </>
                     )}
 
-                    {/* Contenido principal: Imagen o Video - Acoplado perfectamente */}
+                    {/* Contenido principal: Imagen o Video */}
                     <div className="w-full h-full flex items-center justify-center px-2 md:px-4">
                       {(() => {
                         const current = currentMediaItems[safeMediaIndex];
@@ -1938,7 +2046,7 @@ function VistaProducto() {
                           );
                         }
 
-                        // Si es imagen, mostrar con zoom - Acoplado para vertical/horizontal
+                        // Si es imagen, mostrar con zoom
                         return (
                           <img
                             src={current.url}
@@ -1948,19 +2056,30 @@ function VistaProducto() {
                               maxWidth: "min(100vw - 2rem, 1500px)",
                               maxHeight: "min(90vh, 100%)",
                               transform: `scale(${fullscreenZoom}) translate(${fullscreenPan.x}px, ${fullscreenPan.y}px)`,
-                              transition:
-                                fullscreenZoom === 1
-                                  ? "transform 0.3s ease"
-                                  : "none",
-                              cursor: fullscreenZoom > 1 ? "grab" : "zoom-in",
+                              transition: fullscreenZoom === 1 ? "transform 0.3s ease" : "none",
+                              cursor: fullscreenZoom > 1 ? "zoom-out" : "zoom-in",
                             }}
                             draggable={false}
-                            onDoubleClick={() => {
+                            onClick={(e) => {
                               if (fullscreenZoom === 1) {
+                                // Activar zoom y centrar en la posición del clic
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = ((e.clientX - rect.left) / rect.width - 0.5) * -100;
+                                const y = ((e.clientY - rect.top) / rect.height - 0.5) * -100;
                                 setFullscreenZoom(2);
+                                setFullscreenPan({ x, y });
                               } else {
+                                // Desactivar zoom
                                 setFullscreenZoom(1);
                                 setFullscreenPan({ x: 0, y: 0 });
+                              }
+                            }}
+                            onMouseMove={(e) => {
+                              if (fullscreenZoom > 1) {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = ((e.clientX - rect.left) / rect.width - 0.5) * -100;
+                                const y = ((e.clientY - rect.top) / rect.height - 0.5) * -100;
+                                setFullscreenPan({ x, y });
                               }
                             }}
                           />
@@ -2020,8 +2139,6 @@ function VistaProducto() {
                   </div>
                 </div>
 
-                
-
                 {/* Miniaturas horizontales (Móvil - debajo de la imagen/video) */}
                 <div
                   className={`md:hidden border-t p-4 overflow-x-auto ${
@@ -2038,9 +2155,15 @@ function VistaProducto() {
                         key={`mobile-thumb-${i}`}
                         type="button"
                         className={`flex-shrink-0 w-20 h-20 overflow-hidden rounded border-2 transition-all ${
-                          i === safeMediaIndex ? "" : "border-gray-300 hover:border-gray-400"
+                          i === safeMediaIndex
+                            ? ""
+                            : "border-gray-300 hover:border-gray-400"
                         }`}
-                        style={i === safeMediaIndex ? { borderColor: "#0064D2" } : undefined}
+                        style={
+                          i === safeMediaIndex
+                            ? { borderColor: "#0064D2" }
+                            : undefined
+                        }
                         onClick={(e) => {
                           e.stopPropagation();
                           setMediaOverlayIndex(i);
@@ -2126,19 +2249,32 @@ function VistaProducto() {
               alt={`${producto?.nombre}`}
               className="max-w-full max-h-full object-contain select-none"
               style={{
-                transform: `scale(${modalZoom || 1}) translate(${
-                  modalPan?.x || 0
-                }px, ${modalPan?.y || 0}px)`,
-                transition:
-                  (modalZoom || 1) === 1 ? "transform 0.3s ease" : "none",
+                transform: `scale(${modalZoom || 1}) translate(${modalPan?.x || 0}px, ${modalPan?.y || 0}px)`,
+                transition: (modalZoom || 1) === 1 ? "transform 0.3s ease" : "none",
+                cursor: (modalZoom || 1) > 1 ? "zoom-out" : "zoom-in",
               }}
               draggable={false}
-              onDoubleClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if ((modalZoom || 1) === 1) {
+                  // Activar zoom y centrar en la posición del clic
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = ((e.clientX - rect.left) / rect.width - 0.5) * -100;
+                  const y = ((e.clientY - rect.top) / rect.height - 0.5) * -100;
                   setModalZoom && setModalZoom(2);
+                  setModalPan && setModalPan({ x, y });
                 } else {
+                  // Desactivar zoom
                   setModalZoom && setModalZoom(1);
                   setModalPan && setModalPan({ x: 0, y: 0 });
+                }
+              }}
+              onMouseMove={(e) => {
+                if ((modalZoom || 1) > 1) {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = ((e.clientX - rect.left) / rect.width - 0.5) * -100;
+                  const y = ((e.clientY - rect.top) / rect.height - 0.5) * -100;
+                  setModalPan && setModalPan({ x, y });
                 }
               }}
             />
@@ -2231,6 +2367,9 @@ function VistaProducto() {
                 className={`flex-1 flex items-center justify-center p-4 md:p-8 relative overflow-auto ${
                   isDark ? "bg-gray-900" : "bg-white"
                 }`}
+                onTouchStart={onTouchStartProductInfo}
+                onTouchMove={onTouchMoveProductInfo}
+                onTouchEnd={onTouchEndProductInfo}
               >
                 <div className="relative w-full h-full flex items-center justify-center max-w-[1500px]">
                   {/* Flechas SOLO en desktop - Móvil/tablet usan swipe */}
@@ -2246,6 +2385,8 @@ function VistaProducto() {
                               (prev - 1 + extraImages.length) %
                               extraImages.length
                           );
+                          setProductInfoZoom(1);
+                          setProductInfoPan({ x: 50, y: 50 });
                         }}
                       >
                         <svg
@@ -2270,6 +2411,8 @@ function VistaProducto() {
                           setProductInfoImageIndex(
                             (prev) => (prev + 1) % extraImages.length
                           );
+                          setProductInfoZoom(1);
+                          setProductInfoPan({ x: 50, y: 50 });
                         }}
                       >
                         <svg
@@ -2289,7 +2432,7 @@ function VistaProducto() {
                     </>
                   )}
 
-                  {/* Imagen principal con zoom - Acoplado perfectamente */}
+                  {/* Imagen principal con zoom */}
                   <div className="w-full h-full flex items-center justify-center overflow-hidden px-2 md:px-4">
                     <img
                       src={currentImage}
@@ -2300,20 +2443,33 @@ function VistaProducto() {
                       style={{
                         maxWidth: "min(100vw - 2rem, 1500px)",
                         maxHeight: "min(90vh, 100%)",
-                        transform: `scale(${productInfoZoom}) translate(${productInfoPan.x}px, ${productInfoPan.y}px)`,
-                        transition:
-                          productInfoZoom === 1
-                            ? "transform 0.3s ease"
-                            : "none",
-                        cursor: productInfoZoom > 1 ? "grab" : "zoom-in",
+                        transform: `scale(${productInfoZoom})`,
+                        transformOrigin: `${productInfoPan.x}% ${productInfoPan.y}%`,
+                        transition: productInfoZoom === 1 ? "transform 0.3s ease" : "none",
+                        cursor: productInfoZoom > 1 ? "zoom-out" : "zoom-in",
                       }}
                       draggable={false}
-                      onDoubleClick={() => {
+                      onClick={(e) => {
                         if (productInfoZoom === 1) {
-                          setProductInfoZoom(2);
+                          // Activar zoom en la posición exacta del clic
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = ((e.clientX - rect.left) / rect.width) * 100;
+                          const y = ((e.clientY - rect.top) / rect.height) * 100;
+                          setProductInfoZoom(2.5);
+                          setProductInfoPan({ x, y });
                         } else {
+                          // Desactivar zoom
                           setProductInfoZoom(1);
-                          setProductInfoPan({ x: 0, y: 0 });
+                          setProductInfoPan({ x: 50, y: 50 });
+                        }
+                      }}
+                      onMouseMove={(e) => {
+                        if (productInfoZoom > 1) {
+                          // Actualizar transform-origin según posición del mouse
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = ((e.clientX - rect.left) / rect.width) * 100;
+                          const y = ((e.clientY - rect.top) / rect.height) * 100;
+                          setProductInfoPan({ x, y });
                         }
                       }}
                     />

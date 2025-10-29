@@ -34,6 +34,13 @@ function App() {
     // Verificar seguridad al cargar la app
     const isSecure = initSecurity();
     setSecurityPassed(isSecure);
+    
+    // Limpiar localStorage de sistema obsoleto de productos eliminados
+    try {
+      localStorage.removeItem('deletedProductIds');
+    } catch (e) {
+      // Ignorar errores de localStorage
+    }
   }, []);
   
   // Si no pasa la verificación de seguridad, no renderizar nada

@@ -616,9 +616,17 @@ export default function Admin() {
               setShowProductForm(true);
               setActiveTab('products');
             }}
+            onEditProduct={(product) => {
+              setEditingProduct(product);
+              setShowProductForm(true);
+            }}
             onOpenCategories={() => setActiveTab('categories')}
             onViewAllProducts={() => setActiveTab('products')}
             onViewAllOrders={() => setActiveTab('orders')}
+            onViewProducts={() => setActiveTab('products')}
+            onViewCategories={() => setActiveTab('categories')}
+            onViewUsers={() => setActiveTab('users')}
+            onViewOrders={() => setActiveTab('orders')}
           />
         );
       case "products":

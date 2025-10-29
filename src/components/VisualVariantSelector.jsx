@@ -1,16 +1,16 @@
 import React from "react";
-import { motion } from "framer-motion";
 
 /**
- * VisualVariantSelector - Selector visual de variantes con imágenes
- * Muestra las variantes del producto con sus imágenes, stock y precios
+ * VisualVariantSelector - Selector visual de variantes con imágenes estilo Amazon
+ * Muestra las variantes del producto con sus imágenes y precios de forma simple y limpia
  */
 const VisualVariantSelector = ({
   variantes = [],
   varianteSeleccionada = 0,
   onVarianteChange,
-  showStock = true,
+  showStock = false,
   showPrice = true,
+  basePrice = 0,
   className = "",
 }) => {
   if (!variantes || variantes.length === 0) {
@@ -32,116 +32,104 @@ const VisualVariantSelector = ({
     }
   };
 
+  const fmt = (n) => {
+    const v = Number(n || 0);
+    return `RD$ ${v.toLocaleString("es-DO", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const Card = ({ variante, index, isSelected, isOutOfStock, onClick }) => {
+    const imagenVariante =
+      variante.imagenPrincipal?.[0]?.url ||
+      variante.imagen ||
+      variante.imagenes?.[0] ||
+      null;
+
+    return (
+      <button
+        key={index}
+        type="button"
+        onClick={onClick}
+        className={`
+          relative rounded-lg transition-all duration-150 flex-shrink-0 
+          w-[130px] sm:w-[145px] xl:w-[160px]
+          ${
+            isSelected
+              ? "border-[2.5px] border-blue-600"
+              : "border border-gray-300 hover:border-gray-400"
+          }
+          ${isOutOfStock ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+          bg-white overflow-hidden
+        `}
+        disabled={isOutOfStock}
+      >
+        <div className="flex flex-col w-full">
+          {/* Imagen - cuadrada como Amazon */}
+          {imagenVariante && (
+            <div className="relative w-full bg-white p-3">
+              <div className="pt-[100%]" />
+              <img
+                src={imagenVariante}
+                alt={variante.color}
+                className="absolute inset-0 w-full h-full object-contain"
+              />
+            </div>
+          )}
+
+          {/* Nombre del Color */}
+          <div className="w-full text-center px-2 pt-2 pb-1">
+            <div className="text-[11px] sm:text-[12px] font-medium text-gray-700 truncate">
+              {variante.color}
+            </div>
+          </div>
+
+          {/* Precio - tipografía mejorada */}
+          {showPrice && (
+            <div className="w-full text-center px-2 pb-2">
+              <div className="text-[13px] sm:text-[14px] font-bold text-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                {fmt(variante?.precio ?? basePrice)}
+              </div>
+            </div>
+          )}
+        </div>
+      </button>
+    );
+  };
+
   return (
     <div className={`visual-variant-selector ${className}`}>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {variantesConColor.map((variante, index) => {
-          const isSelected = index === varianteSeleccionada;
-          const isOutOfStock = variante.cantidad <= 0;
-          
-          // Obtener imagen de la variante
-          const imagenVariante =
-            variante.imagenPrincipal?.[0]?.url ||
-            variante.imagen ||
-            variante.imagenes?.[0] ||
-            null;
+      {/* Mobile/Tablet: slider horizontal táctil (< 1280px) */}
+      <div className="xl:hidden w-full overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 pb-2">
+          {variantesConColor.map((v, i) => (
+            <Card
+              key={i}
+              variante={v}
+              index={i}
+              isSelected={i === varianteSeleccionada}
+              isOutOfStock={(v?.cantidad ?? 0) <= 0}
+              onClick={() => handleVariantClick(i)}
+            />
+          ))}
+        </div>
+      </div>
 
-          return (
-            <motion.button
-              key={index}
-              type="button"
-              onClick={() => !isOutOfStock && handleVariantClick(index)}
-              disabled={isOutOfStock}
-              whileHover={!isOutOfStock ? { scale: 1.05 } : {}}
-              whileTap={!isOutOfStock ? { scale: 0.95 } : {}}
-              className={`
-                relative p-3 rounded-lg border-2 transition-all duration-200
-                ${
-                  isSelected
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                }
-                ${
-                  isOutOfStock
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:border-blue-300 dark:hover:border-blue-600 cursor-pointer"
-                }
-              `}
-            >
-              {/* Imagen de la variante */}
-              {imagenVariante && (
-                <div className="aspect-square mb-2 rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
-                  <img
-                    src={imagenVariante}
-                    alt={variante.color}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              )}
-
-              {/* Color */}
-              <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
-                {variante.color}
-              </div>
-
-              {/* Stock */}
-              {showStock && (
-                <div
-                  className={`text-xs ${
-                    isOutOfStock
-                      ? "text-red-600 dark:text-red-400"
-                      : variante.cantidad < 5
-                      ? "text-orange-600 dark:text-orange-400"
-                      : "text-green-600 dark:text-green-400"
-                  }`}
-                >
-                  {isOutOfStock
-                    ? "Agotado"
-                    : `${variante.cantidad} disponibles`}
-                </div>
-              )}
-
-              {/* Precio específico de variante */}
-              {showPrice && variante.precio && (
-                <div className="text-sm font-semibold text-green-600 dark:text-green-400 mt-1">
-                  RD$ {Number(variante.precio).toFixed(2)}
-                </div>
-              )}
-
-              {/* Indicador de selección */}
-              {isSelected && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
-                >
-                  <svg
-                    className="w-4 h-4 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </motion.div>
-              )}
-
-              {/* Overlay de agotado */}
-              {isOutOfStock && (
-                <div className="absolute inset-0 bg-gray-900/50 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    Agotado
-                  </span>
-                </div>
-              )}
-            </motion.button>
-          );
-        })}
+      {/* Desktop: grilla con wrap - se apila como Amazon (≥ 1280px) */}
+      <div className="hidden xl:block w-full">
+        <div className="flex flex-wrap gap-2">
+          {variantesConColor.map((v, i) => (
+            <Card
+              key={i}
+              variante={v}
+              index={i}
+              isSelected={i === varianteSeleccionada}
+              isOutOfStock={(v?.cantidad ?? 0) <= 0}
+              onClick={() => handleVariantClick(i)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

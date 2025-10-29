@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, orderBy, getDoc, clearIndexedDbPersistence, disableNetwork, enableNetwork } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import LoadingSpinner from './LoadingSpinner';
-import { FiFolder, FiEye, FiEyeOff, FiEdit2, FiTrash2, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiFolder, FiEye, FiEyeOff, FiEdit2, FiTrash2, FiChevronUp, FiChevronDown, FiAlertTriangle } from 'react-icons/fi';
+import { 
+  getPhantomCategories, 
+  addPhantomCategory, 
+  clearAllPhantomCategories, 
+  cleanupPhantomCategories 
+} from '../utils/phantomProductsCleaner';
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
@@ -21,21 +27,68 @@ const CategoryManagement = () => {
     orden: 0
   });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
+  const [phantomCategoryIds, setPhantomCategoryIds] = useState(() => {
+    // Inicializar desde localStorage
+    try {
+      const stored = localStorage.getItem('phantomCategories');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    loadCategories();
+    const unsubscribe = loadCategories();
+    
+    // Listener para cambios en localStorage (cuando se marcan fantasmas desde otro componente)
+    const handleStorageChange = (e) => {
+      if (e.key === 'phantomCategories') {
+        try {
+          const newPhantoms = e.newValue ? JSON.parse(e.newValue) : [];
+          setPhantomCategoryIds(newPhantoms);
+        } catch (error) {
+          console.error('Error al parsear phantomCategories:', error);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      if (unsubscribe) unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const loadCategories = () => {
     try {
       const unsubscribe = onSnapshot(collection(db, 'categorias'), (snapshot) => {
-        const categoriesData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })).sort((a, b) => (a.orden || 0) - (b.orden || 0));
-        
-        setCategories(categoriesData);
-        setLoading(false);
+        // USAR ESTADO LOCAL en lugar de localStorage para evitar race conditions
+        setPhantomCategoryIds(currentPhantoms => {
+          // Filtrar categorías: excluir fantasmas y verificar que existan
+          const categoriesData = [];
+          
+          snapshot.docs.forEach(doc => {
+            const isPhantom = currentPhantoms.includes(doc.id);
+            
+            if (!isPhantom && doc.exists()) {
+              categoriesData.push({
+                id: doc.id,
+                ...doc.data()
+              });
+            }
+          });
+          
+          // Ordenar por orden
+          categoriesData.sort((a, b) => (a.orden || 0) - (b.orden || 0));
+          
+          setCategories(categoriesData);
+          setLoading(false);
+          
+          // Retornar el estado sin cambios
+          return currentPhantoms;
+        });
       });
 
       return unsubscribe;
@@ -128,14 +181,65 @@ const CategoryManagement = () => {
   const deleteCategory = async () => {
     if (!categoryToDelete) return;
 
+    const categoryId = categoryToDelete.id;
+    const categoryName = categoryToDelete.nombre || 'Categoría';
+    
+    // Cerrar modal
+    setShowDeleteModal(false);
+    setCategoryToDelete(null);
+
     try {
-      await deleteDoc(doc(db, 'categorias', categoryToDelete.id));
-      setShowDeleteModal(false);
-      setCategoryToDelete(null);
-      alert('Categoría eliminada exitosamente');
+      const docRef = doc(db, 'categorias', categoryId);
+      
+      // Verificar si el documento existe
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        // Si NO existe en Firebase, forzar limpieza del caché
+        setPhantomCategoryIds(prevPhantoms => {
+          if (!prevPhantoms.includes(categoryId)) {
+            const newPhantoms = [...prevPhantoms, categoryId];
+            localStorage.setItem('phantomCategories', JSON.stringify(newPhantoms));
+            return newPhantoms;
+          }
+          return prevPhantoms;
+        });
+        
+        // IMPORTANTE: Forzar actualización inmediata del estado de categorías
+        setCategories(prevCategories => prevCategories.filter(c => c.id !== categoryId));
+        
+        alert(`✅ "${categoryName}" eliminada (era un fantasma del caché)`);
+        return;
+      }
+      
+      // Si existe en Firebase, eliminarlo
+      await deleteDoc(docRef);
+      
+      // Esperar un momento y verificar
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const verificacion = await getDoc(docRef);
+      if (verificacion.exists()) {
+        console.error('❌ ERROR: La categoría AÚN EXISTE después de deleteDoc');
+        alert('❌ Error: No se pudo eliminar de Firebase.\n\nPosibles causas:\n1. Reglas de seguridad bloquean la eliminación\n2. No tienes permisos\n3. Problemas de red');
+        return;
+      }
+      
+      // Eliminar del estado local inmediatamente
+      setCategories(prevCategories => prevCategories.filter(c => c.id !== categoryId));
+      
+      alert(`✅ "${categoryName}" eliminada exitosamente de Firebase`);
+      
     } catch (error) {
-      console.error('Error deleting category:', error);
-      alert('Error al eliminar la categoría');
+      console.error('❌ [CategoryManagement] Error al eliminar categoría:', error);
+      console.error('📝 [CategoryManagement] Código de error:', error.code);
+      console.error('📝 [CategoryManagement] Mensaje:', error.message);
+      
+      if (error.code === 'permission-denied') {
+        alert(`❌ Error de Permisos\n\nNo tienes permiso para eliminar esta categoría.\n\nVerifica las reglas de seguridad en Firestore.`);
+      } else {
+        alert(`❌ Error: ${error.message}\n\nRevisa la consola para más detalles.`);
+      }
     }
   };
 
@@ -185,16 +289,53 @@ const CategoryManagement = () => {
           <h2 className="text-2xl font-bold text-blue-900">Gestión de Categorías</h2>
           <p className="text-gray-600">{categories.length} categorías en total</p>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setShowForm(true);
-          }}
-          className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition-colors flex items-center gap-2"
-        >
-          <span className="text-xl">+</span>
-          Agregar Categoría
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          {phantomCategoryIds.length > 0 && (
+            <>
+              <button
+                onClick={async () => {
+                  if (confirm(`¿Verificar y limpiar ${phantomCategoryIds.length} categorías fantasma?\n\nEsto verificará si alguna volvió a existir en Firebase.`)) {
+                    const result = await cleanupPhantomCategories();
+                    if (result) {
+                      alert(`✅ Limpieza completada:\n\n${result.recovered} categorías recuperadas\n${result.stillPhantoms} siguen siendo fantasmas\n\nRecargando página...`);
+                      window.location.reload();
+                    }
+                  }
+                }}
+                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-1"
+                title="Verificar y limpiar categorías fantasma"
+              >
+                <FiTrash2 size={14} />
+                Verificar ({phantomCategoryIds.length})
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm(`¿Limpiar TODAS las ${phantomCategoryIds.length} categorías fantasma?\n\n⚠️ Esto las eliminará sin verificar si existen en Firebase.`)) {
+                    const count = clearAllPhantomCategories();
+                    setPhantomCategoryIds([]);
+                    alert(`✅ ${count} categorías fantasma limpiadas.\n\nRecargando página...`);
+                    window.location.reload();
+                  }
+                }}
+                className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm flex items-center gap-1"
+                title="Forzar limpieza de caché de categorías fantasma"
+              >
+                <FiTrash2 size={14} />
+                Limpiar ({phantomCategoryIds.length})
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
+            className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition-colors flex items-center gap-2"
+          >
+            <span className="text-xl">+</span>
+            Agregar Categoría
+          </button>
+        </div>
       </div>
 
       {/* Categories List */}

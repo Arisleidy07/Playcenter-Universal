@@ -313,7 +313,13 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
-.ufu-preview-button { top: 0.5rem; left: 0.5rem; }
+.ufu-download-button { top: 0.5rem; left: 0.5rem; }
+.ufu-download-button:hover { 
+  color: #3b82f6; /* blue-500 */ 
+  background-color: #dbeafe; /* blue-100 */
+}
+
+.ufu-preview-button { top: 0.5rem; left: 3rem; }
 .ufu-preview-button:hover { color: #10b981; /* green-500 */ }
 
 .ufu-delete-button { top: 0.5rem; right: 0.5rem; }

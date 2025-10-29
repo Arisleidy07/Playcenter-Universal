@@ -165,13 +165,17 @@ function TarjetaProducto({ producto }) {
 
   return (
     <>
+      {/* HORIZONTAL en móvil/tablet pequeño, VERTICAL en tablet grande/desktop */}
       <article
-        className="flex flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 w-full h-full"
+        className="flex flex-row lg:flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 w-full h-full"
       >
-        {/* Imagen */}
+        {/* Imagen a la izquierda (móvil/tablet pequeño) o arriba (tablet grande/desktop) */}
         <div
           onClick={irADetalle}
-          className="w-full aspect-square flex items-center justify-center overflow-hidden mb-3 cursor-pointer"
+          className="flex-shrink-0 w-32 sm:w-36 lg:w-full lg:aspect-square flex items-center justify-center overflow-hidden cursor-pointer bg-white dark:bg-gray-900"
+          style={{
+            minHeight: "128px", // Imagen más compacta en móvil
+          }}
         >
           {imagen ? (
             <img
@@ -185,72 +189,77 @@ function TarjetaProducto({ producto }) {
           )}
         </div>
 
-        <h3
-          onClick={irADetalle}
-          className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 mb-2 cursor-pointer"
-          style={{
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            lineHeight: "1.4em",
-            height: "2.8em",
-            fontSize: "0.95rem",
-          }}
-        >
-          {producto.nombre}
-        </h3>
+        {/* Información a la derecha (móvil/tablet pequeño) o abajo (tablet grande/desktop) */}
+        <div className="flex flex-col justify-between p-2.5 sm:p-3 lg:p-4 flex-1">
+          <div>
+            <h3
+              onClick={irADetalle}
+              className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 mb-1.5 sm:mb-2 cursor-pointer text-sm sm:text-base lg:text-lg font-semibold"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                lineHeight: "1.3em",
+                maxHeight: "2.6em",
+              }}
+            >
+              {producto.nombre}
+            </h3>
 
-        <div className="flex items-baseline gap-1 mb-3">
-          <span className="text-sm text-gray-600 dark:text-gray-400">RD$</span>
-          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            {Number(producto.precio).toFixed(2)}
-          </span>
-        </div>
-
-        {enCarrito ? (
-          <div className="flex items-center justify-between gap-2">
-            <button
-              onClick={handleDecremento}
-              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-            >
-              −
-            </button>
-            <span className="font-semibold">{cantidadEnCarrito}</span>
-            <button
-              onClick={handleIncremento}
-              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-            >
-              +
-            </button>
-            <button
-              onClick={handleQuitar}
-              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              <FaTrashAlt />
-            </button>
+            <div className="flex items-baseline gap-1 mb-1.5 sm:mb-2">
+              <span className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400">RD$</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {Number(producto.precio).toFixed(2)}
+              </span>
+            </div>
           </div>
-        ) : (
-          <button
-            onClick={handleAgregar}
-            className="w-full py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
-            style={{
-              backgroundColor: "#0066C0",
-              color: "#FFFFFF",
-              border: "1px solid #0066C0",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#004F9A")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#0066C0")
-            }
-            disabled={!disponible}
-          >
-            <FaShoppingCart />
-            Agregar al Carrito
-          </button>
-        )}
+
+          {enCarrito ? (
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={handleDecremento}
+                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
+              >
+                −
+              </button>
+              <span className="font-semibold text-base sm:text-base lg:text-lg">{cantidadEnCarrito}</span>
+              <button
+                onClick={handleIncremento}
+                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
+              >
+                +
+              </button>
+              <button
+                onClick={handleQuitar}
+                className="px-2.5 sm:px-2.5 py-1.5 sm:py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-base sm:text-base transition-all hover:scale-105 active:scale-95"
+              >
+                <FaTrashAlt />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleAgregar}
+              className="w-full py-2.5 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm lg:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
+              style={{
+                backgroundColor: "#0066C0",
+                color: "#FFFFFF",
+                border: "1px solid #0066C0",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#004F9A")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#0066C0")
+              }
+              disabled={!disponible}
+            >
+              <FaShoppingCart className="text-lg sm:text-base lg:text-base" />
+              <span className="hidden sm:inline lg:hidden">Agregar</span>
+              <span className="hidden lg:inline">Agregar al Carrito</span>
+            </button>
+          )}
+        </div>
       </article>
 
       <ModalLoginAlert

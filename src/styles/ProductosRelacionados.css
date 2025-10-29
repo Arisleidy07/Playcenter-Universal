@@ -4,26 +4,32 @@
 
 .prl-section {
   width: 100%;
-  background: #fff;
+  background: transparent;
   padding: 32px 0 80px 0;
-  border-top: 1px solid #e7e7e7;
+  border-top: none;
   overflow: visible;
+  position: relative;
+  z-index: 20;
+  margin: 0;
 }
 
 .prl-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   overflow: visible;
+  position: relative;
+  z-index: 20;
 }
 
 .prl-title {
   font-size: 21px;
   font-weight: 700;
-  color: #0F1111;
+  color: #000000;
   margin-bottom: 20px;
   font-family: "Amazon Ember", Arial, sans-serif;
   line-height: 1.2;
+  padding: 0 0.75rem;
 }
 
 .prl-wrapper {
@@ -31,39 +37,23 @@
   display: flex;
   align-items: center;
   gap: 0;
-}
-
-/* Gradient fade solo en móvil y tablet */
-@media (max-width: 1279px) {
-  .prl-wrapper::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 40px;
-    width: 80px;
-    background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1));
-    pointer-events: none;
-    z-index: 5;
-  }
-  
-  html.dark-theme .prl-wrapper::after {
-    background: linear-gradient(to right, rgba(15,23,42,0), rgba(15,23,42,1));
-  }
+  z-index: 20;
 }
 
 /* Rail - carrusel horizontal */
 .prl-rail {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   overflow-x: auto;
   overflow-y: visible;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  padding: 20px 0 40px 0;
+  padding: 20px 0.75rem 40px 0.75rem;
   scrollbar-width: none;
   flex: 1;
+  position: relative;
+  z-index: 20;
 }
 .prl-rail::-webkit-scrollbar {
   display: none;
@@ -74,15 +64,18 @@
   flex: 0 0 auto;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  background: #fff;
-  border: 1px solid #e7e7e7;
-  border-radius: 8px;
+  background: #ffffff;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   user-select: none;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Tamaños FIJOS de tarjetas - NUNCA se deforman */
@@ -141,20 +134,20 @@
 }
 
 .prl-card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  border-color: #c8c8c8;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   transform: translateY(-4px);
+  z-index: 50;
 }
 
 /* Imagen Amazon style */
 .prl-imgbox {
   height: 200px;
-  background: #fff;
+  background: #fafafa;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  border-bottom: 1px solid #e7e7e7;
+  border-bottom: none;
 }
 
 .prl-img {
@@ -186,7 +179,7 @@
 .prl-name {
   font-size: 14px;
   font-weight: 400;
-  color: #2563eb; /* blue-600 */
+  color: #000000;
   line-height: 1.4;
   display: -webkit-box;
   line-clamp: 2;
@@ -199,7 +192,7 @@
 }
 
 .prl-card:hover .prl-name {
-  color: #1d4ed8; /* blue-700 */
+  color: #2563eb;
   text-decoration: underline;
 }
 
@@ -235,7 +228,7 @@
   color: #0F1111;
   font-size: 18px;
   transition: all 0.15s ease;
-  z-index: 10;
+  z-index: 100;
   flex-shrink: 0;
   position: absolute;
   top: 50%;
@@ -272,7 +265,7 @@
 /* Responsive móvil */
 @media (max-width: 480px) {
   .prl-container {
-    padding: 0 12px;
+    padding: 0;
     position: relative;
   }
   
@@ -309,7 +302,7 @@
 
 @media (min-width: 481px) and (max-width: 767px) {
   .prl-container {
-    padding: 0 16px;
+    padding: 0;
     position: relative;
   }
   
@@ -359,7 +352,7 @@
 /* Tablet pequeña-mediana */
 @media (min-width: 768px) and (max-width: 1023px) {
   .prl-container {
-    padding: 0 20px;
+    padding: 0;
   }
   
   .prl-imgbox {
@@ -392,7 +385,7 @@
 /* Tablet grande */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .prl-container {
-    padding: 0 24px;
+    padding: 0;
   }
   
   .prl-imgbox {
@@ -426,7 +419,7 @@
 @media (min-width: 1280px) {
   .prl-container {
     max-width: 1400px;
-    padding: 0 20px;
+    padding: 0;
   }
   
   .prl-wrapper {
@@ -456,21 +449,31 @@
    Dark theme variants
 ===================== */
 html.dark-theme .prl-section {
-  background: #0f172a; /* slate-900 */
-  border-top-color: #1f2937;
+  background: transparent;
+  border-top: none;
 }
 html.dark-theme .prl-title {
-  color: #e5e7eb;
+  color: #ffffff;
 }
 html.dark-theme .prl-card {
-  background: #111827;
-  border-color: #374151;
+  background: #1e293b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 html.dark-theme .prl-imgbox {
-  background: #0b1220;
-  border-bottom-color: #374151;
+  background: #334155;
+  border-bottom: none;
 }
-html.dark-theme .prl-name { color: #93c5fd; }
+html.dark-theme .prl-name { 
+  color: #ffffff; 
+}
+
+html.dark-theme .prl-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+html.dark-theme .prl-card:hover .prl-name {
+  color: #60a5fa;
+}
 html.dark-theme .prl-price { color: #60a5fa; }
 html.dark-theme .prl-price-muted { color: #9ca3af; }
 html.dark-theme .prl-img-fallback { background: #1f2937; }

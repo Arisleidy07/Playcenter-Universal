@@ -164,10 +164,3 @@ html.dark-theme .rounded-2xl {
 html.dark-theme img {
   filter: none;
 }
-
-/* NO APLICAR TEMA AL FOOTER */
-html.dark-theme footer,
-html.dark-theme footer * {
-  background-color: initial !important;
-  color: initial !important;
-}

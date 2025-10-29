@@ -12,7 +12,7 @@ function Nosotros() {
   return (
     <div
       className="relative min-h-screen flex flex-col items-center px-4 pb-20 font-sans text-gray-800 dark:text-gray-100
-                 bg-gradient-to-b from-blue-50 via-blue-50 to-blue-100 dark:from-blue-950 dark:via-blue-950 dark:to-blue-900 overflow-hidden"
+                  bg-gradient-to-b from-blue-50 via-blue-50 to-blue-100 dark:from-blue-950 dark:via-blue-950 dark:to-blue-900 overflow-hidden"
       style={{ paddingTop: "calc(var(--content-offset, 100px) + 48px)" }}
     >
       <Wave />

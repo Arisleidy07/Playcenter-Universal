@@ -65,9 +65,9 @@ const anuncios = [
 
 function SliderAnunciosMovil() {
   return (
-    <div className="block sm:hidden w-full max-w-[600px] mx-auto px-3 py-4">
+    <div className="block sm:hidden w-full max-w-[100%] mx-auto px-0 py-2">
       <div
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-3"
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3 px-3"
         style={{ scrollPaddingLeft: "12px", scrollPaddingRight: "12px" }}
       >
         {anuncios.map((anuncio) => (
@@ -76,12 +76,12 @@ function SliderAnunciosMovil() {
             href={anuncio.link}
             target={anuncio.isExternal ? "_blank" : "_self"}
             rel="noreferrer"
-            className="flex-shrink-0 w-[300px] h-[420px] rounded-xl overflow-hidden shadow-lg bg-white snap-center"
+            className="flex-shrink-0 w-[300px] h-[420px] rounded-xl overflow-hidden snap-center bg-transparent shadow-none"
           >
             <img
               src={anuncio.img}
               alt={`Anuncio ${anuncio.id}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover block rounded-xl"
               draggable={false}
             />
           </a>

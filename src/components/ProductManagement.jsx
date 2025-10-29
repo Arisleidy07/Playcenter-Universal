@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 import { FiEye, FiEyeOff, FiCopy, FiTrash2, FiPackage } from 'react-icons/fi';
+import { addPhantomProduct } from '../utils/phantomProductsCleaner';
 
 // UID del administrador global (ver Admin.jsx)
 const ADMIN_UID = "ZeiFzBgosCd0apv9cXL6aQZCYyu2";
@@ -18,6 +19,22 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('fechaCreacion');
+  const [phantomProductIds, setPhantomProductIds] = useState(() => {
+    // Inicializar desde localStorage
+    try {
+      const stored = localStorage.getItem('phantomProducts');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  // Verificar permisos al cargar
+  useEffect(() => {
+    if (!usuario) {
+      console.warn('! No hay usuario autenticado');
+    }
+  }, [usuario]);
   const [sortOrder, setSortOrder] = useState('desc');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
@@ -44,6 +61,23 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario?.uid]);
+
+  // Sincronizar estado de fantasmas con localStorage
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'phantomProducts') {
+        try {
+          const newPhantoms = e.newValue ? JSON.parse(e.newValue) : [];
+          setPhantomProductIds(newPhantoms);
+        } catch (error) {
+          console.error('Error al parsear phantomProducts:', error);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const loadCategories = async () => {
     try {
@@ -72,13 +106,32 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       }
 
       const unsubscribe = onSnapshot(qRef, (snapshot) => {
-        const productsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setProducts(productsData);
+        // USAR ESTADO LOCAL en lugar de localStorage para evitar race conditions
+        setPhantomProductIds(currentPhantoms => {
+          // Filtrar productos: excluir fantasmas y verificar que existan
+          const productsData = [];
+          
+          snapshot.docs.forEach(doc => {
+            const isPhantom = currentPhantoms.includes(doc.id);
+            
+            if (!isPhantom && doc.exists()) {
+              productsData.push({
+                id: doc.id,
+                ...doc.data()
+              });
+            }
+          });
+          
+          setProducts(productsData);
+          setLoading(false);
+          
+          // Retornar el estado sin cambios
+          return currentPhantoms;
+        });
+      }, (error) => {
+        console.error('Error en listener:', error);
         setLoading(false);
-      }, () => setLoading(false));
+      });
 
       return unsubscribe;
     } catch (error) {
@@ -113,38 +166,42 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
   const toggleProductStatus = async (productId, currentStatus) => {
     try {
-      console.log(`🔄 Cambiando estado del producto ${productId}: ${currentStatus} -> ${!currentStatus}`);
+      const productRef = doc(db, 'productos', productId);
       
       // Verificar que el producto existe
-      const productRef = doc(db, 'productos', productId);
       const productSnap = await getDoc(productRef);
       
       if (!productSnap.exists()) {
-        throw new Error('El producto no existe en la base de datos');
+        console.warn(`! Producto ${productId} no existe en Firebase - eliminando del estado local`);
+        // Eliminar del estado local si no existe en Firebase
+        setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+        alert('Este producto no existe en la base de datos y ha sido eliminado de la lista.');
+        return;
       }
       
       await updateDoc(productRef, {
         activo: !currentStatus,
         fechaActualizacion: new Date()
       });
-      
-      console.log(`✅ Estado actualizado exitosamente`);
     } catch (error) {
-      console.error('❌ Error updating product status:', error);
+      console.error('Error updating product status:', error);
       alert(`Error al actualizar el estado del producto: ${error.message}`);
     }
   };
 
   const duplicateProduct = async (product) => {
     try {
-      console.log('🔄 Iniciando duplicación de producto:', product.id);
       
       // Verificar que el producto existe y obtener datos actualizados
       const productRef = doc(db, 'productos', product.id);
       const productSnap = await getDoc(productRef);
       
       if (!productSnap.exists()) {
-        throw new Error('El producto original no existe en la base de datos');
+        console.warn(`! Producto ${product.id} no existe en Firebase - eliminando del estado local`);
+        // Eliminar del estado local si no existe en Firebase
+        setProducts(prevProducts => prevProducts.filter(p => p.id !== product.id));
+        alert('Este producto no existe en la base de datos y ha sido eliminado de la lista. No se puede duplicar.');
+        return;
       }
       
       // Obtener datos actualizados del producto
@@ -224,31 +281,32 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       
       alert(`Producto duplicado exitosamente con ID: ${newProductId}`);
     } catch (error) {
-      console.error('❌ Error duplicating product:', error);
+      console.error('Error duplicating product:', error);
       alert(`Error al duplicar el producto: ${error.message}`);
     }
   };
 
   const updateProductField = async (productId, field, value) => {
     try {
-      console.log(`📝 Actualizando ${field} del producto ${productId}:`, value);
+      const productRef = doc(db, 'productos', productId);
       
       // Verificar que el producto existe
-      const productRef = doc(db, 'productos', productId);
       const productSnap = await getDoc(productRef);
       
       if (!productSnap.exists()) {
-        throw new Error('El producto no existe en la base de datos');
+        console.warn(`! Producto ${productId} no existe en Firebase - eliminando del estado local`);
+        // Eliminar del estado local si no existe en Firebase
+        setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+        alert('Este producto no existe en la base de datos y ha sido eliminado de la lista.');
+        return;
       }
       
       await updateDoc(productRef, {
         [field]: value,
         fechaActualizacion: new Date()
       });
-      
-      console.log(`✅ Campo ${field} actualizado exitosamente`);
     } catch (error) {
-      console.error(`❌ Error updating ${field}:`, error);
+      console.error(`Error updating ${field}:`, error);
       alert(`Error al actualizar ${field}: ${error.message}`);
     }
   };
@@ -256,14 +314,87 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
   const deleteProduct = async () => {
     if (!productToDelete) return;
 
+    const productId = productToDelete.id;
+    const nombreProducto = productToDelete.nombre || 'Producto';
+    
+    // Cerrar modal
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+
     try {
-      await deleteDoc(doc(db, 'productos', productToDelete.id));
-      setShowDeleteModal(false);
-      setProductToDelete(null);
-      alert('Producto eliminado exitosamente');
+      const docRef = doc(db, 'productos', productId);
+      
+      // Verificar si el documento existe
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        // Si NO existe en Firebase, forzar limpieza del caché
+        setPhantomProductIds(prevPhantoms => {
+          if (!prevPhantoms.includes(productId)) {
+            const newPhantoms = [...prevPhantoms, productId];
+            localStorage.setItem('phantomProducts', JSON.stringify(newPhantoms));
+            return newPhantoms;
+          }
+          return prevPhantoms;
+        });
+        
+        // IMPORTANTE: Forzar actualización inmediata del estado de productos
+        setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+        
+        const toast = document.createElement('div');
+        toast.textContent = `"${nombreProducto}" eliminado permanentemente (fantasma limpiado)`;
+        toast.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #dc2626;
+          color: white;
+          padding: 16px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          z-index: 10000;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+        return;
+      }
+      
+      // Si existe en Firebase, eliminarlo
+      await deleteDoc(docRef);
+      
+      // Verificar que se eliminó
+      const verificacion = await getDoc(docRef);
+      if (verificacion.exists()) {
+        console.error('ERROR: El producto AÚN EXISTE después de deleteDoc');
+        alert('Error: No se pudo eliminar de Firebase. Verifica los permisos.');
+        return;
+      }
+      
+      // Eliminar del estado local
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+      
+      // Toast de confirmación
+      const toast = document.createElement('div');
+      toast.textContent = `"${nombreProducto}" eliminado`;
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #2563eb;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+      
     } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Error al eliminar el producto');
+      console.error('Error al eliminar producto:', error.code, error.message);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -693,7 +824,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
             >
               <div className="p-6">
                 <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-                  <span className="text-red-600 text-2xl">⚠️</span>
+                  <span className="text-red-600 text-2xl">!</span>
                 </div>
                 
                 <h3 className="text-lg font-semibold text-center text-gray-900 mb-2">

@@ -28,10 +28,21 @@ export const useProducts = (includeInactive = false) => {
         }
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
-          const productsData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
+          const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
+          
+          const productsData = [];
+          
+          snapshot.docs.forEach(doc => {
+            const isPhantom = phantomProducts.includes(doc.id);
+            
+            if (!isPhantom && doc.exists()) {
+              productsData.push({
+                id: doc.id,
+                ...doc.data()
+              });
+            }
+          });
+          
           setProducts(productsData);
           setLoading(false);
         }, (err) => {
@@ -59,6 +70,18 @@ export const useProductsByCategory = (categoryId) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [updateTrigger, setUpdateTrigger] = useState(0);
+
+  // Escuchar cambios en localStorage
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'phantomProducts') {
+        setUpdateTrigger(prev => prev + 1);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   useEffect(() => {
     const fetchProductsByCategory = async () => {
@@ -82,10 +105,22 @@ export const useProductsByCategory = (categoryId) => {
         }
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
-          const productsData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
+          // Filtrar productos fantasma
+          const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
+          
+          const productsData = [];
+          
+          snapshot.docs.forEach(doc => {
+            const isPhantom = phantomProducts.includes(doc.id);
+            
+            if (!isPhantom && doc.exists()) {
+              productsData.push({
+                id: doc.id,
+                ...doc.data()
+              });
+            }
+          });
+          
           setProducts(productsData);
           setLoading(false);
         }, (err) => {
@@ -103,7 +138,7 @@ export const useProductsByCategory = (categoryId) => {
     };
 
     fetchProductsByCategory();
-  }, [categoryId]);
+  }, [categoryId, updateTrigger]);
 
   return { products, loading, error };
 };
@@ -320,7 +355,18 @@ export const useProductsByCategories = () => {
       unsubProducts = onSnapshot(
         pq,
         (snap) => {
-          currentProducts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
+          
+          currentProducts = [];
+          
+          snap.docs.forEach((d) => {
+            const isPhantom = phantomProducts.includes(d.id);
+            
+            if (!isPhantom && d.exists()) {
+              currentProducts.push({ id: d.id, ...d.data() });
+            }
+          });
+          
           prodsReady = true;
           regroup();
         },
@@ -370,10 +416,20 @@ export const useProductSearch = (searchTerm, categoryFilter = '') => {
         }
 
         const snapshot = await getDocs(q);
-        const allProducts = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
+        
+        const allProducts = [];
+        
+        snapshot.docs.forEach(doc => {
+          const isPhantom = phantomProducts.includes(doc.id);
+          
+          if (!isPhantom && doc.exists()) {
+            allProducts.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          }
+        });
 
         // Client-side filtering for text search (Firebase doesn't support full-text search)
         const searchTermLower = searchTerm.toLowerCase();

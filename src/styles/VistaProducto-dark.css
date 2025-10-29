@@ -40,6 +40,30 @@ html.dark-theme .vp-qty {
   border-color: #4b5563;
 }
 
+/* Botón "Agregar al carrito" - AZUL en tema oscuro */
+html.dark-theme .button,
+html.dark-theme button.button {
+  background-color: #2563eb !important; /* blue-600 - AZUL */
+  background: #2563eb !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0px 10px 20px rgba(37, 99, 235, 0.3) !important;
+}
+
+html.dark-theme .button:hover,
+html.dark-theme button.button:hover {
+  background-color: #1d4ed8 !important; /* blue-700 - AZUL más oscuro */
+  background: #1d4ed8 !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  transform: scale(1.05) !important;
+}
+
+html.dark-theme .button:active,
+html.dark-theme button.button:active {
+  background-color: #1e40af !important; /* blue-800 */
+  background: #1e40af !important;
+}
+
 /* ===========================
    CONTENEDORES Y FONDOS
 =========================== */
@@ -98,22 +122,68 @@ html.dark-theme .vp-zoom-float {
 
 /* Galería Amazon */
 html.dark-theme .amazon-main-image-wrap {
-  background: #111827;
+  background: #1f2937; /* Fondo oscuro adaptado al tema */
   border-color: #374151;
+}
+
+html.dark-theme .amazon-main-image-wrap img {
+  background-color: #1f2937; /* Fondo oscuro para imagen principal */
 }
 html.dark-theme .amazon-thumb,
 html.dark-theme .amazon-thumb-video,
 html.dark-theme .vp-thumb-btn {
-  background: #0b1220;
+  background: #1f2937;
   border-color: #374151;
+}
+
+html.dark-theme .amazon-thumb img,
+html.dark-theme .vp-thumb-btn img {
+  background-color: #1f2937; /* Fondo oscuro para miniaturas */
 }
 
 /* Fullscreen / Overlay */
 html.dark-theme .fullscreen-main-container {
-  background: #0b0b0b; /* keep it very dark on desktop too */
+  background: #0b0b0b; /* Muy oscuro para overlay */
 }
 html.dark-theme .fullscreen-image-wrapper {
-  background: #0b1220;
+  background: #1f2937; /* Fondo oscuro para contenedor de imagen */
+}
+
+/* Modal eBay */
+html.dark-theme .ebay-overlay {
+  background: #0b0b0b !important;
+}
+
+html.dark-theme .ebay-header {
+  background: #111827 !important;
+  border-bottom-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+html.dark-theme .ebay-main {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+html.dark-theme .ebay-image-container {
+  background: #1f2937 !important;
+}
+
+html.dark-theme .ebay-thumb {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+html.dark-theme .ebay-close-button,
+html.dark-theme .ebay-arrow-overlay {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+html.dark-theme .ebay-close-button:hover,
+html.dark-theme .ebay-arrow-overlay:hover {
+  background: #4b5563 !important;
 }
 
 /* Tarjeta de compra */
@@ -136,8 +206,12 @@ html.dark-theme .vp-variants button.selected {
 
 /* Mobile thumbnails - dark theme */
 html.dark-theme .mobile-thumb {
-  background: #111827;
+  background: #1f2937; /* Fondo oscuro adaptado al tema */
   border-color: #374151;
+}
+
+html.dark-theme .mobile-thumb img {
+  background-color: #1f2937; /* Fondo oscuro para imágenes móviles */
 }
 html.dark-theme .amazon-thumb.active {
   border-color: #4b5563;
@@ -155,9 +229,95 @@ html.dark-theme .vp-featured-container {
   color: #e5e7eb;
 }
 html.dark-theme .vp-secondary-item {
-  background-color: #0b1220;
+  background-color: #1f2937; /* Fondo oscuro adaptado al tema */
   border-color: #374151;
+}
+
+html.dark-theme .vp-secondary-item img {
+  background-color: #1f2937; /* Fondo oscuro para imágenes secundarias */
 }
 html.dark-theme .imagen-modal-thumbnails {
   background: rgba(31, 41, 55, 0.5);
+}
+
+/* Tabs de calidad y navegación */
+html.dark-theme .amazon-tab {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+html.dark-theme .amazon-tab.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+html.dark-theme .fullscreen-tab {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+html.dark-theme .fullscreen-tab.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+/* Galería inferior fullscreen */
+html.dark-theme .fullscreen-gallery-bottom {
+  background: #111827 !important;
+  border-top-color: #374151 !important;
+}
+
+/* Flechas de navegación */
+html.dark-theme .amazon-arrow,
+html.dark-theme .carousel-arrow {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+html.dark-theme .amazon-arrow:hover,
+html.dark-theme .carousel-arrow:hover {
+  background: #4b5563 !important;
+}
+
+/* Selectores de calidad de imagen */
+html.dark-theme .quality-selector-button {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+html.dark-theme .quality-selector-button.active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Imagen en zoom */
+html.dark-theme .vp-main-product-image {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+/* Contenedor de galería */
+html.dark-theme .amazon-gallery-layout,
+html.dark-theme .gallery-sidebar {
+  background: transparent !important;
+}
+
+/* Miniaturas con video */
+html.dark-theme .amazon-thumb-video,
+html.dark-theme .fullscreen-thumb-video {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+/* Botones de control */
+html.dark-theme .vp-bottom-bar {
+  background: #111827 !important;
+  border-top-color: #374151 !important;
 }

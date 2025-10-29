@@ -40,118 +40,198 @@ body {
    ========================= */
 .profile-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
+  padding-top: calc(var(--content-offset, 100px) + 16px);
+  background: var(--bg);
 }
 
 /* =========================
-   NAV (Justo debajo del TopBar fijo)
-   NO sticky, NO blur, NO fondo contenedor
+   BOTÓN HAMBURGUESA MÓVIL
    ========================= */
-.navigation-container {
-  width: 100%;
+.sidebar-toggle-btn {
+  position: fixed;
+  top: calc(var(--content-offset, 100px) + 12px);
+  left: 16px;
+  z-index: 999;
   display: flex;
-  justify-content: center;
-  padding: 10px 20px;
-  /* deja los botones justo debajo del TopBar */
-  margin-top: calc(var(--topbar-h) + 14px);
-  background: transparent;
-  border: none;
-  position: static;
-  z-index: auto;
-  transition: margin-top 0.2s ease;
-}
-
-.profile-dock {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 0;
-  padding: 0; /* sin cápsula */
-  background: transparent; /* sin fondo debajo */
-  border-radius: 0;
-  box-shadow: none;
-  border: none;
-  max-width: 900px;
-  width: 100%;
-}
-
-.dock-btn {
-  padding: 12px 18px;
-  border-radius: 12px;
-  cursor: pointer;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: white;
-  font-weight: 700;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease,
-    border-color 0.2s ease;
-  white-space: nowrap;
-  display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #374151;
-  text-decoration: none;
-  font-size: 0.9rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.dock-btn:hover {
-  background: #f8fafc;
-  border-color: rgba(15, 23, 42, 0.12);
-  transform: var(--hover-lift);
-  box-shadow: var(--shadow-2);
-}
-
-.dock-btn.active {
-  background: linear-gradient(90deg, var(--accent1), var(--accent2));
-  color: white;
-  border: none;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
-}
-
-.dock-btn.danger {
-  color: var(--danger);
-  border-color: rgba(239, 68, 68, 0.14);
+  padding: 10px 16px;
   background: white;
-}
-
-.dock-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.06);
-  transform: var(--hover-lift);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
   box-shadow: var(--shadow-2);
+  transition: all 0.2s ease;
 }
 
-.dock-btn .icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.sidebar-toggle-btn:hover {
+  box-shadow: var(--shadow-3);
+  transform: var(--hover-lift);
 }
 
 /* =========================
-   MAIN WRAPPER / CARD
+   OVERLAY SIDEBAR MÓVIL
    ========================= */
-.main-content {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 10px 20px 40px 20px;
-  margin-top: 12px;
-  transition: margin-top 0.2s;
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
 }
 
-.main-card {
-  width: 100%;
-  max-width: 1200px;
+/* =========================
+   CONTENEDOR PRINCIPAL
+   ========================= */
+.profile-container {
+  display: flex;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  gap: 24px;
+  padding: 16px 20px 40px;
+}
+
+/* =========================
+   SIDEBAR LATERAL
+   ========================= */
+.profile-sidebar {
+  width: 260px;
+  flex-shrink: 0;
   background: white;
   border-radius: 16px;
-  padding: 0;
-  box-shadow: 0 4px 20px rgba(2, 6, 23, 0.06);
+  padding: 24px;
+  box-shadow: var(--shadow-1);
   border: 1px solid rgba(15, 23, 42, 0.04);
-  overflow: visible;
+  position: sticky;
+  top: calc(var(--content-offset, 100px) + 24px);
+  height: fit-content;
+  max-height: calc(100vh - var(--content-offset, 100px) - 48px);
+  overflow-y: auto;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Móvil/Tablet: Sidebar como drawer */
+@media (max-width: 1279px) {
+  .profile-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 9999;
+    transform: translateX(-100%);
+    max-height: 100vh;
+    border-radius: 0;
+    padding-top: 80px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .profile-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+.sidebar-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(15, 23, 42, 0.06);
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-close-btn:hover {
+  background: rgba(15, 23, 42, 0.12);
+}
+
+/* =========================
+   MENU SIDEBAR
+   ========================= */
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.sidebar-item:hover {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--accent1);
+}
+
+.sidebar-item.active {
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.sidebar-item.danger {
+  color: var(--danger);
+}
+
+.sidebar-item.danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.sidebar-item-arrow {
+  margin-left: auto;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.sidebar-item:hover .sidebar-item-arrow,
+.sidebar-item.active .sidebar-item-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: rgba(15, 23, 42, 0.08);
+  margin: 12px 0;
+}
+
+/* =========================
+   CONTENIDO PRINCIPAL
+   ========================= */
+.profile-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.content-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: var(--shadow-1);
+  border: 1px solid rgba(15, 23, 42, 0.04);
   min-height: 600px;
-  margin-top: 0;
 }
 
 /* =========================
@@ -162,7 +242,24 @@ body {
   font-weight: 800;
   margin-bottom: 20px;
   color: #0f172a;
-  padding: 0 24px;
+}
+
+/* Header de direcciones */
+.direcciones-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.direcciones-head h2 {
+  margin: 0;
+}
+
+.direcciones-head > div {
+  display: flex;
+  gap: 12px;
 }
 
 .profile-header.big {
@@ -1421,94 +1518,223 @@ body {
 }
 
 /* =========================
+   CONFIGURACIÓN
+   ========================= */
+.config-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-1);
+  transition: all 0.2s ease;
+}
+
+.config-card:hover {
+  box-shadow: var(--shadow-2);
+  transform: var(--hover-lift);
+}
+
+.config-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.config-card-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.config-card-desc {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.config-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: rgba(248, 250, 252, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-item:hover {
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.toggle-item span {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.toggle-item input[type="checkbox"] {
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.config-select {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.config-select:focus {
+  outline: none;
+  border-color: var(--accent1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* =========================
    RESPONSIVE
    ========================= */
-/* Tablet/Desktop ajustes */
-@media (max-width: 980px) {
-  .navigation-container {
-    padding: 10px 8px;
-  }
-  .profile-dock {
-    padding: 0;
-  }
-  .dock-btn span {
+/* Desktop: Sidebar visible */
+@media (min-width: 1280px) {
+  .sidebar-toggle-btn {
     display: none;
-  } /* solo iconos si lo deseas */
-  .main-card {
-    padding: 20px;
   }
+  
+  .profile-page {
+    padding-top: calc(var(--content-offset, 100px) + 16px);
+  }
+  
+  .profile-sidebar {
+    transform: translateX(0) !important;
+  }
+  
+  .profile-container {
+    padding-top: 16px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1279px) and (min-width: 768px) {
+  .profile-page {
+    padding-top: calc(var(--content-offset, 100px) + 70px);
+  }
+  
+  .sidebar-toggle-btn {
+    top: calc(var(--content-offset, 100px) + 12px);
+  }
+  
+  .profile-container {
+    flex-direction: column;
+    padding: 0 16px 32px;
+  }
+  
+  .content-card {
+    padding: 24px;
+  }
+  
   .form-grid.big {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
+  
   .profile-header.big {
     grid-template-columns: 100px 1fr;
     gap: 16px;
-    padding: 12px 10px 22px 10px;
   }
 }
 
 /* Móvil */
-/* Móvil */
-@media (max-width: 768px) {
-  /* Ajuste fino en un solo lugar */
-  :root {
-    /* Sube/baja este valor para pegar más los botones al TopBar en móvil */
-    --nav-offset-mobile: 0px; /* prueba 0px si lo quieres aún más arriba */
+@media (max-width: 767px) {
+  .profile-page {
+    padding-top: calc(var(--content-offset, 100px) + 70px);
   }
-
-  .navigation-container {
-    /* SUBIDO: antes +10px → ahora usa variable y queda mucho más pegado */
-    margin-top: calc(var(--topbar-h, 56px) + var(--nav-offset-mobile));
-    padding: 6px 10px; /* antes 8px 12px → menos padding para subir todo */
+  
+  .sidebar-toggle-btn {
+    top: calc(var(--content-offset, 100px) + 12px);
   }
-
-  .profile-dock {
-    gap: 6px; /* antes 8px */
-    padding: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+  
+  .profile-container {
+    flex-direction: column;
+    padding: 0 12px 24px;
   }
-
-  .dock-btn {
-    padding: 8px 10px; /* antes 10px 12px → más compacto (sube más) */
-    font-size: 0.8rem; /* antes 0.82rem */
-    gap: 6px;
-    flex: 1 1 auto;
-    min-width: 86px;
-  }
-
-  /* SUBE el contenido también */
-  .main-content {
-    padding: 6px 10px 18px 10px; /* antes 8px 12px 20px 12px */
-    margin-top: 6px; /* antes 10px */
-  }
-
-  .main-card {
+  
+  .content-card {
+    padding: 16px;
     border-radius: 12px;
-    min-height: auto;
   }
-
+  
   .profile-header.big {
     grid-template-columns: 1fr;
-    gap: 10px; /* antes 12px */
-    padding: 6px 2vw 16px 2vw; /* antes 8px 2vw 18px 2vw → sube */
-    text-align: left;
+    gap: 12px;
+    padding: 12px;
+    text-align: center;
   }
-
+  
+  .avatar-block.large {
+    margin: 0 auto;
+  }
+  
+  .profile-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
   .form-grid.big {
-    padding: 12px 8px; /* antes 14px 8px */
-    gap: 10px;
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 12px;
   }
-
+  
   .section-title.large {
-    padding: 0 8px; /* antes 0 10px */
-    font-size: 1.08rem; /* antes 1.1rem */
+    font-size: 1.1rem;
+    padding: 0 16px;
   }
-
+  
   .cards-list {
-    padding: 0 6px;
+    padding: 0 8px;
+  }
+  
+  .config-card {
+    padding: 16px;
+  }
+  
+  .address-card.large {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .address-actions {
+    justify-content: flex-start;
+  }
+  
+  .direcciones-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .direcciones-head > div {
+    width: 100%;
+  }
+  
+  .direcciones-head .btn {
+    width: 100%;
   }
 }
 

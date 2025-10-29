@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
@@ -6,6 +6,7 @@ import SidebarFiltros from "../components/SidebarFiltros";
 import FiltroDrawer from "../components/FiltroDrawer";
 import BotonFiltro from "../components/BotonFiltro";
 import { useProducts } from "../hooks/useProducts";
+import "../styles/productosGrid.css";
 
 // Función para normalizar texto (quitar acentos, minúsculas, etc.)
 const normalizarTexto = (texto) => {
@@ -18,33 +19,56 @@ const normalizarTexto = (texto) => {
     .trim();
 };
 
-// Función para calcular similitud entre dos textos (Levenshtein simplificado)
-const esSimilar = (texto1, texto2, umbral = 0.6) => {
-  if (!texto1 || !texto2) return false;
+// Buscar en producto de forma MUY PERMISIVA (1 letra funciona)
+const buscarEnProducto = (producto, terminoOriginal) => {
+  if (!terminoOriginal) return true;
   
-  const t1 = texto1.toLowerCase();
-  const t2 = texto2.toLowerCase();
+  const terminoNorm = normalizarTexto(terminoOriginal);
+  const palabrasBusqueda = terminoNorm.split(" ").filter(Boolean);
   
-  // Coincidencia exacta
-  if (t1 === t2) return true;
+  const nombreNorm = normalizarTexto(producto.nombre || "");
+  const descripcionNorm = normalizarTexto(producto.descripcion || "");
+  const categoriaNorm = normalizarTexto(producto.categoria || "");
+  const marcaNorm = normalizarTexto(producto.empresa || producto.marca || "");
   
-  // Contiene
-  if (t1.includes(t2) || t2.includes(t1)) return true;
+  // PRIORIDAD 1: Coincidencia exacta completa
+  if (nombreNorm === terminoNorm) return true;
   
-  // Similitud por caracteres comunes
-  const len1 = t1.length;
-  const len2 = t2.length;
-  const maxLen = Math.max(len1, len2);
+  // PRIORIDAD 2: El nombre comienza con el término
+  if (nombreNorm.startsWith(terminoNorm)) return true;
   
-  if (maxLen === 0) return false;
+  // PRIORIDAD 3: El nombre contiene el término completo
+  if (nombreNorm.includes(terminoNorm)) return true;
   
-  let matches = 0;
-  for (let i = 0; i < Math.min(len1, len2); i++) {
-    if (t1[i] === t2[i]) matches++;
-  }
+  // PRIORIDAD 4: Marca contiene el término completo
+  if (marcaNorm.includes(terminoNorm)) return true;
   
-  const similarity = matches / maxLen;
-  return similarity >= umbral;
+  // PRIORIDAD 5: Categoría contiene el término completo
+  if (categoriaNorm.includes(terminoNorm)) return true;
+  
+  // PRIORIDAD 6: Descripción contiene el término completo
+  if (descripcionNorm.includes(terminoNorm)) return true;
+  
+  // PRIORIDAD 7: Buscar palabra por palabra (MUY PERMISIVO)
+  let coincidencias = 0;
+  
+  palabrasBusqueda.forEach(palabra => {
+    if (nombreNorm.includes(palabra)) {
+      coincidencias++;
+    }
+    if (marcaNorm.includes(palabra)) {
+      coincidencias++;
+    }
+    if (categoriaNorm.includes(palabra)) {
+      coincidencias++;
+    }
+    if (descripcionNorm.includes(palabra)) {
+      coincidencias++;
+    }
+  });
+  
+  // MUY PERMISIVO: Si hay al menos 1 coincidencia, mostrar
+  return coincidencias > 0;
 };
 
 function PaginaBusqueda() {
@@ -52,47 +76,78 @@ function PaginaBusqueda() {
   const { products: productosActivos, loading } = useProducts();
 
   const [filtros, setFiltros] = useState({
-    precio: { min: "", max: "" },
+    precio: { min: 0, max: 10000 },
     estado: { nuevo: false, usado: false },
   });
 
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
+  const [topbarHeight, setTopbarHeight] = useState(0);
+
+  // SOLO usa la altura de la TopBar, NO sumes el top del header
+  useEffect(() => {
+    function measure() {
+      const el = document.querySelector(
+        ".shadow-md.px-4.py-2.flex.justify-between.items-center"
+      );
+      const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0;
+      setTopbarHeight(h);
+      document.documentElement.style.setProperty("--topbar-height", `${h}px`);
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    const observer = new MutationObserver(measure);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+  }, []);
 
   const queryParams = new URLSearchParams(location.search);
   const queryOriginal = queryParams.get("q") || "";
   const queryNorm = normalizarTexto(queryOriginal);
 
-  // Filtra por nombre o empresa, tolerando errores de escritura
+  // Detectar si es búsqueda de categoría (formato: "término en Categoría")
+  const esCategoria = queryOriginal.includes(" en ");
+  let terminoBusqueda = queryOriginal;
+  let categoriaFiltro = null;
+  
+  if (esCategoria) {
+    const partes = queryOriginal.split(" en ");
+    terminoBusqueda = partes[0].trim();
+    categoriaFiltro = partes[1].trim();
+  }
+
+  // Filtra productos usando búsqueda ESTRICTA y PRECISA
   const productosFiltrados = useMemo(
     () =>
       (productosActivos || []).filter((prod) => {
-        const nombreNorm = normalizarTexto(prod.nombre);
-        const empresaNorm = normalizarTexto(prod.empresa || "");
-
-        // Checa cada palabra del query
-        const palabrasQuery = queryNorm.split(" ").filter(Boolean);
-        // Si alguna palabra es similar al nombre o empresa, lo incluye
-        return (
-          palabrasQuery.some(
-            (palabra) =>
-              esSimilar(nombreNorm, palabra) || esSimilar(empresaNorm, palabra)
-          ) ||
-          esSimilar(nombreNorm, queryNorm) ||
-          esSimilar(empresaNorm, queryNorm)
-        );
+        // Primero buscar por el término
+        const coincideTermino = buscarEnProducto(prod, terminoBusqueda);
+        
+        // Si hay filtro de categoría, aplicarlo también
+        if (categoriaFiltro) {
+          const categoriaNorm = normalizarTexto(prod.categoria || "");
+          const filtroNorm = normalizarTexto(categoriaFiltro);
+          return coincideTermino && categoriaNorm === filtroNorm;
+        }
+        
+        return coincideTermino;
       }),
-    [productosActivos, queryNorm]
+    [productosActivos, terminoBusqueda, categoriaFiltro]
   );
 
-  // Aplica filtros extra
+  // Aplica filtros extra (IGUAL que ProductosPage)
   const resultadosFiltrados = useMemo(
     () =>
       productosFiltrados.filter((p) => {
-        const cumpleMin =
-          filtros.precio.min === "" || p.precio >= Number(filtros.precio.min);
-        const cumpleMax =
-          filtros.precio.max === "" || p.precio <= Number(filtros.precio.max);
+        const cumpleMin = p.precio >= filtros.precio.min;
+        const cumpleMax = p.precio <= filtros.precio.max;
         const cumpleEstado =
           (!filtros.estado.nuevo && !filtros.estado.usado) ||
           (filtros.estado.nuevo && p.estado === "Nuevo") ||
@@ -104,69 +159,106 @@ function PaginaBusqueda() {
 
   const handleResetFiltros = () => {
     setFiltros({
-      precio: { min: "", max: "" },
+      precio: { min: 0, max: 10000 },
       estado: { nuevo: false, usado: false },
     });
   };
 
   return (
     <div
-      className="flex flex-col xl:flex-row min-h-screen bg-white dark:bg-gray-900 pt-0"
-      style={{ paddingTop: "var(--content-offset, 100px)" }}
+      className="flex flex-col min-h-screen bg-white dark:bg-gray-900 pb-[96px] transition-colors duration-300"
+      style={{
+        position: "relative",
+        margin: 0,
+        paddingTop: "var(--content-offset, 100px)",
+        transition: "padding-top 0.2s",
+        boxSizing: "border-box",
+      }}
     >
-      <aside className="hidden xl:block w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 sticky h-screen overflow-y-auto">
+      <div
+        className="flex-1 flex flex-col xl:grid xl:grid-cols-[auto_1fr_auto] w-full"
+        style={{ margin: 0 }}
+      >
         <SidebarCategorias
           categoriaActiva={null}
           setMostrarEnMovil={setMostrarCategorias}
+          className="bg-transparent border-none shadow-none xl:row-span-2"
         />
-      </aside>
 
-      <main className="flex-1 p-4">
-        <div className="flex justify-between items-center mb-4 px-2 xl:hidden">
-          <button
-            onClick={() => setMostrarCategorias(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 dark:bg-slate-800 dark:text-blue-300 rounded-full text-sm font-medium"
+        <main className="flex-1 p-0 xl:p-4 relative pb-32">
+          <div
+            className="flex justify-between items-center px-3 py-2 xl:hidden bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky transition-colors duration-300"
+            style={{
+              top: "var(--content-offset, 100px)",
+              zIndex: 40,
+              marginTop: 0,
+              paddingTop: 0,
+            }}
           >
-            📂 Categorías
-          </button>
-          <BotonFiltro onClick={() => setFiltrosVisible(true)} />
-        </div>
-
-        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">
-          Resultados de búsqueda
-        </h2>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
+            <button
+              onClick={() => setMostrarCategorias(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium transition-colors duration-300"
+            >
+              📂 Categorías
+            </button>
+            <BotonFiltro onClick={() => setFiltrosVisible(true)} />
           </div>
-        ) : resultadosFiltrados.length === 0 ? (
-          <p className="text-gray-600 dark:text-gray-300">
-            No se encontraron productos relacionados con{" "}
-            <span className="font-bold">{queryOriginal}</span>.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
-            {resultadosFiltrados.map((producto) => (
-              <TarjetaProducto key={producto.id} producto={producto} />
-            ))}
-          </div>
-        )}
-      </main>
 
-      <aside className="hidden xl:block w-64 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 sticky h-screen overflow-y-auto">
+          {/* TÍTULO CON MISMO ESTILO QUE ProductosPage */}
+          <div className="mb-6 mt-4 px-4 xl:px-0">
+            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
+              Resultados de búsqueda
+            </h1>
+            {queryOriginal && (
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
+                  Buscaste:{" "}
+                  <span className="font-bold text-blue-700 dark:text-blue-400">
+                    {terminoBusqueda}
+                  </span>
+                </p>
+                {categoriaFiltro && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                    📂 {categoriaFiltro}
+                  </span>
+                )}
+              </div>
+            )}
+            {resultadosFiltrados.length > 0 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {resultadosFiltrados.length} {resultadosFiltrados.length === 1 ? 'producto encontrado' : 'productos encontrados'}
+              </p>
+            )}
+          </div>
+
+          {loading ? null : resultadosFiltrados.length === 0 ? (
+            <p className="text-center text-gray-600 dark:text-gray-400 mt-10">
+              No se encontraron productos relacionados con{" "}
+              <span className="font-bold">{queryOriginal}</span>.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 px-4 xl:px-0">
+              {resultadosFiltrados.map((producto) => (
+                <TarjetaProducto key={producto.id} producto={producto} />
+              ))}
+            </div>
+          )}
+        </main>
+
         <SidebarFiltros
           filtros={filtros}
           setFiltros={setFiltros}
           productosOriginales={productosFiltrados}
+          className="bg-transparent border-none shadow-none xl:row-span-2"
         />
-      </aside>
+      </div>
 
       {mostrarCategorias && (
         <SidebarCategorias
           categoriaActiva={null}
           mostrarEnMovil={mostrarCategorias}
           setMostrarEnMovil={setMostrarCategorias}
+          className="bg-transparent border-none shadow-none"
         />
       )}
 

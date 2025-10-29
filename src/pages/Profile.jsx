@@ -16,6 +16,31 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Entrega from "../components/Entrega";
+import {
+  User,
+  Package,
+  MapPin,
+  CreditCard,
+  Settings,
+  LogOut,
+  Calendar,
+  ShoppingBag,
+  CircleDollarSign,
+  Eye,
+  ArrowRight,
+  Hourglass,
+  XCircle,
+  CheckCircle,
+  Pencil,
+  Check,
+  Trash2,
+  Menu,
+  X,
+  Lock,
+  Bell,
+  Globe,
+  ChevronRight,
+} from "lucide-react";
 import "../styles/Profile.css";
 
 /* =========================
@@ -672,75 +697,47 @@ function OrderDetailsModal({
   );
 }
 
-function Icon({ name }) {
-  const icons = {
-    perfil: (
-      <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </svg>
-    ),
-    historial: (
-      <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M21 12a9 9 0 1 1-3-6.7L21 7"></path>
-        <path d="M12 7v6l4 2"></path>
-      </svg>
-    ),
-    direcciones: (
-      <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"></path>
-        <circle cx="12" cy="10" r="3"></circle>
-      </svg>
-    ),
-    logout: (
-      <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-        <path d="M16 17l5-5-5-5"></path>
-        <path d="M21 12H9"></path>
-      </svg>
-    ),
+// Componente de menú lateral
+function SidebarMenu({ vista, setVista, onLogout, isMobile, onClose }) {
+  const menuItems = [
+    { id: "cuenta", label: "Mi cuenta", icon: User },
+    { id: "pedidos", label: "Mis pedidos", icon: Package },
+    { id: "direcciones", label: "Mis direcciones", icon: MapPin },
+    { id: "pagos", label: "Métodos de pago", icon: CreditCard },
+    { id: "configuracion", label: "Configuración", icon: Settings },
+  ];
+
+  const handleItemClick = (id) => {
+    setVista(id);
+    if (isMobile && onClose) onClose();
   };
-  return <span className="icon">{icons[name]}</span>;
+
+  return (
+    <div className="sidebar-menu">
+      {menuItems.map((item) => {
+        const IconComponent = item.icon;
+        return (
+          <button
+            key={item.id}
+            onClick={() => handleItemClick(item.id)}
+            className={`sidebar-item ${vista === item.id ? "active" : ""}`}
+          >
+            <IconComponent size={20} />
+            <span>{item.label}</span>
+            <ChevronRight size={16} className="sidebar-item-arrow" />
+          </button>
+        );
+      })}
+
+      <div className="sidebar-divider" />
+
+      <button onClick={onLogout} className="sidebar-item danger">
+        <LogOut size={20} />
+        <span>Cerrar sesión</span>
+        <ChevronRight size={16} className="sidebar-item-arrow" />
+      </button>
+    </div>
+  );
 }
 
 /* Loader */
@@ -815,10 +812,16 @@ export default function Profile() {
   const { usuario, usuarioInfo, actualizarUsuarioInfo, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [vista, setVista] = useState("perfil");
+  const [vista, setVista] = useState("cuenta");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState({ text: "", tipo: "" });
+  const [photoUploadModalOpen, setPhotoUploadModalOpen] = useState(false);
+  
+  // Refs para inputs de archivo
+  const fileInputRef = React.useRef(null);
+  const cameraInputRef = React.useRef(null);
 
   const [form, setForm] = useState({
     nombre: usuario?.displayName || "",
@@ -1126,8 +1129,8 @@ export default function Profile() {
   if (!usuario || !usuarioInfo) {
     return (
       <main
-        className="min-h-screen flex items-start justify-center bg-slate-50"
-        style={{ paddingTop: "var(--content-offset, 100px)" }}
+        className="min-h-screen flex items-center justify-center bg-slate-50"
+        style={{ paddingTop: "calc(var(--content-offset, 100px) + 40px)" }}
       >
         <p className="text-lg animate-pulse">Cargando perfil...</p>
       </main>
@@ -1142,52 +1145,55 @@ export default function Profile() {
       animate="enter"
       exit="exit"
     >
-      {/* NAVEGACIÓN SEPARADA */}
-      <div className="navigation-container">
-        <nav className="profile-dock" aria-label="Navegación de perfil">
+      {/* BOTÓN HAMBURGUESA MÓVIL */}
+      <button
+        className="sidebar-toggle-btn xl:hidden"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Abrir menú"
+      >
+        <Menu size={24} />
+        <span>Perfil</span>
+      </button>
+
+      {/* OVERLAY PARA CERRAR SIDEBAR EN MÓVIL */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            className="sidebar-overlay xl:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* CONTENEDOR PRINCIPAL CON DOS COLUMNAS */}
+      <div className="profile-container">
+        {/* SIDEBAR LATERAL */}
+        <aside className={`profile-sidebar ${sidebarOpen ? "open" : ""}`}>
+          {/* BOTÓN CERRAR EN MÓVIL */}
           <button
-            className={`dock-btn ${vista === "perfil" ? "active" : ""}`}
-            onClick={() => setVista("perfil")}
-            aria-label="Perfil"
+            className="sidebar-close-btn xl:hidden"
+            onClick={() => setSidebarOpen(false)}
           >
-            <Icon name="perfil" />
-            <span>Perfil</span>
+            <X size={24} />
           </button>
 
-          <button
-            className={`dock-btn ${vista === "historial" ? "active" : ""}`}
-            onClick={() => setVista("historial")}
-            aria-label="Historial"
-          >
-            <Icon name="historial" />
-            <span>Historial</span>
-          </button>
+          <SidebarMenu
+            vista={vista}
+            setVista={setVista}
+            onLogout={() => setConfirmLogoutOpen(true)}
+            isMobile={true}
+            onClose={() => setSidebarOpen(false)}
+          />
+        </aside>
 
-          <button
-            className={`dock-btn ${vista === "direcciones" ? "active" : ""}`}
-            onClick={() => setVista("direcciones")}
-            aria-label="Direcciones"
-          >
-            <Icon name="direcciones" />
-            <span>Direcciones</span>
-          </button>
-
-          <button
-            className="dock-btn danger"
-            onClick={() => setConfirmLogoutOpen(true)}
-            aria-label="Cerrar sesión"
-          >
-            <Icon name="logout" />
-            <span>Salir</span>
-          </button>
-        </nav>
-      </div>
-
-      {/* CONTENIDO SEPARADO */}
-      <main className="main-content">
-        <div className="main-card">
-          <AnimatePresence mode="wait">
-            {vista === "perfil" && (
+        {/* CONTENIDO PRINCIPAL */}
+        <main className="profile-content">
+          <div className="content-card">
+            <AnimatePresence mode="wait">
+            {vista === "cuenta" && (
               <motion.section
                 key="perfil"
                 variants={itemFade}
@@ -1207,17 +1213,12 @@ export default function Profile() {
                     </p>
 
                     <div className="profile-actions">
-                      <label className="btn btn-primary upload-btn">
-                        Subir foto
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          onChange={handleFile}
-                          className="hidden"
-                          aria-label="Subir foto"
-                        />
-                      </label>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => setPhotoUploadModalOpen(true)}
+                      >
+                        Cambiar foto
+                      </button>
                       <button
                         className="btn btn-ghost"
                         onClick={() => setConfirmRemoveImageOpen(true)}
@@ -1242,6 +1243,25 @@ export default function Profile() {
                         </>
                       )}
                     </div>
+                    
+                    {/* Inputs ocultos para diferentes opciones */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFile}
+                      className="hidden"
+                      style={{ display: 'none' }}
+                    />
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleFile}
+                      className="hidden"
+                      style={{ display: 'none' }}
+                    />
                   </div>
                 </div>
 
@@ -1313,7 +1333,7 @@ export default function Profile() {
               </motion.section>
             )}
 
-            {vista === "historial" && (
+            {vista === "pedidos" && (
               <motion.section
                 key="historial"
                 variants={itemFade}
@@ -1321,7 +1341,7 @@ export default function Profile() {
                 animate="show"
                 exit="hidden"
               >
-                <h2 className="section-title large">Historial de compras</h2>
+                <h2 className="section-title large">Mis pedidos</h2>
                 <HistorialSection historial={historial} />
               </motion.section>
             )}
@@ -1457,9 +1477,106 @@ export default function Profile() {
                 )}
               </motion.section>
             )}
+
+            {vista === "pagos" && (
+              <motion.section
+                key="pagos"
+                variants={itemFade}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+              >
+                <h2 className="section-title large">Métodos de pago</h2>
+                
+                <div className="empty-state-beautiful">
+                  <div className="empty-illustration">
+                    <motion.div
+                      className="empty-box"
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <CreditCard size={56} />
+                    </motion.div>
+                  </div>
+                  <h3>Aún no tienes métodos de pago</h3>
+                  <p>Cuando agregues una tarjeta o método de pago, aparecerá aquí.</p>
+                  <div className="empty-cta">
+                    <button className="btn-beautiful-primary">
+                      Agregar método de pago
+                    </button>
+                  </div>
+                </div>
+              </motion.section>
+            )}
+
+            {vista === "configuracion" && (
+              <motion.section
+                key="configuracion"
+                variants={itemFade}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+              >
+                <h2 className="section-title large">Configuración</h2>
+
+                <div className="cards-list">
+                  <div className="config-card">
+                    <div className="config-card-header">
+                      <Lock size={20} />
+                      <h3>Cambiar contraseña</h3>
+                    </div>
+                    <p className="config-card-desc">
+                      Actualiza tu contraseña para mantener tu cuenta segura.
+                    </p>
+                    <button className="btn btn-outline">
+                      Cambiar contraseña
+                    </button>
+                  </div>
+
+                  <div className="config-card">
+                    <div className="config-card-header">
+                      <Bell size={20} />
+                      <h3>Notificaciones</h3>
+                    </div>
+                    <p className="config-card-desc">
+                      Administra cómo quieres recibir notificaciones.
+                    </p>
+                    <div className="config-toggle">
+                      <label className="toggle-item">
+                        <span>Notificaciones por email</span>
+                        <input type="checkbox" defaultChecked />
+                      </label>
+                      <label className="toggle-item">
+                        <span>Notificaciones de pedidos</span>
+                        <input type="checkbox" defaultChecked />
+                      </label>
+                      <label className="toggle-item">
+                        <span>Ofertas y promociones</span>
+                        <input type="checkbox" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="config-card">
+                    <div className="config-card-header">
+                      <Globe size={20} />
+                      <h3>Idioma</h3>
+                    </div>
+                    <p className="config-card-desc">
+                      Selecciona tu idioma preferido.
+                    </p>
+                    <select className="config-select">
+                      <option value="es">Español</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+                </div>
+              </motion.section>
+            )}
           </AnimatePresence>
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
 
       {/* Modales y loader */}
       <ConfirmModal
@@ -1479,6 +1596,197 @@ export default function Profile() {
         onConfirm={handleLogout}
         dangerText="Cerrar sesión"
       />
+
+      {/* Modal de opciones de foto */}
+      <AnimatePresence>
+        {photoUploadModalOpen && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPhotoUploadModalOpen(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 999999,
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "white",
+                padding: "2rem",
+                borderRadius: "16px",
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                maxWidth: "400px",
+                width: "90%",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "1.25rem",
+                  fontWeight: "700",
+                  color: "#1f2937",
+                  marginBottom: "1rem",
+                  textAlign: "center",
+                }}
+              >
+                Cambiar foto de perfil
+              </h3>
+              <p
+                style={{
+                  color: "#6b7280",
+                  marginBottom: "1.5rem",
+                  textAlign: "center",
+                  fontSize: "0.9rem",
+                }}
+              >
+                Selecciona cómo quieres subir tu foto
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.75rem",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    cameraInputRef.current?.click();
+                    setPhotoUploadModalOpen(false);
+                  }}
+                  style={{
+                    padding: "1rem 1.5rem",
+                    borderRadius: "12px",
+                    border: "2px solid #e5e7eb",
+                    backgroundColor: "white",
+                    color: "#374151",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    fontSize: "1rem",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f9fafb";
+                    e.currentTarget.style.borderColor = "#2563eb";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.borderColor = "#e5e7eb";
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg>
+                  Tomar foto con cámara
+                </button>
+                <button
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                    setPhotoUploadModalOpen(false);
+                  }}
+                  style={{
+                    padding: "1rem 1.5rem",
+                    borderRadius: "12px",
+                    border: "2px solid #e5e7eb",
+                    backgroundColor: "white",
+                    color: "#374151",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    fontSize: "1rem",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f9fafb";
+                    e.currentTarget.style.borderColor = "#2563eb";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.borderColor = "#e5e7eb";
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  Seleccionar de galería
+                </button>
+                <button
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                    setPhotoUploadModalOpen(false);
+                  }}
+                  style={{
+                    padding: "1rem 1.5rem",
+                    borderRadius: "12px",
+                    border: "2px solid #e5e7eb",
+                    backgroundColor: "white",
+                    color: "#374151",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    fontSize: "1rem",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f9fafb";
+                    e.currentTarget.style.borderColor = "#2563eb";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.borderColor = "#e5e7eb";
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                    <polyline points="13 2 13 9 20 9"></polyline>
+                  </svg>
+                  Seleccionar archivo
+                </button>
+                <button
+                  onClick={() => setPhotoUploadModalOpen(false)}
+                  style={{
+                    marginTop: "0.5rem",
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "12px",
+                    border: "none",
+                    backgroundColor: "transparent",
+                    color: "#6b7280",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.color = "#374151")}
+                  onMouseOut={(e) => (e.currentTarget.style.color = "#6b7280")}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Loader visible={showFullLoader} text="Guardando..." />
 

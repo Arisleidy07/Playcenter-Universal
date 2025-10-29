@@ -25,5 +25,20 @@ service firebase.storage {
       allow write, delete: if request.auth != null
         && request.resource.size < 10 * 1024 * 1024; // Max 10MB
     }
+    
+    // Profile pictures - Usuarios solo pueden subir/eliminar sus propias fotos
+    match /profile_pics/{userId}/{fileName} {
+      // Lectura pública para mostrar fotos de perfil
+      allow read: if true;
+      
+      // Escritura solo para el dueño del perfil
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024 // Max 5MB
+        && request.resource.contentType.matches('image/.*'); // Solo imágenes
+      
+      // Eliminación solo para el dueño
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
   }
 }

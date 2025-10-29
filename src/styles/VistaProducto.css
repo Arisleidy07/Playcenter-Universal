@@ -2,55 +2,67 @@
    TIPOGRAFÍA Y TEXTOS
 =========================== */
 .vp-title {
-  font-weight: 700;
-  color: #0f1111;
-  font-size: 1.5rem;
-  line-height: 1.3;
+  font-weight: 800;
+  color: #01050e;
+  font-size: 1.75rem;
+  line-height: 1.2;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
+  text-rendering: optimizeLegibility;
 }
 @media (min-width: 640px) {
   .vp-title {
-    font-size: 1.875rem;
+    font-size: 2.25rem;
+    line-height: 1.15;
   }
 }
 @media (min-width: 1024px) {
   .vp-title {
-    font-size: 2.25rem;
+    font-size: 2.75rem;
+    line-height: 1.1;
   }
 }
 
 .vp-desc {
-  color: #374151;
+  color: #4b5563;
   font-size: 0.95rem;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.01em;
 }
 @media (min-width: 640px) {
   .vp-desc {
-    font-size: 1.05rem;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+}
+@media (min-width: 1024px) {
+  .vp-desc {
+    font-size: 1.0625rem;
   }
 }
 
 .vp-price {
-  color: #2563eb !important;
-  font-weight: 800;
-  font-size: 1.75rem;
+  color: #1d4ed8 !important;
+  font-weight: 900;
+  font-size: 2rem;
   display: flex;
   align-items: baseline;
   gap: 4px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  letter-spacing: -0.02em;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.03em;
+  text-rendering: optimizeLegibility;
 }
 @media (min-width: 640px) {
   .vp-price {
-    font-size: 2.125rem;
+    font-size: 2.5rem;
   }
 }
 @media (min-width: 1024px) {
   .vp-price {
-    font-size: 2.5rem;
+    font-size: 3rem;
   }
 }
 
@@ -135,18 +147,18 @@
 
 /* Layout principal estilo Amazon */
 .vp-main {
-  padding-top: var(--content-offset, 100px) !important;
-  max-width: 1500px; /* Ancho máximo como Amazon */
-  margin: 0 auto; /* Centrado */
+  padding-top: calc(var(--content-offset, 100px) + 8px) !important; /* Mínimo espacio para que sticky no tape */
+  max-width: 100%; /* Ancho máximo como Amazon */
+  margin: 0; /* Centrado */
   background: #fff; /* Fondo blanco limpio */
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 @media (min-width: 1280px) {
   .vp-main {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -332,6 +344,8 @@
 /* Contenedor principal de galería */
 .amazon-gallery-container {
   width: 100%;
+  background: transparent;
+  border: none;
 }
 
 /* Pestañas Imágenes/Videos */
@@ -660,25 +674,59 @@
   display: flex;
   gap: 16px;
   width: 100%;
-  align-items: stretch;
+  align-items: flex-start; /* Alineación arriba */
   max-width: 100%;
   height: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  position: relative;
+  padding: 0 1rem;
 }
+
+@media (min-width: 1280px) {
+  .amazon-gallery-layout {
+    padding: 0 1.5rem;
+  }
+}
+
+/* Sticky en desktop para que galería completa baje con scroll - RESPETA TOPBAR */
+@media (min-width: 1280px) {
+  .amazon-gallery-layout {
+    position: sticky;
+    top: calc(var(--content-offset, 120px) + 16px); /* Respeta TopBar + margen */
+    z-index: 10;
+  }
+}
+
+/* En mobile/tablet SIN sticky - scroll normal */
+@media (max-width: 1279px) {
+  .amazon-gallery-layout {
+    position: relative;
+  }
+}
+
 /* Mantener ancho al 100% para no romper el grid */
 
 /* Sidebar de thumbnails verticales - Solo desktop */
 .amazon-thumbs-sidebar {
-  display: none;
+  display: none; /* Oculto por defecto en móvil */
   flex-direction: column;
-  gap: 6px;
-  width: 100px;
-  flex-shrink: 0;
-  padding-top: 0;
-  align-self: flex-start;
-  overflow-y: hidden;
-  overflow-x: hidden;
+  gap: 10px; /* ✅ Gap más grande para espaciar mejor */
+  margin-right: 20px; /* ✅ Más separación de la imagen principal */
+  max-height: none; /* Sin límite para alinearse con imagen */
+  overflow-y: auto; /* Scroll si es necesario */
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
+  flex-shrink: 0;
+  width: 100px; /* ✅ Ancho aumentado para miniaturas más grandes */
+  padding: 12px 0 12px 0; /* ✅ Padding superior e inferior aumentado */
+  margin-top: 0;
+  margin-bottom: 0;
+  background: transparent;
+  border: none;
+  align-self: flex-start; /* Alineación arriba con imagen principal */
 }
 
 .amazon-thumbs-sidebar::-webkit-scrollbar {
@@ -703,9 +751,59 @@
   overflow-y: auto;
 }
 
+/* Flechas CIRCULARES estilo imagen - Solo visibles en hover */
+.ebay-arrow-overlay {
+  position: absolute;
+  left: calc(50% - 10px); /* ✅ Ajustado hacia la izquierda para mejor centrado */
+  transform: translateX(-50%);
+  z-index: 20;
+  width: 40px; /* ✅ Botones más grandes */
+  height: 40px;
+  background: rgba(255, 255, 255, 0.98); /* ✅ Más opaco */
+  border: 2px solid rgba(0, 0, 0, 0.15); /* ✅ Border más grueso */
+  border-radius: 50%; /* CIRCULAR */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #111827;
+  pointer-events: auto;
+  opacity: 0; /* OCULTO por defecto */
+  visibility: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2); /* ✅ Sombra más pronunciada */
+}
+
+/* Mostrar flechas SOLO cuando se pasa el mouse sobre la galería */
+.amazon-thumbs-sidebar:hover .ebay-arrow-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ebay-arrow-overlay:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.25);
+  transform: translateX(-50%) scale(1.05); /* ✅ Centrado ajustado se mantiene */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ebay-arrow-overlay:active {
+  transform: translateX(-50%) scale(0.95); /* ✅ Centrado ajustado se mantiene */
+}
+
+.ebay-arrow-up {
+  top: 8px; /* ✅ Pequeño margen desde el borde superior */
+}
+
+.ebay-arrow-down {
+  bottom: 8px; /* ✅ Pequeño margen desde el borde inferior */
+}
+
 @media (min-width: 1280px) {
   .amazon-thumbs-sidebar {
     display: flex;
+    align-self: flex-start;
+    max-height: calc(100vh - var(--topbar-height, 80px) - 40px); /* Limitar altura al viewport */
   }
 }
 
@@ -723,36 +821,59 @@
 }
 
 .amazon-thumb {
-  width: 90px;
-  height: 90px;
-  min-width: 90px;
-  min-height: 90px;
-  max-width: 90px;
-  max-height: 90px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
+  width: 100px; /* ✅ Tamaño aumentado de 70px a 100px */
+  height: 100px;
+  min-width: 100px;
+  min-height: 100px;
+  max-width: 100px; /* Forzar tamaño exacto */
+  max-height: 100px; /* Forzar tamaño exacto */
   cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.15s ease;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px; /* ✅ Border radius más grande */
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* ✅ Sombra más pronunciada */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
-  box-shadow: none;
+  padding: 4px; /* ✅ Padding aumentado */
   flex-shrink: 0;
+  position: relative;
+  aspect-ratio: 1 / 1; /* Forzar cuadrado perfecto */
 }
 
 .amazon-thumb:hover {
-  border-color: #d1d5db; /* gris claro */
-  transform: translateY(-1px);
+  border-color: #3b82f6;
+  transform: translateY(-3px) scale(1.05); /* ✅ Efecto hover más pronunciado */
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25), 0 6px 10px rgba(0, 0, 0, 0.12); /* ✅ Sombra más bonita */
 }
 
 .amazon-thumb.active {
-  border: 2px solid #0064D2; /* azul eBay selección */
-  border-radius: 12px;
-  box-shadow: none;
+  border: 3px solid #2563eb;
+  border-radius: 10px; /* ✅ Border radius más grande para activo */
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15), 0 10px 20px rgba(37, 99, 235, 0.35); /* ✅ Sombra más bonita */
   background: #ffffff;
+  transform: scale(1.08); /* ✅ Scale más grande para destacar */
+}
+
+/* Imágenes dentro de thumbnails - cuadrado perfecto */
+.amazon-thumb img,
+.amazon-thumb video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  display: block;
+}
+
+/* Divs dentro de thumbnails también cuadrados */
+.amazon-thumb > div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Thumbnail de videos - estilo Amazon */
@@ -800,6 +921,8 @@
   flex: 1;
   position: relative;
 }
+
+/* NO sticky aquí - el contenedor .amazon-gallery-layout es sticky */
 
 .amazon-main-image-wrap {
   width: 100%;
@@ -864,27 +987,29 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* Page-level mobile thumbnails (below main image) */
-.mobile-tablet-thumbs {
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+/* Bolitas indicadoras estilo Amazon - Móvil/Tablet */
+.dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
 }
-.mobile-tablet-thumbs::-webkit-scrollbar { display: none; }
-.mt-thumb {
-  width: 72px;
-  height: 72px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  transition: border-color 0.2s ease, transform 0.15s ease;
+
+.dot-indicator:hover {
+  background: #9ca3af;
+  transform: scale(1.2);
 }
-.mt-thumb:hover { border-color: #d1d5db; }
-.mt-thumb.active { border-color: #0064D2; }
+
+.dot-indicator.dot-active {
+  background: #2563eb;
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
 
 /* Responsive para móvil - SOLO imagen principal */
 @media (max-width: 1279px) {
@@ -893,11 +1018,14 @@
     gap: 6px;
     margin-top: 0;
     padding-top: 8px;
+    background: transparent;
+    border: none;
   }
 
   .amazon-main-image-container {
     margin-bottom: 0;
     width: 100%;
+    background: transparent;
   }
 }
 
@@ -1000,7 +1128,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 .vp-thumb-btn.active {
-  border-color: #3b82f6;
+  border-color: #3c81f0;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
@@ -1107,19 +1235,23 @@
   gap: 0.75rem;
 }
 
-/* Botón de variante mejorado */
+/* Botón de variante mejorado - MÁS PEQUEÑO para 4 columnas */
 .vp-variants button {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
   border: 2px solid #e5e7eb;
-  background-color: white;
-  transition: all 0.2s ease;
+  border-radius: 0.375rem;
+  background: #fff;
   cursor: pointer;
-  min-width: 150px;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  font-weight: 500;
+  min-width: auto;
+  max-width: 120px;
 }
 
 .vp-variants button:hover:not(:disabled) {
@@ -1130,7 +1262,7 @@
 }
 
 .vp-variants button.selected {
-  border-color: #3b82f6;
+  border-color: #478dfe;
   background-color: #eff6ff;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
@@ -1292,16 +1424,49 @@
 }
 
 /* ===========================
+   IMAGEN PRINCIPAL STICKY (DESKTOP)
+=========================== */
+.vp-main-image-container {
+  position: relative;
+}
+
+@media (min-width: 1280px) {
+  .vp-main-image-sticky {
+    position: sticky;
+    top: calc(var(--content-offset, 120px) + 16px);
+    align-self: flex-start;
+    z-index: 40;
+  }
+}
+
+/* ===========================
+   CALIDAD DE IMAGEN STICKY (DESKTOP)
+=========================== */
+.vp-image-quality-container {
+  position: relative;
+}
+
+@media (min-width: 1280px) {
+  .vp-image-quality-sticky {
+    position: sticky;
+    top: calc(var(--content-offset, 120px) + 16px);
+    align-self: flex-start;
+    z-index: 40;
+  }
+}
+
+/* ===========================
    TARJETA DE COMPRA (DESKTOP)
 =========================== */
 .vp-buy-card {
   position: relative;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .vp-buy-card {
     position: sticky;
-    top: 96px;
+    top: calc(var(--content-offset, 120px) + 16px); /* Debajo del TopBar + margen */
     align-self: flex-start;
+    z-index: 40;
   }
 }
 .vp-buy-inner {

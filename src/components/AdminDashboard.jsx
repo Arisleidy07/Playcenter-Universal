@@ -5,7 +5,7 @@ import { FiPackage, FiUsers, FiShoppingBag, FiGrid } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProducts, onViewCategories }) => {
   const [stats, setStats] = useState({
     productos: 0,
     categorias: 0,
@@ -16,40 +16,64 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        // Fetch products count
-        const productsQuery = query(collection(db, 'productos'));
-        const productsSnapshot = await getDocs(productsQuery);
+    // TIEMPO REAL para productos - Se actualiza cuando se eliminan/agregan
+    const unsubscribeProducts = onSnapshot(
+      query(collection(db, 'productos')),
+      (snapshot) => {
+        const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
+        const validProductsCount = snapshot.docs.filter(doc => !phantomProducts.includes(doc.id)).length;
         
-        // Fetch categories count
-        const categoriesQuery = query(collection(db, 'categorias'));
-        const categoriesSnapshot = await getDocs(categoriesQuery);
-        
-        // Fetch users count
-        const usersQuery = query(collection(db, 'usuarios'));
-        const usersSnapshot = await getDocs(usersQuery);
-        
-        // Fetch orders count (if you have an orders collection)
-        let ordersCount = 0;
-        try {
-          const ordersQuery = query(collection(db, 'pedidos'));
-          const ordersSnapshot = await getDocs(ordersQuery);
-          ordersCount = ordersSnapshot.size;
-        } catch (error) {
-          console.log('No pedidos collection or other error:', error);
-        }
-        
-        setStats({
-          productos: productsSnapshot.size,
-          categorias: categoriesSnapshot.size,
-          usuarios: usersSnapshot.size,
-          pedidos: ordersCount
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
+        setStats(prevStats => ({
+          ...prevStats,
+          productos: validProductsCount
+        }));
+      },
+      (error) => {
+        console.error('Error fetching products count:', error);
       }
-    };
+    );
+
+    // TIEMPO REAL para usuarios
+    const unsubscribeUsers = onSnapshot(
+      query(collection(db, 'usuarios')),
+      (snapshot) => {
+        setStats(prevStats => ({
+          ...prevStats,
+          usuarios: snapshot.size
+        }));
+      },
+      (error) => {
+        console.error('Error fetching users count:', error);
+      }
+    );
+
+    // TIEMPO REAL para categorías
+    const unsubscribeCategories = onSnapshot(
+      query(collection(db, 'categorias')),
+      (snapshot) => {
+        setStats(prevStats => ({
+          ...prevStats,
+          categorias: snapshot.size
+        }));
+      },
+      (error) => {
+        console.error('Error fetching categories count:', error);
+      }
+    );
+
+    // TIEMPO REAL para pedidos
+    const unsubscribeOrders = onSnapshot(
+      query(collection(db, 'pedidos')),
+      (snapshot) => {
+        setStats(prevStats => ({
+          ...prevStats,
+          pedidos: snapshot.size
+        }));
+      },
+      (error) => {
+        console.error('Error fetching orders count:', error);
+      }
+    );
 
     const fetchRecentProducts = () => {
       try {
@@ -60,10 +84,16 @@ const AdminDashboard = () => {
         );
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
-          const productsData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
+          // Filtrar productos fantasma
+          const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
+          
+          const productsData = snapshot.docs
+            .filter(doc => doc.exists() && !phantomProducts.includes(doc.id))
+            .map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+          
           setRecentProducts(productsData);
           setLoading(false);
         }, (error) => {
@@ -78,11 +108,15 @@ const AdminDashboard = () => {
       }
     };
 
-    fetchStats();
-    const unsubscribe = fetchRecentProducts();
+    const unsubscribeRecentProducts = fetchRecentProducts();
     
     return () => {
-      if (unsubscribe) unsubscribe();
+      // Limpiar todos los listeners
+      if (unsubscribeProducts) unsubscribeProducts();
+      if (unsubscribeUsers) unsubscribeUsers();
+      if (unsubscribeCategories) unsubscribeCategories();
+      if (unsubscribeOrders) unsubscribeOrders();
+      if (unsubscribeRecentProducts) unsubscribeRecentProducts();
     };
   }, []);
 
@@ -103,31 +137,33 @@ const AdminDashboard = () => {
           title="Productos" 
           count={stats.productos} 
           icon={<FiPackage className="text-blue-500" size={24} />} 
-          linkTo="/admin/productos"
+          onClick={onViewProducts}
         />
         <StatsCard 
           title="Categorías" 
           count={stats.categorias} 
           icon={<FiGrid className="text-green-500" size={24} />} 
-          linkTo="/admin/categorias"
+          onClick={onViewCategories}
         />
         <StatsCard 
           title="Usuarios" 
           count={stats.usuarios} 
           icon={<FiUsers className="text-purple-500" size={24} />} 
-          linkTo="/admin/usuarios"
+          onClick={onViewUsers}
         />
         <StatsCard 
           title="Pedidos" 
           count={stats.pedidos} 
           icon={<FiShoppingBag className="text-orange-500" size={24} />} 
-          linkTo="/admin/pedidos"
+          onClick={onViewOrders}
         />
       </div>
 
       {/* Recent Products */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Productos Recientes</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-gray-900">Productos Recientes</h3>
+        </div>
         
         {loading ? (
           <div className="flex justify-center items-center h-32">
@@ -219,9 +255,12 @@ const AdminDashboard = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link to={`/admin/productos/editar/${product.id}`} className="text-blue-600 hover:text-blue-900 mr-4">
+                      <button 
+                        onClick={() => onEditProduct && onEditProduct(product)} 
+                        className="text-blue-600 hover:text-blue-900 mr-4 font-medium cursor-pointer"
+                      >
                         Editar
-                      </Link>
+                      </button>
                       <Link to={`/producto/${product.id}`} className="text-green-600 hover:text-green-900" target="_blank" rel="noopener noreferrer">
                         Ver
                       </Link>
@@ -238,32 +277,32 @@ const AdminDashboard = () => {
         )}
         
         <div className="mt-4 text-right">
-          <Link to="/admin/productos" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+          <button 
+            onClick={onViewProducts}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
+          >
             Ver todos los productos →
-          </Link>
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-const StatsCard = ({ title, count, icon, linkTo }) => {
+const StatsCard = ({ title, count, icon, onClick }) => {
   return (
     <motion.div 
       whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}
-      className="bg-white p-6 rounded-lg shadow-sm border transition-all"
+      className="bg-white p-6 rounded-lg shadow-sm border transition-all cursor-pointer"
+      onClick={onClick}
     >
-      <Link to={linkTo} className="block">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{count}</p>
-          </div>
-          <div className="p-3 bg-gray-50 rounded-full">
-            {icon}
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{count}</p>
         </div>
-      </Link>
+        <div>{icon}</div>
+      </div>
     </motion.div>
   );
 };

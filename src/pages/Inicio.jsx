@@ -190,13 +190,13 @@ function Inicio() {
 
   return (
     <div
-      className="bg-white dark:bg-black min-h-screen transition-colors duration-300"
+      className="bg-transparent min-h-screen transition-colors duration-300"
       style={{ paddingTop: "var(--content-offset, 100px)" }}
     >
       {/* SLIDER MÓVIL - Solo teléfonos (< 640px) */}
       <motion.div
-        className="block sm:hidden w-full max-w-[95%] mx-auto"
-        style={{ marginTop: 0, marginBottom: 0, padding: "0 0.5rem" }}
+        className="block sm:hidden w-full max-w-full mx-auto"
+        style={{ marginTop: 0, marginBottom: 0, padding: 0 }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"

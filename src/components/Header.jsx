@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
+import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import Entrega from "./Entrega";
@@ -10,9 +11,12 @@ import Entrega from "./Entrega";
 const Header = () => {
   const { usuario, usuarioInfo, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
+  const { isDark } = useTheme();
   const buscarInputRef = useRef(null);
   const navigate = useNavigate();
-  let lastScroll = 0;
+  const lastScrollY = useRef(0);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1280);
 
   const [modalEntrega, setModalEntrega] = useState(false);
   const entregaSubtitle = (() => {
@@ -49,31 +53,64 @@ const Header = () => {
     }
   }, []);
 
+  // Detectar cambios de tamaño de pantalla
   useEffect(() => {
-    function handleScroll() {
-      const currentScroll = window.pageYOffset;
-      if (currentScroll > lastScroll) {
-        // antes ocultaba el banner de envíos en móvil
-      } else {
-        // antes lo mostraba
-      }
-      lastScroll = currentScroll;
-    }
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1280);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Scroll hide/show solo en desktop (xl)
+  useEffect(() => {
+    if (!isDesktop) return;
+
+    let ticking = false;
+
+    function handleScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScroll = window.pageYOffset;
+          const lastScroll = lastScrollY.current;
+
+          if (currentScroll > lastScroll && currentScroll > 100) {
+            // Bajando y pasó 100px: ocultar
+            setHeaderVisible(false);
+          } else if (currentScroll < lastScroll || currentScroll === 0) {
+            // Subiendo o en top: mostrar
+            setHeaderVisible(true);
+          }
+
+          lastScrollY.current = currentScroll;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isDesktop]);
 
   return (
     <>
       <motion.header
         initial={{ y: -120, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-md z-[9999] pl-0 pr-4 py-3 transition-colors duration-300"
+        animate={{ 
+          y: isDesktop && !headerVisible ? -120 : 0, 
+          opacity: isDesktop && !headerVisible ? 0 : 1 
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="fixed top-0 left-0 w-full shadow-lg z-[9999] pl-0 pr-4 py-3"
         style={{
-          backdropFilter: "saturate(180%) blur(15px)",
+          backgroundColor: isDark ? '#111827' : '#ffffff',
           maxWidth: "100vw",
           overflowX: "hidden",
+          pointerEvents: isDesktop && !headerVisible ? "none" : "auto",
+          opacity: 1,
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none'
         }}
       >
         <div className="flex items-center justify-between w-full gap-3">

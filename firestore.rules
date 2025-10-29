@@ -1,9 +1,97 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Temporary open access for development - CHANGE IN PRODUCTION
+    
+    // UID del administrador global
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.uid == "ZeiFzBgosCd0apv9cXL6aQZCYyu2";
+    }
+    
+    // Usuarios
+    match /usuarios/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Productos - Lectura pública, escritura y eliminación por admin o dueño
+    match /productos/{productId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && 
+                      (isAdmin() || 
+                       (resource.data.ownerUid != null && resource.data.ownerUid == request.auth.uid));
+    }
+    
+    // Categorías - Lectura pública, escritura autenticados
+    match /categorias/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Órdenes - Solo el usuario y admin
+    match /ordenes/{orderId} {
+      allow read: if request.auth != null && 
+                    (resource.data.usuarioId == request.auth.uid || isAdmin());
+      allow write: if request.auth != null;
+    }
+    
+    match /pedidos/{orderId} {
+      allow read: if request.auth != null && 
+                    (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if request.auth != null;
+    }
+    
+    // Carritos - Usuario y admin
+    match /carritos/{cartId} {
+      allow read: if request.auth != null && 
+                    (request.auth.uid == cartId || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == cartId;
+    }
+    
+    // Orders - Nueva colección para pedidos
+    match /orders/{orderId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && 
+                    (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if request.auth != null && 
+                      (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // Direcciones - Subcolección de usuarios
+    match /users/{userId}/addresses/{addressId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Tokens FCM - Subcolección de usuarios
+    match /users/{userId}/fcmTokens/{tokenId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Direcciones - Colección legacy
+    match /direcciones/{addressId} {
+      allow read: if request.auth != null && 
+                    resource.data.usuarioId == request.auth.uid;
+      allow write: if request.auth != null && 
+                     request.resource.data.usuarioId == request.auth.uid;
+    }
+    
+    // Email campaign errors - Solo admin
+    match /emailCampaignErrors/{errorId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Todo lo demás - Autenticados pueden leer y escribir
     match /{document=**} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
     }
   }
 }
