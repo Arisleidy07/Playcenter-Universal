@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { CheckCircle, Star, Gift, Sparkles, Home, Download, Trophy, Zap } from "lucide-react";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { db, auth } from "../firebase";
 import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE = import.meta.env.DEV ? "" : "https://playcenter-universal.onrender.com";
@@ -13,6 +13,7 @@ export default function PaymentSuccess() {
   const [status, setStatus] = useState(null);
   const [showConfetti, setShowConfetti] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
+  const [orderCreated, setOrderCreated] = useState(false);
 
   // Fullscreen: desactivar scroll del body
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function PaymentSuccess() {
 
     const fetchData = async () => {
       try {
+        // Primero buscar si ya existe la orden
         const q = query(
           collection(db, "orders"),
           where("raw.SESSION", "==", session),
@@ -33,25 +35,72 @@ export default function PaymentSuccess() {
           limit(1)
         );
         const snap = await getDocs(q);
-        if (!snap.empty) setOrder({ id: snap.docs[0].id, ...snap.docs[0].data() });
+        if (!snap.empty) {
+          setOrder({ id: snap.docs[0].id, ...snap.docs[0].data() });
+          setOrderCreated(true);
+          return; // Ya existe la orden, no crear duplicado
+        }
 
+        // Verificar el pago con Cardnet
         const skRes = await fetch(`${API_BASE}/cardnet/get-sk/${session}`);
         const { sk } = await skRes.json();
         if (sk) {
           const res = await fetch(`${API_BASE}/cardnet/verify/${session}/${sk}`);
           const data = await res.json();
           setStatus(data);
+
+          // Si el pago fue exitoso Y no hemos creado la orden, crearla ahora
+          if (data.IsoCode === "00" && !orderCreated) {
+            // Obtener datos del carrito de sessionStorage
+            const payloadStr = sessionStorage.getItem("checkoutPayload");
+            const payload = payloadStr ? JSON.parse(payloadStr) : null;
+            
+            // Obtener usuario actual
+            const user = auth.currentUser;
+            
+            if (payload && user) {
+              // Crear orden en Firestore (esto dispara el email automáticamente)
+              const orderData = {
+                numeroOrden: `ORD-${Date.now()}`,
+                userId: user.uid,
+                userEmail: user.email,
+                email: user.email, // Para el trigger de email
+                customerEmail: user.email,
+                customerName: user.displayName || user.email,
+                productos: payload.items || [],
+                total: payload.total / 100, // Convertir centavos a pesos
+                estado: "Completado",
+                metodoPago: "CardNet",
+                fecha: serverTimestamp(),
+                createdAt: serverTimestamp(),
+                emailSent: false,
+                raw: {
+                  SESSION: session,
+                  cardnetData: data
+                }
+              };
+
+              const docRef = await addDoc(collection(db, "orders"), orderData);
+              setOrder({ id: docRef.id, ...orderData });
+              setOrderCreated(true);
+              
+              // Limpiar carrito de sessionStorage
+              sessionStorage.removeItem("checkoutPayload");
+              
+              console.log("✅ Orden creada exitosamente - Email se enviará automáticamente");
+            }
+          }
         }
       } catch (err) {
         console.error("Error cargando datos:", err);
       }
     };
 
-    if (session) fetchData();
+    if (session && !orderCreated) fetchData();
 
     const confettiTimer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(confettiTimer);
-  }, [searchParams]);
+  }, [searchParams, orderCreated]);
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP", minimumFractionDigits: 2 }).format(amount || 0);

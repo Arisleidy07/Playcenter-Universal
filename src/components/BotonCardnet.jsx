@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "../firebase";
 import "../styles/BotonCardnet.css";
 
 // ⚠️ USANDO LAB PARA PRUEBAS EN PRODUCCIÓN
@@ -19,51 +17,18 @@ export default function BotonCardnet({ className, total, label }) {
     : null;
   const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
 
-  const iniciarPago = async () => {
+  const iniciarPago = () => {
     if (isProcessing) return;
     
     setIsProcessing(true);
     
-    try {
-      // Obtener datos del carrito desde sessionStorage
-      const payloadStr = sessionStorage.getItem("checkoutPayload");
-      const payload = payloadStr ? JSON.parse(payloadStr) : null;
-      
-      // Verificar que el usuario esté autenticado
-      const user = auth.currentUser;
-      if (!user) {
-        alert("Debes iniciar sesión para completar la compra");
-        setIsProcessing(false);
-        return;
-      }
-
-      // Generar ORDER ID único
-      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Crear orden en Firestore (esto dispara el email automáticamente)
-      const orderData = {
-        numeroOrden: orderId,
-        userId: user.uid,
-        userEmail: user.email,
-        email: user.email, // Para el trigger de email
-        customerEmail: user.email,
-        customerName: user.displayName || user.email,
-        productos: payload?.items || [],
-        total: (total / 100), // Convertir centavos a pesos
-        estado: "Pendiente",
-        metodoPago: "CardNet",
-        fecha: serverTimestamp(),
-        createdAt: serverTimestamp(),
-        emailSent: false
-      };
-
-      // Guardar en Firestore
-      await addDoc(collection(db, "orders"), orderData);
-
-      // Ahora enviar a Cardnet
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = AUTHORIZE_URL;
+    // Generar ORDER ID único
+    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Crear form dinámico y enviarlo INSTANTÁNEAMENTE
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = AUTHORIZE_URL;
     
     // Parámetros CORRECTOS requeridos por Cardnet LAB
     const params = {
@@ -93,14 +58,9 @@ export default function BotonCardnet({ className, total, label }) {
       form.appendChild(input);
     });
     
-      // Agregar al DOM y enviar INMEDIATAMENTE
-      document.body.appendChild(form);
-      form.submit();
-    } catch (error) {
-      console.error("Error al procesar pago:", error);
-      alert("Hubo un error al procesar tu pago. Por favor intenta de nuevo.");
-      setIsProcessing(false);
-    }
+    // Agregar al DOM y enviar INMEDIATAMENTE
+    document.body.appendChild(form);
+    form.submit();
   };
 
   return (
