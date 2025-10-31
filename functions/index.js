@@ -17,7 +17,7 @@ const axios = require("axios");
 // ============================================
 exports.createCardnetSession = functions.https.onCall(async (data, context) => {
   try {
-    const { amount, orderId, items } = data;
+    const { amount, orderId } = data;
 
     if (!amount || amount <= 0) {
       throw new functions.https.HttpsError("invalid-argument", "Monto inválido");
