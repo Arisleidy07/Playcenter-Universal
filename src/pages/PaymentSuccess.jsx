@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { CheckCircle, Star, Gift, Sparkles, Home, Download, Trophy, Zap } from "lucide-react";
 import { collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { httpsCallable } from "firebase/functions";
+import { db, auth, functions } from "../firebase";
 import { motion, AnimatePresence } from "framer-motion";
-
-const API_BASE = import.meta.env.DEV ? "" : "https://playcenter-universal.onrender.com";
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -41,16 +40,28 @@ export default function PaymentSuccess() {
           return; // Ya existe la orden, no crear duplicado
         }
 
-        // Verificar el pago con Cardnet
-        const skRes = await fetch(`${API_BASE}/cardnet/get-sk/${session}`);
-        const { sk } = await skRes.json();
-        if (sk) {
-          const res = await fetch(`${API_BASE}/cardnet/verify/${session}/${sk}`);
-          const data = await res.json();
-          setStatus(data);
+        // Obtener sessionKey de sessionStorage
+        const sessionKey = sessionStorage.getItem('cardnetSessionKey');
+        
+        if (!sessionKey) {
+          console.error('❌ No se encontró sessionKey');
+          setStatus({ error: 'Sesión inválida' });
+          return;
+        }
 
-          // Si el pago fue exitoso Y no hemos creado la orden, crearla ahora
-          if (data.IsoCode === "00" && !orderCreated) {
+        console.log('🔍 Verificando transacción con Cardnet...');
+
+        // Llamar a Firebase Function para verificar
+        const verifyTransaction = httpsCallable(functions, 'verifyCardnetTransaction');
+        const result = await verifyTransaction({ session, sessionKey });
+        
+        const data = result.data;
+        setStatus(data);
+        
+        console.log('✅ Resultado de verificación:', data);
+
+        // Si el pago fue exitoso Y no hemos creado la orden, crearla ahora
+        if (data.ResponseCode === "00" && !orderCreated) {
             // Obtener datos del carrito de sessionStorage
             const payloadStr = sessionStorage.getItem("checkoutPayload");
             const payload = payloadStr ? JSON.parse(payloadStr) : null;
@@ -76,7 +87,9 @@ export default function PaymentSuccess() {
                 emailSent: false,
                 raw: {
                   SESSION: session,
-                  cardnetData: data
+                  cardnetData: data,
+                  orderId: sessionStorage.getItem('cardnetOrderId'),
+                  transactionId: sessionStorage.getItem('cardnetTransactionId')
                 }
               };
 
@@ -84,13 +97,15 @@ export default function PaymentSuccess() {
               setOrder({ id: docRef.id, ...orderData });
               setOrderCreated(true);
               
-              // Limpiar carrito de sessionStorage
+              // Limpiar carrito y datos de Cardnet de sessionStorage
               sessionStorage.removeItem("checkoutPayload");
+              sessionStorage.removeItem('cardnetSessionKey');
+              sessionStorage.removeItem('cardnetOrderId');
+              sessionStorage.removeItem('cardnetTransactionId');
               
               console.log("✅ Orden creada exitosamente - Email se enviará automáticamente");
             }
           }
-        }
       } catch (err) {
         console.error("Error cargando datos:", err);
       }

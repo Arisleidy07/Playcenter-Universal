@@ -1,66 +1,83 @@
 import { useState } from "react";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "../firebase";
 import "../styles/BotonCardnet.css";
 
-// ⚠️ USANDO LAB PARA PRUEBAS EN PRODUCCIÓN
-// Cambiar a "https://ecommerce.cardnet.com.do/authorize" cuando esté listo para producción real
+// URL de Cardnet LAB (cambiar a producción cuando esté listo)
 const AUTHORIZE_URL = "https://lab.cardnet.com.do/authorize";
 
-// Merchant ID de Cardnet LAB
-const MERCHANT_ID = "351100011";
-const MERCHANT_KEY = "111111";
-
-export default function BotonCardnet({ className, total, label }) {
+export default function BotonCardnet({ className, total, label, items }) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  
   const displayAmount = typeof total === 'number' ? total / 100 : null; // total llega en centavos
   const formatted = Number.isFinite(displayAmount)
     ? new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(displayAmount)
     : null;
   const buttonLabel = label || (formatted ? `Comprar ahora • ${formatted}` : 'Comprar ahora');
 
-  const iniciarPago = () => {
+  const iniciarPago = async () => {
     if (isProcessing) return;
     
-    setIsProcessing(true);
-    
-    // Generar ORDER ID único
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Crear form dinámico y enviarlo INSTANTÁNEAMENTE
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = AUTHORIZE_URL;
-    
-    // Parámetros CORRECTOS requeridos por Cardnet LAB
-    const params = {
-      'MerchantId': MERCHANT_ID,
-      'MerchantName': 'Playcenter Universal',
-      'MerchantType': '0027', // Código correcto para eCommerce en Cardnet
-      'Amount': (total / 100).toFixed(2), // Convertir centavos a pesos
-      'OrderNumber': orderId,
-      'Currency': '214', // Código ISO 4217 para DOP
-      'ITBIS': '0.00', // Impuesto (0 para pruebas)
-      'ApprovedUrl': `${window.location.origin}/payment/success`,
-      'DeclinedUrl': `${window.location.origin}/payment/cancel`,
-      'CancelUrl': `${window.location.origin}/payment/cancel`,
-      'PendingUrl': `${window.location.origin}/payment/pending`,
-      'AcquirerRefData': '1',
-      'CustomerData': 'email=cliente@pcu.com.do',
-      'ForceKey': MERCHANT_KEY,
-      'Language': 'ES' // Idioma español
-    };
-    
-    // Agregar inputs al form
-    Object.entries(params).forEach(([key, value]) => {
+    try {
+      setIsProcessing(true);
+      setError(null);
+      
+      // Validar monto
+      if (!total || total <= 0) {
+        throw new Error('Monto inválido');
+      }
+      
+      // Generar ORDER ID único
+      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log('📤 Creando sesión de Cardnet...', {
+        amount: displayAmount,
+        orderId,
+        items: items?.length || 0
+      });
+      
+      // Llamar a Firebase Function para crear sesión
+      const createSession = httpsCallable(functions, 'createCardnetSession');
+      const result = await createSession({
+        amount: displayAmount, // Monto en pesos
+        orderId,
+        items: items || []
+      });
+      
+      if (!result.data.success || !result.data.session) {
+        throw new Error('No se pudo crear la sesión de pago');
+      }
+      
+      console.log('✅ Sesión creada:', result.data.session);
+      
+      // Guardar sessionKey en sessionStorage para verificar después
+      sessionStorage.setItem('cardnetSessionKey', result.data.sessionKey);
+      sessionStorage.setItem('cardnetOrderId', result.data.orderId);
+      sessionStorage.setItem('cardnetTransactionId', result.data.transactionId);
+      
+      // Crear form y enviar a Cardnet con solo el SESSION
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = AUTHORIZE_URL;
+      
+      // Solo enviar SESSION según especificaciones de Cardnet
       const input = document.createElement('input');
       input.type = 'hidden';
-      input.name = key;
-      input.value = value;
+      input.name = 'SESSION';
+      input.value = result.data.session;
       form.appendChild(input);
-    });
-    
-    // Agregar al DOM y enviar INMEDIATAMENTE
-    document.body.appendChild(form);
-    form.submit();
+      
+      // Enviar form
+      document.body.appendChild(form);
+      form.submit();
+      
+    } catch (err) {
+      console.error('❌ Error al iniciar pago:', err);
+      setError(err.message || 'Error al procesar el pago');
+      setIsProcessing(false);
+      alert(`Error: ${err.message}\n\nPor favor, intenta de nuevo.`);
+    }
   };
 
   return (

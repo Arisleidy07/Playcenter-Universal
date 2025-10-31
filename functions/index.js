@@ -10,9 +10,141 @@ sgMail.setApiKey(config.sendgrid?.apikey || process.env.SENDGRID_API_KEY);
 
 const db = admin.firestore();
 const messaging = admin.messaging();
+const axios = require("axios");
 
 // ============================================
-// 1. ENVIAR EMAIL CUANDO SE CREA UNA ORDEN
+// 1. CREAR SESIÓN DE CARDNET
+// ============================================
+exports.createCardnetSession = functions.https.onCall(async (data, context) => {
+  try {
+    const { amount, orderId, items } = data;
+
+    if (!amount || amount <= 0) {
+      throw new functions.https.HttpsError('invalid-argument', 'Monto inválido');
+    }
+
+    // Generar TransactionId único de 6 dígitos
+    const transactionId = String(Date.now()).slice(-6);
+
+    // Formatear monto a 12 dígitos (en centavos)
+    const amountInCents = Math.round(amount * 100);
+    const formattedAmount = String(amountInCents).padStart(12, '0');
+
+    // Calcular ITBIS (18%)
+    const taxAmount = Math.round(amountInCents * 0.18);
+    const formattedTax = String(taxAmount).padStart(12, '0');
+
+    // URLs según ambiente
+    const isProduction = process.env.NODE_ENV === 'production';
+    const API_BASE = isProduction 
+      ? 'https://playcenter-universal.onrender.com'
+      : (context.rawRequest?.headers?.origin || 'http://localhost:5174');
+
+    // Parámetros CORRECTOS según documentación Cardnet
+    const requestBody = {
+      TransactionType: "0200", // Venta normal
+      CurrencyCode: "214", // DOP
+      AcquiringInstitutionCode: "349",
+      MerchantType: "7997", // LAB
+      MerchantNumber: "349000000", // LAB
+      MerchantTerminal: "58585858", // LAB
+      MerchantTerminal_amex: "00000001",
+      ReturnUrl: `${API_BASE}/payment/success`,
+      CancelUrl: `${API_BASE}/payment/cancel`,
+      PageLanguaje: "ESP",
+      OrdenId: orderId || `ORD-${Date.now()}`,
+      TransactionId: transactionId,
+      Tax: formattedTax,
+      MerchantName: "PLAYCENTER UNIVERSAL PRUEBAS DO",
+      Amount: formattedAmount,
+      Ipclient: context.rawRequest?.ip || "127.0.0.1"
+    };
+
+    console.log('📤 Enviando solicitud a Cardnet:', requestBody);
+
+    // Llamar al API de Cardnet
+    const response = await axios.post(
+      'https://lab.cardnet.com.do/sessions',
+      requestBody,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+
+    console.log('✅ Respuesta de Cardnet:', response.data);
+
+    return {
+      success: true,
+      session: response.data.SESSION,
+      sessionKey: response.data['session-key'],
+      orderId: requestBody.OrdenId,
+      transactionId: requestBody.TransactionId
+    };
+
+  } catch (error) {
+    console.error('❌ Error creando sesión Cardnet:', error.response?.data || error.message);
+    throw new functions.https.HttpsError(
+      'internal',
+      'Error al crear sesión de pago',
+      error.response?.data || error.message
+    );
+  }
+});
+
+// ============================================
+// 2. VERIFICAR RESULTADO DE TRANSACCIÓN CARDNET
+// ============================================
+exports.verifyCardnetTransaction = functions.https.onCall(async (data, context) => {
+  try {
+    const { session, sessionKey } = data;
+
+    if (!session || !sessionKey) {
+      throw new functions.https.HttpsError('invalid-argument', 'Sesión o clave inválida');
+    }
+
+    console.log('🔍 Verificando transacción Cardnet:', session);
+
+    // Consultar resultado
+    const response = await axios.get(
+      `https://lab.cardnet.com.do/sessions/${session}`,
+      {
+        params: { sk: sessionKey },
+        timeout: 30000
+      }
+    );
+
+    console.log('✅ Resultado Cardnet:', response.data);
+
+    return {
+      success: true,
+      ...response.data
+    };
+
+  } catch (error) {
+    console.error('❌ Error verificando transacción:', error.response?.data || error.message);
+    
+    // Si la sesión no se encuentra (404), retornar info útil
+    if (error.response?.status === 404) {
+      return {
+        success: false,
+        error: 'Session not found',
+        message: 'La sesión expiró o no existe. Las sesiones son válidas por 30 minutos.'
+      };
+    }
+
+    throw new functions.https.HttpsError(
+      'internal',
+      'Error al verificar transacción',
+      error.response?.data || error.message
+    );
+  }
+});
+
+// ============================================
+// 3. ENVIAR EMAIL CUANDO SE CREA UNA ORDEN
 // ============================================
 exports.onOrderCreated = functions.firestore
   .document("orders/{orderId}")
