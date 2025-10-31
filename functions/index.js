@@ -20,7 +20,7 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     const { amount, orderId, items } = data;
 
     if (!amount || amount <= 0) {
-      throw new functions.https.HttpsError('invalid-argument', 'Monto inválido');
+      throw new functions.https.HttpsError("invalid-argument", "Monto inválido");
     }
 
     // Generar TransactionId único de 6 dígitos
@@ -28,17 +28,17 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
 
     // Formatear monto a 12 dígitos (en centavos)
     const amountInCents = Math.round(amount * 100);
-    const formattedAmount = String(amountInCents).padStart(12, '0');
+    const formattedAmount = String(amountInCents).padStart(12, "0");
 
     // Calcular ITBIS (18%)
     const taxAmount = Math.round(amountInCents * 0.18);
-    const formattedTax = String(taxAmount).padStart(12, '0');
+    const formattedTax = String(taxAmount).padStart(12, "0");
 
     // URLs según ambiente
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === "production";
     const API_BASE = isProduction 
-      ? 'https://playcenter-universal.onrender.com'
-      : (context.rawRequest?.headers?.origin || 'http://localhost:5174');
+      ? "https://playcenter-universal.onrender.com"
+      : (context.rawRequest?.headers?.origin || "http://localhost:5174");
 
     // Parámetros CORRECTOS según documentación Cardnet
     const requestBody = {
@@ -60,35 +60,35 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
       Ipclient: context.rawRequest?.ip || "127.0.0.1"
     };
 
-    console.log('📤 Enviando solicitud a Cardnet:', requestBody);
+    console.log("📤 Enviando solicitud a Cardnet:", requestBody);
 
     // Llamar al API de Cardnet
     const response = await axios.post(
-      'https://lab.cardnet.com.do/sessions',
+      "https://lab.cardnet.com.do/sessions",
       requestBody,
       {
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         timeout: 30000
       }
     );
 
-    console.log('✅ Respuesta de Cardnet:', response.data);
+    console.log("✅ Respuesta de Cardnet:", response.data);
 
     return {
       success: true,
       session: response.data.SESSION,
-      sessionKey: response.data['session-key'],
+      sessionKey: response.data["session-key"],
       orderId: requestBody.OrdenId,
       transactionId: requestBody.TransactionId
     };
 
   } catch (error) {
-    console.error('❌ Error creando sesión Cardnet:', error.response?.data || error.message);
+    console.error("❌ Error creando sesión Cardnet:", error.response?.data || error.message);
     throw new functions.https.HttpsError(
-      'internal',
-      'Error al crear sesión de pago',
+      "internal",
+      "Error al crear sesión de pago",
       error.response?.data || error.message
     );
   }
@@ -97,15 +97,15 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
 // ============================================
 // 2. VERIFICAR RESULTADO DE TRANSACCIÓN CARDNET
 // ============================================
-exports.verifyCardnetTransaction = functions.https.onCall(async (data, context) => {
+exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
   try {
     const { session, sessionKey } = data;
 
     if (!session || !sessionKey) {
-      throw new functions.https.HttpsError('invalid-argument', 'Sesión o clave inválida');
+      throw new functions.https.HttpsError("invalid-argument", "Sesión o clave inválida");
     }
 
-    console.log('🔍 Verificando transacción Cardnet:', session);
+    console.log("🔍 Verificando transacción Cardnet:", session);
 
     // Consultar resultado
     const response = await axios.get(
@@ -116,7 +116,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data, context) 
       }
     );
 
-    console.log('✅ Resultado Cardnet:', response.data);
+    console.log("✅ Resultado Cardnet:", response.data);
 
     return {
       success: true,
@@ -124,20 +124,20 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data, context) 
     };
 
   } catch (error) {
-    console.error('❌ Error verificando transacción:', error.response?.data || error.message);
+    console.error("❌ Error verificando transacción:", error.response?.data || error.message);
     
     // Si la sesión no se encuentra (404), retornar info útil
     if (error.response?.status === 404) {
       return {
         success: false,
-        error: 'Session not found',
-        message: 'La sesión expiró o no existe. Las sesiones son válidas por 30 minutos.'
+        error: "Session not found",
+        message: "La sesión expiró o no existe. Las sesiones son válidas por 30 minutos."
       };
     }
 
     throw new functions.https.HttpsError(
-      'internal',
-      'Error al verificar transacción',
+      "internal",
+      "Error al verificar transacción",
       error.response?.data || error.message
     );
   }
@@ -520,7 +520,7 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
 // ============================================
 exports.cleanupOldFCMTokens = functions.pubsub
   .schedule("every 24 hours")
-  .onRun(async (context) => {
+  .onRun(async () => {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
