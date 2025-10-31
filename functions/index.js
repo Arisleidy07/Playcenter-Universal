@@ -26,13 +26,13 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     // Generar TransactionId único de 6 dígitos
     const transactionId = String(Date.now()).slice(-6);
 
-    // Formatear monto a 12 dígitos (en centavos)
+    // Formatear monto en centavos (sin padding para LAB)
     const amountInCents = Math.round(amount * 100);
-    const formattedAmount = String(amountInCents).padStart(12, "0");
+    const formattedAmount = String(amountInCents);
 
     // Calcular ITBIS (18%)
     const taxAmount = Math.round(amountInCents * 0.18);
-    const formattedTax = String(taxAmount).padStart(12, "0");
+    const formattedTax = String(taxAmount);
 
     // URLs según ambiente - usar origin del request (dominio de Vercel)
     const API_BASE = context.rawRequest?.headers?.origin || 
@@ -41,7 +41,7 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
 
     // Parámetros CORRECTOS según documentación Cardnet
     const requestBody = {
-      TransactionType: "0200", // Venta normal
+      TransactionType: "200", // Venta normal (sin el 0 inicial)
       CurrencyCode: "214", // DOP
       AcquiringInstitutionCode: "349",
       MerchantType: "7997", // LAB
@@ -55,23 +55,34 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
       TransactionId: transactionId,
       Tax: formattedTax,
       MerchantName: "PLAYCENTER UNIVERSAL PRUEBAS DO",
-      Amount: formattedAmount,
-      Ipclient: context.rawRequest?.ip || "127.0.0.1"
+      Amount: formattedAmount
     };
 
     console.log("📤 Enviando solicitud a Cardnet:", requestBody);
 
-    // Llamar al API de Cardnet
+    console.log("🔗 URL base detectada:", API_BASE);
+
+    // Llamar al API de Cardnet con timeout reducido
     const response = await axios.post(
       "https://lab.cardnet.com.do/sessions",
       requestBody,
       {
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
-        timeout: 30000
+        timeout: 15000, // Reducir a 15 segundos
+        validateStatus: function (status) {
+          return status < 500; // Resolver si no es error de servidor
+        }
       }
     );
+
+    // Verificar respuesta de Cardnet
+    if (!response.data || !response.data.SESSION) {
+      console.error("❌ Respuesta inválida de Cardnet:", response.data);
+      throw new Error(response.data?.error || "Cardnet no retornó SESSION");
+    }
 
     console.log("✅ Respuesta de Cardnet:", response.data);
 
@@ -84,11 +95,32 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     };
 
   } catch (error) {
-    console.error("❌ Error creando sesión Cardnet:", error.response?.data || error.message);
+    console.error("❌ Error creando sesión Cardnet:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      code: error.code
+    });
+
+    // Manejo específico de errores
+    if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+      throw new functions.https.HttpsError(
+        "deadline-exceeded",
+        "Cardnet tardó demasiado en responder. Intenta de nuevo."
+      );
+    }
+
+    if (error.response?.status === 405) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Método HTTP no permitido por Cardnet"
+      );
+    }
+
     throw new functions.https.HttpsError(
       "internal",
-      "Error al crear sesión de pago",
-      error.response?.data || error.message
+      error.message || "Error al crear sesión de pago",
+      error.response?.data || { code: error.code }
     );
   }
 });

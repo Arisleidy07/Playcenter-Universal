@@ -37,13 +37,22 @@ export default function BotonCardnet({ className, total, label, items }) {
         items: items?.length || 0
       });
       
-      // Llamar a Firebase Function para crear sesión
+      // Llamar a Firebase Function para crear sesión con timeout
       const createSession = httpsCallable(functions, 'createCardnetSession');
-      const result = await createSession({
-        amount: displayAmount, // Monto en pesos
-        orderId,
-        items: items || []
-      });
+      
+      // Timeout de 20 segundos para la función
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Tiempo de espera agotado. Intenta de nuevo.')), 20000)
+      );
+      
+      const result = await Promise.race([
+        createSession({
+          amount: displayAmount,
+          orderId,
+          items: items || []
+        }),
+        timeoutPromise
+      ]);
       
       if (!result.data.success || !result.data.session) {
         throw new Error('No se pudo crear la sesión de pago');
@@ -74,9 +83,21 @@ export default function BotonCardnet({ className, total, label, items }) {
       
     } catch (err) {
       console.error('❌ Error al iniciar pago:', err);
-      setError(err.message || 'Error al procesar el pago');
+      
+      let errorMessage = 'Error al procesar el pago';
+      
+      if (err.code === 'deadline-exceeded') {
+        errorMessage = 'La pasarela de pago tardó mucho en responder. Por favor intenta de nuevo.';
+      } else if (err.code === 'failed-precondition') {
+        errorMessage = 'Hay un problema con la configuración de pagos. Contacta a soporte.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       setIsProcessing(false);
-      alert(`Error: ${err.message}\n\nPor favor, intenta de nuevo.`);
+      
+      alert(`⚠️ Error:\n\n${errorMessage}\n\nPor favor, intenta de nuevo en unos segundos.`);
     }
   };
 
