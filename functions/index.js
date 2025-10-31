@@ -34,11 +34,10 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     const taxAmount = Math.round(amountInCents * 0.18);
     const formattedTax = String(taxAmount).padStart(12, "0");
 
-    // URLs según ambiente
-    const isProduction = process.env.NODE_ENV === "production";
-    const API_BASE = isProduction 
-      ? "https://playcenter-universal.onrender.com"
-      : (context.rawRequest?.headers?.origin || "http://localhost:5174");
+    // URLs según ambiente - usar origin del request (dominio de Vercel)
+    const API_BASE = context.rawRequest?.headers?.origin || 
+                     context.rawRequest?.headers?.referer?.replace(/\/$/, "") ||
+                     "https://playcenter-universal.vercel.app";
 
     // Parámetros CORRECTOS según documentación Cardnet
     const requestBody = {
