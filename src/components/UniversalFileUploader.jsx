@@ -98,9 +98,12 @@ const FilePreview = ({
   index,
   fileCount,
 }) => {
-  const { url, type, name, size, progress, error, isMain } = file;
+  const { url, type, name, size, progress, error, isMain, isUploaded } = file;
   const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef(null);
+  
+  // Determinar si está subiendo (progress existe y no es 100)
+  const isUploading = progress !== undefined && progress < 100 && !error;
 
   // Formatear tamaño de archivo en unidades legibles
   const formatBytes = (bytes, decimals = 2) => {
@@ -137,6 +140,29 @@ const FilePreview = ({
       className={`ufu-preview-item ${isMain ? "ufu-main-item" : ""}`}
     >
       <div className="ufu-preview-media">
+        {/* Mostrar loader si está subiendo */}
+        {isUploading && (
+          <div className="ufu-upload-loader-overlay">
+            <div className="loader">
+              <svg width="60" height="60" viewBox="0 0 100 100">
+                <defs>
+                  <mask id={`clipping-${index}`}>
+                    <polygon points="0,0 100,0 100,100 0,100" fill="black"></polygon>
+                    <polygon points="25,25 75,25 50,75" fill="white"></polygon>
+                    <polygon points="50,25 75,75 25,75" fill="white"></polygon>
+                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                  </mask>
+                </defs>
+              </svg>
+              <div className="box" style={{ mask: `url(#clipping-${index})`, WebkitMask: `url(#clipping-${index})` }}></div>
+            </div>
+            <div className="ufu-loader-text">{Math.round(progress || 0)}%</div>
+          </div>
+        )}
+        
         {type === "image" ? (
           <img
             src={url}
