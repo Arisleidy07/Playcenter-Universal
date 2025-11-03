@@ -74,6 +74,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const [categorias, setCategorias] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showNewBrandInput, setShowNewBrandInput] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
   // ID actual del producto (existe si estamos editando o si creamos un borrador)
   const [currentId, setCurrentId] = useState(product?.id || null);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -2625,23 +2627,80 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                       Marca / Empresa
                     </span>
                   </label>
-                  <input
-                    type="text"
-                    list="brands-list"
-                    value={formData.empresa || ""}
-                    onChange={(e) => handleInputChange("empresa", e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
-                    placeholder="Ej: Apple, Samsung, Sony"
-                  />
-                <datalist id="brands-list">
-                  {brands.map((b) => (
-                    <option key={b} value={b} />
-                  ))}
-                </datalist>
-                <p className="text-xs text-gray-500 mt-1">
-                  Sugerencias basadas en tus marcas guardadas. Se guardará sin
-                  importar mayúsculas/minúsculas.
-                </p>
+                  
+                  <select
+                    value={showNewBrandInput ? "__nueva__" : (formData.empresa || "")}
+                    onChange={(e) => {
+                      if (e.target.value === "__nueva__") {
+                        setShowNewBrandInput(true);
+                        setNewBrandName("");
+                      } else {
+                        setShowNewBrandInput(false);
+                        handleInputChange("empresa", e.target.value);
+                      }
+                    }}
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200 appearance-none bg-white dark:bg-gray-700"
+                  >
+                    <option value="">Selecciona una marca...</option>
+                    {brands.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                    <option value="__nueva__" className="font-semibold text-purple-600">+ Agregar nueva marca...</option>
+                  </select>
+                  
+                  {showNewBrandInput && (
+                    <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
+                      <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                        Nueva marca / empresa:
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newBrandName}
+                          onChange={(e) => setNewBrandName(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && newBrandName.trim()) {
+                              handleInputChange("empresa", newBrandName.trim());
+                              setBrands(prev => [...prev, newBrandName.trim()].sort((a, b) => a.localeCompare(b)));
+                              setShowNewBrandInput(false);
+                              setNewBrandName("");
+                            }
+                          }}
+                          className="flex-1 px-3 py-2 border-2 border-purple-300 dark:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white"
+                          placeholder="Ej: Apple, Samsung, Sony..."
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newBrandName.trim()) {
+                              handleInputChange("empresa", newBrandName.trim());
+                              setBrands(prev => [...prev, newBrandName.trim()].sort((a, b) => a.localeCompare(b)));
+                              setShowNewBrandInput(false);
+                              setNewBrandName("");
+                            }
+                          }}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                        >
+                          ✔
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowNewBrandInput(false);
+                            setNewBrandName("");
+                          }}
+                          className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                        >
+                          ✖
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-gray-500 mt-2">
+                    Selecciona una marca existente o agrega una nueva.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3332,9 +3391,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             <button
               type="button"
               onClick={() => addArrayItem("variantes")}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
             >
-              + Agregar variante
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Agregar Variante
             </button>
           </div>
 
