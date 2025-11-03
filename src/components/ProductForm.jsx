@@ -630,9 +630,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     loadCategorias();
   };
 
-  // Función fetchBrands (placeholder por ahora)
+  // Función fetchBrands que carga marcas desde la base de datos
   const fetchBrands = () => {
-    setBrands([]);
+    loadBrands();
   };
 
   const handleVariantVideoUpload = async (files, variantIndex) => {
@@ -695,14 +695,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const loadBrands = async () => {
     try {
+      console.log('📦 Cargando marcas desde Firestore...');
       const snap = await getDocs(collection(db, "productos"));
       const all = snap.docs.map((d) => d.data()?.empresa).filter(Boolean);
       const unique = Array.from(new Set(all)).sort((a, b) =>
         a.localeCompare(b)
       );
+      console.log(`✅ Marcas cargadas (${unique.length}):`, unique);
       setBrands(unique);
     } catch (e) {
-      // silently ignore
+      console.error('❌ Error cargando marcas:', e);
+      setBrands([]);
     }
   };
 
