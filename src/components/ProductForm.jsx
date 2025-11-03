@@ -23,6 +23,7 @@ import UniversalFileUploader from "./UniversalFileUploader";
 import VisualVariantSelector from "./VisualVariantSelector";
 // Import CSS
 import "../styles/UniversalFileUploader.css";
+import "../styles/UploadLoader.css";
 // Validation utilities
 import { getValidationSummary } from "../utils/productValidation";
 
@@ -3476,6 +3477,43 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           {/* Mensaje de subida en segundo plano removido para evitar estados de carga visibles */}
         </form>
       </motion.div>
+      
+      {/* Loader animado mientras se suben archivos */}
+      <AnimatePresence>
+        {(uploadingImages || uploadQueue?.some(q => q.status === 'uploading')) && (
+          <motion.div
+            className="upload-loader-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="upload-loader-container">
+              <div className="loader">
+                <svg width="100" height="100" viewBox="0 0 100 100">
+                  <defs>
+                    <mask id="clipping">
+                      <polygon points="0,0 100,0 100,100 0,100" fill="black"></polygon>
+                      <polygon points="25,25 75,25 50,75" fill="white"></polygon>
+                      <polygon points="50,25 75,75 25,75" fill="white"></polygon>
+                      <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                      <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                      <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                      <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+                    </mask>
+                  </defs>
+                </svg>
+                <div className="box"></div>
+              </div>
+              <div className="upload-loader-text">
+                Subiendo archivos...
+              </div>
+              <div className="upload-loader-subtext">
+                {uploadQueue?.filter(q => q.status === 'uploading').length || 0} archivo(s) en progreso
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Formulario simple sin complicaciones */}
     </motion.div>
