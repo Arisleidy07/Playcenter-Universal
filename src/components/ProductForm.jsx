@@ -2467,7 +2467,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
       let productData = {
         ...formData,
-        categoria: finalCategoryId && finalCategoryId.trim() !== "" ? finalCategoryId : null,
+        categoria: finalCategoryId,
         precio: Number.isFinite(precioNum) ? precioNum : 0,
         fechaActualizacion: new Date(),
         acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter(
