@@ -2330,9 +2330,21 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const createNewCategory = async (categoryName) => {
     try {
+      // Normalizar ruta: eliminar tildes, lowercase, reemplazar espacios
+      const normalizeRoute = (str) => {
+        return str
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") // Eliminar tildes
+          .replace(/[^a-z0-9\s-]/g, "") // Eliminar caracteres especiales
+          .replace(/\s+/g, "-") // Espacios a guiones
+          .replace(/-+/g, "-") // Múltiples guiones a uno
+          .trim();
+      };
+      
       const categoryData = {
         nombre: categoryName,
-        ruta: categoryName.toLowerCase().replace(/\s+/g, "-"),
+        ruta: normalizeRoute(categoryName),
         activa: true,
         fechaCreacion: new Date(),
         productCount: 0,
@@ -2428,11 +2440,25 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
 
+      // Normalizar categoría para búsquedas
+      const normalizeCategoryId = (str) => {
+        if (!str) return '';
+        return str
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .trim();
+      };
+      
       console.log('GUARDANDO PRODUCTO - Categoría:', finalCategoryId);
       
       let productData = {
         ...formData,
         categoria: finalCategoryId,
+        categoriaId: normalizeCategoryId(finalCategoryId), // Para búsquedas
         precio: Number.isFinite(precioNum) ? precioNum : 0,
         fechaActualizacion: new Date(),
         acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter(

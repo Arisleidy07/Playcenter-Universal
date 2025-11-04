@@ -86,18 +86,33 @@ export const useProductsByCategory = (categoryId) => {
   useEffect(() => {
     const fetchProductsByCategory = async () => {
       try {
+        // Normalizar categoryId para búsqueda (eliminar tildes, etc)
+        const normalizeCategoryId = (str) => {
+          if (!str) return '';
+          return str
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .trim();
+        };
+        
+        const normalizedCategoryId = categoryId ? normalizeCategoryId(categoryId) : '';
+        
         let q;
-        if (!categoryId || categoryId === "" || categoryId === "todos") {
+        if (!normalizedCategoryId || normalizedCategoryId === "" || normalizedCategoryId === "todos") {
           // Get all active products
           q = query(
             collection(db, 'productos'),
             where('activo', '==', true)
           );
         } else {
-          // Get products by category (sin orderBy para evitar índice compuesto)
+          // Buscar por categoriaId normalizado
           q = query(
             collection(db, 'productos'),
-            where('categoria', '==', categoryId),
+            where('categoriaId', '==', normalizedCategoryId),
             where('activo', '==', true)
           );
         }
@@ -126,7 +141,7 @@ export const useProductsByCategory = (categoryId) => {
             return dateB - dateA; // Más recientes primero
           });
           
-          console.log(`📦 Productos obtenidos para categoría "${categoryId}":`, sortedProducts.length, sortedProducts.map(p => ({ id: p.id, nombre: p.nombre, categoria: p.categoria, activo: p.activo })));
+          console.log(`📦 Productos obtenidos para categoría "${categoryId}" (normalizado: "${normalizedCategoryId}"):`, sortedProducts.length, sortedProducts.map(p => ({ id: p.id, nombre: p.nombre, categoria: p.categoria, categoriaId: p.categoriaId, activo: p.activo })));
           
           setProducts(sortedProducts);
           setLoading(false);

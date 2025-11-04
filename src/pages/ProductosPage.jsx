@@ -16,6 +16,7 @@ function ProductosPage() {
   // Get categories and products from database
   const { categories, loading: categoriesLoading } = useCategories();
   const categoryId = categoria && categoria !== "todos" ? categoria : "";
+  console.log('🔍 ProductosPage - URL categoria:', categoria, '→ categoryId:', categoryId);
   const { products, loading: productsLoading } =
     useProductsByCategory(categoryId);
 
