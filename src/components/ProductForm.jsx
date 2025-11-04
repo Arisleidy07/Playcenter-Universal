@@ -32,7 +32,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Validación simple
   const [isValid, setIsValid] = useState(true);
   const [formData, setFormData] = useState(() => {
-    console.log("🎬 Inicializando formData con product:", product?.id);
     return {
       nombre: product?.nombre || "",
       empresa: product?.empresa || "",
@@ -118,26 +117,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Inicializar formData cuando product cambie
   useEffect(() => {
     if (product) {
-      console.log("🔄 Cargando producto para editar:", product.id);
-      console.log("📦 Datos del producto:", {
-        imagen: product.imagen,
-        imagenes: product.imagenes,
-        videoUrls: product.videoUrls,
-        imagenesExtra: product.imagenesExtra,
-        variantes: product.variantes,
-      });
-
-      // Log detallado de cada variante
-      if (Array.isArray(product.variantes) && product.variantes.length > 0) {
-        product.variantes.forEach((v, i) => {
-          console.log(`🎨 Variante ${i}:`, {
-            color: v.color,
-            imagen: v.imagen,
-            imagenes: v.imagenes,
-            videoUrls: v.videoUrls,
-          });
-        });
-      }
 
       setFormData({
         ...formData,
@@ -186,15 +165,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         productStatus: product.productStatus || product.estado || "draft",
       });
 
-      console.log("✅ FormData actualizado con archivos existentes");
-
       // Marcar que el formulario ya se inicializó después de un pequeño delay
       setTimeout(() => {
         formInitializedRef.current = true;
         isInitialLoadRef.current = false;
-        console.log(
-          "🔓 Formulario completamente inicializado - handlers habilitados"
-        );
       }, 500);
     }
   }, [product?.id]);
@@ -227,40 +201,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   useEffect(() => {
     const id = currentId || product?.id;
     if (!id) return;
-    console.log("📡 Suscripción onSnapshot iniciada para producto:", id);
     const unsub = onSnapshot(doc(db, "productos", id), (snap) => {
       if (!snap.exists()) return;
       const data = snap.data();
-      console.log("🔄 Datos recibidos de Firestore:", {
-        imagen: data.imagen,
-        imagenes: data.imagenes,
-        videoUrls: data.videoUrls,
-        imagenesExtra: data.imagenesExtra,
-      });
-
-      // ⚠️ DETECTAR VALORES VACÍOS
-      if (Array.isArray(data.imagenes)) {
-        const empties = data.imagenes.filter(
-          (url) => !url || url.trim() === ""
-        );
-        if (empties.length > 0) {
-          console.warn(
-            "⚠️ VALORES VACÍOS DETECTADOS en imagenes:",
-            empties.length
-          );
-        }
-      }
-      if (Array.isArray(data.videoUrls)) {
-        const empties = data.videoUrls.filter(
-          (url) => !url || url.trim() === ""
-        );
-        if (empties.length > 0) {
-          console.warn(
-            "⚠️ VALORES VACÍOS DETECTADOS en videoUrls:",
-            empties.length
-          );
-        }
-      }
 
       // UNA SOLA actualización consolidada que preserve TODOS los campos
       // IMPORTANTE: Solo actualizar si realmente hay un cambio, no sobrescribir con undefined
@@ -461,7 +404,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     } catch (e) {
       // Ignorar errores si el documento fue eliminado
       if (e.code === "not-found") {
-        console.log("ℹ️ Documento eliminado, cancelando actualización");
         return;
       }
       // Silencioso para otros errores: no bloquear la UI
@@ -593,7 +535,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Enhanced preview handler
   const handlePreview = () => {
     // Open preview in new tab or modal
-    console.log("Preview product:", productData);
   };
 
   // Helpers para reordenar videos del producto (persistencia inmediata)
@@ -736,16 +677,14 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const loadBrands = async () => {
     try {
-      console.log("📦 Cargando marcas desde Firestore...");
       const snap = await getDocs(collection(db, "productos"));
       const all = snap.docs.map((d) => d.data()?.empresa).filter(Boolean);
       const unique = Array.from(new Set(all)).sort((a, b) =>
         a.localeCompare(b)
       );
-      console.log(`✅ Marcas cargadas (${unique.length}):`, unique);
       setBrands(unique);
     } catch (e) {
-      console.error("❌ Error cargando marcas:", e);
+      console.error("Error cargando marcas:", e);
       setBrands([]);
     }
   };
@@ -1066,7 +1005,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         urlStr.startsWith("./") ||
         urlStr.startsWith("../")
       ) {
-        console.log("⚠️ Ignorando ruta local/relativa:", urlStr);
         return;
       }
 
@@ -1075,7 +1013,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         !urlStr.startsWith("gs://") &&
         !urlStr.includes("firebasestorage.googleapis.com")
       ) {
-        console.log("⚠️ Ignorando URL externa:", urlStr);
         return;
       }
 
@@ -1099,15 +1036,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const r = toRef(urlStr);
       if (r) {
         await deleteObject(r);
-        console.log("✅ Archivo borrado de Firebase Storage:", urlStr);
       }
     } catch (e) {
-      // Ignorar errores 404 y otros (archivo ya borrado o no existe)
-      if (e.code === "storage/object-not-found") {
-        console.log("ℹ️ Archivo ya no existe en Storage:", url);
-      } else {
-        console.log("⚠️ Error al borrar archivo (ignorado):", e.code);
-      }
+      // Ignorar errores silenciosamente
     }
   };
 
@@ -2577,9 +2508,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         delete productData.precioOferta;
       }
 
-      // Respetar el estado del checkbox 'Producto activo' del formulario
-      productData.activo = Boolean(productData.activo);
-
       delete productData.nuevaCategoria;
       delete productData._tempVideoUrl;
 
@@ -2616,6 +2544,13 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
       const isNew = !canonicalId;
+      
+      // Activar productos nuevos por defecto para que aparezcan inmediatamente
+      if (isNew) {
+        productData.activo = true;
+      } else {
+        productData.activo = Boolean(productData.activo);
+      }
       const targetId = isNew ? `prod_${Date.now()}` : canonicalId;
       productData.id = targetId;
       // Establecer slug consistente del nombre (no obligatorio, útil para rutas y búsqueda)
