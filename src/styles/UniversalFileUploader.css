@@ -1,7 +1,8 @@
 /* UniversalFileUploader.css - Mejorado */
 
 .universal-file-uploader {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
   color: #333;
   width: 100%;
   position: relative;
@@ -99,37 +100,37 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .ufu-mobile-button:hover,
 .ufu-mobile-button:focus {
   background-color: #2563eb; /* blue-600 */
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .ufu-mobile-button:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {
   .ufu-dropzone {
     padding: 1.25rem 1rem;
   }
-  
-  .ufu-dropzone-desktop-text { 
-    display: none; 
+
+  .ufu-dropzone-desktop-text {
+    display: none;
   }
-  
+
   .ufu-mobile-buttons {
     display: flex;
     gap: 0.75rem;
     width: 100%;
     justify-content: center;
   }
-  
+
   .ufu-mobile-button {
     flex: 1;
     max-width: 160px;
@@ -162,7 +163,8 @@
 
 .ufu-preview-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: #d1d5db; /* gray-300 */
 }
 
@@ -313,20 +315,38 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
-.ufu-download-button { top: 0.5rem; left: 0.5rem; }
-.ufu-download-button:hover { 
-  color: #3b82f6; /* blue-500 */ 
+.ufu-download-button {
+  top: 0.5rem;
+  left: 0.5rem;
+}
+.ufu-download-button:hover {
+  color: #3b82f6; /* blue-500 */
   background-color: #dbeafe; /* blue-100 */
 }
 
-.ufu-preview-button { top: 0.5rem; left: 3rem; }
-.ufu-preview-button:hover { color: #10b981; /* green-500 */ }
+.ufu-preview-button {
+  top: 0.5rem;
+  left: 3rem;
+}
+.ufu-preview-button:hover {
+  color: #10b981; /* green-500 */
+}
 
-.ufu-delete-button { top: 0.5rem; right: 0.5rem; }
-.ufu-delete-button:hover { color: #ef4444; /* red-500 */ }
+.ufu-delete-button {
+  top: 0.5rem;
+  right: 0.5rem;
+}
+.ufu-delete-button:hover {
+  color: #ef4444; /* red-500 */
+}
 
-.ufu-set-main-button { top: 2.5rem; left: 0.5rem; }
-.ufu-set-main-button:hover { color: #3b82f6; /* blue-500 */ }
+.ufu-set-main-button {
+  top: 2.5rem;
+  left: 0.5rem;
+}
+.ufu-set-main-button:hover {
+  color: #3b82f6; /* blue-500 */
+}
 
 .ufu-reorder-buttons {
   position: absolute;
@@ -386,7 +406,8 @@
   background-color: #3b82f6; /* blue-500 */
   border-radius: 2px;
   position: absolute;
-  bottom: 0; left: 0;
+  bottom: 0;
+  left: 0;
   transition: width 0.3s ease;
   box-shadow: 0 0 4px rgba(59, 130, 246, 0.5);
 }
@@ -437,154 +458,15 @@
 
 /* Animaciones */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .ufu-preview-item.uploading {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* ========================================= */
-/* LOADER DENTRO DEL CUADRO DE ARCHIVO */
-/* ========================================= */
-
-.ufu-upload-loader-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(4px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  border-radius: 0.5rem;
-}
-
-.ufu-upload-loader-overlay .loader {
-  --color-one: #ffbf48;
-  --color-two: #be4a1d;
-  --color-three: #ffbf4780;
-  --color-four: #bf4a1d80;
-  --color-five: #ffbf4740;
-  --time-animation: 2s;
-  --size: 0.6;
-  position: relative;
-  border-radius: 50%;
-  transform: scale(var(--size));
-  width: 100px;
-  height: 100px;
-  box-shadow:
-    0 0 25px 0 var(--color-three),
-    0 20px 50px 0 var(--color-four);
-  animation: colorize calc(var(--time-animation) * 3) ease-in-out infinite;
-}
-
-.ufu-upload-loader-overlay .loader::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border-top: solid 1px var(--color-one);
-  border-bottom: solid 1px var(--color-two);
-  background: linear-gradient(180deg, var(--color-five), var(--color-four));
-  box-shadow:
-    inset 0 10px 10px 0 var(--color-three),
-    inset 0 -10px 10px 0 var(--color-four);
-}
-
-.ufu-upload-loader-overlay .loader .box {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(
-    180deg,
-    var(--color-one) 30%,
-    var(--color-two) 70%
-  );
-}
-
-.ufu-upload-loader-overlay .loader svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.ufu-upload-loader-overlay .loader svg mask {
-  filter: contrast(15);
-  animation: roundness calc(var(--time-animation) / 2) linear infinite;
-}
-
-.ufu-upload-loader-overlay .loader svg mask polygon {
-  filter: blur(7px);
-}
-
-.ufu-upload-loader-overlay .loader svg mask polygon:nth-child(2) {
-  transform-origin: 50% 50%;
-  animation: rotation var(--time-animation) linear infinite reverse;
-}
-
-.ufu-upload-loader-overlay .loader svg mask polygon:nth-child(3) {
-  transform-origin: 50% 60%;
-  animation: rotation var(--time-animation) linear infinite;
-  animation-delay: calc(var(--time-animation) / -3);
-}
-
-.ufu-upload-loader-overlay .loader svg mask polygon:nth-child(4) {
-  transform-origin: 40% 40%;
-  animation: rotation var(--time-animation) linear infinite reverse;
-}
-
-.ufu-upload-loader-overlay .loader svg mask polygon:nth-child(5) {
-  transform-origin: 40% 40%;
-  animation: rotation var(--time-animation) linear infinite reverse;
-  animation-delay: calc(var(--time-animation) / -2);
-}
-
-.ufu-upload-loader-overlay .loader svg mask polygon:nth-child(6) {
-  transform-origin: 60% 40%;
-  animation: rotation var(--time-animation) linear infinite;
-}
-
-.ufu-upload-loader-overlay .loader svg mask polygon:nth-child(7) {
-  transform-origin: 60% 40%;
-  animation: rotation var(--time-animation) linear infinite;
-  animation-delay: calc(var(--time-animation) / -1.5);
-}
-
-.ufu-loader-text {
-  color: white;
-  font-size: 18px;
-  font-weight: 700;
-  margin-top: 12px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes rotation {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes roundness {
-  0% { filter: contrast(15); }
-  20% { filter: contrast(3); }
-  40% { filter: contrast(3); }
-  60% { filter: contrast(15); }
-  100% { filter: contrast(15); }
-}
-
-@keyframes colorize {
-  0% { filter: hue-rotate(0deg); }
-  20% { filter: hue-rotate(-30deg); }
-  40% { filter: hue-rotate(-60deg); }
-  60% { filter: hue-rotate(-90deg); }
-  80% { filter: hue-rotate(-45deg); }
-  100% { filter: hue-rotate(0deg); }
 }

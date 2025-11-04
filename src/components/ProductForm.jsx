@@ -32,7 +32,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Validación simple
   const [isValid, setIsValid] = useState(true);
   const [formData, setFormData] = useState(() => {
-    console.log('🎬 Inicializando formData con product:', product?.id);
+    console.log("🎬 Inicializando formData con product:", product?.id);
     return {
       nombre: product?.nombre || "",
       empresa: product?.empresa || "",
@@ -56,16 +56,20 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       variantes: product?.variantes || [],
       etiquetas: product?.etiquetas || [""],
       activo: product?.activo !== undefined ? product.activo : true,
-      fechaPublicacion: product?.fechaPublicacion || new Date().toISOString().split("T")[0],
+      fechaPublicacion:
+        product?.fechaPublicacion || new Date().toISOString().split("T")[0],
       peso: product?.peso || "",
       dimensiones: product?.dimensiones || "",
       // Asociación de imagen principal con variante
       varianteImagenPrincipal: product?.varianteImagenPrincipal || "",
       // Enhanced fields
-      imagenPrincipal: product?.imagenPrincipal || (product?.imagen ? [{ url: product.imagen }] : []),
+      imagenPrincipal:
+        product?.imagenPrincipal ||
+        (product?.imagen ? [{ url: product.imagen }] : []),
       galeriaImagenes: product?.galeriaImagenes || product?.imagenes || [],
-      tresArchivosExtras: product?.tresArchivosExtras || product?.imagenesExtra || [],
-      productStatus: product?.productStatus || 'draft',
+      tresArchivosExtras:
+        product?.tresArchivosExtras || product?.imagenesExtra || [],
+      productStatus: product?.productStatus || "draft",
       validationScore: product?.validationScore || 0,
       lastValidated: product?.lastValidated || null,
     };
@@ -114,15 +118,15 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Inicializar formData cuando product cambie
   useEffect(() => {
     if (product) {
-      console.log('🔄 Cargando producto para editar:', product.id);
-      console.log('📦 Datos del producto:', {
+      console.log("🔄 Cargando producto para editar:", product.id);
+      console.log("📦 Datos del producto:", {
         imagen: product.imagen,
         imagenes: product.imagenes,
         videoUrls: product.videoUrls,
         imagenesExtra: product.imagenesExtra,
-        variantes: product.variantes
+        variantes: product.variantes,
       });
-      
+
       // Log detallado de cada variante
       if (Array.isArray(product.variantes) && product.variantes.length > 0) {
         product.variantes.forEach((v, i) => {
@@ -130,11 +134,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             color: v.color,
             imagen: v.imagen,
             imagenes: v.imagenes,
-            videoUrls: v.videoUrls
+            videoUrls: v.videoUrls,
           });
         });
       }
-      
+
       setFormData({
         ...formData,
         // Campos básicos
@@ -151,21 +155,27 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         precioOferta: product.precioOferta || "",
         estado: product.estado || "Nuevo",
         activo: product.activo !== undefined ? product.activo : true,
-        
+
         // ARCHIVOS - Asegurar que se carguen correctamente Y filtrar valores vacíos
         // Imagen principal
         imagen: product.imagen || "",
         // Galería de imágenes y videos (FILTRAR valores vacíos)
-        imagenes: (product.imagenes || []).filter(url => url && typeof url === 'string' && url.trim() !== ''),
-        videoUrls: (product.videoUrls || []).filter(url => url && typeof url === 'string' && url.trim() !== ''),
+        imagenes: (product.imagenes || []).filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        ),
+        videoUrls: (product.videoUrls || []).filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        ),
         // Imágenes extra (información adicional) (FILTRAR valores vacíos)
-        imagenesExtra: (product.imagenesExtra || []).filter(url => url && typeof url === 'string' && url.trim() !== ''),
+        imagenesExtra: (product.imagenesExtra || []).filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        ),
         // Video acerca del artículo
         videoUrl: product.videoUrl || "",
         videoAcercaArticulo: product.videoAcercaArticulo || [],
         // Asociación de variante con imagen principal
         varianteImagenPrincipal: product.varianteImagenPrincipal || "",
-        
+
         // Enhanced fields (mantener compatibilidad)
         imagenPrincipal:
           product.imagenPrincipal ||
@@ -173,17 +183,18 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         galeriaImagenes: product.galeriaImagenes || product.imagenes || [],
         tresArchivosExtras:
           product.tresArchivosExtras || product.imagenesExtra || [],
-        productStatus:
-          product.productStatus || product.estado || 'draft',
+        productStatus: product.productStatus || product.estado || "draft",
       });
-      
-      console.log('✅ FormData actualizado con archivos existentes');
-      
+
+      console.log("✅ FormData actualizado con archivos existentes");
+
       // Marcar que el formulario ya se inicializó después de un pequeño delay
       setTimeout(() => {
         formInitializedRef.current = true;
         isInitialLoadRef.current = false;
-        console.log('🔓 Formulario completamente inicializado - handlers habilitados');
+        console.log(
+          "🔓 Formulario completamente inicializado - handlers habilitados"
+        );
       }, 500);
     }
   }, [product?.id]);
@@ -216,31 +227,41 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   useEffect(() => {
     const id = currentId || product?.id;
     if (!id) return;
-    console.log('📡 Suscripción onSnapshot iniciada para producto:', id);
+    console.log("📡 Suscripción onSnapshot iniciada para producto:", id);
     const unsub = onSnapshot(doc(db, "productos", id), (snap) => {
       if (!snap.exists()) return;
       const data = snap.data();
-      console.log('🔄 Datos recibidos de Firestore:', {
+      console.log("🔄 Datos recibidos de Firestore:", {
         imagen: data.imagen,
         imagenes: data.imagenes,
         videoUrls: data.videoUrls,
-        imagenesExtra: data.imagenesExtra
+        imagenesExtra: data.imagenesExtra,
       });
-      
+
       // ⚠️ DETECTAR VALORES VACÍOS
       if (Array.isArray(data.imagenes)) {
-        const empties = data.imagenes.filter(url => !url || url.trim() === '');
+        const empties = data.imagenes.filter(
+          (url) => !url || url.trim() === ""
+        );
         if (empties.length > 0) {
-          console.warn('⚠️ VALORES VACÍOS DETECTADOS en imagenes:', empties.length);
+          console.warn(
+            "⚠️ VALORES VACÍOS DETECTADOS en imagenes:",
+            empties.length
+          );
         }
       }
       if (Array.isArray(data.videoUrls)) {
-        const empties = data.videoUrls.filter(url => !url || url.trim() === '');
+        const empties = data.videoUrls.filter(
+          (url) => !url || url.trim() === ""
+        );
         if (empties.length > 0) {
-          console.warn('⚠️ VALORES VACÍOS DETECTADOS en videoUrls:', empties.length);
+          console.warn(
+            "⚠️ VALORES VACÍOS DETECTADOS en videoUrls:",
+            empties.length
+          );
         }
       }
-      
+
       // UNA SOLA actualización consolidada que preserve TODOS los campos
       // IMPORTANTE: Solo actualizar si realmente hay un cambio, no sobrescribir con undefined
       setFormData((prev) => ({
@@ -261,9 +282,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         // Campos de medios - SOLO actualizar si hay un valor real en Firestore
         // Si Firestore tiene un valor, usarlo. Si no, mantener el valor previo
         imagen: data.imagen ? data.imagen : prev.imagen,
-        imagenes: Array.isArray(data.imagenes) && data.imagenes.length > 0
-          ? data.imagenes.filter(url => url && typeof url === 'string' && url.trim() !== '')
-          : prev.imagenes || [],
+        imagenes:
+          Array.isArray(data.imagenes) && data.imagenes.length > 0
+            ? data.imagenes.filter(
+                (url) => url && typeof url === "string" && url.trim() !== ""
+              )
+            : prev.imagenes || [],
         imagenPrincipal: Array.isArray(data.imagenPrincipal)
           ? data.imagenPrincipal
           : prev.imagenPrincipal || [],
@@ -273,13 +297,19 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         tresArchivosExtras: Array.isArray(data.tresArchivosExtras)
           ? data.tresArchivosExtras
           : prev.tresArchivosExtras || [],
-        imagenesExtra: Array.isArray(data.imagenesExtra) && data.imagenesExtra.length > 0
-          ? data.imagenesExtra.filter(url => url && typeof url === 'string' && url.trim() !== '')
-          : prev.imagenesExtra || [],
+        imagenesExtra:
+          Array.isArray(data.imagenesExtra) && data.imagenesExtra.length > 0
+            ? data.imagenesExtra.filter(
+                (url) => url && typeof url === "string" && url.trim() !== ""
+              )
+            : prev.imagenesExtra || [],
         videoUrl: data.videoUrl || data.video || prev.videoUrl,
-        videoUrls: Array.isArray(data.videoUrls) && data.videoUrls.length > 0
-          ? data.videoUrls.filter(url => url && typeof url === 'string' && url.trim() !== '')
-          : prev.videoUrls || [],
+        videoUrls:
+          Array.isArray(data.videoUrls) && data.videoUrls.length > 0
+            ? data.videoUrls.filter(
+                (url) => url && typeof url === "string" && url.trim() !== ""
+              )
+            : prev.videoUrls || [],
         videoAcercaArticulo: Array.isArray(data.videoAcercaArticulo)
           ? data.videoAcercaArticulo
           : prev.videoAcercaArticulo || [],
@@ -327,14 +357,19 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         // getValidationSummary devuelve un objeto con errors, isReady, errorCount, etc.
         const summary = getValidationSummary(formData);
         setValidationErrors(summary.errors || []);
-        const score = typeof summary.errorCount === 'number' ? Math.max(0, 100 - summary.errorCount * 20) : (summary.isReady ? 100 : 0);
+        const score =
+          typeof summary.errorCount === "number"
+            ? Math.max(0, 100 - summary.errorCount * 20)
+            : summary.isReady
+            ? 100
+            : 0;
         setFormData((prev) => ({
           ...prev,
           validationScore: score,
           lastValidated: new Date().toISOString(),
         }));
       } catch (e) {
-        console.error('Error running validation summary:', e);
+        console.error("Error running validation summary:", e);
       }
     };
 
@@ -356,9 +391,15 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       id: currentId || product?.id || "nuevo",
       nombre: formData.nombre || "",
       precio: parseFloat(formData.precio) || 0,
-      cantidad: Number(formData.cantidad) || 0
+      cantidad: Number(formData.cantidad) || 0,
     };
-  }, [currentId, product?.id, formData.nombre, formData.precio, formData.cantidad]);
+  }, [
+    currentId,
+    product?.id,
+    formData.nombre,
+    formData.precio,
+    formData.cantidad,
+  ]);
 
   // Obtener/crear ID del producto actual.
   // Política: no creamos nada al abrir el formulario, PERO si el usuario
@@ -419,8 +460,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       });
     } catch (e) {
       // Ignorar errores si el documento fue eliminado
-      if (e.code === 'not-found') {
-        console.log('ℹ️ Documento eliminado, cancelando actualización');
+      if (e.code === "not-found") {
+        console.log("ℹ️ Documento eliminado, cancelando actualización");
         return;
       }
       // Silencioso para otros errores: no bloquear la UI
@@ -431,18 +472,18 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const persistFieldImmediate = async (field, value) => {
     // Evitar guardar campos transitorios del formulario
     if (["nuevaCategoria", "_tempVideoUrl"].includes(field)) return;
-    
+
     const existingId = product?.id || formData?.id || currentId;
     const isEditing = Boolean(existingId);
     let targetId = existingId;
-    
+
     // Si estamos editando y aún no tenemos ID, NO crear borradores: esperar
     if (!targetId) {
       if (isEditing) return;
       targetId = await ensureCurrentId();
       if (!targetId) return;
     }
-    
+
     await safeUpdateDoc(targetId, { [field]: value });
   };
 
@@ -509,7 +550,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     draft.acerca = (draft.acerca || []).filter((x) => (x || "").trim());
     draft.etiquetas = (draft.etiquetas || []).filter((x) => (x || "").trim());
     draft.activo = false; // siempre como borrador
-    draft.productStatus = 'draft';
+    draft.productStatus = "draft";
     draft.fechaActualizacion = new Date();
     delete draft.nuevaCategoria;
     delete draft._tempVideoUrl;
@@ -619,8 +660,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (error) {
-      console.error('Error subiendo imagen:', error);
-      alert('Error subiendo imagen');
+      console.error("Error subiendo imagen:", error);
+      alert("Error subiendo imagen");
       return null;
     }
   };
@@ -695,7 +736,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const loadBrands = async () => {
     try {
-      console.log('📦 Cargando marcas desde Firestore...');
+      console.log("📦 Cargando marcas desde Firestore...");
       const snap = await getDocs(collection(db, "productos"));
       const all = snap.docs.map((d) => d.data()?.empresa).filter(Boolean);
       const unique = Array.from(new Set(all)).sort((a, b) =>
@@ -704,7 +745,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       console.log(`✅ Marcas cargadas (${unique.length}):`, unique);
       setBrands(unique);
     } catch (e) {
-      console.error('❌ Error cargando marcas:', e);
+      console.error("❌ Error cargando marcas:", e);
       setBrands([]);
     }
   };
@@ -1015,22 +1056,29 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Borrar un archivo de Firebase Storage a partir de su URL pública (si aplica)
   const deleteFromStorageByUrl = async (url) => {
     if (!url) return;
-    
+
     try {
       const urlStr = String(url).trim();
-      
+
       // IGNORAR rutas relativas/locales - solo borrar URLs de Firebase Storage
-      if (urlStr.startsWith('/') || urlStr.startsWith('./') || urlStr.startsWith('../')) {
-        console.log('⚠️ Ignorando ruta local/relativa:', urlStr);
+      if (
+        urlStr.startsWith("/") ||
+        urlStr.startsWith("./") ||
+        urlStr.startsWith("../")
+      ) {
+        console.log("⚠️ Ignorando ruta local/relativa:", urlStr);
         return;
       }
-      
+
       // IGNORAR URLs que no son de Firebase Storage
-      if (!urlStr.startsWith('gs://') && !urlStr.includes('firebasestorage.googleapis.com')) {
-        console.log('⚠️ Ignorando URL externa:', urlStr);
+      if (
+        !urlStr.startsWith("gs://") &&
+        !urlStr.includes("firebasestorage.googleapis.com")
+      ) {
+        console.log("⚠️ Ignorando URL externa:", urlStr);
         return;
       }
-      
+
       const toRef = (s) => {
         try {
           const u = String(s);
@@ -1047,18 +1095,18 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           return null;
         }
       };
-      
+
       const r = toRef(urlStr);
       if (r) {
         await deleteObject(r);
-        console.log('✅ Archivo borrado de Firebase Storage:', urlStr);
+        console.log("✅ Archivo borrado de Firebase Storage:", urlStr);
       }
     } catch (e) {
       // Ignorar errores 404 y otros (archivo ya borrado o no existe)
-      if (e.code === 'storage/object-not-found') {
-        console.log('ℹ️ Archivo ya no existe en Storage:', url);
+      if (e.code === "storage/object-not-found") {
+        console.log("ℹ️ Archivo ya no existe en Storage:", url);
       } else {
-        console.log('⚠️ Error al borrar archivo (ignorado):', e.code);
+        console.log("⚠️ Error al borrar archivo (ignorado):", e.code);
       }
     }
   };
@@ -1492,13 +1540,13 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // ====== UniversalFileUploader Handlers (instant preview + background upload) ======
   const handleMainImageUFU = async (filesList) => {
     console.log("🎯 handleMainImageUFU llamado con:", filesList);
-    
+
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
       console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
-    
+
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
@@ -1549,7 +1597,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         console.log("✅ Imagen subida exitosamente! URL:", remoteUrl);
         // Limpiar preview temporal INMEDIATAMENTE antes de actualizar formData
         setTempPreviews((prev) => ({ ...prev, imagen: "" }));
-        
+
         setFormData((prev) => {
           // NO mover imagen principal a galería - mantener separadas
           const imagenPrincipal = [{ url: remoteUrl }];
@@ -1592,17 +1640,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const handleGalleryUFU = async (filesList) => {
     console.log("🚀 handleGalleryUFU iniciado con:", filesList);
-    
+
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
       console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
-    
+
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
-      
+
       // Obtener ID del producto
       let targetId = currentId || product?.id;
       if (!targetId) {
@@ -1615,18 +1663,44 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       }
 
       // Separar por tipo: nuevos archivos vs URLs existentes
-      const newImageFiles = arr.filter(f => f?.file && f.file.type?.startsWith?.("image/"));
-      const newVideoFiles = arr.filter(f => f?.file && f.file.type?.startsWith?.("video/"));
-      const existingUrls = arr.filter(f => !f?.file && f?.url && !f.url.startsWith("blob:")).map(f => f.url);
-      
+      const newImageFiles = arr.filter(
+        (f) => f?.file && f.file.type?.startsWith?.("image/")
+      );
+      const newVideoFiles = arr.filter(
+        (f) => f?.file && f.file.type?.startsWith?.("video/")
+      );
+      const existingUrls = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+
       // Separar URLs existentes por tipo
-      const existingImages = existingUrls.filter(u => detectTypeFromUrl(u) === "image");
-      const existingVideos = existingUrls.filter(u => detectTypeFromUrl(u) === "video");
-      
-      console.log("📁 Nuevas imágenes:", newImageFiles.length, newImageFiles.map(f => f.file?.name));
-      console.log("🎬 Nuevos videos:", newVideoFiles.length, newVideoFiles.map(f => f.file?.name));
-      console.log("🔗 Imágenes existentes:", existingImages.length, existingImages);
-      console.log("🔗 Videos existentes:", existingVideos.length, existingVideos);
+      const existingImages = existingUrls.filter(
+        (u) => detectTypeFromUrl(u) === "image"
+      );
+      const existingVideos = existingUrls.filter(
+        (u) => detectTypeFromUrl(u) === "video"
+      );
+
+      console.log(
+        "📁 Nuevas imágenes:",
+        newImageFiles.length,
+        newImageFiles.map((f) => f.file?.name)
+      );
+      console.log(
+        "🎬 Nuevos videos:",
+        newVideoFiles.length,
+        newVideoFiles.map((f) => f.file?.name)
+      );
+      console.log(
+        "🔗 Imágenes existentes:",
+        existingImages.length,
+        existingImages
+      );
+      console.log(
+        "🔗 Videos existentes:",
+        existingVideos.length,
+        existingVideos
+      );
 
       // Subir nuevas imágenes
       const uploadedImages = [];
@@ -1638,14 +1712,14 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             section: "gallery",
             file: fileItem.file,
           });
-          
+
           const remoteUrl = await uploadWithRetry(
             uploadImage,
             fileItem.file,
             destPath,
             `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
           );
-          
+
           uploadedImages.push(remoteUrl);
           console.log("✅ Imagen subida:", remoteUrl);
         } catch (e) {
@@ -1663,14 +1737,14 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             section: "videos",
             file: fileItem.file,
           });
-          
+
           const remoteUrl = await uploadWithRetry(
             uploadVideo,
             fileItem.file,
             destPath,
             `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
           );
-          
+
           uploadedVideos.push(remoteUrl);
           console.log("✅ Video subido:", remoteUrl);
         } catch (e) {
@@ -1686,30 +1760,49 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         // ✅ CORRECCIÓN CRÍTICA: Solo usar lo que el UFU reporta (existentes + nuevos)
         // NO usar prevImages/prevVideos porque ignora las eliminaciones del usuario
         // ✅ FILTRO ESTRICTO: Solo URLs válidas (no null, undefined, o strings vacíos)
-        const validExistingImages = existingImages.filter(url => url && typeof url === 'string' && url.trim() !== '');
-        const validUploadedImages = uploadedImages.filter(url => url && typeof url === 'string' && url.trim() !== '');
-        const validExistingVideos = existingVideos.filter(url => url && typeof url === 'string' && url.trim() !== '');
-        const validUploadedVideos = uploadedVideos.filter(url => url && typeof url === 'string' && url.trim() !== '');
+        const validExistingImages = existingImages.filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        );
+        const validUploadedImages = uploadedImages.filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        );
+        const validExistingVideos = existingVideos.filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        );
+        const validUploadedVideos = uploadedVideos.filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        );
 
-        const mergedImages = Array.from(new Set([
-          ...validExistingImages,  // URLs existentes VÁLIDAS
-          ...validUploadedImages   // URLs recién subidas VÁLIDAS
-        ]));
+        const mergedImages = Array.from(
+          new Set([
+            ...validExistingImages, // URLs existentes VÁLIDAS
+            ...validUploadedImages, // URLs recién subidas VÁLIDAS
+          ])
+        );
 
-        const mergedVideos = Array.from(new Set([
-          ...validExistingVideos,  // URLs existentes VÁLIDAS
-          ...validUploadedVideos   // URLs recién subidas VÁLIDAS
-        ]));
+        const mergedVideos = Array.from(
+          new Set([
+            ...validExistingVideos, // URLs existentes VÁLIDAS
+            ...validUploadedVideos, // URLs recién subidas VÁLIDAS
+          ])
+        );
 
         console.log("🔀 RESULTADO MERGE:");
-        console.log("  📸 Imágenes finales:", mergedImages.length, mergedImages);
+        console.log(
+          "  📸 Imágenes finales:",
+          mergedImages.length,
+          mergedImages
+        );
         console.log("  🎬 Videos finales:", mergedVideos.length, mergedVideos);
 
         const shouldSetMain = !prev.imagen && mergedImages.length > 0;
         const mainImage = shouldSetMain ? mergedImages[0] : prev.imagen;
-        
+
         if (shouldSetMain) {
-          console.log("⚠️ No hay imagen principal, usando primera de galería:", mainImage);
+          console.log(
+            "⚠️ No hay imagen principal, usando primera de galería:",
+            mainImage
+          );
         }
 
         const next = {
@@ -1733,7 +1826,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           .then(() => {
             console.log(`✅ FIRESTORE ACTUALIZADO:`, updatePayload);
             console.log(`📊 ESTADO FINAL DEL PRODUCTO:`);
-            console.log(`  - Imagen principal:`, next.imagen ? '✅' : '❌');
+            console.log(`  - Imagen principal:`, next.imagen ? "✅" : "❌");
             console.log(`  - Galería imágenes:`, next.imagenes?.length || 0);
             console.log(`  - Galería videos:`, next.videoUrls?.length || 0);
           })
@@ -1745,12 +1838,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       });
 
       // Limpiar previews temporales
-      setTempPreviews((prev) => ({ 
-        ...prev, 
-        imagenes: [], 
-        productVideos: [] 
+      setTempPreviews((prev) => ({
+        ...prev,
+        imagenes: [],
+        productVideos: [],
       }));
-
     } catch (e) {
       console.error("❌ handleGalleryUFU error general:", e);
     } finally {
@@ -1766,7 +1858,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
-    
+
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
@@ -1850,17 +1942,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const handleExtrasUFU = async (filesList) => {
     console.log("🚀 handleExtrasUFU iniciado con:", filesList);
-    
+
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
       console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
-    
+
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
-      
+
       // Obtener ID del producto
       let targetId = currentId || product?.id;
       if (!targetId) {
@@ -1873,9 +1965,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       }
 
       // Separar archivos nuevos (con .file) de URLs existentes
-      const newFiles = arr.filter(f => f?.file);
-      const existingUrls = arr.filter(f => !f?.file && f?.url && !f.url.startsWith("blob:")).map(f => f.url);
-      
+      const newFiles = arr.filter((f) => f?.file);
+      const existingUrls = arr
+        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+        .map((f) => f.url);
+
       console.log("📁 Archivos nuevos:", newFiles.length);
       console.log("🔗 URLs existentes:", existingUrls.length);
 
@@ -1889,14 +1983,14 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             section: "extras",
             file: fileItem.file,
           });
-          
+
           const remoteUrl = await uploadWithRetry(
             uploadImage,
             fileItem.file,
             destPath,
             `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
           );
-          
+
           uploadedUrls.push(remoteUrl);
           console.log("✅ Subido exitosamente:", remoteUrl);
         } catch (e) {
@@ -1909,13 +2003,19 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       setFormData((prev) => {
         // NO usar prevExtras porque ignora eliminaciones del usuario
         // ✅ FILTRO ESTRICTO: Solo URLs válidas
-        const validExisting = existingUrls.filter(url => url && typeof url === 'string' && url.trim() !== '');
-        const validUploaded = uploadedUrls.filter(url => url && typeof url === 'string' && url.trim() !== '');
-        
-        const merged = Array.from(new Set([
-          ...validExisting,  // URLs VÁLIDAS que el UFU dice que están
-          ...validUploaded   // URLs VÁLIDAS recién subidas
-        ]));
+        const validExisting = existingUrls.filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        );
+        const validUploaded = uploadedUrls.filter(
+          (url) => url && typeof url === "string" && url.trim() !== ""
+        );
+
+        const merged = Array.from(
+          new Set([
+            ...validExisting, // URLs VÁLIDAS que el UFU dice que están
+            ...validUploaded, // URLs VÁLIDAS recién subidas
+          ])
+        );
 
         const next = { ...prev, imagenesExtra: merged };
 
@@ -1923,7 +2023,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         safeUpdateDoc(targetId, { imagenesExtra: merged })
           .then(() => {
             console.log("✅ FIRESTORE ACTUALIZADO - imagenesExtra:", merged);
-          }).catch((err) => {
+          })
+          .catch((err) => {
             console.error("❌ ERROR FIRESTORE:", err);
           });
 
@@ -1932,7 +2033,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
       // Limpiar previews temporales
       setTempPreviews((prev) => ({ ...prev, extras: [] }));
-
     } catch (e) {
       console.error("❌ handleExtrasUFU error general:", e);
     } finally {
@@ -1947,7 +2047,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
-    
+
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
@@ -2047,7 +2147,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
-    
+
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
@@ -2143,7 +2243,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
-    
+
     try {
       const arr = Array.isArray(filesList) ? filesList : [];
       const localPreviews = arr
@@ -2287,9 +2387,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       }
     } catch (e) {
       setUploadQueue((prev) =>
-        prev.map((q) =>
-          q.id === newId ? { ...q, status: "error" } : q
-        )
+        prev.map((q) => (q.id === newId ? { ...q, status: "error" } : q))
       );
     }
   };
@@ -2454,14 +2552,16 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             v?.precio !== null &&
             String(v.precio).trim() !== "";
           const precioSan = hasPrecio ? toNumber(v.precio) || 0 : undefined;
-          
+
           // IMPORTANTE: Preservar TODOS los campos de la variante sin eliminar nada
           return {
             ...v, // Mantener TODOS los campos existentes
             cantidad: cantidadSan,
             ...(hasPrecio ? { precio: precioSan } : {}),
             // Asegurar que los campos de medios estén presentes
-            id: v?.id || `var_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            id:
+              v?.id ||
+              `var_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
             imagenPrincipal: v?.imagenPrincipal || [],
             galeriaImagenes: v?.galeriaImagenes || [],
             imagen: v?.imagen || "",
@@ -2486,7 +2586,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       // IMPORTANTE: NO borrar campos de medios - el usuario los está editando
       // Solo limpiar campos legacy que realmente no se usan
       delete productData.media; // Legacy field
-      
+
       // Asegurar que TODOS los campos de medios se incluyan explícitamente
       productData.imagenPrincipal = formData.imagenPrincipal || [];
       productData.galeriaImagenes = formData.galeriaImagenes || [];
@@ -2498,7 +2598,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       productData.videoUrls = formData.videoUrls || [];
       productData.videoUrl = formData.videoUrl || "";
       // Asociación de variante con imagen principal
-      productData.varianteImagenPrincipal = formData.varianteImagenPrincipal || "";
+      productData.varianteImagenPrincipal =
+        formData.varianteImagenPrincipal || "";
 
       // Normalización de marca para filtros insensibles a mayúsculas
       if (productData.empresa) {
@@ -2588,25 +2689,31 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         </div>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto p-6"
-        >
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
           {/* Información del Producto - Layout Simétrico */}
           <div className="space-y-6">
-            
             {/* Fila 1: Información Básica (ancho completo) */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span>📝</span> Información Básica
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     <span className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      <svg
+                        className="w-4 h-4 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                        />
                       </svg>
                       Nombre del Producto *
                     </span>
@@ -2615,7 +2722,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                     type="text"
                     required
                     value={formData.nombre}
-                    onChange={(e) => handleInputChange("nombre", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("nombre", e.target.value)
+                    }
                     className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg font-medium"
                     placeholder="Ej: iPhone 15 Pro Max"
                   />
@@ -2624,15 +2733,27 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     <span className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      <svg
+                        className="w-4 h-4 text-purple-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
                       </svg>
                       Marca / Empresa
                     </span>
                   </label>
-                  
+
                   <select
-                    value={showNewBrandInput ? "__nueva__" : (formData.empresa || "")}
+                    value={
+                      showNewBrandInput ? "__nueva__" : formData.empresa || ""
+                    }
                     onChange={(e) => {
                       if (e.target.value === "__nueva__") {
                         setShowNewBrandInput(true);
@@ -2646,11 +2767,18 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                   >
                     <option value="">Selecciona una marca...</option>
                     {brands.map((b) => (
-                      <option key={b} value={b}>{b}</option>
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
                     ))}
-                    <option value="__nueva__" className="font-semibold text-purple-600">+ Agregar nueva marca...</option>
+                    <option
+                      value="__nueva__"
+                      className="font-semibold text-purple-600"
+                    >
+                      + Agregar nueva marca...
+                    </option>
                   </select>
-                  
+
                   {showNewBrandInput && (
                     <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
                       <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
@@ -2662,9 +2790,13 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                           value={newBrandName}
                           onChange={(e) => setNewBrandName(e.target.value)}
                           onKeyPress={(e) => {
-                            if (e.key === 'Enter' && newBrandName.trim()) {
+                            if (e.key === "Enter" && newBrandName.trim()) {
                               handleInputChange("empresa", newBrandName.trim());
-                              setBrands(prev => [...prev, newBrandName.trim()].sort((a, b) => a.localeCompare(b)));
+                              setBrands((prev) =>
+                                [...prev, newBrandName.trim()].sort((a, b) =>
+                                  a.localeCompare(b)
+                                )
+                              );
                               setShowNewBrandInput(false);
                               setNewBrandName("");
                             }
@@ -2678,7 +2810,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                           onClick={() => {
                             if (newBrandName.trim()) {
                               handleInputChange("empresa", newBrandName.trim());
-                              setBrands(prev => [...prev, newBrandName.trim()].sort((a, b) => a.localeCompare(b)));
+                              setBrands((prev) =>
+                                [...prev, newBrandName.trim()].sort((a, b) =>
+                                  a.localeCompare(b)
+                                )
+                              );
                               setShowNewBrandInput(false);
                               setNewBrandName("");
                             }
@@ -2700,7 +2836,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                       </div>
                     </div>
                   )}
-                  
+
                   <p className="text-xs text-gray-500 mt-2">
                     Selecciona una marca existente o agrega una nueva.
                   </p>
@@ -2935,549 +3071,662 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span>🖼️</span> Imágenes y Multimedia
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
                     📷 Imagen Principal *
                   </label>
-                <UniversalFileUploader
-                  files={
-                    // PRIORIDAD: 1. Imagen guardada, 2. Preview temporal
-                    formData.imagen && typeof formData.imagen === 'string'
-                      ? [{
-                          id: "saved-main",
-                          url: formData.imagen,
-                          type: "image",
-                          name: formData.imagen.split('/').pop().split('?')[0] || "imagen-principal",
-                          size: 0,
-                          isUploaded: true,
-                        }]
-                      : tempPreviews.imagen
-                      ? [
-                          {
-                            id: "temp-main",
-                            url: tempPreviews.imagen,
-                            type: "image",
-                            name: "imagen-principal",
-                            size: 0,
-                            isUploaded: false,
-                          },
-                        ]
-                      : []
-                  }
-                  onFilesChange={handleMainImageUFU}
-                  acceptedTypes="image/*"
-                  multiple={false}
-                  maxFiles={1}
-                  label="Imagen Principal"
-                  placeholder="Arrastra o selecciona una imagen principal"
-                  allowReorder={false}
-                  allowSetMain={false}
-                />
-                
-                {/* Input de texto libre para Variante/Color de Imagen Principal */}
-                {formData.imagen && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🎨 ¿De qué variante/color es esta imagen principal?
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.varianteImagenPrincipal || ""}
-                      onChange={(e) => {
-                        const valor = e.target.value;
-                        setFormData(prev => ({ ...prev, varianteImagenPrincipal: valor }));
-                        // Actualizar en Firestore si ya existe el producto
-                        if (currentId || product?.id) {
-                          safeUpdateDoc(currentId || product.id, {
-                            varianteImagenPrincipal: valor
-                          }).catch(err => console.error("Error actualizando variante de imagen principal:", err));
-                        }
-                      }}
-                      placeholder="Ej: Negro, Azul, Rojo, etc. (Dejar vacío si es genérica)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      💡 Escribe el color o variante que representa esta imagen. En VistaProducto será parte del selector de variantes.
-                    </p>
-                  </div>
-                )}
-              </div>
+                  <UniversalFileUploader
+                    files={
+                      // PRIORIDAD: 1. Imagen guardada, 2. Preview temporal
+                      formData.imagen && typeof formData.imagen === "string"
+                        ? [
+                            {
+                              id: "saved-main",
+                              url: formData.imagen,
+                              type: "image",
+                              name:
+                                formData.imagen
+                                  .split("/")
+                                  .pop()
+                                  .split("?")[0] || "imagen-principal",
+                              size: 0,
+                              isUploaded: true,
+                            },
+                          ]
+                        : tempPreviews.imagen
+                        ? [
+                            {
+                              id: "temp-main",
+                              url: tempPreviews.imagen,
+                              type: "image",
+                              name: "imagen-principal",
+                              size: 0,
+                              isUploaded: false,
+                            },
+                          ]
+                        : []
+                    }
+                    onFilesChange={handleMainImageUFU}
+                    acceptedTypes="image/*"
+                    multiple={false}
+                    maxFiles={1}
+                    label="Imagen Principal"
+                    placeholder="Arrastra o selecciona una imagen principal"
+                    allowReorder={false}
+                    allowSetMain={false}
+                  />
+
+                  {/* Input de texto libre para Variante/Color de Imagen Principal */}
+                  {formData.imagen && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        🎨 ¿De qué variante/color es esta imagen principal?
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.varianteImagenPrincipal || ""}
+                        onChange={(e) => {
+                          const valor = e.target.value;
+                          setFormData((prev) => ({
+                            ...prev,
+                            varianteImagenPrincipal: valor,
+                          }));
+                          // Actualizar en Firestore si ya existe el producto
+                          if (currentId || product?.id) {
+                            safeUpdateDoc(currentId || product.id, {
+                              varianteImagenPrincipal: valor,
+                            }).catch((err) =>
+                              console.error(
+                                "Error actualizando variante de imagen principal:",
+                                err
+                              )
+                            );
+                          }
+                        }}
+                        placeholder="Ej: Negro, Azul, Rojo, etc. (Dejar vacío si es genérica)"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        💡 Escribe el color o variante que representa esta
+                        imagen. En VistaProducto será parte del selector de
+                        variantes.
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
                     🎬 Galería (Imágenes y Videos)
                   </label>
+                  <UniversalFileUploader
+                    files={[
+                      // SOLO mostrar archivos guardados O previews temporales, NUNCA ambos juntos
+                      ...(Array.isArray(formData.imagenes) &&
+                      formData.imagenes.length > 0
+                        ? formData.imagenes.map((u, i) => {
+                            const url = typeof u === "string" ? u : u?.url || u;
+                            // Extraer nombre original del archivo de la URL
+                            const fileName =
+                              url.split("/").pop().split("?")[0] ||
+                              `imagen-${i + 1}`;
+                            return {
+                              id: `saved-img-${i}`,
+                              url: url,
+                              type: "image",
+                              name: fileName,
+                              size: 0,
+                              isUploaded: true,
+                            };
+                          })
+                        : []),
+                      ...(Array.isArray(formData.videoUrls) &&
+                      formData.videoUrls.length > 0
+                        ? formData.videoUrls.map((u, i) => {
+                            const url = typeof u === "string" ? u : u?.url || u;
+                            // Extraer nombre original del archivo de la URL
+                            const fileName =
+                              url.split("/").pop().split("?")[0] ||
+                              `video-${i + 1}`;
+                            return {
+                              id: `saved-vid-${i}`,
+                              url: url,
+                              type: "video",
+                              name: fileName,
+                              size: 0,
+                              isUploaded: true,
+                            };
+                          })
+                        : []),
+                      // Solo mostrar previews temporales si NO hay archivos guardados
+                      ...((!formData.imagenes ||
+                        formData.imagenes.length === 0) &&
+                      Array.isArray(tempPreviews.imagenes)
+                        ? tempPreviews.imagenes.map((u, i) => ({
+                            id: `temp-gallery-img-${i}`,
+                            url: u,
+                            type: "image",
+                            name:
+                              u.split("/").pop().split("?")[0] ||
+                              `imagen-${i + 1}`,
+                            size: 0,
+                            isUploaded: false,
+                          }))
+                        : []),
+                      ...((!formData.videoUrls ||
+                        formData.videoUrls.length === 0) &&
+                      Array.isArray(tempPreviews.productVideos)
+                        ? tempPreviews.productVideos.map((u, i) => ({
+                            id: `temp-gallery-vid-${i}`,
+                            url: u,
+                            type: "video",
+                            name:
+                              u.split("/").pop().split("?")[0] ||
+                              `video-${i + 1}`,
+                            size: 0,
+                            isUploaded: false,
+                          }))
+                        : []),
+                    ]}
+                    onFilesChange={handleGalleryUFU}
+                    acceptedTypes="image/*,video/*"
+                    multiple={true}
+                    label="Galería (Imágenes y Videos)"
+                    placeholder="Arrastra o selecciona imágenes o videos"
+                    allowReorder={true}
+                    allowSetMain={true}
+                  />
+                </div>
+              </div>
+
+              {/* Fila 3: Detalles y Extras */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <span>📋</span> Detalles del Producto
+                </h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Características (Acerca de)
+                  </label>
+                  {formData.acerca.map((item, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(e) =>
+                          handleArrayChange("acerca", index, e.target.value)
+                        }
+                        placeholder="Característica del producto"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem("acerca", index)}
+                        className="px-3 py-2 text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addArrayItem("acerca")}
+                    className="text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    + Agregar característica
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Etiquetas (para búsqueda)
+                  </label>
+                  {formData.etiquetas.map((tag, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={tag}
+                        onChange={(e) =>
+                          handleArrayChange("etiquetas", index, e.target.value)
+                        }
+                        placeholder="Etiqueta"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem("etiquetas", index)}
+                        className="px-3 py-2 text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addArrayItem("etiquetas")}
+                    className="text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    + Agregar etiqueta
+                  </button>
+                </div>
+              </div>
+
+              {/* Enhanced Variants Section */}
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
+                    Variantes del Producto
+                  </h3>
+                  {formData.variantes && formData.variantes.length > 1 && (
+                    <div className="mb-4">
+                      <VisualVariantSelector
+                        variants={formData.variantes.map((v, idx) => ({
+                          id: v.id || `var_${idx}`,
+                          name: v.color || `Variante ${idx + 1}`,
+                          price: v.precio,
+                          stock: v.cantidad,
+                          image: v.imagenPrincipal?.[0]?.url || v.imagen,
+                          isSelected: selectedVariant === idx,
+                        }))}
+                        productMainImage={
+                          formData.imagenPrincipal?.[0]?.url || formData.imagen
+                        }
+                        onVariantChange={handleVariantSelectionChange}
+                        className="max-w-md"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {formData.variantes.map((variant, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-6 space-y-6 bg-gray-50"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-semibold text-lg text-gray-900">
+                        Variante {index + 1}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem("variantes", index)}
+                        className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+
+                    {/* Campos de información - Grid de 2 columnas responsive */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Color/Tipo
+                        </label>
+                        <input
+                          type="text"
+                          value={variant.color}
+                          onChange={(e) =>
+                            handleVariantChange(index, "color", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Ej. Rojo, Azul, Edición Especial"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Cantidad en Stock
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={variant.cantidad}
+                          onChange={(e) =>
+                            handleVariantChange(
+                              index,
+                              "cantidad",
+                              parseInt(e.target.value) || 0
+                            )
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Precio de la variante (opcional)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={variant.precio ?? ""}
+                          onChange={(e) =>
+                            handleVariantChange(index, "precio", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Ej. 1999.99"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Descripción de la variante
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={variant.descripcion || ""}
+                          onChange={(e) =>
+                            handleVariantChange(
+                              index,
+                              "descripcion",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Ej. Color neón, control edición especial, etc."
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sección de Medios - MISMO diseño que la sección principal */}
+                    <div className="border-t pt-4">
+                      <h5 className="text-sm font-semibold text-gray-900 mb-4">
+                        Imágenes de la Variante
+                      </h5>
+
+                      {/* Grid de 2 columnas - IGUAL que imagen principal y galería */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Columna 1: Imagen Principal de Variante */}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                            📷 Imagen Principal de Variante
+                          </label>
+                          <UniversalFileUploader
+                            files={[
+                              ...(tempPreviews.variantes?.[index]?.imagen
+                                ? [
+                                    {
+                                      id: `temp-var${index}-main`,
+                                      url: tempPreviews.variantes[index].imagen,
+                                      type: "image",
+                                      name: `var${index}-imagen`,
+                                      size: 0,
+                                      isUploaded: false,
+                                    },
+                                  ]
+                                : []),
+                              ...(variant.imagen &&
+                              typeof variant.imagen === "string"
+                                ? [
+                                    {
+                                      id: `saved-var${index}-main`,
+                                      url: variant.imagen,
+                                      type: "image",
+                                      name: `var${index}-imagen`,
+                                      size: 0,
+                                      isUploaded: true,
+                                    },
+                                  ]
+                                : []),
+                            ]}
+                            onFilesChange={(files) =>
+                              handleVariantMainUFU(files, index)
+                            }
+                            acceptedTypes="image/*"
+                            multiple={false}
+                            maxFiles={1}
+                            label="Imagen Principal"
+                            placeholder="Arrastra o selecciona una imagen"
+                            allowReorder={false}
+                            allowSetMain={false}
+                          />
+                        </div>
+
+                        {/* Columna 2: Galería de Imágenes de Variante */}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                            🎬 Galería de Imágenes
+                          </label>
+                          <UniversalFileUploader
+                            files={[
+                              ...(Array.isArray(variant.imagenes)
+                                ? variant.imagenes.map((u, i) => ({
+                                    id: `saved-var${index}-img-${i}`,
+                                    url:
+                                      typeof u === "string" ? u : u?.url || u,
+                                    type: "image",
+                                    name: `var${index}-img-${i + 1}`,
+                                    size: 0,
+                                    isUploaded: true,
+                                  }))
+                                : []),
+                              ...(
+                                tempPreviews.variantes?.[index]?.imagenes || []
+                              ).map((u, i) => ({
+                                id: `temp-var${index}-img-${i}`,
+                                url: u,
+                                type: "image",
+                                name: `var${index}-img-${i + 1}`,
+                                size: 0,
+                                isUploaded: false,
+                              })),
+                            ]}
+                            onFilesChange={(files) =>
+                              handleVariantGalleryUFU(files, index)
+                            }
+                            acceptedTypes="image/*"
+                            multiple={true}
+                            label="Galería"
+                            placeholder="Arrastra o selecciona imágenes"
+                            allowReorder={true}
+                            allowSetMain={true}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Videos de la variante - Opcional, ancho completo */}
+                      <div className="mt-6">
+                        <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                          🎥 Videos de la Variante (Opcional)
+                        </label>
+                        <UniversalFileUploader
+                          files={[
+                            ...(Array.isArray(variant.videoUrls)
+                              ? variant.videoUrls.map((u, i) => ({
+                                  id: `saved-var${index}-vid-${i}`,
+                                  url: typeof u === "string" ? u : u?.url || u,
+                                  type: "video",
+                                  name: `video-${i + 1}`,
+                                  size: 0,
+                                  isUploaded: true,
+                                }))
+                              : []),
+                            ...(
+                              tempPreviews.variantes?.[index]?.videos || []
+                            ).map((u, i) => ({
+                              id: `temp-var${index}-video-${i}`,
+                              url: u,
+                              type: "video",
+                              name: `video-${i + 1}`,
+                              size: 0,
+                              isUploaded: false,
+                            })),
+                          ]}
+                          onFilesChange={(files) =>
+                            handleVariantVideosUFU(files, index)
+                          }
+                          acceptedTypes="video/*"
+                          multiple={true}
+                          label="Videos"
+                          placeholder="Arrastra o selecciona videos"
+                          allowReorder={true}
+                          allowSetMain={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => addArrayItem("variantes")}
+                  className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  Agregar Variante
+                </button>
+              </div>
+
+              {/* 📸 Imágenes con más información del artículo */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <span>📸</span> Imágenes con más información del artículo
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Imágenes que se mostrarán en la sección "Más información del
+                  producto"
+                </p>
                 <UniversalFileUploader
                   files={[
-                    // SOLO mostrar archivos guardados O previews temporales, NUNCA ambos juntos
-                    ...(Array.isArray(formData.imagenes) && formData.imagenes.length > 0
-                      ? formData.imagenes.map((u, i) => {
-                          const url = typeof u === 'string' ? u : u?.url || u;
-                          // Extraer nombre original del archivo de la URL
-                          const fileName = url.split('/').pop().split('?')[0] || `imagen-${i + 1}`;
-                          return {
-                            id: `saved-img-${i}`,
-                            url: url,
-                            type: "image",
-                            name: fileName,
-                            size: 0,
-                            isUploaded: true,
-                          };
-                        })
-                      : []),
-                    ...(Array.isArray(formData.videoUrls) && formData.videoUrls.length > 0
-                      ? formData.videoUrls.map((u, i) => {
-                          const url = typeof u === 'string' ? u : u?.url || u;
-                          // Extraer nombre original del archivo de la URL
-                          const fileName = url.split('/').pop().split('?')[0] || `video-${i + 1}`;
-                          return {
-                            id: `saved-vid-${i}`,
-                            url: url,
-                            type: "video",
-                            name: fileName,
-                            size: 0,
-                            isUploaded: true,
-                          };
-                        })
-                      : []),
-                    // Solo mostrar previews temporales si NO hay archivos guardados
-                    ...((!formData.imagenes || formData.imagenes.length === 0) && Array.isArray(tempPreviews.imagenes)
-                      ? tempPreviews.imagenes.map((u, i) => ({
-                          id: `temp-gallery-img-${i}`,
-                          url: u,
-                          type: "image",
-                          name: u.split('/').pop().split('?')[0] || `imagen-${i + 1}`,
-                          size: 0,
-                          isUploaded: false,
-                        }))
-                      : []),
-                    ...((!formData.videoUrls || formData.videoUrls.length === 0) && Array.isArray(tempPreviews.productVideos)
-                      ? tempPreviews.productVideos.map((u, i) => ({
-                          id: `temp-gallery-vid-${i}`,
-                          url: u,
-                          type: "video",
-                          name: u.split('/').pop().split('?')[0] || `video-${i + 1}`,
-                          size: 0,
-                          isUploaded: false,
-                        }))
-                      : []),
+                    ...(formData.imagenesExtra || []).map((u, i) => ({
+                      id: `saved-info-${i}`,
+                      url: u,
+                      type: detectTypeFromUrl(u),
+                      name: (
+                        String(u).split("/").pop() || `info-${i + 1}`
+                      ).split("?")[0],
+                      size: 0,
+                      isUploaded: true,
+                    })),
+                    ...(tempPreviews.extras || []).map((u, i) => ({
+                      id: `temp-info-${i}`,
+                      url: u,
+                      type: "image",
+                      name: `info-${i + 1}`,
+                      size: 0,
+                      isUploaded: false,
+                    })),
                   ]}
-                  onFilesChange={handleGalleryUFU}
-                  acceptedTypes="image/*,video/*"
+                  onFilesChange={handleExtrasUFU}
+                  acceptedTypes="image/*"
                   multiple={true}
-                  label="Galería (Imágenes y Videos)"
-                  placeholder="Arrastra o selecciona imágenes o videos"
+                  label="Imágenes informativas del producto"
+                  placeholder="📸 Arrastra o selecciona imágenes de alta resolución con información adicional del producto"
                   allowReorder={true}
-                  allowSetMain={true}
+                  allowSetMain={false}
                 />
               </div>
             </div>
 
-            {/* Fila 3: Detalles y Extras */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <span>📋</span> Detalles del Producto
-              </h3>
+            {/* Formulario simple sin indicadores innecesarios */}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Características (Acerca de)
-              </label>
-              {formData.acerca.map((item, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={item}
-                    onChange={(e) =>
-                      handleArrayChange("acerca", index, e.target.value)
-                    }
-                    placeholder="Característica del producto"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem("acerca", index)}
-                    className="px-3 py-2 text-red-500 hover:text-red-700"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+            {/* Botones de Acción */}
+            <div className="mt-8 flex justify-end space-x-4 pt-6 border-t">
               <button
                 type="button"
-                onClick={() => addArrayItem("acerca")}
-                className="text-blue-600 hover:text-blue-800 text-sm"
+                onClick={onClose}
+                className="px-8 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-lg"
               >
-                + Agregar característica
+                Cancelar
               </button>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Etiquetas (para búsqueda)
-              </label>
-              {formData.etiquetas.map((tag, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={tag}
-                    onChange={(e) =>
-                      handleArrayChange("etiquetas", index, e.target.value)
-                    }
-                    placeholder="Etiqueta"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem("etiquetas", index)}
-                    className="px-3 py-2 text-red-500 hover:text-red-700"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
               <button
-                type="button"
-                onClick={() => addArrayItem("etiquetas")}
-                className="text-blue-600 hover:text-blue-800 text-sm"
+                type="submit"
+                disabled={loading}
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center space-x-2"
               >
-                + Agregar etiqueta
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <span>Guardar Producto</span>
+                )}
               </button>
             </div>
-          </div>
-
-          {/* Enhanced Variants Section */}
-          <div className="mt-8 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
-                Variantes del Producto
-              </h3>
-              {formData.variantes && formData.variantes.length > 1 && (
-                <div className="mb-4">
-                  <VisualVariantSelector
-                    variants={formData.variantes.map((v, idx) => ({
-                      id: v.id || `var_${idx}`,
-                      name: v.color || `Variante ${idx + 1}`,
-                      price: v.precio,
-                      stock: v.cantidad,
-                      image: v.imagenPrincipal?.[0]?.url || v.imagen,
-                      isSelected: selectedVariant === idx,
-                    }))}
-                    productMainImage={
-                      formData.imagenPrincipal?.[0]?.url || formData.imagen
-                    }
-                    onVariantChange={handleVariantSelectionChange}
-                    className="max-w-md"
-                  />
-                </div>
-              )}
-            </div>
-
-            {formData.variantes.map((variant, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 rounded-lg p-6 space-y-6 bg-gray-50"
-              >
-                <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-lg text-gray-900">Variante {index + 1}</h4>
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem("variantes", index)}
-                    className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-
-                {/* Campos de información - Grid de 2 columnas responsive */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Color/Tipo
-                    </label>
-                    <input
-                      type="text"
-                      value={variant.color}
-                      onChange={(e) =>
-                        handleVariantChange(index, "color", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ej. Rojo, Azul, Edición Especial"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Cantidad en Stock
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={variant.cantidad}
-                      onChange={(e) =>
-                        handleVariantChange(
-                          index,
-                          "cantidad",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Precio de la variante (opcional)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={variant.precio ?? ""}
-                      onChange={(e) =>
-                        handleVariantChange(index, "precio", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ej. 1999.99"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Descripción de la variante
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={variant.descripcion || ""}
-                      onChange={(e) =>
-                        handleVariantChange(
-                          index,
-                          "descripcion",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ej. Color neón, control edición especial, etc."
-                    />
-                  </div>
-                </div>
-
-                {/* Sección de Medios - MISMO diseño que la sección principal */}
-                <div className="border-t pt-4">
-                  <h5 className="text-sm font-semibold text-gray-900 mb-4">Imágenes de la Variante</h5>
-                  
-                  {/* Grid de 2 columnas - IGUAL que imagen principal y galería */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Columna 1: Imagen Principal de Variante */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                        📷 Imagen Principal de Variante
-                      </label>
-                      <UniversalFileUploader
-                        files={[
-                          ...(tempPreviews.variantes?.[index]?.imagen
-                            ? [
-                                {
-                                  id: `temp-var${index}-main`,
-                                  url: tempPreviews.variantes[index].imagen,
-                                  type: "image",
-                                  name: `var${index}-imagen`,
-                                  size: 0,
-                                  isUploaded: false,
-                                },
-                              ]
-                            : []),
-                          ...(variant.imagen && typeof variant.imagen === 'string' ? [{
-                          id: `saved-var${index}-main`,
-                          url: variant.imagen,
-                          type: "image",
-                          name: `var${index}-imagen`,
-                          size: 0,
-                          isUploaded: true,
-                        }] : []),
-                        ]}
-                        onFilesChange={(files) =>
-                          handleVariantMainUFU(files, index)
-                        }
-                        acceptedTypes="image/*"
-                        multiple={false}
-                        maxFiles={1}
-                        label="Imagen Principal"
-                        placeholder="Arrastra o selecciona una imagen"
-                        allowReorder={false}
-                        allowSetMain={false}
-                      />
-                    </div>
-
-                    {/* Columna 2: Galería de Imágenes de Variante */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                        🎬 Galería de Imágenes
-                      </label>
-                      <UniversalFileUploader
-                        files={[
-                          ...(Array.isArray(variant.imagenes) ? variant.imagenes.map((u, i) => ({
-                            id: `saved-var${index}-img-${i}`,
-                            url: typeof u === 'string' ? u : u?.url || u,
-                            type: "image",
-                            name: `var${index}-img-${i + 1}`,
-                            size: 0,
-                            isUploaded: true,
-                          })) : []),
-                          ...(tempPreviews.variantes?.[index]?.imagenes || []).map(
-                            (u, i) => ({
-                              id: `temp-var${index}-img-${i}`,
-                              url: u,
-                              type: "image",
-                              name: `var${index}-img-${i + 1}`,
-                              size: 0,
-                              isUploaded: false,
-                            })
-                          ),
-                        ]}
-                        onFilesChange={(files) =>
-                          handleVariantGalleryUFU(files, index)
-                        }
-                        acceptedTypes="image/*"
-                        multiple={true}
-                        label="Galería"
-                        placeholder="Arrastra o selecciona imágenes"
-                        allowReorder={true}
-                        allowSetMain={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Videos de la variante - Opcional, ancho completo */}
-                  <div className="mt-6">
-                    <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                      🎥 Videos de la Variante (Opcional)
-                    </label>
-                    <UniversalFileUploader
-                      files={[
-                        ...(Array.isArray(variant.videoUrls) ? variant.videoUrls.map((u, i) => ({
-                          id: `saved-var${index}-vid-${i}`,
-                          url: typeof u === 'string' ? u : u?.url || u,
-                          type: "video",
-                          name: `video-${i + 1}`,
-                          size: 0,
-                          isUploaded: true,
-                        })) : []),
-                        ...(tempPreviews.variantes?.[index]?.videos || []).map(
-                          (u, i) => ({
-                            id: `temp-var${index}-video-${i}`,
-                            url: u,
-                            type: "video",
-                            name: `video-${i + 1}`,
-                            size: 0,
-                            isUploaded: false,
-                          })
-                        ),
-                      ]}
-                      onFilesChange={(files) =>
-                        handleVariantVideosUFU(files, index)
-                      }
-                      acceptedTypes="video/*"
-                      multiple={true}
-                      label="Videos"
-                      placeholder="Arrastra o selecciona videos"
-                      allowReorder={true}
-                      allowSetMain={true}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <button
-              type="button"
-              onClick={() => addArrayItem("variantes")}
-              className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Agregar Variante
-            </button>
-          </div>
-
-            {/* 📸 Imágenes con más información del artículo */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <span>📸</span> Imágenes con más información del artículo
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Imágenes que se mostrarán en la sección "Más información del producto"
-              </p>
-              <UniversalFileUploader
-              files={[
-                ...(formData.imagenesExtra || []).map((u, i) => ({
-                  id: `saved-info-${i}`,
-                  url: u,
-                  type: detectTypeFromUrl(u),
-                  name: (String(u).split("/").pop() || `info-${i + 1}`).split(
-                    "?"
-                  )[0],
-                  size: 0,
-                  isUploaded: true,
-                })),
-                ...(tempPreviews.extras || []).map((u, i) => ({
-                  id: `temp-info-${i}`,
-                  url: u,
-                  type: "image",
-                  name: `info-${i + 1}`,
-                  size: 0,
-                  isUploaded: false,
-                })),
-              ]}
-              onFilesChange={handleExtrasUFU}
-              acceptedTypes="image/*"
-              multiple={true}
-              label="Imágenes informativas del producto"
-              placeholder="📸 Arrastra o selecciona imágenes de alta resolución con información adicional del producto"
-              allowReorder={true}
-              allowSetMain={false}
-            />
-            </div>
-          </div>
-          
-          {/* Formulario simple sin indicadores innecesarios */}
-          
-          {/* Botones de Acción */}
-          <div className="mt-8 flex justify-end space-x-4 pt-6 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-8 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-lg"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center space-x-2"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Guardando...</span>
-                </>
-              ) : (
-                <span>Guardar Producto</span>
-              )}
-            </button>
-          </div>
-          
           </div>
           {/* Cierre del div space-y-6 */}
 
           {/* Mensaje de subida en segundo plano removido para evitar estados de carga visibles */}
         </form>
       </motion.div>
-      
-      {/* Loader ahora está dentro de cada cuadro de archivo */}
+
+      {/* Loader animado mientras se suben archivos */}
+      <AnimatePresence>
+        {(uploadingImages ||
+          uploadQueue?.some((q) => q.status === "uploading")) && (
+          <motion.div
+            className="upload-loader-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="upload-loader-container">
+              <div className="loader">
+                <svg width="100" height="100" viewBox="0 0 100 100">
+                  <defs>
+                    <mask id="clipping">
+                      <polygon
+                        points="0,0 100,0 100,100 0,100"
+                        fill="black"
+                      ></polygon>
+                      <polygon
+                        points="25,25 75,25 50,75"
+                        fill="white"
+                      ></polygon>
+                      <polygon
+                        points="50,25 75,75 25,75"
+                        fill="white"
+                      ></polygon>
+                      <polygon
+                        points="35,35 65,35 50,65"
+                        fill="white"
+                      ></polygon>
+                      <polygon
+                        points="35,35 65,35 50,65"
+                        fill="white"
+                      ></polygon>
+                      <polygon
+                        points="35,35 65,35 50,65"
+                        fill="white"
+                      ></polygon>
+                      <polygon
+                        points="35,35 65,35 50,65"
+                        fill="white"
+                      ></polygon>
+                    </mask>
+                  </defs>
+                </svg>
+                <div className="box"></div>
+              </div>
+              <div className="upload-loader-text">Subiendo archivos...</div>
+              <div className="upload-loader-subtext">
+                {uploadQueue?.filter((q) => q.status === "uploading").length ||
+                  0}{" "}
+                archivo(s) en progreso
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Formulario simple sin complicaciones */}
     </motion.div>
   );
 };

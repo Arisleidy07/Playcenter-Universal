@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+} from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import "../styles/UniversalFileUploader.css";
@@ -98,12 +104,9 @@ const FilePreview = ({
   index,
   fileCount,
 }) => {
-  const { url, type, name, size, progress, error, isMain, isUploaded } = file;
+  const { url, type, name, size, progress, error, isMain } = file;
   const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef(null);
-  
-  // Determinar si está subiendo (progress existe y no es 100)
-  const isUploading = progress !== undefined && progress < 100 && !error;
 
   // Formatear tamaño de archivo en unidades legibles
   const formatBytes = (bytes, decimals = 2) => {
@@ -140,36 +143,15 @@ const FilePreview = ({
       className={`ufu-preview-item ${isMain ? "ufu-main-item" : ""}`}
     >
       <div className="ufu-preview-media">
-        {/* Mostrar loader si está subiendo */}
-        {isUploading && (
-          <div className="ufu-upload-loader-overlay">
-            <div className="loader">
-              <svg width="60" height="60" viewBox="0 0 100 100">
-                <defs>
-                  <mask id={`clipping-${index}`}>
-                    <polygon points="0,0 100,0 100,100 0,100" fill="black"></polygon>
-                    <polygon points="25,25 75,25 50,75" fill="white"></polygon>
-                    <polygon points="50,25 75,75 25,75" fill="white"></polygon>
-                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-                    <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-                  </mask>
-                </defs>
-              </svg>
-              <div className="box" style={{ mask: `url(#clipping-${index})`, WebkitMask: `url(#clipping-${index})` }}></div>
-            </div>
-            <div className="ufu-loader-text">{Math.round(progress || 0)}%</div>
-          </div>
-        )}
-        
         {type === "image" ? (
           <img
             src={url}
             alt={name}
             className="object-contain w-full h-full"
             loading="eager"
-            onLoad={() => {/* Imagen cargada */}}
+            onLoad={() => {
+              /* Imagen cargada */
+            }}
             onError={(e) => {
               // Evitar intentos de red a dominios externos para placeholder
               e.target.onerror = null;
@@ -197,7 +179,9 @@ const FilePreview = ({
                 setVideoReady(true);
               }}
             />
-            <div className={`video-overlay ${videoReady ? "with-thumbnail" : ""}`}>
+            <div
+              className={`video-overlay ${videoReady ? "with-thumbnail" : ""}`}
+            >
               <VideoIcon />
             </div>
           </>
@@ -205,15 +189,17 @@ const FilePreview = ({
           <div className="document-preview">
             <FileIcon />
             <span className="document-ext">
-              {name ? name.split(".").pop()?.toUpperCase() || 'FILE' : 'FILE'}
+              {name ? name.split(".").pop()?.toUpperCase() || "FILE" : "FILE"}
             </span>
           </div>
         )}
       </div>
 
       <div className="ufu-preview-item-info">
-        <p className="ufu-preview-item-name" title={name || 'Archivo'}>
-          {name && name.length > 20 ? name.substring(0, 18) + "..." : (name || 'Archivo')}
+        <p className="ufu-preview-item-name" title={name || "Archivo"}>
+          {name && name.length > 20
+            ? name.substring(0, 18) + "..."
+            : name || "Archivo"}
         </p>
         <p className="ufu-preview-item-size">{formatBytes(size)}</p>
       </div>
@@ -229,14 +215,17 @@ const FilePreview = ({
           onClick={(e) => {
             e.stopPropagation();
             // Descargar archivo
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = url;
-            link.download = name || 'archivo';
-            link.target = '_blank';
+            link.download = name || "archivo";
+            link.target = "_blank";
             // Para URLs de Firebase Storage, agregar query params para forzar descarga
-            if (url.includes('firebase')) {
+            if (url.includes("firebase")) {
               const downloadUrl = new URL(url);
-              downloadUrl.searchParams.set('response-content-disposition', `attachment; filename="${name || 'archivo'}"`);
+              downloadUrl.searchParams.set(
+                "response-content-disposition",
+                `attachment; filename="${name || "archivo"}"`
+              );
               link.href = downloadUrl.toString();
             }
             document.body.appendChild(link);
@@ -437,7 +426,10 @@ const FilePreview = ({
 
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onRemove(file.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(file.id);
+          }}
           className="ufu-control-button ufu-delete-button"
           title="Eliminar"
           aria-label="Eliminar archivo"
@@ -461,7 +453,10 @@ const FilePreview = ({
         {onSetMain && !isMain && (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onSetMain(file.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSetMain(file.id);
+            }}
             className="ufu-control-button ufu-set-main-button"
             title="Establecer como principal"
             aria-label="Establecer como imagen principal"
@@ -487,7 +482,10 @@ const FilePreview = ({
           <div className="ufu-reorder-buttons">
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onMove(index, "up"); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(index, "up");
+              }}
               disabled={index === 0}
               className="ufu-control-button"
               title="Mover arriba"
@@ -510,7 +508,10 @@ const FilePreview = ({
             </button>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onMove(index, "down"); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(index, "down");
+              }}
               disabled={index === fileCount - 1}
               className="ufu-control-button"
               title="Mover abajo"
@@ -557,407 +558,430 @@ const FilePreview = ({
 };
 
 // --- Componente Principal Uploader Mejorado ---
-const UniversalFileUploader = React.memo(({
-  files: initialFiles = [],
-  onFilesChange,
-  acceptedTypes = "image/*,video/*,application/pdf",
-  multiple = true,
-  maxSize = 100 * 1024 * 1024, // 100MB por defecto
-  maxFiles = null, // Límite máximo de archivos
-  label = "Medios del Producto",
-  placeholder = "Arrastra archivos o haz clic para seleccionar",
-  className = "",
-  showPreview = true,
-  allowReorder = true,
-  allowSetMain = true,
-}) => {
-  const [files, setFiles] = useState([]);
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [captureAttr, setCaptureAttr] = useState(undefined);
-  const dropzoneRef = useRef(null);
-  const [rejected, setRejected] = useState([]);
-  // Notificar al padre fuera del render para evitar el warning de React
-  const shouldNotifyRef = useRef(false);
+const UniversalFileUploader = React.memo(
+  ({
+    files: initialFiles = [],
+    onFilesChange,
+    acceptedTypes = "image/*,video/*,application/pdf",
+    multiple = true,
+    maxSize = 100 * 1024 * 1024, // 100MB por defecto
+    maxFiles = null, // Límite máximo de archivos
+    label = "Medios del Producto",
+    placeholder = "Arrastra archivos o haz clic para seleccionar",
+    className = "",
+    showPreview = true,
+    allowReorder = true,
+    allowSetMain = true,
+  }) => {
+    const [files, setFiles] = useState([]);
+    const [draggedIndex, setDraggedIndex] = useState(null);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const [captureAttr, setCaptureAttr] = useState(undefined);
+    const dropzoneRef = useRef(null);
+    const [rejected, setRejected] = useState([]);
+    // Notificar al padre fuera del render para evitar el warning de React
+    const shouldNotifyRef = useRef(false);
 
-  // Procesar archivos iniciales
-  useEffect(() => {
-    // Remover console.log excesivos para mejorar performance
-    
-    if (!initialFiles || initialFiles.length === 0) {
+    // Procesar archivos iniciales
+    useEffect(() => {
+      // Remover console.log excesivos para mejorar performance
+
+      if (!initialFiles || initialFiles.length === 0) {
+        setFiles((prev) => {
+          if (prev.length > 0) {
+            shouldNotifyRef.current = true;
+          }
+          return [];
+        });
+        return;
+      }
+
+      const processedFiles = initialFiles.map((file, index) => {
+        // Si es una URL existente (string)
+        if (typeof file === "string") {
+          const fileExtension = file.split(".").pop().toLowerCase();
+          const isVideo = ["mp4", "mov", "webm", "avi", "mkv", "m4v"].includes(
+            fileExtension
+          );
+
+          return {
+            id: `existing-${index}-${file}`,
+            url: file,
+            type: isVideo ? "video" : "image",
+            name: file.split("/").pop().split("?")[0],
+            size: 0,
+            isMain: index === 0,
+            isUploaded: true,
+          };
+        }
+        // Si ya es un objeto de archivo procesado
+        return file;
+      });
+
       setFiles((prev) => {
-        if (prev.length > 0) {
+        // Solo notificar si hay cambios reales
+        const hasChanged =
+          JSON.stringify(prev.map((f) => f.id)) !==
+          JSON.stringify(processedFiles.map((f) => f.id));
+        if (hasChanged) {
           shouldNotifyRef.current = true;
         }
-        return [];
+        return processedFiles;
       });
-      return;
-    }
+    }, [
+      initialFiles.length,
+      initialFiles
+        .map((f) => (typeof f === "string" ? f : f?.id || f?.url))
+        .join("|"),
+    ]);
 
-    const processedFiles = initialFiles.map((file, index) => {
-      // Si es una URL existente (string)
-      if (typeof file === "string") {
-        const fileExtension = file.split(".").pop().toLowerCase();
-        const isVideo = ["mp4", "mov", "webm", "avi", "mkv", "m4v"].includes(fileExtension);
+    // Manejar archivos soltados o seleccionados
+    const onDrop = useCallback(
+      (acceptedFiles, fileRejections) => {
+        // Remover console.log para mejorar performance
 
-        return {
-          id: `existing-${index}-${file}`,
-          url: file,
-          type: isVideo ? "video" : "image",
-          name: file.split("/").pop().split("?")[0],
-          size: 0,
-          isMain: index === 0,
-          isUploaded: true,
-        };
-      }
-      // Si ya es un objeto de archivo procesado
-      return file;
-    });
+        // Crear vista previa inmediata para cada archivo
+        const newFiles = acceptedFiles.map((file) => {
+          // Determinar tipo de archivo
+          let fileType = "document";
+          if (file.type.startsWith("image/")) fileType = "image";
+          else if (file.type.startsWith("video/")) fileType = "video";
 
-    setFiles((prev) => {
-      // Solo notificar si hay cambios reales
-      const hasChanged = JSON.stringify(prev.map(f => f.id)) !== JSON.stringify(processedFiles.map(f => f.id));
-      if (hasChanged) {
-        shouldNotifyRef.current = true;
-      }
-      return processedFiles;
-    });
-  }, [initialFiles.length, initialFiles.map(f => typeof f === 'string' ? f : f?.id || f?.url).join('|')]);
+          // Crear URL de objeto para vista previa instantánea
+          const previewUrl = URL.createObjectURL(file);
 
-  // Manejar archivos soltados o seleccionados
-  const onDrop = useCallback(
-    (acceptedFiles, fileRejections) => {
-      // Remover console.log para mejorar performance
+          const fileObj = {
+            id: `${file.name}-${Date.now()}-${Math.random()
+              .toString(36)
+              .substring(2, 9)}`,
+            file, // Archivo original para subir después
+            url: previewUrl, // URL de vista previa instantánea
+            type: fileType,
+            name: file.name,
+            size: file.size,
+            progress: 0,
+            error: null,
+            isMain: false,
+            isUploading: false,
+            isUploaded: false, // Marcar como no subido aún
+          };
 
-      // Crear vista previa inmediata para cada archivo
-      const newFiles = acceptedFiles.map((file) => {
-        // Determinar tipo de archivo
-        let fileType = "document";
-        if (file.type.startsWith("image/")) fileType = "image";
-        else if (file.type.startsWith("video/")) fileType = "video";
+          // Objeto de archivo creado
+          return fileObj;
+        });
 
-        // Crear URL de objeto para vista previa instantánea
-        const previewUrl = URL.createObjectURL(file);
-
-        const fileObj = {
-          id: `${file.name}-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 9)}`,
-          file, // Archivo original para subir después
-          url: previewUrl, // URL de vista previa instantánea
-          type: fileType,
-          name: file.name,
-          size: file.size,
-          progress: 0,
-          error: null,
-          isMain: false,
-          isUploading: false,
-          isUploaded: false, // Marcar como no subido aún
-        };
-
-        // Objeto de archivo creado
-        return fileObj;
-      });
-
-      // Manejar archivos rechazados
-      if (fileRejections.length > 0) {
-        console.error("Archivos rechazados:", fileRejections);
-        // Mostrar mensajes visibles para el usuario
-        setRejected(
-          fileRejections.map(({ file, errors }) => ({
-            name: file?.name || "Archivo",
-            messages: (errors || []).map((e) => e.message),
-          }))
-        );
-      }
-
-      // Actualizar estado con nuevos archivos (no notificar al padre aquí)
-      setFiles((currentFiles) => {
-        let finalFiles;
-
-        if (multiple) {
-          const combinedFiles = [...currentFiles, ...newFiles];
-          // Aplicar límite máximo si está definido
-          finalFiles = maxFiles
-            ? combinedFiles.slice(0, maxFiles)
-            : combinedFiles;
-          // Actualizando archivos (múltiple)
-
-          // Mostrar advertencia si se alcanzó el límite
-          if (maxFiles && combinedFiles.length > maxFiles) {
-            console.warn(
-              `Límite de ${maxFiles} archivos alcanzado. Solo se mantuvieron los primeros ${maxFiles}.`
-            );
-            setRejected((prev) => [
-              ...prev,
-              {
-                name: "Límite de archivos",
-                messages: [
-                  `Límite de ${maxFiles} archivos alcanzado. Solo se mantuvieron los primeros ${maxFiles}.`,
-                ],
-              },
-            ]);
-          }
-        } else {
-          // En modo single, reemplazar archivos existentes
-          finalFiles = newFiles;
-          // Actualizando archivos (single)
+        // Manejar archivos rechazados
+        if (fileRejections.length > 0) {
+          console.error("Archivos rechazados:", fileRejections);
+          // Mostrar mensajes visibles para el usuario
+          setRejected(
+            fileRejections.map(({ file, errors }) => ({
+              name: file?.name || "Archivo",
+              messages: (errors || []).map((e) => e.message),
+            }))
+          );
         }
 
-        // Marcar notificación para después del render
-        shouldNotifyRef.current = true;
-        return finalFiles;
-      });
-    },
-    [multiple, maxFiles]
-  );
+        // Actualizar estado con nuevos archivos (no notificar al padre aquí)
+        setFiles((currentFiles) => {
+          let finalFiles;
 
-  // Construir 'accept' solo si hay tipos válidos (evita warning con "*/*")
-  const acceptOpt = useMemo(() => {
-    const t = (acceptedTypes || "").trim();
-    if (!t || t === "*/*") return undefined; // aceptar todo
-    const mapping = t.split(",").reduce((acc, type) => {
-      const key = type.trim();
-      if (!key) return acc;
-      acc[key] = [];
-      return acc;
-    }, {});
-    return Object.keys(mapping).length ? mapping : undefined;
-  }, [acceptedTypes]);
+          if (multiple) {
+            const combinedFiles = [...currentFiles, ...newFiles];
+            // Aplicar límite máximo si está definido
+            finalFiles = maxFiles
+              ? combinedFiles.slice(0, maxFiles)
+              : combinedFiles;
+            // Actualizando archivos (múltiple)
 
-  // Configuración de react-dropzone
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
-    onDrop,
-    accept: acceptOpt,
-    maxSize,
-    multiple,
-    noClick: false,
-    noKeyboard: false,
-    preventDropOnDocument: true,
-  });
-
-  // Eliminar un archivo
-  const handleRemove = (id) => {
-    setFiles((currentFiles) => {
-      const fileToRemove = currentFiles.find((f) => f.id === id);
-
-      // Liberar URL de objeto si es una vista previa local
-      if (
-        fileToRemove &&
-        fileToRemove.url &&
-        fileToRemove.url.startsWith("blob:")
-      ) {
-        URL.revokeObjectURL(fileToRemove.url);
-      }
-
-      const newFiles = currentFiles
-        .filter((f) => f.id !== id)
-        .map((f, i) => ({ ...f, isMain: i === 0 }));
-      // Deferir notificación
-      shouldNotifyRef.current = true;
-      return newFiles;
-    });
-  };
-
-  // Establecer un archivo como principal
-  const handleSetMain = (id) => {
-    if (!allowSetMain) return;
-
-    setFiles((currentFiles) => {
-      const fileToMakeMain = currentFiles.find((f) => f.id === id);
-      if (!fileToMakeMain) return currentFiles;
-
-      const otherFiles = currentFiles.filter((f) => f.id !== id);
-      const newFiles = [fileToMakeMain, ...otherFiles].map((f, i) => ({
-        ...f,
-        isMain: i === 0,
-      }));
-      // Deferir notificación
-      shouldNotifyRef.current = true;
-      return newFiles;
-    });
-  };
-
-  // Mover un archivo arriba o abajo en la lista
-  const handleMove = (fromIndex, direction) => {
-    if (!allowReorder) return;
-
-    setFiles((currentFiles) => {
-      const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
-      if (toIndex < 0 || toIndex >= currentFiles.length) return currentFiles;
-
-      const newFiles = [...currentFiles];
-      [newFiles[fromIndex], newFiles[toIndex]] = [
-        newFiles[toIndex],
-        newFiles[fromIndex],
-      ];
-
-      // Actualizar isMain si es necesario
-      const updatedFiles = newFiles.map((f, i) => ({ ...f, isMain: i === 0 }));
-      // Deferir notificación
-      shouldNotifyRef.current = true;
-      return updatedFiles;
-    });
-  };
-
-  // Notificar cambios al padre después de que 'files' se haya actualizado y renderizado
-  useEffect(() => {
-    if (shouldNotifyRef.current) {
-      shouldNotifyRef.current = false;
-      // Remover console.log para mejorar performance
-      if (typeof onFilesChange === "function") {
-        onFilesChange(files);
-      } else {
-        console.warn("⚠️ onFilesChange no es una función");
-      }
-    }
-  }, [files]);
-
-  // Abrir la cámara del dispositivo (móvil)
-  const openCamera = (e) => {
-    e.stopPropagation();
-    setCaptureAttr('environment');
-    // Dar tiempo a que el atributo se aplique antes de abrir
-    setTimeout(() => {
-      open();
-      // limpiar el capture rápidamente para siguientes aperturas
-      setTimeout(() => setCaptureAttr(undefined), 0);
-    }, 30);
-  };
-
-  // Abrir la galería del dispositivo (móvil)
-  const openGallery = (e) => {
-    e.stopPropagation();
-    setCaptureAttr(undefined);
-    setTimeout(() => {
-      open();
-    }, 0);
-  };
-
-  return (
-    <div className={`universal-file-uploader ${className}`}>
-      {/* Zona de arrastrar y soltar */}
-      <div
-        {...getRootProps({
-          className: `ufu-dropzone ${isDragActive ? "dragging" : ""} ${
-            isDraggingOver ? "drag-over" : ""
-          }`,
-        })}
-        ref={dropzoneRef}
-        onDragEnter={() => setIsDraggingOver(true)}
-        onDragLeave={() => setIsDraggingOver(false)}
-        onDrop={() => setIsDraggingOver(false)}
-      >
-        <input
-          {...getInputProps({
-            style: { display: "none" },
-            multiple: multiple,
-            capture: captureAttr,
-          })}
-        />
-
-        <div className="ufu-dropzone-content">
-          <UploadIcon />
-
-          <div className="ufu-dropzone-desktop-text">
-            <p className="ufu-dropzone-text-main">{label}</p>
-            <p className="ufu-dropzone-text-sub">{placeholder}</p>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                open();
-              }}
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Seleccionar Archivos
-            </button>
-          </div>
-
-          {/* Botones específicos para móvil */}
-          <div className="ufu-mobile-buttons">
-            <button
-              type="button"
-              onClick={openCamera}
-              className="ufu-mobile-button"
-              aria-label="Abrir cámara"
-            >
-              <CameraIcon />
-              <span>Cámara</span>
-            </button>
-            <button
-              type="button"
-              onClick={openGallery}
-              className="ufu-mobile-button"
-              aria-label="Abrir galería"
-            >
-              <GalleryIcon />
-              <span>Galería</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Alertas de archivos rechazados / límites */}
-      {rejected.length > 0 && (
-        <div
-          className="mt-3 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm"
-          role="alert"
-        >
-          <div className="flex items-start justify-between">
-            <span className="font-semibold">Algunos archivos fueron rechazados</span>
-            <button
-              type="button"
-              onClick={() => setRejected([])}
-              className="ml-3 text-red-600 hover:text-red-800"
-              aria-label="Cerrar"
-              title="Cerrar"
-            >
-              ×
-            </button>
-          </div>
-          <ul className="list-disc ml-5 mt-2">
-            {rejected.map((r, idx) => (
-              <li key={`rejected-${idx}-${r.name || 'unknown'}`}>
-                {r.name ? <span className="font-medium">{r.name}: </span> : null}
-                {Array.isArray(r.messages) ? r.messages.join(", ") : String(r)}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Grid de vista previa de archivos - SIEMPRE VISIBLE CUANDO HAY ARCHIVOS */}
-      {files.length > 0 ? (
-        <div className="ufu-preview-grid">
-          <AnimatePresence>
-            {files.map((file, index) => {
-              // Generar key único para evitar warnings
-              const uniqueKey = file.id || `file-${index}-${file.name || 'unknown'}-${Date.now()}`;
-              return (
-                <FilePreview
-                  key={uniqueKey}
-                  file={file}
-                  onRemove={handleRemove}
-                  onSetMain={allowSetMain ? handleSetMain : null}
-                  onMove={allowReorder ? handleMove : null}
-                  index={index}
-                  fileCount={files.length}
-                />
+            // Mostrar advertencia si se alcanzó el límite
+            if (maxFiles && combinedFiles.length > maxFiles) {
+              console.warn(
+                `Límite de ${maxFiles} archivos alcanzado. Solo se mantuvieron los primeros ${maxFiles}.`
               );
+              setRejected((prev) => [
+                ...prev,
+                {
+                  name: "Límite de archivos",
+                  messages: [
+                    `Límite de ${maxFiles} archivos alcanzado. Solo se mantuvieron los primeros ${maxFiles}.`,
+                  ],
+                },
+              ]);
+            }
+          } else {
+            // En modo single, reemplazar archivos existentes
+            finalFiles = newFiles;
+            // Actualizando archivos (single)
+          }
+
+          // Marcar notificación para después del render
+          shouldNotifyRef.current = true;
+          return finalFiles;
+        });
+      },
+      [multiple, maxFiles]
+    );
+
+    // Construir 'accept' solo si hay tipos válidos (evita warning con "*/*")
+    const acceptOpt = useMemo(() => {
+      const t = (acceptedTypes || "").trim();
+      if (!t || t === "*/*") return undefined; // aceptar todo
+      const mapping = t.split(",").reduce((acc, type) => {
+        const key = type.trim();
+        if (!key) return acc;
+        acc[key] = [];
+        return acc;
+      }, {});
+      return Object.keys(mapping).length ? mapping : undefined;
+    }, [acceptedTypes]);
+
+    // Configuración de react-dropzone
+    const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+      onDrop,
+      accept: acceptOpt,
+      maxSize,
+      multiple,
+      noClick: false,
+      noKeyboard: false,
+      preventDropOnDocument: true,
+    });
+
+    // Eliminar un archivo
+    const handleRemove = (id) => {
+      setFiles((currentFiles) => {
+        const fileToRemove = currentFiles.find((f) => f.id === id);
+
+        // Liberar URL de objeto si es una vista previa local
+        if (
+          fileToRemove &&
+          fileToRemove.url &&
+          fileToRemove.url.startsWith("blob:")
+        ) {
+          URL.revokeObjectURL(fileToRemove.url);
+        }
+
+        const newFiles = currentFiles
+          .filter((f) => f.id !== id)
+          .map((f, i) => ({ ...f, isMain: i === 0 }));
+        // Deferir notificación
+        shouldNotifyRef.current = true;
+        return newFiles;
+      });
+    };
+
+    // Establecer un archivo como principal
+    const handleSetMain = (id) => {
+      if (!allowSetMain) return;
+
+      setFiles((currentFiles) => {
+        const fileToMakeMain = currentFiles.find((f) => f.id === id);
+        if (!fileToMakeMain) return currentFiles;
+
+        const otherFiles = currentFiles.filter((f) => f.id !== id);
+        const newFiles = [fileToMakeMain, ...otherFiles].map((f, i) => ({
+          ...f,
+          isMain: i === 0,
+        }));
+        // Deferir notificación
+        shouldNotifyRef.current = true;
+        return newFiles;
+      });
+    };
+
+    // Mover un archivo arriba o abajo en la lista
+    const handleMove = (fromIndex, direction) => {
+      if (!allowReorder) return;
+
+      setFiles((currentFiles) => {
+        const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
+        if (toIndex < 0 || toIndex >= currentFiles.length) return currentFiles;
+
+        const newFiles = [...currentFiles];
+        [newFiles[fromIndex], newFiles[toIndex]] = [
+          newFiles[toIndex],
+          newFiles[fromIndex],
+        ];
+
+        // Actualizar isMain si es necesario
+        const updatedFiles = newFiles.map((f, i) => ({
+          ...f,
+          isMain: i === 0,
+        }));
+        // Deferir notificación
+        shouldNotifyRef.current = true;
+        return updatedFiles;
+      });
+    };
+
+    // Notificar cambios al padre después de que 'files' se haya actualizado y renderizado
+    useEffect(() => {
+      if (shouldNotifyRef.current) {
+        shouldNotifyRef.current = false;
+        // Remover console.log para mejorar performance
+        if (typeof onFilesChange === "function") {
+          onFilesChange(files);
+        } else {
+          console.warn("⚠️ onFilesChange no es una función");
+        }
+      }
+    }, [files]);
+
+    // Abrir la cámara del dispositivo (móvil)
+    const openCamera = (e) => {
+      e.stopPropagation();
+      setCaptureAttr("environment");
+      // Dar tiempo a que el atributo se aplique antes de abrir
+      setTimeout(() => {
+        open();
+        // limpiar el capture rápidamente para siguientes aperturas
+        setTimeout(() => setCaptureAttr(undefined), 0);
+      }, 30);
+    };
+
+    // Abrir la galería del dispositivo (móvil)
+    const openGallery = (e) => {
+      e.stopPropagation();
+      setCaptureAttr(undefined);
+      setTimeout(() => {
+        open();
+      }, 0);
+    };
+
+    return (
+      <div className={`universal-file-uploader ${className}`}>
+        {/* Zona de arrastrar y soltar */}
+        <div
+          {...getRootProps({
+            className: `ufu-dropzone ${isDragActive ? "dragging" : ""} ${
+              isDraggingOver ? "drag-over" : ""
+            }`,
+          })}
+          ref={dropzoneRef}
+          onDragEnter={() => setIsDraggingOver(true)}
+          onDragLeave={() => setIsDraggingOver(false)}
+          onDrop={() => setIsDraggingOver(false)}
+        >
+          <input
+            {...getInputProps({
+              style: { display: "none" },
+              multiple: multiple,
+              capture: captureAttr,
             })}
-          </AnimatePresence>
+          />
+
+          <div className="ufu-dropzone-content">
+            <UploadIcon />
+
+            <div className="ufu-dropzone-desktop-text">
+              <p className="ufu-dropzone-text-main">{label}</p>
+              <p className="ufu-dropzone-text-sub">{placeholder}</p>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  open();
+                }}
+                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Seleccionar Archivos
+              </button>
+            </div>
+
+            {/* Botones específicos para móvil */}
+            <div className="ufu-mobile-buttons">
+              <button
+                type="button"
+                onClick={openCamera}
+                className="ufu-mobile-button"
+                aria-label="Abrir cámara"
+              >
+                <CameraIcon />
+                <span>Cámara</span>
+              </button>
+              <button
+                type="button"
+                onClick={openGallery}
+                className="ufu-mobile-button"
+                aria-label="Abrir galería"
+              >
+                <GalleryIcon />
+                <span>Galería</span>
+              </button>
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="text-center text-gray-500 text-sm mt-4 p-4 border-2 border-dashed border-gray-200 rounded">
-          📁 No hay archivos subidos aún - Arrastra o selecciona archivos arriba
-        </div>
-      )}
-    </div>
-  );
-});
+
+        {/* Alertas de archivos rechazados / límites */}
+        {rejected.length > 0 && (
+          <div
+            className="mt-3 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm"
+            role="alert"
+          >
+            <div className="flex items-start justify-between">
+              <span className="font-semibold">
+                Algunos archivos fueron rechazados
+              </span>
+              <button
+                type="button"
+                onClick={() => setRejected([])}
+                className="ml-3 text-red-600 hover:text-red-800"
+                aria-label="Cerrar"
+                title="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+            <ul className="list-disc ml-5 mt-2">
+              {rejected.map((r, idx) => (
+                <li key={`rejected-${idx}-${r.name || "unknown"}`}>
+                  {r.name ? (
+                    <span className="font-medium">{r.name}: </span>
+                  ) : null}
+                  {Array.isArray(r.messages)
+                    ? r.messages.join(", ")
+                    : String(r)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Grid de vista previa de archivos - SIEMPRE VISIBLE CUANDO HAY ARCHIVOS */}
+        {files.length > 0 ? (
+          <div className="ufu-preview-grid">
+            <AnimatePresence>
+              {files.map((file, index) => {
+                // Generar key único para evitar warnings
+                const uniqueKey =
+                  file.id ||
+                  `file-${index}-${file.name || "unknown"}-${Date.now()}`;
+                return (
+                  <FilePreview
+                    key={uniqueKey}
+                    file={file}
+                    onRemove={handleRemove}
+                    onSetMain={allowSetMain ? handleSetMain : null}
+                    onMove={allowReorder ? handleMove : null}
+                    index={index}
+                    fileCount={files.length}
+                  />
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <div className="text-center text-gray-500 text-sm mt-4 p-4 border-2 border-dashed border-gray-200 rounded">
+            📁 No hay archivos subidos aún - Arrastra o selecciona archivos
+            arriba
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 // Comparación personalizada para React.memo
-UniversalFileUploader.displayName = 'UniversalFileUploader';
+UniversalFileUploader.displayName = "UniversalFileUploader";
 
 export default UniversalFileUploader;
