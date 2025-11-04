@@ -2465,6 +2465,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
 
+      // DEBUG: Verificar qué categoría se está guardando
+      alert(`Guardando producto en categoría: "${finalCategoryId}"`);
+      
       let productData = {
         ...formData,
         categoria: finalCategoryId,
