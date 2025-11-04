@@ -284,10 +284,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           updateDoc(doc(db, "productos", targetId), {
             videoAcercaArticulo: cleaned,
             fechaActualizacion: new Date(),
-          }).catch(() => {});
+          }).catch((e) => console.error(e));
         }
       }
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
     defaultsAppliedRef.current = true;
   }, [formData.videoAcercaArticulo, currentId, product?.id]);
 
@@ -388,6 +390,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       setFormData((prev) => ({ ...prev, id: newId }));
       return newId;
     } catch (e) {
+      console.error(e);
       // si falla, no bloquear; el handler abortará el upload y mantendrá la preview local
       return null;
     }
@@ -407,6 +410,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         return;
       }
       // Silencioso para otros errores: no bloquear la UI
+      console.error(e);
     }
   };
 
@@ -1470,46 +1474,34 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   // ====== UniversalFileUploader Handlers (instant preview + background upload) ======
   const handleMainImageUFU = async (filesList) => {
-    console.log("🎯 handleMainImageUFU llamado con:", filesList);
 
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
-      console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
 
     try {
       setUploadingImages(true);
       const arr = Array.isArray(filesList) ? filesList : [];
-      console.log("📋 Array procesado:", arr);
       if (arr.length === 0) {
-        console.log("📭 No hay archivos, limpiando imagen principal");
         setTempPreviews((prev) => ({ ...prev, imagen: "" }));
         await removeMainImage();
         return;
       }
       const first = arr[0];
-      console.log("📄 Primer archivo:", first);
       const url0 = first?.url || "";
-      console.log("🔗 URL del primer archivo:", url0);
       if (first?.file) {
-        console.log("📦 Archivo detectado, procesando subida...");
         // LIMPIAR preview temporal ANTES de mostrar el nuevo para evitar duplicados
         setTempPreviews((prev) => ({ ...prev, imagen: "" }));
         // show local preview immediately
-        console.log("👁️ Mostrando preview local:", url0);
         setTempPreviews((prev) => ({ ...prev, imagen: url0 }));
         let targetId = currentId || product?.id;
-        console.log("🆔 Target ID:", targetId);
         if (!targetId) {
-          console.log("🆕 No hay ID, creando uno...");
           targetId = await ensureCurrentId();
         }
         if (!targetId) {
-          console.warn("⚠️ No se pudo obtener ID, abortando subida");
           return;
         }
-        console.log("✅ ID confirmado:", targetId);
         const queueId = `${Date.now()}_${first.file.name}_${Math.random()
           .toString(36)
           .slice(2, 7)}`;
@@ -1518,14 +1510,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           section: "main",
           file: first.file,
         });
-        console.log("⬆️ Iniciando subida a Firebase Storage...");
         const remoteUrl = await uploadWithRetry(
           uploadImage,
           first.file,
           destPath,
           queueId
         );
-        console.log("✅ Imagen subida exitosamente! URL:", remoteUrl);
         // Limpiar preview temporal INMEDIATAMENTE antes de actualizar formData
         setTempPreviews((prev) => ({ ...prev, imagen: "" }));
 
@@ -1548,7 +1538,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             // NO actualizar imagenes aquí
           })
             .then(() => {
-              console.log("✅ Documento actualizado en Firestore");
             })
             .catch((err) => {
               console.error("❌ Error actualizando Firestore:", err);
@@ -1570,11 +1559,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   };
 
   const handleGalleryUFU = async (filesList) => {
-    console.log("🚀 handleGalleryUFU iniciado con:", filesList);
 
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
-      console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
 
@@ -1586,7 +1573,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       let targetId = currentId || product?.id;
       if (!targetId) {
         targetId = await ensureCurrentId();
-        console.log("📝 ID creado para galería:", targetId);
       }
       if (!targetId) {
         console.error("❌ No se pudo obtener ID para galería");
@@ -1637,7 +1623,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const uploadedImages = [];
       for (const fileItem of newImageFiles) {
         try {
-          console.log("⬆️ Subiendo imagen:", fileItem.file.name);
           const destPath = buildStoragePath({
             productId: targetId,
             section: "gallery",
@@ -1652,7 +1637,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           );
 
           uploadedImages.push(remoteUrl);
-          console.log("✅ Imagen subida:", remoteUrl);
         } catch (e) {
           console.error("❌ Error subiendo imagen:", fileItem.file.name, e);
         }
@@ -1662,7 +1646,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const uploadedVideos = [];
       for (const fileItem of newVideoFiles) {
         try {
-          console.log("⬆️ Subiendo video:", fileItem.file.name);
           const destPath = buildStoragePath({
             productId: targetId,
             section: "videos",
@@ -1677,15 +1660,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           );
 
           uploadedVideos.push(remoteUrl);
-          console.log("✅ Video subido:", remoteUrl);
         } catch (e) {
           console.error("❌ Error subiendo video:", fileItem.file.name, e);
         }
       }
 
       // Combinar todas las URLs con las que ya estaban en formData para evitar borrar imágenes existentes
-      console.log("📋 Imágenes subidas:", uploadedImages);
-      console.log("📋 Videos subidos:", uploadedVideos);
 
       setFormData((prev) => {
         // ✅ CORRECCIÓN CRÍTICA: Solo usar lo que el UFU reporta (existentes + nuevos)
@@ -1718,13 +1698,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           ])
         );
 
-        console.log("🔀 RESULTADO MERGE:");
         console.log(
           "  📸 Imágenes finales:",
           mergedImages.length,
           mergedImages
         );
-        console.log("  🎬 Videos finales:", mergedVideos.length, mergedVideos);
 
         const shouldSetMain = !prev.imagen && mergedImages.length > 0;
         const mainImage = shouldSetMain ? mergedImages[0] : prev.imagen;
@@ -1755,9 +1733,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
         safeUpdateDoc(targetId, updatePayload)
           .then(() => {
-            console.log(`✅ FIRESTORE ACTUALIZADO:`, updatePayload);
-            console.log(`📊 ESTADO FINAL DEL PRODUCTO:`);
-            console.log(`  - Imagen principal:`, next.imagen ? "✅" : "❌");
             console.log(`  - Galería imágenes:`, next.imagenes?.length || 0);
             console.log(`  - Galería videos:`, next.videoUrls?.length || 0);
           })
@@ -1786,7 +1761,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const handleAcercaVideosUFU = async (filesList) => {
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
-      console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
 
@@ -1872,11 +1846,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // removed legacy single additional video uploader; superseded by handleAcercaVideosUFU
 
   const handleExtrasUFU = async (filesList) => {
-    console.log("🚀 handleExtrasUFU iniciado con:", filesList);
 
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
-      console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
 
@@ -1888,7 +1860,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       let targetId = currentId || product?.id;
       if (!targetId) {
         targetId = await ensureCurrentId();
-        console.log("📝 ID creado:", targetId);
       }
       if (!targetId) {
         console.error("❌ No se pudo obtener ID del producto");
@@ -1901,14 +1872,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
         .map((f) => f.url);
 
-      console.log("📁 Archivos nuevos:", newFiles.length);
-      console.log("🔗 URLs existentes:", existingUrls.length);
 
       // Subir archivos nuevos INMEDIATAMENTE
       const uploadedUrls = [];
       for (const fileItem of newFiles) {
         try {
-          console.log("⬆️ Subiendo:", fileItem.file.name);
           const destPath = buildStoragePath({
             productId: targetId,
             section: "extras",
@@ -1923,7 +1891,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           );
 
           uploadedUrls.push(remoteUrl);
-          console.log("✅ Subido exitosamente:", remoteUrl);
         } catch (e) {
           console.error("❌ Error subiendo archivo:", fileItem.file.name, e);
         }
@@ -1953,7 +1920,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         // Actualizar Firestore directamente (SIMPLE)
         safeUpdateDoc(targetId, { imagenesExtra: merged })
           .then(() => {
-            console.log("✅ FIRESTORE ACTUALIZADO - imagenesExtra:", merged);
           })
           .catch((err) => {
             console.error("❌ ERROR FIRESTORE:", err);
@@ -1975,7 +1941,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const handleVariantMainUFU = async (filesList, variantIndex) => {
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
-      console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
 
@@ -2075,7 +2040,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const handleVariantGalleryUFU = async (filesList, variantIndex) => {
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
-      console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
 
@@ -2171,7 +2135,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const handleVariantVideosUFU = async (filesList, variantIndex) => {
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
-      console.log("⏸️ Carga inicial - ignorando llamada para prevenir borrado");
       return;
     }
 
@@ -2465,9 +2428,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
 
-      // DEBUG: Verificar qué categoría se está guardando
-      alert(`Guardando producto en categoría: "${finalCategoryId}"`);
-      
       let productData = {
         ...formData,
         categoria: finalCategoryId,
@@ -2621,25 +2581,25 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         exit={{ scale: 0.9, opacity: 0 }}
       >
         {/* Header */}
-        <div className="bg-blue-700 text-white p-4 md:p-6 flex justify-between items-center sticky top-0 z-10 shadow">
-          <h2 className="text-2xl font-bold">
+        <div className="bg-blue-700 text-white p-3 md:p-6 flex justify-between items-center sticky top-0 z-10 shadow">
+          <h2 className="text-lg md:text-2xl font-bold">
             {product ? "Editar Producto" : "Agregar Producto"}
           </h2>
           <button
             onClick={onClose}
-            className="text-white hover:text-gray-200 text-2xl font-bold"
+            className="text-white hover:text-gray-200 text-xl md:text-2xl font-bold"
           >
             ×
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3 md:p-6">
           {/* Información del Producto - Layout Simétrico */}
           <div className="space-y-6">
             {/* Fila 1: Información Básica (ancho completo) */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 md:p-6 border-l-4 border-blue-500">
+              <h3 className="text-base md:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-3 md:mb-4 flex items-center gap-2">
                 <span>📝</span> Información Básica
               </h3>
 
@@ -2842,7 +2802,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
             {/* Category and Status */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
+              <h3 className="text-base md:text-lg font-semibold text-blue-900 border-b pb-2">
                 Categoría y Estado
               </h3>
 
@@ -3012,8 +2972,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             </div>
 
             {/* Fila 2: Imágenes y Multimedia - Grid Simétrico */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 md:p-6 border-l-4 border-blue-500">
+              <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span>🖼️</span> Imágenes y Multimedia
               </h3>
 
@@ -3187,8 +3147,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               </div>
 
               {/* Fila 3: Detalles y Extras */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 md:p-6 border-l-4 border-blue-500">
+                <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <span>📋</span> Detalles del Producto
                 </h3>
 
@@ -3262,7 +3222,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               {/* Enhanced Variants Section */}
               <div className="mt-8 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-blue-900 border-b pb-2">
+                  <h3 className="text-base md:text-lg font-semibold text-blue-900 border-b pb-2">
                     Variantes del Producto
                   </h3>
                   {formData.variantes && formData.variantes.length > 1 && (
@@ -3539,8 +3499,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               </div>
 
               {/* 📸 Imágenes con más información del artículo */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 md:p-6 border-l-4 border-blue-500">
+                <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <span>📸</span> Imágenes con más información del artículo
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
