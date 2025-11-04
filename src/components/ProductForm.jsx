@@ -2428,6 +2428,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
 
+      console.log('GUARDANDO PRODUCTO - Categoría:', finalCategoryId);
+      
       let productData = {
         ...formData,
         categoria: finalCategoryId,
@@ -2547,6 +2549,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         { ...productData, fechaActualizacion: new Date() },
         { merge: true }
       );
+      console.log('✅ PRODUCTO GUARDADO:', {
+        id: targetId,
+        categoria: productData.categoria,
+        activo: productData.activo,
+        nombre: productData.nombre
+      });
       if (isNew) setCurrentId(targetId);
 
       if (typeof onSave === "function") onSave();

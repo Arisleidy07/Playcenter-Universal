@@ -121,6 +121,8 @@ export const useProductsByCategory = (categoryId) => {
             }
           });
           
+          console.log(`📦 Productos obtenidos para categoría "${categoryId}":`, productsData.length, productsData.map(p => ({ id: p.id, nombre: p.nombre, categoria: p.categoria, activo: p.activo })));
+          
           setProducts(productsData);
           setLoading(false);
         }, (err) => {
