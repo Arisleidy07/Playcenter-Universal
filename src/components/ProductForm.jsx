@@ -2438,6 +2438,13 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         }
       }
     }
+    // Validar categoría
+    if (!formData.categoria || formData.categoria.trim() === "") {
+      if (!showNewCategoryInput || !formData.nuevaCategoria || formData.nuevaCategoria.trim() === "") {
+        errors.push("Debes seleccionar o crear una categoría para que el producto aparezca");
+      }
+    }
+    
     if (errors.length) {
       alert(
         "Corrige los siguientes campos antes de guardar:\n- " +
@@ -2460,7 +2467,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
       let productData = {
         ...formData,
-        categoria: finalCategoryId,
+        categoria: finalCategoryId && finalCategoryId.trim() !== "" ? finalCategoryId : null,
         precio: Number.isFinite(precioNum) ? precioNum : 0,
         fechaActualizacion: new Date(),
         acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter(
