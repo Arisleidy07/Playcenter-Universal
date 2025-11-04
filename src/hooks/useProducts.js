@@ -91,16 +91,14 @@ export const useProductsByCategory = (categoryId) => {
           // Get all active products
           q = query(
             collection(db, 'productos'),
-            where('activo', '==', true),
-            orderBy('fechaCreacion', 'desc')
+            where('activo', '==', true)
           );
         } else {
-          // Get products by category
+          // Get products by category (sin orderBy para evitar índice compuesto)
           q = query(
             collection(db, 'productos'),
             where('categoria', '==', categoryId),
-            where('activo', '==', true),
-            orderBy('fechaCreacion', 'desc')
+            where('activo', '==', true)
           );
         }
         
@@ -121,9 +119,16 @@ export const useProductsByCategory = (categoryId) => {
             }
           });
           
-          console.log(`📦 Productos obtenidos para categoría "${categoryId}":`, productsData.length, productsData.map(p => ({ id: p.id, nombre: p.nombre, categoria: p.categoria, activo: p.activo })));
+          // Ordenar por fecha de creación en el cliente
+          const sortedProducts = productsData.sort((a, b) => {
+            const dateA = a.fechaCreacion?.toDate?.() || new Date(0);
+            const dateB = b.fechaCreacion?.toDate?.() || new Date(0);
+            return dateB - dateA; // Más recientes primero
+          });
           
-          setProducts(productsData);
+          console.log(`📦 Productos obtenidos para categoría "${categoryId}":`, sortedProducts.length, sortedProducts.map(p => ({ id: p.id, nombre: p.nombre, categoria: p.categoria, activo: p.activo })));
+          
+          setProducts(sortedProducts);
           setLoading(false);
         }, (err) => {
           console.error('Error fetching products by category:', err);
