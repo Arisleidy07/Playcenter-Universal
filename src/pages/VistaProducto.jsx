@@ -111,6 +111,131 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
   );
 }
 
+// Componente "Acerca de este artículo" con botón "Ver más" responsive
+function AcercaDeEsteArticulo({ producto }) {
+  const [mostrarTodo, setMostrarTodo] = useState(false);
+  const ITEMS_INICIALES = 6; // Mostrar 6 items inicialmente en móvil/tablet
+
+  const acercaItems = [];
+
+  // Agregar items del array acerca
+  if (Array.isArray(producto.acerca)) {
+    acercaItems.push(
+      ...producto.acerca.filter((item) => item && item.trim())
+    );
+  }
+
+  // Agregar información IMPORTANTE del producto automáticamente
+  if (producto.empresa || producto.marca) {
+    acercaItems.push(`Marca: ${producto.empresa || producto.marca}`);
+  }
+  if (producto.modelo) {
+    acercaItems.push(`Modelo: ${producto.modelo}`);
+  }
+  if (producto.colorPrincipal) {
+    acercaItems.push(`Color: ${producto.colorPrincipal}`);
+  }
+  if (producto.material) {
+    acercaItems.push(`Material: ${producto.material}`);
+  }
+  if (producto.peso) {
+    acercaItems.push(`Peso: ${producto.peso}`);
+  }
+  if (producto.dimensiones) {
+    acercaItems.push(`Dimensiones: ${producto.dimensiones}`);
+  }
+  if (producto.conectividad) {
+    acercaItems.push(`Conectividad: ${producto.conectividad}`);
+  }
+  if (producto.garantia) {
+    acercaItems.push(`Garantía: ${producto.garantia}`);
+  }
+  if (producto.estado) {
+    acercaItems.push(`Estado: ${producto.estado}`);
+  }
+  
+  // Agregar TODOS los campos de caracteristicasAdicionales
+  if (producto.caracteristicasAdicionales) {
+    const carac = producto.caracteristicasAdicionales;
+    
+    Object.keys(carac).forEach(key => {
+      const value = carac[key];
+      if (value && String(value).trim()) {
+        const label = key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase())
+          .trim();
+        const displayValue = Array.isArray(value) 
+          ? value.join(", ") 
+          : String(value);
+        acercaItems.push(`${label}: ${displayValue}`);
+      }
+    });
+  }
+
+  if (acercaItems.length === 0) return null;
+
+  // Determinar cuántos items mostrar
+  const hayMasItems = acercaItems.length > ITEMS_INICIALES;
+  const itemsAMostrar = mostrarTodo ? acercaItems : acercaItems.slice(0, ITEMS_INICIALES);
+
+  return (
+    <div className="space-y-4 xl:order-4 order-4 -mt-2">
+      <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-2">
+        <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+        Acerca de este artículo
+      </h3>
+      
+      {/* Lista de items - En desktop muestra todo, en móvil/tablet controla con estado */}
+      <ul className="space-y-3">
+        {/* Desktop: mostrar todo siempre */}
+        <div className="hidden xl:block">
+          {acercaItems.map((detalle, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
+            >
+              <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
+              <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">{detalle}</span>
+            </li>
+          ))}
+        </div>
+
+        {/* Móvil/Tablet: mostrar con control "Ver más" */}
+        <div className="xl:hidden">
+          {itemsAMostrar.map((detalle, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
+            >
+              <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
+              <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">{detalle}</span>
+            </li>
+          ))}
+        </div>
+      </ul>
+
+      {/* Botón "Ver más" solo en móvil/tablet y solo si hay más items */}
+      {hayMasItems && (
+        <button
+          onClick={() => setMostrarTodo(!mostrarTodo)}
+          className="xl:hidden w-full text-center text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2 group"
+        >
+          <span>{mostrarTodo ? 'Ver menos' : `Ver más (${acercaItems.length - ITEMS_INICIALES} más)`}</span>
+          <svg 
+            className={`w-4 h-4 transition-transform duration-300 ${mostrarTodo ? 'rotate-180' : 'rotate-0'}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 // Componente de información del producto
 function ProductInformationSection({ producto, allVariantes }) {
   // DEBUG: Ver qué datos tiene el producto
@@ -1781,86 +1906,7 @@ function VistaProducto() {
             </div>
 
             {/* Acerca de este artículo - DIRECTO DEBAJO DEL PRECIO */}
-            {(() => {
-              const acercaItems = [];
-
-              // Agregar items del array acerca
-              if (Array.isArray(producto.acerca)) {
-                acercaItems.push(
-                  ...producto.acerca.filter((item) => item && item.trim())
-                );
-              }
-
-              // Agregar información IMPORTANTE del producto automáticamente
-              if (producto.empresa || producto.marca) {
-                acercaItems.push(`Marca: ${producto.empresa || producto.marca}`);
-              }
-              if (producto.modelo) {
-                acercaItems.push(`Modelo: ${producto.modelo}`);
-              }
-              if (producto.colorPrincipal) {
-                acercaItems.push(`Color: ${producto.colorPrincipal}`);
-              }
-              if (producto.material) {
-                acercaItems.push(`Material: ${producto.material}`);
-              }
-              if (producto.peso) {
-                acercaItems.push(`Peso: ${producto.peso}`);
-              }
-              if (producto.dimensiones) {
-                acercaItems.push(`Dimensiones: ${producto.dimensiones}`);
-              }
-              if (producto.conectividad) {
-                acercaItems.push(`Conectividad: ${producto.conectividad}`);
-              }
-              if (producto.garantia) {
-                acercaItems.push(`Garantía: ${producto.garantia}`);
-              }
-              if (producto.estado) {
-                acercaItems.push(`Estado: ${producto.estado}`);
-              }
-              
-              // Agregar TODOS los campos de caracteristicasAdicionales
-              if (producto.caracteristicasAdicionales) {
-                const carac = producto.caracteristicasAdicionales;
-                
-                Object.keys(carac).forEach(key => {
-                  const value = carac[key];
-                  if (value && String(value).trim()) {
-                    const label = key
-                      .replace(/([A-Z])/g, ' $1')
-                      .replace(/^./, str => str.toUpperCase())
-                      .trim();
-                    const displayValue = Array.isArray(value) 
-                      ? value.join(", ") 
-                      : String(value);
-                    acercaItems.push(`${label}: ${displayValue}`);
-                  }
-                });
-              }
-
-              if (acercaItems.length === 0) return null;
-
-              return (
-                <div className="space-y-4 xl:order-4 order-4 -mt-2">
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-2">
-                    <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
-                    Acerca de este artículo
-                  </h3>
-                  <ul className="space-y-3">
-                    {acercaItems.map((detalle, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
-                        <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">{detalle}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })()}
+            <AcercaDeEsteArticulo producto={producto} />
 
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL/TABLET (restaurado) */}
             <div className="xl:hidden flex flex-col gap-3 overflow-visible xl:order-5 order-5">
