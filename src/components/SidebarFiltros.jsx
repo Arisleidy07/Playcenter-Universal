@@ -157,38 +157,6 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
             <div className="slider"></div>
             <span className="ml-2">Usado como nuevo</span>
           </label>
-
-          <label className="switch-container mt-2">
-            <input
-              type="checkbox"
-              className="checkbox"
-              checked={filtros.estado?.reacondicionado}
-              onChange={() =>
-                setFiltros((f) => ({
-                  ...f,
-                  estado: { ...f.estado, reacondicionado: !f.estado?.reacondicionado },
-                }))
-              }
-            />
-            <div className="slider"></div>
-            <span className="ml-2">Reacondicionado</span>
-          </label>
-
-          <label className="switch-container mt-2">
-            <input
-              type="checkbox"
-              className="checkbox"
-              checked={filtros.estado?.reparado}
-              onChange={() =>
-                setFiltros((f) => ({
-                  ...f,
-                  estado: { ...f.estado, reparado: !f.estado?.reparado },
-                }))
-              }
-            />
-            <div className="slider"></div>
-            <span className="ml-2">Reparado</span>
-          </label>
         </div>
 
         <div className="mb-6">
