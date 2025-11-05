@@ -68,7 +68,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
   const onReset = () => {
     setFiltros({
       estado: { nuevo: false, usado: false },
-      precio: { min: 0, max: 1000 },
+      precio: { min: 0, max: 1000000 },
     });
   };
 
@@ -114,11 +114,11 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
             <input
               type="checkbox"
               className="checkbox"
-              checked={filtros.estado.nuevo}
+              checked={filtros.estado?.nuevo}
               onChange={() =>
                 setFiltros((f) => ({
                   ...f,
-                  estado: { ...f.estado, nuevo: !f.estado.nuevo },
+                  estado: { ...f.estado, nuevo: !f.estado?.nuevo },
                 }))
               }
             />
@@ -130,16 +130,64 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
             <input
               type="checkbox"
               className="checkbox"
-              checked={filtros.estado.usado}
+              checked={filtros.estado?.usado}
               onChange={() =>
                 setFiltros((f) => ({
                   ...f,
-                  estado: { ...f.estado, usado: !f.estado.usado },
+                  estado: { ...f.estado, usado: !f.estado?.usado },
                 }))
               }
             />
             <div className="slider"></div>
             <span className="ml-2">Usado</span>
+          </label>
+
+          <label className="switch-container mt-2">
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={filtros.estado?.usadoComoNuevo}
+              onChange={() =>
+                setFiltros((f) => ({
+                  ...f,
+                  estado: { ...f.estado, usadoComoNuevo: !f.estado?.usadoComoNuevo },
+                }))
+              }
+            />
+            <div className="slider"></div>
+            <span className="ml-2">Usado como nuevo</span>
+          </label>
+
+          <label className="switch-container mt-2">
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={filtros.estado?.reacondicionado}
+              onChange={() =>
+                setFiltros((f) => ({
+                  ...f,
+                  estado: { ...f.estado, reacondicionado: !f.estado?.reacondicionado },
+                }))
+              }
+            />
+            <div className="slider"></div>
+            <span className="ml-2">Reacondicionado</span>
+          </label>
+
+          <label className="switch-container mt-2">
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={filtros.estado?.reparado}
+              onChange={() =>
+                setFiltros((f) => ({
+                  ...f,
+                  estado: { ...f.estado, reparado: !f.estado?.reparado },
+                }))
+              }
+            />
+            <div className="slider"></div>
+            <span className="ml-2">Reparado</span>
           </label>
         </div>
 
@@ -182,17 +230,17 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
                 typeof filtros.precio.min === "number" ? filtros.precio.min : 0,
                 typeof filtros.precio.max === "number"
                   ? filtros.precio.max
-                  : 1000,
+                  : 1000000,
               ]}
               onChange={handlePrecioChange}
               valueLabelDisplay="auto"
               min={0}
-              max={1000}
+              max={1000000}
             />
           </Box>
           <div className="flex justify-between text-sm mt-2 text-gray-700 dark:text-gray-300">
-            <span>RD${filtros.precio.min}</span>
-            <span>RD${filtros.precio.max}</span>
+            <span>RD${filtros.precio.min.toLocaleString('es-DO')}</span>
+            <span>RD${filtros.precio.max.toLocaleString('es-DO')}</span>
           </div>
         </div>
 

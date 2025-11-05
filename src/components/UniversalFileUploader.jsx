@@ -135,11 +135,7 @@ const FilePreview = ({
   }, [type]);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
+    <div
       className={`ufu-preview-item ${isMain ? "ufu-main-item" : ""}`}
     >
       <div className="ufu-preview-media">
@@ -553,7 +549,7 @@ const FilePreview = ({
           <span>Principal</span>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -950,25 +946,23 @@ const UniversalFileUploader = React.memo(
         {/* Grid de vista previa de archivos - SIEMPRE VISIBLE CUANDO HAY ARCHIVOS */}
         {files.length > 0 ? (
           <div className="ufu-preview-grid">
-            <AnimatePresence>
-              {files.map((file, index) => {
-                // Generar key único para evitar warnings
-                const uniqueKey =
-                  file.id ||
-                  `file-${index}-${file.name || "unknown"}-${Date.now()}`;
-                return (
-                  <FilePreview
-                    key={uniqueKey}
-                    file={file}
-                    onRemove={handleRemove}
-                    onSetMain={allowSetMain ? handleSetMain : null}
-                    onMove={allowReorder ? handleMove : null}
-                    index={index}
-                    fileCount={files.length}
-                  />
-                );
-              })}
-            </AnimatePresence>
+            {files.map((file, index) => {
+              // Generar key único para evitar warnings
+              const uniqueKey =
+                file.id ||
+                `file-${index}-${file.name || "unknown"}-${Date.now()}`;
+              return (
+                <FilePreview
+                  key={uniqueKey}
+                  file={file}
+                  onRemove={handleRemove}
+                  onSetMain={allowSetMain ? handleSetMain : null}
+                  onMove={allowReorder ? handleMove : null}
+                  index={index}
+                  fileCount={files.length}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center text-gray-500 text-sm mt-4 p-4 border-2 border-dashed border-gray-200 rounded">

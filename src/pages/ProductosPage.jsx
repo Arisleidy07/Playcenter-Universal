@@ -16,13 +16,12 @@ function ProductosPage() {
   // Get categories and products from database
   const { categories, loading: categoriesLoading } = useCategories();
   const categoryId = categoria && categoria !== "todos" ? categoria : "";
-  console.log('🔍 ProductosPage - URL categoria:', categoria, '→ categoryId:', categoryId);
   const { products, loading: productsLoading } =
     useProductsByCategory(categoryId);
 
   const [filtros, setFiltros] = useState({
-    precio: { min: 0, max: 10000 },
-    estado: { nuevo: false, usado: false },
+    precio: { min: 0, max: 1000000 },
+    estado: { nuevo: false, usado: false, usadoComoNuevo: false, reacondicionado: false, reparado: false },
   });
 
   const [brandFilter, setBrandFilter] = useState({ norm: "", display: "" });
@@ -78,9 +77,12 @@ function ProductosPage() {
       const cumpleMin = p.precio >= filtros.precio.min;
       const cumpleMax = p.precio <= filtros.precio.max;
       const cumpleEstado =
-        (!filtros.estado.nuevo && !filtros.estado.usado) ||
+        (!filtros.estado.nuevo && !filtros.estado.usado && !filtros.estado.usadoComoNuevo && !filtros.estado.reacondicionado && !filtros.estado.reparado) ||
         (filtros.estado.nuevo && p.estado === "Nuevo") ||
-        (filtros.estado.usado && p.estado === "Usado");
+        (filtros.estado.usado && p.estado === "Usado") ||
+        (filtros.estado.usadoComoNuevo && p.estado === "Usado como nuevo") ||
+        (filtros.estado.reacondicionado && p.estado === "Reacondicionado") ||
+        (filtros.estado.reparado && p.estado === "Reparado");
 
       const prodEmpresaNorm =
         p.empresaNorm || (p.empresa || "").toString().trim().toLowerCase();
@@ -100,8 +102,8 @@ function ProductosPage() {
 
   const handleResetFiltros = () => {
     setFiltros({
-      precio: { min: 0, max: 10000 },
-      estado: { nuevo: false, usado: false },
+      precio: { min: 0, max: 1000000 },
+      estado: { nuevo: false, usado: false, usadoComoNuevo: false, reacondicionado: false, reparado: false },
     });
     setBrandFilter({ norm: "", display: "" });
   };

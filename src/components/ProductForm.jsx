@@ -21,6 +21,7 @@ import { useAuth } from "../context/AuthContext";
 // Enhanced components
 import UniversalFileUploader from "./UniversalFileUploader";
 import VisualVariantSelector from "./VisualVariantSelector";
+import AdditionalFieldsSection from "./AdditionalFieldsSection";
 // Import CSS
 import "../styles/UniversalFileUploader.css";
 // Validation utilities
@@ -71,6 +72,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       productStatus: product?.productStatus || "draft",
       validationScore: product?.validationScore || 0,
       lastValidated: product?.lastValidated || null,
+      // Características adicionales dinámicas según categoría
+      caracteristicasAdicionales: product?.caracteristicasAdicionales || {},
     };
   });
 
@@ -117,7 +120,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Inicializar formData cuando product cambie
   useEffect(() => {
     if (product) {
-
       setFormData({
         ...formData,
         // Campos básicos
@@ -1474,7 +1476,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   // ====== UniversalFileUploader Handlers (instant preview + background upload) ======
   const handleMainImageUFU = async (filesList) => {
-
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
       return;
@@ -1521,7 +1522,13 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
         setFormData((prev) => {
           // NO mover imagen principal a galería - mantener separadas
-          const imagenPrincipal = [{ url: remoteUrl }];
+          // Guardar el nombre ORIGINAL del archivo
+          const imagenPrincipal = [
+            {
+              url: remoteUrl,
+              nombreOriginal: first.file.name, // Guardar nombre original
+            },
+          ];
           const next = {
             ...prev,
             imagen: remoteUrl,
@@ -1537,8 +1544,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             imagenPrincipal,
             // NO actualizar imagenes aquí
           })
-            .then(() => {
-            })
+            .then(() => {})
             .catch((err) => {
               console.error("❌ Error actualizando Firestore:", err);
             });
@@ -1559,7 +1565,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   };
 
   const handleGalleryUFU = async (filesList) => {
-
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
       return;
@@ -1636,7 +1641,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
           );
 
-          uploadedImages.push(remoteUrl);
+          // Guardar URL con nombre original
+          uploadedImages.push({
+            url: remoteUrl,
+            nombreOriginal: fileItem.file.name,
+          });
         } catch (e) {
           console.error("❌ Error subiendo imagen:", fileItem.file.name, e);
         }
@@ -1659,7 +1668,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
           );
 
-          uploadedVideos.push(remoteUrl);
+          // Guardar URL con nombre original
+          uploadedVideos.push({
+            url: remoteUrl,
+            nombreOriginal: fileItem.file.name,
+          });
         } catch (e) {
           console.error("❌ Error subiendo video:", fileItem.file.name, e);
         }
@@ -1671,32 +1684,40 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         // ✅ CORRECCIÓN CRÍTICA: Solo usar lo que el UFU reporta (existentes + nuevos)
         // NO usar prevImages/prevVideos porque ignora las eliminaciones del usuario
         // ✅ FILTRO ESTRICTO: Solo URLs válidas (no null, undefined, o strings vacíos)
-        const validExistingImages = existingImages.filter(
-          (url) => url && typeof url === "string" && url.trim() !== ""
-        );
+        const validExistingImages = existingImages
+          .filter((url) => url && typeof url === "string" && url.trim() !== "")
+          .map((url) => ({
+            url,
+            nombreOriginal: url.split("/").pop().split("?")[0],
+          }));
+
         const validUploadedImages = uploadedImages.filter(
-          (url) => url && typeof url === "string" && url.trim() !== ""
+          (item) =>
+            item?.url && typeof item.url === "string" && item.url.trim() !== ""
         );
-        const validExistingVideos = existingVideos.filter(
-          (url) => url && typeof url === "string" && url.trim() !== ""
-        );
+
+        const validExistingVideos = existingVideos
+          .filter((url) => url && typeof url === "string" && url.trim() !== "")
+          .map((url) => ({
+            url,
+            nombreOriginal: url.split("/").pop().split("?")[0],
+          }));
+
         const validUploadedVideos = uploadedVideos.filter(
-          (url) => url && typeof url === "string" && url.trim() !== ""
+          (item) =>
+            item?.url && typeof item.url === "string" && item.url.trim() !== ""
         );
 
-        const mergedImages = Array.from(
-          new Set([
-            ...validExistingImages, // URLs existentes VÁLIDAS
-            ...validUploadedImages, // URLs recién subidas VÁLIDAS
-          ])
-        );
+        // Combinar manteniendo objetos con nombre original
+        const mergedImages = [
+          ...validExistingImages, // URLs existentes con nombre extraído
+          ...validUploadedImages, // URLs recién subidas con nombre original
+        ];
 
-        const mergedVideos = Array.from(
-          new Set([
-            ...validExistingVideos, // URLs existentes VÁLIDAS
-            ...validUploadedVideos, // URLs recién subidas VÁLIDAS
-          ])
-        );
+        const mergedVideos = [
+          ...validExistingVideos, // URLs existentes con nombre extraído
+          ...validUploadedVideos, // URLs recién subidas con nombre original
+        ];
 
         console.log(
           "  📸 Imágenes finales:",
@@ -1705,7 +1726,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
 
         const shouldSetMain = !prev.imagen && mergedImages.length > 0;
-        const mainImage = shouldSetMain ? mergedImages[0] : prev.imagen;
+        const mainImage = shouldSetMain ? mergedImages[0].url : prev.imagen;
+        const mainImageObj = shouldSetMain
+          ? mergedImages[0]
+          : prev.imagenPrincipal?.[0] || {};
 
         if (shouldSetMain) {
           console.log(
@@ -1719,7 +1743,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           imagenes: mergedImages,
           videoUrls: mergedVideos,
           ...(shouldSetMain
-            ? { imagen: mainImage, imagenPrincipal: [{ url: mainImage }] }
+            ? { imagen: mainImage, imagenPrincipal: [mainImageObj] }
             : {}),
         };
 
@@ -1727,7 +1751,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           imagenes: mergedImages,
           videoUrls: mergedVideos,
           ...(shouldSetMain
-            ? { imagen: mainImage, imagenPrincipal: [{ url: mainImage }] }
+            ? { imagen: mainImage, imagenPrincipal: [mainImageObj] }
             : {}),
         };
 
@@ -1846,7 +1870,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // removed legacy single additional video uploader; superseded by handleAcercaVideosUFU
 
   const handleExtrasUFU = async (filesList) => {
-
     // CRÍTICO: Prevenir borrado automático durante carga inicial
     if (isInitialLoadRef.current || !formInitializedRef.current) {
       return;
@@ -1871,7 +1894,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const existingUrls = arr
         .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
         .map((f) => f.url);
-
 
       // Subir archivos nuevos INMEDIATAMENTE
       const uploadedUrls = [];
@@ -1919,8 +1941,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
         // Actualizar Firestore directamente (SIMPLE)
         safeUpdateDoc(targetId, { imagenesExtra: merged })
-          .then(() => {
-          })
+          .then(() => {})
           .catch((err) => {
             console.error("❌ ERROR FIRESTORE:", err);
           });
@@ -2330,21 +2351,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const createNewCategory = async (categoryName) => {
     try {
-      // Normalizar ruta: eliminar tildes, lowercase, reemplazar espacios
-      const normalizeRoute = (str) => {
-        return str
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "") // Eliminar tildes
-          .replace(/[^a-z0-9\s-]/g, "") // Eliminar caracteres especiales
-          .replace(/\s+/g, "-") // Espacios a guiones
-          .replace(/-+/g, "-") // Múltiples guiones a uno
-          .trim();
-      };
-      
       const categoryData = {
         nombre: categoryName,
-        ruta: normalizeRoute(categoryName),
+        ruta: categoryName.toLowerCase().replace(/\s+/g, "-"),
         activa: true,
         fechaCreacion: new Date(),
         productCount: 0,
@@ -2415,11 +2424,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     }
     // Validar categoría
     if (!formData.categoria || formData.categoria.trim() === "") {
-      if (!showNewCategoryInput || !formData.nuevaCategoria || formData.nuevaCategoria.trim() === "") {
-        errors.push("Debes seleccionar o crear una categoría para que el producto aparezca");
+      if (
+        !showNewCategoryInput ||
+        !formData.nuevaCategoria ||
+        formData.nuevaCategoria.trim() === ""
+      ) {
+        errors.push(
+          "Debes seleccionar o crear una categoría para que el producto aparezca"
+        );
       }
     }
-    
+
     if (errors.length) {
       alert(
         "Corrige los siguientes campos antes de guardar:\n- " +
@@ -2440,25 +2455,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
 
-      // Normalizar categoría para búsquedas
-      const normalizeCategoryId = (str) => {
-        if (!str) return '';
-        return str
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9\s-]/g, "")
-          .replace(/\s+/g, "-")
-          .replace(/-+/g, "-")
-          .trim();
-      };
-      
-      console.log('GUARDANDO PRODUCTO - Categoría:', finalCategoryId);
-      
+      console.log("GUARDANDO PRODUCTO - Categoría:", finalCategoryId);
+
       let productData = {
         ...formData,
         categoria: finalCategoryId,
-        categoriaId: normalizeCategoryId(finalCategoryId), // Para búsquedas
         precio: Number.isFinite(precioNum) ? precioNum : 0,
         fechaActualizacion: new Date(),
         acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter(
@@ -2526,6 +2527,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       // Asociación de variante con imagen principal
       productData.varianteImagenPrincipal =
         formData.varianteImagenPrincipal || "";
+      // Características adicionales dinámicas según categoría
+      productData.caracteristicasAdicionales =
+        formData.caracteristicasAdicionales || {};
 
       // Normalización de marca para filtros insensibles a mayúsculas
       if (productData.empresa) {
@@ -2542,7 +2546,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
       const isNew = !canonicalId;
-      
+
       // Activar productos nuevos por defecto para que aparezcan inmediatamente
       if (isNew) {
         productData.activo = true;
@@ -2575,13 +2579,24 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         { ...productData, fechaActualizacion: new Date() },
         { merge: true }
       );
-      console.log('✅ PRODUCTO GUARDADO:', {
+      console.log("✅ PRODUCTO GUARDADO:", {
         id: targetId,
         categoria: productData.categoria,
         activo: productData.activo,
-        nombre: productData.nombre
+        nombre: productData.nombre,
       });
       if (isNew) setCurrentId(targetId);
+
+      // Disparar evento personalizado para notificar a los hooks
+      window.dispatchEvent(
+        new CustomEvent("productSaved", {
+          detail: {
+            productId: targetId,
+            categoria: productData.categoria,
+            activo: productData.activo,
+          },
+        })
+      );
 
       if (typeof onSave === "function") onSave();
       if (typeof onClose === "function") onClose();
@@ -2628,7 +2643,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3 md:p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto p-3 md:p-6"
+        >
           {/* Información del Producto - Layout Simétrico */}
           <div className="space-y-6">
             {/* Fila 1: Información Básica (ancho completo) */}
@@ -2831,6 +2849,39 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                     className="w-full min-h-[140px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+
+                {/* Peso y Dimensiones - Nueva sección */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Peso del Producto
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.peso || ""}
+                      onChange={(e) =>
+                        handleInputChange("peso", e.target.value)
+                      }
+                      placeholder="Ej: 500g, 1.5kg, 2 libras"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Dimensiones
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.dimensiones || ""}
+                      onChange={(e) =>
+                        handleInputChange("dimensiones", e.target.value)
+                      }
+                      placeholder="Ej: 20cm x 15cm x 10cm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -2907,7 +2958,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                   >
                     <option value="Nuevo">Nuevo</option>
                     <option value="Usado">Usado</option>
+                    <option value="Usado como nuevo">Usado como nuevo</option>
                     <option value="Reacondicionado">Reacondicionado</option>
+                    <option value="Reparado">Reparado</option>
                   </select>
                 </div>
 
@@ -3026,10 +3079,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                               url: formData.imagen,
                               type: "image",
                               name:
+                                formData.imagenPrincipal?.[0]?.nombreOriginal ||
                                 formData.imagen
                                   .split("/")
                                   .pop()
-                                  .split("?")[0] || "imagen-principal",
+                                  .split("?")[0] ||
+                                "imagen-principal",
                               size: 0,
                               isUploaded: true,
                             },
@@ -3107,8 +3162,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                       formData.imagenes.length > 0
                         ? formData.imagenes.map((u, i) => {
                             const url = typeof u === "string" ? u : u?.url || u;
-                            // Extraer nombre original del archivo de la URL
+                            // Usar nombre original guardado, sino extraer de URL
                             const fileName =
+                              (typeof u === "object" && u?.nombreOriginal) ||
                               url.split("/").pop().split("?")[0] ||
                               `imagen-${i + 1}`;
                             return {
@@ -3125,8 +3181,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                       formData.videoUrls.length > 0
                         ? formData.videoUrls.map((u, i) => {
                             const url = typeof u === "string" ? u : u?.url || u;
-                            // Extraer nombre original del archivo de la URL
+                            // Usar nombre original guardado, sino extraer de URL
                             const fileName =
+                              (typeof u === "object" && u?.nombreOriginal) ||
                               url.split("/").pop().split("?")[0] ||
                               `video-${i + 1}`;
                             return {
@@ -3251,6 +3308,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                     + Agregar etiqueta
                   </button>
                 </div>
+              </div>
+
+              {/* Características Adicionales Dinámicas por Categoría */}
+              <div className="bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl shadow-lg p-3 md:p-6 border-l-4 border-blue-500">
+                <AdditionalFieldsSection
+                  categoriaId={formData.categoria}
+                  value={formData.caracteristicasAdicionales}
+                  onChange={(newValue) =>
+                    handleInputChange("caracteristicasAdicionales", newValue)
+                  }
+                />
               </div>
 
               {/* Enhanced Variants Section */}

@@ -13,7 +13,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
       ...filtros,
       precio: {
         min: filtros.precio?.min ?? 0,
-        max: filtros.precio?.max ?? 1000,
+        max: filtros.precio?.max ?? 1000000,
       },
     };
     setTempFiltros(safeFiltros);
@@ -28,7 +28,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
 
   // Asegurar que siempre sea un array de dos números válidos
   const min = Number.isFinite(tempFiltros.precio?.min) ? tempFiltros.precio.min : 0;
-  const max = Number.isFinite(tempFiltros.precio?.max) ? tempFiltros.precio.max : 10000;
+  const max = Number.isFinite(tempFiltros.precio?.max) ? tempFiltros.precio.max : 1000000;
   const precioValido = [min, max];
 
   return (
@@ -58,31 +58,76 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
             <input
               type="checkbox"
               className="checkbox"
-              checked={tempFiltros.estado.nuevo}
+              checked={tempFiltros.estado?.nuevo}
               onChange={() =>
                 setTempFiltros((f) => ({
                   ...f,
-                  estado: { ...f.estado, nuevo: !f.estado.nuevo },
+                  estado: { ...f.estado, nuevo: !f.estado?.nuevo },
                 }))
               }
             />
             <div className="slider"></div>
             <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Nuevo</span>
           </label>
-          <label className="switch-container">
+          <label className="switch-container mb-2">
             <input
               type="checkbox"
               className="checkbox"
-              checked={tempFiltros.estado.usado}
+              checked={tempFiltros.estado?.usado}
               onChange={() =>
                 setTempFiltros((f) => ({
                   ...f,
-                  estado: { ...f.estado, usado: !f.estado.usado },
+                  estado: { ...f.estado, usado: !f.estado?.usado },
                 }))
               }
             />
             <div className="slider"></div>
             <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Usado</span>
+          </label>
+          <label className="switch-container mb-2">
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={tempFiltros.estado?.usadoComoNuevo}
+              onChange={() =>
+                setTempFiltros((f) => ({
+                  ...f,
+                  estado: { ...f.estado, usadoComoNuevo: !f.estado?.usadoComoNuevo },
+                }))
+              }
+            />
+            <div className="slider"></div>
+            <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Usado como nuevo</span>
+          </label>
+          <label className="switch-container mb-2">
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={tempFiltros.estado?.reacondicionado}
+              onChange={() =>
+                setTempFiltros((f) => ({
+                  ...f,
+                  estado: { ...f.estado, reacondicionado: !f.estado?.reacondicionado },
+                }))
+              }
+            />
+            <div className="slider"></div>
+            <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Reacondicionado</span>
+          </label>
+          <label className="switch-container">
+            <input
+              type="checkbox"
+              className="checkbox"
+              checked={tempFiltros.estado?.reparado}
+              onChange={() =>
+                setTempFiltros((f) => ({
+                  ...f,
+                  estado: { ...f.estado, reparado: !f.estado?.reparado },
+                }))
+              }
+            />
+            <div className="slider"></div>
+            <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Reparado</span>
           </label>
         </div>
 
@@ -127,12 +172,12 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
               onChange={handlePrecioChange}
               valueLabelDisplay="auto"
               min={0}
-              max={10000}
+              max={1000000}
             />
           </Box>
           <div className="flex justify-between text-xs text-blue-700 dark:text-blue-300 mt-1 font-semibold">
-            <span>RD${precioValido[0]}</span>
-            <span>RD${precioValido[1]}</span>
+            <span>RD${precioValido[0].toLocaleString('es-DO')}</span>
+            <span>RD${precioValido[1].toLocaleString('es-DO')}</span>
           </div>
         </div>
       </div>

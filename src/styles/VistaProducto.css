@@ -7,7 +7,7 @@
   font-size: 1.75rem;
   line-height: 1.2;
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   letter-spacing: -0.025em;
   text-rendering: optimizeLegibility;
@@ -29,7 +29,8 @@
   color: #4b5563;
   font-size: 0.95rem;
   line-height: 1.7;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   letter-spacing: -0.01em;
 }
 @media (min-width: 640px) {
@@ -46,23 +47,25 @@
 
 .vp-price {
   color: #1d4ed8 !important;
-  font-weight: 900;
-  font-size: 2rem;
+  font-weight: 700;
+  font-size: 1.5rem;
   display: flex;
   align-items: baseline;
   gap: 4px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   letter-spacing: -0.03em;
   text-rendering: optimizeLegibility;
+  margin-bottom: -8px;
 }
 @media (min-width: 640px) {
   .vp-price {
-    font-size: 2.5rem;
+    font-size: 1.75rem;
   }
 }
 @media (min-width: 1024px) {
   .vp-price {
-    font-size: 3rem;
+    font-size: 2rem;
   }
 }
 
@@ -147,7 +150,9 @@
 
 /* Layout principal estilo Amazon */
 .vp-main {
-  padding-top: calc(var(--content-offset, 100px) + 8px) !important; /* Mínimo espacio para que sticky no tape */
+  padding-top: calc(
+    var(--content-offset, 100px) + 8px
+  ) !important; /* Mínimo espacio para que sticky no tape */
   max-width: 100%; /* Ancho máximo como Amazon */
   margin: 0; /* Centrado */
   background: #fff; /* Fondo blanco limpio */
@@ -224,6 +229,10 @@
   object-position: center center; /* centrada siempre */
   cursor: pointer;
   transition: transform 0.3s ease;
+  image-rendering: -webkit-optimize-contrast; /* Alta calidad */
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden; /* Anti-aliasing */
+  backface-visibility: hidden;
 }
 .vp-main-image:hover {
   transform: none;
@@ -307,29 +316,38 @@
   }
 }
 
-/* Panel de zoom flotante (a la derecha, sobre la columna de información) */
+/* Panel de zoom flotante (a la derecha, MISMO TAMAÑO que imagen principal) */
 .vp-zoom-float {
   position: absolute;
   top: 0;
-  left: calc(100% + 16px); /* a la derecha del contenedor de imagen */
-  width: 520px; /* más grande por defecto */
-  aspect-ratio: 1 / 1; /* cuadrado */
+  left: calc(100% + 20px); /* a la derecha del contenedor de imagen */
+  width: 100%; /* MISMO ANCHO que la imagen principal */
+  aspect-ratio: 1 / 1.05; /* MISMA PROPORCIÓN que imagen principal */
   height: auto;
-  max-width: 45vw; /* seguridad para pantallas más pequeñas */
-  z-index: 9000; /* por encima de todo el contenido para que nada lo tape */
-  pointer-events: none; /* no bloquear interacciones con la info debajo */
+  z-index: 2147483647 !important; /* Z-INDEX MÁXIMO ABSOLUTO - tapa TODO */
+  pointer-events: none; /* no bloquear interacciones */
   border-radius: 12px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 8px 8px rgba(0, 0, 0, 0.06);
-  background-color: #fff; /* opaco: tapa la información debajo */
-  border: 1px solid #e5e7eb;
-  opacity: 1; /* asegurar que no sea transparente */
-  will-change: background-position; /* rendimiento suave al mover */
-  background-size: 250% 250% !important; /* zoom moderado 2.5x */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 12px 16px rgba(0, 0, 0, 0.12);
+  background-color: #fff; /* OPACO - tapa TODO lo de abajo */
+  border: 2px solid #d1d5db;
+  opacity: 1; /* 100% opaco */
+  will-change: background-position; /* rendimiento suave */
+  background-size: 400% 400% !important; /* ALTA CALIDAD - zoom 4x */
+  image-rendering: auto; /* Mejor calidad para zoom de imágenes */
+  -webkit-font-smoothing: antialiased; /* Anti-aliasing mejorado */
+  -moz-osx-font-smoothing: grayscale;
+  transform: translateZ(0); /* Aceleración de hardware */
+  -webkit-transform: translateZ(0);
+  filter: blur(0); /* Prevenir blur del navegador */
 }
 @media (min-width: 1280px) {
   .vp-zoom-float {
-    width: 640px; /* gigante como Amazon */
-    background-size: 300% 300% !important; /* zoom 3x en pantallas grandes */
+    background-size: 450% 450% !important; /* MÁS CALIDAD - zoom 4.5x */
+  }
+}
+@media (min-width: 1536px) {
+  .vp-zoom-float {
+    background-size: 500% 500% !important; /* MÁXIMA CALIDAD - zoom 5x */
   }
 }
 /* Evita que el min-height global fuerce el panel flotante a ser alto/vertical */
@@ -694,8 +712,10 @@
 @media (min-width: 1280px) {
   .amazon-gallery-layout {
     position: sticky;
-    top: calc(var(--content-offset, 120px) + 16px); /* Respeta TopBar + margen */
-    z-index: 10;
+    top: calc(
+      var(--content-offset, 120px) + 16px
+    ); /* Respeta TopBar + margen */
+    z-index: 50; /* Por encima de botones pero debajo de modales */
   }
 }
 
@@ -754,7 +774,9 @@
 /* Flechas CIRCULARES estilo imagen - Solo visibles en hover */
 .ebay-arrow-overlay {
   position: absolute;
-  left: calc(50% - 10px); /* ✅ Ajustado hacia la izquierda para mejor centrado */
+  left: calc(
+    50% - 10px
+  ); /* ✅ Ajustado hacia la izquierda para mejor centrado */
   transform: translateX(-50%);
   z-index: 20;
   width: 40px; /* ✅ Botones más grandes */
@@ -803,7 +825,9 @@
   .amazon-thumbs-sidebar {
     display: flex;
     align-self: flex-start;
-    max-height: calc(100vh - var(--topbar-height, 80px) - 40px); /* Limitar altura al viewport */
+    max-height: calc(
+      100vh - var(--topbar-height, 80px) - 40px
+    ); /* Limitar altura al viewport */
   }
 }
 
@@ -846,13 +870,15 @@
 .amazon-thumb:hover {
   border-color: #3b82f6;
   transform: translateY(-3px) scale(1.05); /* ✅ Efecto hover más pronunciado */
-  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25), 0 6px 10px rgba(0, 0, 0, 0.12); /* ✅ Sombra más bonita */
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25),
+    0 6px 10px rgba(0, 0, 0, 0.12); /* ✅ Sombra más bonita */
 }
 
 .amazon-thumb.active {
   border: 3px solid #2563eb;
   border-radius: 10px; /* ✅ Border radius más grande para activo */
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15), 0 10px 20px rgba(37, 99, 235, 0.35); /* ✅ Sombra más bonita */
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15),
+    0 10px 20px rgba(37, 99, 235, 0.35); /* ✅ Sombra más bonita */
   background: #ffffff;
   transform: scale(1.08); /* ✅ Scale más grande para destacar */
 }
@@ -920,6 +946,7 @@
 .amazon-main-image-container {
   flex: 1;
   position: relative;
+  z-index: 1; /* Base para stacking context */
 }
 
 /* NO sticky aquí - el contenedor .amazon-gallery-layout es sticky */
@@ -939,6 +966,7 @@
   touch-action: pan-y;
   transition: border-color 0.2s ease;
   box-shadow: none; /* sin sombras fuertes */
+  z-index: 1; /* Base para permitir que el zoom tape todo */
 }
 
 .amazon-main-image-wrap:hover {
@@ -948,6 +976,20 @@
 .amazon-main-image-wrap.zooming {
   cursor: crosshair;
   box-shadow: none;
+}
+
+/* Imágenes y videos dentro de la galería Amazon - ALTA CALIDAD */
+.amazon-main-image-wrap img,
+.amazon-main-image-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: -webkit-optimize-contrast; /* Alta calidad */
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden; /* Anti-aliasing */
+  backface-visibility: hidden;
+  transform: translateZ(0); /* Aceleración de hardware */
 }
 
 @media (max-width: 1279px) {
@@ -1464,9 +1506,11 @@
 @media (min-width: 1280px) {
   .vp-buy-card {
     position: sticky;
-    top: calc(var(--content-offset, 120px) + 16px); /* Debajo del TopBar + margen */
+    top: calc(
+      var(--content-offset, 120px) + 16px
+    ); /* Debajo del TopBar + margen */
     align-self: flex-start;
-    z-index: 40;
+    z-index: 1; /* BAJO - para que el zoom los tape */
   }
 }
 .vp-buy-inner {
@@ -1481,8 +1525,9 @@
 }
 .vp-buy-price {
   color: #2563eb !important;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1.25rem;
+  line-height: 1.2;
 }
 
 /* Stock */

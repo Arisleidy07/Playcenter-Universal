@@ -54,6 +54,332 @@ function setCheckoutPayload(mode, items, total) {
   }
 }
 
+// Componente de sección colapsable con animación suave y mejor diseño
+function CollapsibleSection({ title, children, defaultOpen = true }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const contentRef = useRef(null);
+
+  return (
+    <div className="border-b border-gray-200 dark:border-gray-700 last:border-0">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 transition-all duration-300 group rounded-lg"
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-1.5 h-6 rounded-full bg-gradient-to-b transition-all duration-300 ${
+            isOpen 
+              ? 'from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50' 
+              : 'from-gray-400 to-gray-500 group-hover:from-blue-500 group-hover:to-blue-600'
+          }`}></div>
+          <h3 className={`text-sm font-bold transition-all duration-300 ${
+            isOpen 
+              ? 'text-blue-600 dark:text-blue-400' 
+              : 'text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
+          }`}>
+            {title}
+          </h3>
+        </div>
+        <div className={`flex items-center gap-2 transition-all duration-300 ${
+          isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+        }`}>
+          <svg
+            className={`w-5 h-5 transform transition-all duration-500 ease-out ${
+              isOpen ? "rotate-180 scale-110" : "rotate-0 scale-100"
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
+      </button>
+      <div
+        ref={contentRef}
+        className={`transition-all duration-500 ease-out overflow-hidden ${
+          isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="px-5 pb-5 pt-2">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// Componente de información del producto
+function ProductInformationSection({ producto, allVariantes }) {
+  // DEBUG: Ver qué datos tiene el producto
+  console.log("📋 ProductInformationSection - producto:", producto);
+  console.log("📋 caracteristicasAdicionales:", producto?.caracteristicasAdicionales);
+  
+  // UNIFICAR características en arrays organizados
+  const caracteristicas = [];
+  const detalles = [];
+  const adicionales = [];
+
+  // CARACTERÍSTICAS Y ESPECIFICACIONES (columna izquierda)
+  // 1. Marca / Empresa
+  if (producto.empresa || producto.marca) {
+    caracteristicas.push({
+      label: "Marca",
+      value: producto.empresa || producto.marca,
+    });
+  }
+
+  // 2. Modelo
+  if (producto.modelo) {
+    caracteristicas.push({ label: "Modelo", value: producto.modelo });
+  }
+
+  // 3. Color Principal
+  if (producto.colorPrincipal) {
+    caracteristicas.push({ label: "Color", value: producto.colorPrincipal });
+  } else if (allVariantes && allVariantes.length > 0) {
+    const variantColors = allVariantes
+      .filter((v) => v.color)
+      .map((v) => v.color)
+      .join(", ");
+    if (variantColors) {
+      caracteristicas.push({ label: "Color", value: variantColors });
+    }
+  }
+
+  // 4. Material
+  if (producto.material) {
+    caracteristicas.push({ label: "Material", value: producto.material });
+  }
+
+  // 5. Peso del producto
+  if (producto.peso) {
+    caracteristicas.push({ label: "Peso del producto", value: producto.peso });
+  }
+
+  // 6. Dimensiones
+  if (producto.dimensiones) {
+    caracteristicas.push({ label: "Dimensiones", value: producto.dimensiones });
+  }
+
+  // 7. Conectividad
+  if (producto.conectividad) {
+    caracteristicas.push({
+      label: "Interfaz de hardware",
+      value: producto.conectividad,
+    });
+  }
+
+  // 8. Fuente de Alimentación
+  if (producto.fuenteAlimentacion) {
+    caracteristicas.push({
+      label: "Fuente de alimentación",
+      value: producto.fuenteAlimentacion,
+    });
+  }
+
+  // Agregar TODOS los campos de caracteristicasAdicionales
+  if (producto.caracteristicasAdicionales) {
+    const carac = producto.caracteristicasAdicionales;
+    
+    // Iterar sobre TODOS los campos y agregarlos
+    Object.keys(carac).forEach((key) => {
+      const value = carac[key];
+      if (value && String(value).trim()) {
+        // Convertir el key camelCase a texto legible
+        const label = key
+          .replace(/([A-Z])/g, ' $1') // Agregar espacio antes de mayúsculas
+          .replace(/^./, str => str.toUpperCase()) // Primera letra mayúscula
+          .trim();
+        
+        const displayValue = Array.isArray(value) ? value.join(", ") : String(value);
+        caracteristicas.push({ label, value: displayValue });
+      }
+    });
+  }
+
+  // DETALLES DEL PRODUCTO (columna derecha)
+  // 1. Fabricante
+  if (producto.fabricante) {
+    detalles.push({ label: "Fabricante", value: producto.fabricante });
+  } else if (producto.empresa || producto.marca) {
+    detalles.push({
+      label: "Fabricante",
+      value: producto.empresa || producto.marca,
+    });
+  }
+
+  // 2. Garantía
+  if (producto.garantia) {
+    detalles.push({ label: "Garantía", value: producto.garantia });
+  }
+
+  // 3. País de Fabricación
+  if (producto.paisFabricacion) {
+    detalles.push({
+      label: "País de fabricación",
+      value: producto.paisFabricacion,
+    });
+  }
+
+  // 4. Estado
+  if (producto.estado) {
+    detalles.push({ label: "Estado", value: producto.estado });
+  }
+
+  // 5. Fecha de Publicación
+  if (producto.fechaPublicacion) {
+    const fecha = new Date(producto.fechaPublicacion);
+    const fechaFormateada = fecha.toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    detalles.push({ label: "Fecha de publicación", value: fechaFormateada });
+  }
+
+  // Agregar más detalles de características adicionales (legacy)
+  if (producto.caracteristicasAdicionales) {
+    const carac = producto.caracteristicasAdicionales;
+
+    if (carac.garantia && !producto.garantia) {
+      detalles.push({
+        label: "Garantía del fabricante",
+        value: carac.garantia,
+      });
+    }
+    if (carac.contenidoPaquete) {
+      detalles.push({
+        label: "Contenido del paquete",
+        value: carac.contenidoPaquete,
+      });
+    }
+  }
+
+  // DETALLES ADICIONALES (sección adicional si hay datos extra)
+  // Campos legacy de caracteristicasAdicionales
+  if (producto.caracteristicasAdicionales) {
+    const carac = producto.caracteristicasAdicionales;
+
+    if (carac.talla) adicionales.push({ label: "Talla", value: carac.talla });
+    if (carac.estilo) adicionales.push({ label: "Estilo", value: carac.estilo });
+    if (carac.genero) adicionales.push({ label: "Género", value: carac.genero });
+    if (carac.temporada)
+      adicionales.push({ label: "Temporada de uso", value: carac.temporada });
+    if (carac.tipoMaterial)
+      adicionales.push({
+        label: "Tipo de material / acabado",
+        value: carac.tipoMaterial,
+      });
+    if (carac.instruccionesCuidado) {
+      const cuidado = Array.isArray(carac.instruccionesCuidado)
+        ? carac.instruccionesCuidado.join(", ")
+        : carac.instruccionesCuidado;
+      adicionales.push({ label: "Instrucciones de cuidado", value: cuidado });
+    }
+  }
+
+  // Si no hay ningún dato, no mostrar la sección
+  const hasData =
+    caracteristicas.length > 0 || detalles.length > 0 || adicionales.length > 0;
+  if (!hasData) return null;
+
+  return (
+    <section className="w-full mt-12 mb-8 px-4 sm:px-6">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="mb-8 flex items-center gap-3">
+          <div className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-lg shadow-blue-500/30"></div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            Información del producto
+          </h2>
+        </div>
+        
+        {/* DOS COLUMNAS en desktop, UNA en móvil/tablet */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+          
+          {/* COLUMNA IZQUIERDA */}
+          <div className="space-y-5">
+            {/* Características y especificaciones */}
+            {caracteristicas.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500 hover:-translate-y-0.5">
+                <CollapsibleSection title="Características y especificaciones">
+                  <div className="space-y-2.5">
+                    {caracteristicas.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-start py-3 px-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all duration-200 group"
+                      >
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 pr-4 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                          {item.label}
+                        </span>
+                        <span className="text-sm text-gray-900 dark:text-white text-right flex-1 font-medium">
+                          {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              </div>
+            )}
+
+            {/* Detalles adicionales */}
+            {adicionales.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500 hover:-translate-y-0.5">
+                <CollapsibleSection title="Detalles adicionales">
+                  <div className="space-y-2.5">
+                    {adicionales.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-start py-3 px-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all duration-200 group"
+                      >
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 pr-4 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                          {item.label}
+                        </span>
+                        <span className="text-sm text-gray-900 dark:text-white text-right flex-1 font-medium">
+                          {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              </div>
+            )}
+          </div>
+
+          {/* COLUMNA DERECHA */}
+          <div className="space-y-5">
+            {/* Detalles del producto */}
+            {detalles.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500 hover:-translate-y-0.5">
+                <CollapsibleSection title="Detalles del producto">
+                  <div className="space-y-2.5">
+                    {detalles.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-start py-3 px-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all duration-200 group"
+                      >
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 pr-4 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                          {item.label}
+                        </span>
+                        <span className="text-sm text-gray-900 dark:text-white text-right flex-1 font-medium">
+                          {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function VistaProducto() {
   const VP_DEBUG = false; // Toggle logs for debugging
   // TODOS LOS HOOKS AL PRINCIPIO - NUNCA CONDICIONALES
@@ -170,7 +496,8 @@ function VistaProducto() {
     } else {
       // Sin variante -> videos del producto base
       sourceData = producto?.videoUrls || [];
-      if (VP_DEBUG) console.log(`  ✅ ${sourceData.length} videos del producto base`);
+      if (VP_DEBUG)
+        console.log(`  ✅ ${sourceData.length} videos del producto base`);
     }
 
     const final = Array.isArray(sourceData)
@@ -210,12 +537,15 @@ function VistaProducto() {
         : [];
 
       if (VP_DEBUG) console.log(`  🎯 Variante "${variante.color}":`);
-      if (VP_DEBUG) console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
-      if (VP_DEBUG) console.log(`    - Galería: ${galleryImages.length} imágenes`);
+      if (VP_DEBUG)
+        console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
+      if (VP_DEBUG)
+        console.log(`    - Galería: ${galleryImages.length} imágenes`);
 
       // Fallback: si variante no tiene imágenes, usar producto base
       if (!mainImage && galleryImages.length === 0) {
-        if (VP_DEBUG) console.log(`  ⚠️ Variante sin imágenes, usando producto base`);
+        if (VP_DEBUG)
+          console.log(`  ⚠️ Variante sin imágenes, usando producto base`);
         mainImage = pickUrl(prod?.imagen || prod?.imagenPrincipal?.[0]?.url);
         galleryImages = Array.isArray(prod?.imagenes)
           ? prod.imagenes.map(pickUrl).filter(Boolean)
@@ -229,8 +559,10 @@ function VistaProducto() {
         : [];
 
       if (VP_DEBUG) console.log(`  📦 Producto base:`);
-      if (VP_DEBUG) console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
-      if (VP_DEBUG) console.log(`    - Galería: ${galleryImages.length} imágenes`);
+      if (VP_DEBUG)
+        console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
+      if (VP_DEBUG)
+        console.log(`    - Galería: ${galleryImages.length} imágenes`);
     }
 
     // 👉 AMAZON: Imagen principal PRIMERO, luego galería
@@ -239,10 +571,10 @@ function VistaProducto() {
     result.push(...galleryImages);
 
     // ✅ FILTRAR AGRESIVAMENTE: Sin valores vacíos, null, undefined, o strings vacíos
-    const cleaned = result.filter(url => {
+    const cleaned = result.filter((url) => {
       if (!url) return false;
-      if (typeof url !== 'string') return false;
-      if (url.trim() === '') return false;
+      if (typeof url !== "string") return false;
+      if (url.trim() === "") return false;
       return true;
     });
 
@@ -273,7 +605,7 @@ function VistaProducto() {
     );
     // Si varianteSeleccionada es -1 o null, usar null (producto principal)
     // Si es 0+, usar la variante correspondiente
-    varianteActivaParaMedios = 
+    varianteActivaParaMedios =
       varianteSeleccionada === -1 || varianteSeleccionada === null
         ? null // Producto principal
         : variantesConColor[varianteSeleccionada] || null;
@@ -473,7 +805,7 @@ function VistaProducto() {
   // Enhanced variant processing
   // -1 o null = producto principal seleccionado
   // 0+ = índice de variante seleccionada
-  const varianteActivaUI = 
+  const varianteActivaUI =
     varianteSeleccionada === -1 || varianteSeleccionada === null
       ? null // Producto principal
       : variantesConColor[varianteSeleccionada] || null;
@@ -699,10 +1031,10 @@ function VistaProducto() {
   };
 
   // ✅ FILTRO ESTRICTO: Solo URLs válidas
-  const imagenesValidas = imagenes.filter(url => {
+  const imagenesValidas = imagenes.filter((url) => {
     if (!url) return false;
-    if (typeof url !== 'string') return false;
-    if (url.trim() === '') return false;
+    if (typeof url !== "string") return false;
+    if (url.trim() === "") return false;
     return true;
   });
 
@@ -764,39 +1096,47 @@ function VistaProducto() {
       const naturalH = imgEl.naturalHeight;
       const scaleX = naturalW / Math.max(1, dispW);
       const scaleY = naturalH / Math.max(1, dispH);
-      // Zoom fuerte estilo Amazon/eBay, sin deformar
+      // ZOOM DE ALTA CALIDAD estilo Amazon - usa la imagen nativa
       const baseScale = Math.min(scaleX, scaleY);
-      const finalScale = Math.min(4, Math.max(2, baseScale)); // entre 2x y 4x
-      const factor = baseScale > 0 ? finalScale / baseScale : 2;
+      const finalScale = Math.min(5, Math.max(4, baseScale)); // entre 4x y 5x - ALTA CALIDAD
+      const factor = baseScale > 0 ? finalScale / baseScale : 4.5;
       setZoomBgSize({
         w: Math.round(naturalW * factor),
         h: Math.round(naturalH * factor),
       });
       zoomRectRef.current = imgRect;
     } else {
-      setZoomBgSize({ w: 1000, h: 1000 }); // fallback
+      setZoomBgSize({ w: 2000, h: 2000 }); // fallback de alta calidad
       zoomRectRef.current = imgWrapRef.current
         ? imgWrapRef.current.getBoundingClientRect()
         : null;
     }
-    
+
     // Calcular posición inicial basada en donde está el cursor
-    const rect = zoomRectRef.current || 
-                 (mainImgRef.current && mainImgRef.current.getBoundingClientRect()) ||
-                 (imgWrapRef.current && imgWrapRef.current.getBoundingClientRect());
-    
+    const rect =
+      zoomRectRef.current ||
+      (mainImgRef.current && mainImgRef.current.getBoundingClientRect()) ||
+      (imgWrapRef.current && imgWrapRef.current.getBoundingClientRect());
+
     if (rect && e) {
-      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+      const x = Math.max(
+        0,
+        Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)
+      );
+      const y = Math.max(
+        0,
+        Math.min(100, ((e.clientY - rect.top) / rect.height) * 100)
+      );
       lastPosRef.current = { x, y };
     } else {
       lastPosRef.current = { x: 50, y: 50 };
     }
-    
+
     setIsZooming(true);
     requestAnimationFrame(() => {
       const el = zoomOverlayRef.current;
-      if (el) el.style.backgroundPosition = `${lastPosRef.current.x}% ${lastPosRef.current.y}%`;
+      if (el)
+        el.style.backgroundPosition = `${lastPosRef.current.x}% ${lastPosRef.current.y}%`;
     });
   };
 
@@ -1065,7 +1405,10 @@ function VistaProducto() {
 
       // Handle swipe navigation
       const swipeThreshold = 50;
-      if (Math.abs(touchDeltaX.current) > swipeThreshold && productInfoZoom === 1) {
+      if (
+        Math.abs(touchDeltaX.current) > swipeThreshold &&
+        productInfoZoom === 1
+      ) {
         const extraImages = getExtraFiles();
         if (touchDeltaX.current > 0) {
           // Swipe derecha = anterior
@@ -1074,9 +1417,7 @@ function VistaProducto() {
           );
         } else {
           // Swipe izquierda = siguiente
-          setProductInfoImageIndex(
-            (prev) => (prev + 1) % extraImages.length
-          );
+          setProductInfoImageIndex((prev) => (prev + 1) % extraImages.length);
         }
         setProductInfoZoom(1);
         setProductInfoPan({ x: 50, y: 50 });
@@ -1257,7 +1598,10 @@ function VistaProducto() {
                                 ".amazon-thumbs-sidebar"
                               );
                               if (container)
-                                container.scrollBy({ top: 100, behavior: "smooth" });
+                                container.scrollBy({
+                                  top: 100,
+                                  behavior: "smooth",
+                                });
                             }}
                           >
                             <svg
@@ -1359,6 +1703,18 @@ function VistaProducto() {
                       {/* share removed en móvil/desktop para vista limpia */}
                     </div>
 
+                    {/* Enlace "Ver vista completa" - Solo visible en desktop y centrado */}
+                    <div className="hidden xl:block text-center mt-3">
+                      <button
+                        onClick={() =>
+                          openMediaOverlay("images", displayDesktopIndex)
+                        }
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200"
+                      >
+                        Ver vista completa
+                      </button>
+                    </div>
+
                     {/* Panel de zoom flotante a la derecha */}
                     <div
                       ref={zoomOverlayRef}
@@ -1386,7 +1742,9 @@ function VistaProducto() {
                           i === safeDesktopIndex ? "dot-active" : ""
                         }`}
                         onClick={() => setDesktopMediaIndex(i)}
-                        aria-label={`Imagen ${i + 1} de ${desktopMediaItems.length}`}
+                        aria-label={`Imagen ${i + 1} de ${
+                          desktopMediaItems.length
+                        }`}
                       />
                     ))}
                   </div>
@@ -1399,90 +1757,10 @@ function VistaProducto() {
 
           {/* Columna Centro - Información del producto (4 columnas) */}
           <motion.div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4 overflow-visible">
-            {/* ORDEN MÓVIL/TABLET: Imagen ya está arriba en showLeftColumn */}
-            
-            {/* Variantes PRIMERO en móvil/tablet, después en desktop */}
-            <div className={`vp-variants xl:order-4 order-1`}>
-              {/* Sin título - más limpio y elegante */}
-              {(() => {
-                // Incluir el producto principal como una variante más (si tiene color o imagen)
-                const mainColor = (producto.colorImagenPrincipal || producto.color || "").toString().trim();
-                const includeMainOption = Boolean(mainColor || producto.imagen || producto.imagenPrincipal?.[0]?.url);
-
-                const variantesForSelector = (() => {
-                  const all = [];
-                  if (includeMainOption) {
-                    all.push({
-                      color: mainColor || "Principal",
-                      cantidad: producto.cantidad || 0,
-                      precio: producto.precio,
-                      imagen: producto.imagen || producto.imagenPrincipal?.[0]?.url || "",
-                      imagenes: Array.isArray(producto.imagenes) ? producto.imagenes : [],
-                      videoUrls: Array.isArray(producto.videoUrls) ? producto.videoUrls : [],
-                      isMainProduct: true,
-                    });
-                  }
-                  if (Array.isArray(variantesConColor)) {
-                    const key = (s) => (s || "").toString().trim().toLowerCase();
-                    const mainK = key(mainColor);
-                    const filtered = variantesConColor.filter((v) => key(v?.color) !== mainK);
-                    all.push(...filtered);
-                  }
-                  return all;
-                })();
-
-                // Mapear selección: -1 => índice 0 (principal). N => N+1
-                const selectedIndexForSelector = includeMainOption
-                  ? (varianteSeleccionada === -1 || varianteSeleccionada === null ? 0 : Math.max(1, Math.min(varianteSeleccionada + 1, Math.max(1, variantesForSelector.length - 1))))
-                  : Math.max(0, Math.min(varianteSeleccionada || 0, Math.max(0, variantesForSelector.length - 1)));
-
-                const handleSelectorChange = (index) => {
-                  if (includeMainOption) {
-                    if (index === 0) {
-                      // Producto principal
-                      setVarianteSeleccionada(-1);
-                    } else {
-                      handleVariantChange(index - 1);
-                    }
-                  } else {
-                    handleVariantChange(index);
-                  }
-                };
-
-                // Solo mostrar si hay variantes REALES (más de 1 opción real)
-                // No contar el producto principal como "variante"
-                const variantesReales = variantesConColor.length;
-                if (variantesReales === 0) {
-                  // Sin variantes reales - NO mostrar selector
-                  return null;
-                }
-                if (variantesReales === 1 && !includeMainOption) {
-                  // Solo 1 variante y no incluimos principal - NO mostrar selector
-                  return null;
-                }
-                // Si hay 2+ opciones distintas (principal + 1 variante real), mostrar
-                if (variantesForSelector.length <= 1) {
-                  return null;
-                }
-
-                return (
-                  <VisualVariantSelector
-                    variantes={variantesForSelector}
-                    varianteSeleccionada={selectedIndexForSelector}
-                    onVarianteChange={handleSelectorChange}
-                    showStock={false}
-                    showPrice={true}
-                    basePrice={precioProducto}
-                    className="w-full"
-                  />
-                );
-              })()}
-            </div>
-
-            {/* Título, descripción y precio - DESPUÉS de variantes en móvil */}
-            <h1 className="vp-title xl:order-1 order-2">{producto.nombre}</h1>
+            {/* Título, descripción y precio - PRIMERO (orden correcto) */}
+            <h1 className="vp-title xl:order-1 order-1">{producto.nombre}</h1>
             <div
-              className="vp-desc prose max-w-none xl:order-2 order-3"
+              className="vp-desc prose max-w-none xl:order-2 order-2"
               dangerouslySetInnerHTML={{
                 __html: sanitizeBasic(
                   producto.descripcion ||
@@ -1490,9 +1768,99 @@ function VistaProducto() {
                 ),
               }}
             />
-            <p className="vp-price xl:order-3 order-4">DOP {formatPriceRD(precioProducto)}</p>
+            <div className="xl:order-3 order-3">
+              <div className="flex flex-col">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-sm text-gray-600 font-medium">DOP</span>
+                  <span className="text-sm text-gray-600 font-medium">$</span>
+                  <span className="text-3xl font-bold text-blue-700">
+                    {formatPriceRD(precioProducto)}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-            {/* Información del Vendedor - Removido por solicitud del usuario */}
+            {/* Acerca de este artículo - DIRECTO DEBAJO DEL PRECIO */}
+            {(() => {
+              const acercaItems = [];
+
+              // Agregar items del array acerca
+              if (Array.isArray(producto.acerca)) {
+                acercaItems.push(
+                  ...producto.acerca.filter((item) => item && item.trim())
+                );
+              }
+
+              // Agregar información IMPORTANTE del producto automáticamente
+              if (producto.empresa || producto.marca) {
+                acercaItems.push(`Marca: ${producto.empresa || producto.marca}`);
+              }
+              if (producto.modelo) {
+                acercaItems.push(`Modelo: ${producto.modelo}`);
+              }
+              if (producto.colorPrincipal) {
+                acercaItems.push(`Color: ${producto.colorPrincipal}`);
+              }
+              if (producto.material) {
+                acercaItems.push(`Material: ${producto.material}`);
+              }
+              if (producto.peso) {
+                acercaItems.push(`Peso: ${producto.peso}`);
+              }
+              if (producto.dimensiones) {
+                acercaItems.push(`Dimensiones: ${producto.dimensiones}`);
+              }
+              if (producto.conectividad) {
+                acercaItems.push(`Conectividad: ${producto.conectividad}`);
+              }
+              if (producto.garantia) {
+                acercaItems.push(`Garantía: ${producto.garantia}`);
+              }
+              if (producto.estado) {
+                acercaItems.push(`Estado: ${producto.estado}`);
+              }
+              
+              // Agregar TODOS los campos de caracteristicasAdicionales
+              if (producto.caracteristicasAdicionales) {
+                const carac = producto.caracteristicasAdicionales;
+                
+                Object.keys(carac).forEach(key => {
+                  const value = carac[key];
+                  if (value && String(value).trim()) {
+                    const label = key
+                      .replace(/([A-Z])/g, ' $1')
+                      .replace(/^./, str => str.toUpperCase())
+                      .trim();
+                    const displayValue = Array.isArray(value) 
+                      ? value.join(", ") 
+                      : String(value);
+                    acercaItems.push(`${label}: ${displayValue}`);
+                  }
+                });
+              }
+
+              if (acercaItems.length === 0) return null;
+
+              return (
+                <div className="space-y-4 xl:order-4 order-4 -mt-2">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-4 flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+                    Acerca de este artículo
+                  </h3>
+                  <ul className="space-y-3">
+                    {acercaItems.map((detalle, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
+                        <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">{detalle}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
 
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL/TABLET (restaurado) */}
             <div className="xl:hidden flex flex-col gap-3 overflow-visible xl:order-5 order-5">
@@ -1563,31 +1931,12 @@ function VistaProducto() {
                 </div>
               </div>
             </div>
-            {Array.isArray(producto.acerca) && producto.acerca.length > 0 && (
-              <div className="space-y-2 xl:order-6 order-6">
-                <h3 className="text-lg font-bold text-gray-900">
-                  Acerca de este artículo
-                </h3>
-                <ul className="space-y-1.5 text-gray-800">
-                  {producto.acerca.map((detalle, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm leading-snug"
-                    >
-                      {/* Círculo azul en lugar de checkmark */}
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
-                      <span className="flex-1">{detalle}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </motion.div>
 
           {/* Columna Derecha - Tarjeta de compra (2 columnas) */}
           <aside className="vp-buy-card w-full xl:col-span-2 hidden xl:block">
             <div className="vp-buy-inner">
-              <div className="vp-buy-price">
+              <div className="vp-buy-price text-xl font-semibold">
                 DOP {formatPriceRD(precioProducto)}
               </div>
 
@@ -1705,6 +2054,13 @@ function VistaProducto() {
             </section>
           );
         })()}
+
+        {/* 📋 INFORMACIÓN DEL PRODUCTO - Secciones colapsables estilo Amazon */}
+        <ProductInformationSection
+          producto={producto}
+          allVariantes={allVariantes}
+        />
+
       </main>
 
       {/* Modal de galería fullscreen - ESTILO AMAZON EXACTO */}
@@ -1833,15 +2189,22 @@ function VistaProducto() {
                             ? "bg-gray-800 hover:bg-gray-700 text-white border-gray-600"
                             : "bg-white hover:bg-gray-50 text-gray-800 border-gray-300"
                         }`}
-                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
+                        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.12)" }}
                         onClick={() => {
                           if (thumbnailsRef.current) {
-                            thumbnailsRef.current.scrollBy({ top: -200, behavior: 'smooth' });
+                            thumbnailsRef.current.scrollBy({
+                              top: -200,
+                              behavior: "smooth",
+                            });
                           }
                         }}
                         aria-label="Scroll arriba"
                       >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
                         </svg>
                       </button>
@@ -1852,25 +2215,32 @@ function VistaProducto() {
                             ? "bg-gray-800 hover:bg-gray-700 text-white border-gray-600"
                             : "bg-white hover:bg-gray-50 text-gray-800 border-gray-300"
                         }`}
-                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
+                        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.12)" }}
                         onClick={() => {
                           if (thumbnailsRef.current) {
-                            thumbnailsRef.current.scrollBy({ top: 200, behavior: 'smooth' });
+                            thumbnailsRef.current.scrollBy({
+                              top: 200,
+                              behavior: "smooth",
+                            });
                           }
                         }}
                         aria-label="Scroll abajo"
                       >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
                         </svg>
                       </button>
                     </>
                   )}
 
-                  <div 
+                  <div
                     ref={thumbnailsRef}
                     className="overflow-y-auto p-4 h-full"
-                    style={{ scrollbarWidth: 'thin' }}
+                    style={{ scrollbarWidth: "thin" }}
                   >
                     <div className="space-y-3">
                       <h3
@@ -1882,59 +2252,59 @@ function VistaProducto() {
                       </h3>
                       {/* Grid de miniaturas 2 columnas - SOLO de variante activa */}
                       <div className="grid grid-cols-2 gap-3">
-                      {currentMediaItems.map((item, i) => (
-                        <button
-                          key={`desktop-thumb-${i}`}
-                          type="button"
-                          className={`w-full aspect-square overflow-hidden rounded border-2 transition-all ${
-                            i === safeMediaIndex
-                              ? ""
-                              : "border-gray-300 hover:border-gray-400"
-                          }`}
-                          style={
-                            i === safeMediaIndex
-                              ? { borderColor: "#0064D2" }
-                              : undefined
-                          }
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMediaOverlayIndex(i);
-                            setFullscreenZoom(1);
-                            setFullscreenPan({ x: 0, y: 0 });
-                          }}
-                          aria-label={`Vista ${i + 1}`}
-                        >
-                          {mediaOverlayTab === "videos" ? (
-                            <div className="relative w-full h-full bg-black flex items-center justify-center">
-                              <video
-                                src={item.url}
-                                className="w-full h-full object-contain"
-                                muted
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="bg-white/90 rounded-full p-2">
-                                  <svg
-                                    className="w-6 h-6 text-gray-700"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                                  </svg>
+                        {currentMediaItems.map((item, i) => (
+                          <button
+                            key={`desktop-thumb-${i}`}
+                            type="button"
+                            className={`w-full aspect-square overflow-hidden rounded border-2 transition-all ${
+                              i === safeMediaIndex
+                                ? ""
+                                : "border-gray-300 hover:border-gray-400"
+                            }`}
+                            style={
+                              i === safeMediaIndex
+                                ? { borderColor: "#0064D2" }
+                                : undefined
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMediaOverlayIndex(i);
+                              setFullscreenZoom(1);
+                              setFullscreenPan({ x: 0, y: 0 });
+                            }}
+                            aria-label={`Vista ${i + 1}`}
+                          >
+                            {mediaOverlayTab === "videos" ? (
+                              <div className="relative w-full h-full bg-black flex items-center justify-center">
+                                <video
+                                  src={item.url}
+                                  className="w-full h-full object-contain"
+                                  muted
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                  <div className="bg-white/90 rounded-full p-2">
+                                    <svg
+                                      className="w-6 h-6 text-gray-700"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                    </svg>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ) : (
-                            <img
-                              src={item.url}
-                              alt={`Miniatura ${i + 1}`}
-                              className="w-full h-full object-contain bg-white p-1"
-                            />
-                          )}
-                        </button>
-                      ))}
+                            ) : (
+                              <img
+                                src={item.url}
+                                alt={`Miniatura ${i + 1}`}
+                                className="w-full h-full object-contain bg-white p-1"
+                              />
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
                 </div>
 
                 {/* Columna DERECHA - Imagen/Video grande */}
@@ -2056,16 +2426,25 @@ function VistaProducto() {
                               maxWidth: "min(100vw - 2rem, 1500px)",
                               maxHeight: "min(90vh, 100%)",
                               transform: `scale(${fullscreenZoom}) translate(${fullscreenPan.x}px, ${fullscreenPan.y}px)`,
-                              transition: fullscreenZoom === 1 ? "transform 0.3s ease" : "none",
-                              cursor: fullscreenZoom > 1 ? "zoom-out" : "zoom-in",
+                              transition:
+                                fullscreenZoom === 1
+                                  ? "transform 0.3s ease"
+                                  : "none",
+                              cursor:
+                                fullscreenZoom > 1 ? "zoom-out" : "zoom-in",
                             }}
                             draggable={false}
                             onClick={(e) => {
                               if (fullscreenZoom === 1) {
                                 // Activar zoom y centrar en la posición del clic
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = ((e.clientX - rect.left) / rect.width - 0.5) * -100;
-                                const y = ((e.clientY - rect.top) / rect.height - 0.5) * -100;
+                                const rect =
+                                  e.currentTarget.getBoundingClientRect();
+                                const x =
+                                  ((e.clientX - rect.left) / rect.width - 0.5) *
+                                  -100;
+                                const y =
+                                  ((e.clientY - rect.top) / rect.height - 0.5) *
+                                  -100;
                                 setFullscreenZoom(2);
                                 setFullscreenPan({ x, y });
                               } else {
@@ -2076,9 +2455,14 @@ function VistaProducto() {
                             }}
                             onMouseMove={(e) => {
                               if (fullscreenZoom > 1) {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = ((e.clientX - rect.left) / rect.width - 0.5) * -100;
-                                const y = ((e.clientY - rect.top) / rect.height - 0.5) * -100;
+                                const rect =
+                                  e.currentTarget.getBoundingClientRect();
+                                const x =
+                                  ((e.clientX - rect.left) / rect.width - 0.5) *
+                                  -100;
+                                const y =
+                                  ((e.clientY - rect.top) / rect.height - 0.5) *
+                                  -100;
                                 setFullscreenPan({ x, y });
                               }
                             }}
@@ -2249,8 +2633,11 @@ function VistaProducto() {
               alt={`${producto?.nombre}`}
               className="max-w-full max-h-full object-contain select-none"
               style={{
-                transform: `scale(${modalZoom || 1}) translate(${modalPan?.x || 0}px, ${modalPan?.y || 0}px)`,
-                transition: (modalZoom || 1) === 1 ? "transform 0.3s ease" : "none",
+                transform: `scale(${modalZoom || 1}) translate(${
+                  modalPan?.x || 0
+                }px, ${modalPan?.y || 0}px)`,
+                transition:
+                  (modalZoom || 1) === 1 ? "transform 0.3s ease" : "none",
                 cursor: (modalZoom || 1) > 1 ? "zoom-out" : "zoom-in",
               }}
               draggable={false}
@@ -2445,7 +2832,10 @@ function VistaProducto() {
                         maxHeight: "min(90vh, 100%)",
                         transform: `scale(${productInfoZoom})`,
                         transformOrigin: `${productInfoPan.x}% ${productInfoPan.y}%`,
-                        transition: productInfoZoom === 1 ? "transform 0.3s ease" : "none",
+                        transition:
+                          productInfoZoom === 1
+                            ? "transform 0.3s ease"
+                            : "none",
                         cursor: productInfoZoom > 1 ? "zoom-out" : "zoom-in",
                       }}
                       draggable={false}
@@ -2453,8 +2843,10 @@ function VistaProducto() {
                         if (productInfoZoom === 1) {
                           // Activar zoom en la posición exacta del clic
                           const rect = e.currentTarget.getBoundingClientRect();
-                          const x = ((e.clientX - rect.left) / rect.width) * 100;
-                          const y = ((e.clientY - rect.top) / rect.height) * 100;
+                          const x =
+                            ((e.clientX - rect.left) / rect.width) * 100;
+                          const y =
+                            ((e.clientY - rect.top) / rect.height) * 100;
                           setProductInfoZoom(2.5);
                           setProductInfoPan({ x, y });
                         } else {
@@ -2467,8 +2859,10 @@ function VistaProducto() {
                         if (productInfoZoom > 1) {
                           // Actualizar transform-origin según posición del mouse
                           const rect = e.currentTarget.getBoundingClientRect();
-                          const x = ((e.clientX - rect.left) / rect.width) * 100;
-                          const y = ((e.clientY - rect.top) / rect.height) * 100;
+                          const x =
+                            ((e.clientX - rect.left) / rect.width) * 100;
+                          const y =
+                            ((e.clientY - rect.top) / rect.height) * 100;
                           setProductInfoPan({ x, y });
                         }
                       }}
