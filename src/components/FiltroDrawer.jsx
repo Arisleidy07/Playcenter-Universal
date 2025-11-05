@@ -84,7 +84,7 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
             <div className="slider"></div>
             <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Usado</span>
           </label>
-          <label className="switch-container mb-2">
+          <label className="switch-container">
             <input
               type="checkbox"
               className="checkbox"
@@ -98,36 +98,6 @@ function FiltroDrawer({ filtros, setFiltros, onReset, visible, onClose }) {
             />
             <div className="slider"></div>
             <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Usado como nuevo</span>
-          </label>
-          <label className="switch-container mb-2">
-            <input
-              type="checkbox"
-              className="checkbox"
-              checked={tempFiltros.estado?.reacondicionado}
-              onChange={() =>
-                setTempFiltros((f) => ({
-                  ...f,
-                  estado: { ...f.estado, reacondicionado: !f.estado?.reacondicionado },
-                }))
-              }
-            />
-            <div className="slider"></div>
-            <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Reacondicionado</span>
-          </label>
-          <label className="switch-container">
-            <input
-              type="checkbox"
-              className="checkbox"
-              checked={tempFiltros.estado?.reparado}
-              onChange={() =>
-                setTempFiltros((f) => ({
-                  ...f,
-                  estado: { ...f.estado, reparado: !f.estado?.reparado },
-                }))
-              }
-            />
-            <div className="slider"></div>
-            <span className="ml-2 text-gray-800 dark:text-gray-200 font-medium">Reparado</span>
           </label>
         </div>
 

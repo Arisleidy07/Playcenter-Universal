@@ -2959,8 +2959,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                     <option value="Nuevo">Nuevo</option>
                     <option value="Usado">Usado</option>
                     <option value="Usado como nuevo">Usado como nuevo</option>
-                    <option value="Reacondicionado">Reacondicionado</option>
-                    <option value="Reparado">Reparado</option>
                   </select>
                 </div>
 
