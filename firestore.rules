@@ -90,6 +90,12 @@ service cloud.firestore {
       allow update: if isAdmin() || 
                       (request.auth != null && resource.data.propietario_id == request.auth.uid);
       allow delete: if isAdmin();
+      
+      // Subcolección de seguidores - Lectura pública, escritura autenticados
+      match /seguidores/{seguidorId} {
+        allow read: if true; // Cualquiera puede ver los seguidores
+        allow create, update, delete: if request.auth != null && request.auth.uid == seguidorId;
+      }
     }
     
     // Email campaign errors - Solo admin

@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { subirImagenCloudinary } from "../utils/subirImagenCloudinary";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   collection,
   getDocs,
@@ -840,6 +840,21 @@ export default function Profile() {
     seguidores: 0,
     publicaciones: 0,
   });
+  const [miTienda, setMiTienda] = useState(null);
+  const [loadingTienda, setLoadingTienda] = useState(true);
+  const [cambiarPasswordOpen, setCambiarPasswordOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    actual: '',
+    nueva: '',
+    confirmar: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [notificaciones, setNotificaciones] = useState({
+    email: true,
+    pedidos: true,
+    ofertas: false
+  });
+  const [idioma, setIdioma] = useState('es');
 
   // Refs para inputs de archivo
   const fileInputRef = React.useRef(null);
@@ -887,6 +902,8 @@ export default function Profile() {
     fetchDirecciones();
     fetchEmpresas();
     fetchStats();
+    fetchMiTienda();
+    loadNotificaciones();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario]);
 
@@ -950,6 +967,88 @@ export default function Profile() {
         seguidores: 0,
         publicaciones: 0,
       });
+    }
+  };
+
+  const fetchMiTienda = async () => {
+    try {
+      setLoadingTienda(true);
+      console.log('🔍 Buscando tienda para usuario:', usuario.uid);
+      
+      const tiendasQuery = query(
+        collection(db, 'tiendas'),
+        where('propietario_id', '==', usuario.uid)
+      );
+      
+      const tiendasSnap = await getDocs(tiendasQuery);
+      
+      if (!tiendasSnap.empty) {
+        const tiendaData = { id: tiendasSnap.docs[0].id, ...tiendasSnap.docs[0].data() };
+        console.log('✅ Tienda encontrada:', tiendaData);
+        setMiTienda(tiendaData);
+      } else {
+        console.log('❌ No se encontró tienda');
+        setMiTienda(null);
+      }
+    } catch (err) {
+      console.error('Error fetchMiTienda:', err);
+      setMiTienda(null);
+    } finally {
+      setLoadingTienda(false);
+    }
+  };
+
+  const loadNotificaciones = () => {
+    const saved = localStorage.getItem(`notificaciones_${usuario.uid}`);
+    if (saved) setNotificaciones(JSON.parse(saved));
+    const savedIdioma = localStorage.getItem(`idioma_${usuario.uid}`);
+    if (savedIdioma) setIdioma(savedIdioma);
+  };
+
+  const handleNotificacionChange = (tipo) => {
+    const nuevas = { ...notificaciones, [tipo]: !notificaciones[tipo] };
+    setNotificaciones(nuevas);
+    localStorage.setItem(`notificaciones_${usuario.uid}`, JSON.stringify(nuevas));
+    toast('Notificaciones actualizadas', 'success');
+  };
+
+  const handleIdiomaChange = (e) => {
+    const nuevoIdioma = e.target.value;
+    setIdioma(nuevoIdioma);
+    localStorage.setItem(`idioma_${usuario.uid}`, nuevoIdioma);
+    toast('Idioma actualizado', 'success');
+  };
+
+  const handleCambiarPassword = async () => {
+    setPasswordError('');
+    if (!passwordForm.actual || !passwordForm.nueva || !passwordForm.confirmar) {
+      setPasswordError('Todos los campos son requeridos');
+      return;
+    }
+    if (passwordForm.nueva !== passwordForm.confirmar) {
+      setPasswordError('Las contraseñas no coinciden');
+      return;
+    }
+    if (passwordForm.nueva.length < 6) {
+      setPasswordError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    setLoading(true);
+    try {
+      const credential = EmailAuthProvider.credential(usuario.email, passwordForm.actual);
+      await reauthenticateWithCredential(usuario, credential);
+      await updatePassword(usuario, passwordForm.nueva);
+      setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+      setCambiarPasswordOpen(false);
+      toast('Contraseña actualizada correctamente', 'success');
+    } catch (err) {
+      if (err.code === 'auth/wrong-password') {
+        setPasswordError('La contraseña actual es incorrecta');
+      } else {
+        setPasswordError('Error: ' + err.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1818,55 +1917,136 @@ export default function Profile() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-                  Mi Tienda
-                </h2>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                    Mi Tienda
+                  </h2>
+                  {miTienda && (
+                    <Link
+                      to={`/tiendas/${miTienda.id}`}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:scale-105 font-semibold shadow-md flex items-center gap-2"
+                    >
+                      <Store size={20} />
+                      Ver mi tienda
+                    </Link>
+                  )}
+                </div>
 
-                {stats.publicaciones === 0 ? (
+                {loadingTienda ? (
+                  <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
+                  </div>
+                ) : !miTienda ? (
                   <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-200 text-center">
                     <div className="text-6xl mb-4">🏪</div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      Aún no tienes productos
+                      No tienes una tienda aún
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Comienza a vender publicando tu primer producto.
+                      Contacta al administrador para crear tu tienda y comenzar a vender.
                     </p>
-                    <button
-                      className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all hover:scale-105"
-                      onClick={() => navigate("/admin")}
+                    <Link
+                      to="/contacto"
+                      className="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all hover:scale-105"
                     >
-                      Publicar Producto
-                    </button>
+                      Contactar
+                    </Link>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-md border border-blue-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-white rounded-lg shadow-sm">
-                          <Store size={24} className="text-blue-600" />
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 rounded-2xl overflow-hidden shadow-lg border-2 border-blue-200">
+                      {miTienda.banner && (
+                        <div className="w-full h-32 md:h-48 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
+                          <img
+                            src={miTienda.banner}
+                            alt={`Banner de ${miTienda.nombre}`}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">
-                            Mi Tienda
-                          </h3>
-                          <p className="text-sm text-gray-600">Playcenter</p>
+                      )}
+                      
+                      <div className="p-6 md:p-8">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6">
+                          {miTienda.logo && (
+                            <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full shadow-lg border-4 border-white flex-shrink-0 overflow-hidden">
+                              <img
+                                src={miTienda.logo}
+                                alt={`Logo de ${miTienda.nombre}`}
+                                className="w-full h-full object-contain p-2"
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="flex-1">
+                            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                              {miTienda.nombre}
+                            </h3>
+                            {miTienda.descripcion && (
+                              <p className="text-gray-700 text-base">
+                                {miTienda.descripcion}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-                          <span className="text-sm font-medium text-gray-700">
-                            Productos publicados
-                          </span>
-                          <span className="text-xl font-bold text-blue-600">
-                            {stats.publicaciones}
-                          </span>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                            <div className="flex items-center justify-center gap-2 text-blue-600 mb-1">
+                              <Package size={20} />
+                            </div>
+                            <p className="text-2xl font-bold text-gray-900">
+                              {stats.publicaciones}
+                            </p>
+                            <p className="text-xs text-gray-600">Productos</p>
+                          </div>
+                          
+                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                            <div className="flex items-center justify-center gap-2 text-green-600 mb-1">
+                              <Users size={20} />
+                            </div>
+                            <p className="text-2xl font-bold text-gray-900">
+                              {miTienda.seguidores || 0}
+                            </p>
+                            <p className="text-xs text-gray-600">Seguidores</p>
+                          </div>
+                          
+                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                            <div className="flex items-center justify-center gap-2 text-purple-600 mb-1">
+                              <TrendingUp size={20} />
+                            </div>
+                            <p className="text-2xl font-bold text-gray-900">
+                              {miTienda.ventas || 0}
+                            </p>
+                            <p className="text-xs text-gray-600">Ventas</p>
+                          </div>
+                          
+                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                            <div className="flex items-center justify-center gap-2 text-yellow-600 mb-1">
+                              <Star size={20} />
+                            </div>
+                            <p className="text-2xl font-bold text-gray-900">
+                              {miTienda.valoracion_promedio?.toFixed(1) || '5.0'}
+                            </p>
+                            <p className="text-xs text-gray-600">Rating</p>
+                          </div>
                         </div>
-                        <button
-                          className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105"
-                          onClick={() => navigate("/admin")}
-                        >
-                          Gestionar productos
-                        </button>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <button
+                            className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:scale-105 font-semibold shadow-md flex items-center justify-center gap-2"
+                            onClick={() => navigate("/admin")}
+                          >
+                            <BarChart size={20} />
+                            Gestionar productos
+                          </button>
+                          <Link
+                            to={`/tiendas/${miTienda.id}`}
+                            className="w-full px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all hover:scale-105 font-semibold flex items-center justify-center gap-2"
+                          >
+                            <Store size={20} />
+                            Ver página pública
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2222,6 +2402,7 @@ export default function Profile() {
                   </h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {/* Cambiar contraseña - FUNCIONAL */}
                     <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="p-3 bg-blue-50 rounded-lg">
@@ -2234,11 +2415,15 @@ export default function Profile() {
                       <p className="text-sm text-gray-600 mb-4">
                         Actualiza tu contraseña para mantener tu cuenta segura.
                       </p>
-                      <button className="w-full px-4 py-2.5 border-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-all hover:scale-105">
+                      <button
+                        onClick={() => setCambiarPasswordOpen(true)}
+                        className="w-full px-4 py-2.5 border-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-all hover:scale-105"
+                      >
                         Cambiar contraseña
                       </button>
                     </div>
 
+                    {/* Notificaciones - FUNCIONAL */}
                     <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="p-3 bg-blue-50 rounded-lg">
@@ -2258,8 +2443,9 @@ export default function Profile() {
                           </span>
                           <input
                             type="checkbox"
-                            defaultChecked
-                            className="w-5 h-5 text-blue-600 rounded"
+                            checked={notificaciones.email}
+                            onChange={() => handleNotificacionChange('email')}
+                            className="w-5 h-5 text-blue-600 rounded cursor-pointer"
                           />
                         </label>
                         <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
@@ -2268,8 +2454,9 @@ export default function Profile() {
                           </span>
                           <input
                             type="checkbox"
-                            defaultChecked
-                            className="w-5 h-5 text-blue-600 rounded"
+                            checked={notificaciones.pedidos}
+                            onChange={() => handleNotificacionChange('pedidos')}
+                            className="w-5 h-5 text-blue-600 rounded cursor-pointer"
                           />
                         </label>
                         <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
@@ -2278,12 +2465,15 @@ export default function Profile() {
                           </span>
                           <input
                             type="checkbox"
-                            className="w-5 h-5 text-blue-600 rounded"
+                            checked={notificaciones.ofertas}
+                            onChange={() => handleNotificacionChange('ofertas')}
+                            className="w-5 h-5 text-blue-600 rounded cursor-pointer"
                           />
                         </label>
                       </div>
                     </div>
 
+                    {/* Idioma - FUNCIONAL */}
                     <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="p-3 bg-blue-50 rounded-lg">
@@ -2296,7 +2486,11 @@ export default function Profile() {
                       <p className="text-sm text-gray-600 mb-4">
                         Selecciona tu idioma preferido.
                       </p>
-                      <select className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-blue-600 focus:outline-none transition-colors">
+                      <select
+                        value={idioma}
+                        onChange={handleIdiomaChange}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-blue-600 focus:outline-none transition-colors cursor-pointer"
+                      >
                         <option value="es">Español</option>
                         <option value="en">English</option>
                       </select>
@@ -2819,6 +3013,136 @@ export default function Profile() {
                   disabled={loading}
                 >
                   {loading ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL CAMBIAR CONTRASEÑA */}
+      <AnimatePresence>
+        {cambiarPasswordOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4"
+            onClick={() => {
+              setCambiarPasswordOpen(false);
+              setPasswordError('');
+              setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Lock size={24} />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setCambiarPasswordOpen(false);
+                      setPasswordError('');
+                      setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+                    }}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <h3 className="text-2xl font-bold">
+                  Cambiar Contraseña
+                </h3>
+                <p className="text-blue-100 text-sm mt-1">
+                  Actualiza tu contraseña de forma segura
+                </p>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-4">
+                {passwordError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+                    <XCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-800">{passwordError}</p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contraseña actual
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.actual}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, actual: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nueva contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.nueva}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, nueva: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="••••••••"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Mínimo 6 caracteres
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirmar nueva contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmar}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmar: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="bg-gray-50 px-6 py-4 flex gap-3">
+                <button
+                  onClick={() => {
+                    setCambiarPasswordOpen(false);
+                    setPasswordError('');
+                    setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleCambiarPassword}
+                  disabled={loading}
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      Guardando...
+                    </>
+                  ) : (
+                    'Cambiar contraseña'
+                  )}
                 </button>
               </div>
             </motion.div>
