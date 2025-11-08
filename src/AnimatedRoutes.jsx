@@ -10,6 +10,7 @@ import Carrito from "./pages/Carrito";
 import Contacto from "./pages/Contacto";
 import Vender from "./pages/Vender";
 import Tiendas from "./pages/Tiendas";
+import TiendaIndividual from "./pages/TiendaIndividual";
 import Historial from "./pages/Historial";
 import Nosotros from "./pages/Nosotros";
 import PaginaBusqueda from "./pages/PaginaBusqueda";
@@ -127,6 +128,14 @@ export default function AnimatedRoutes() {
             element={
               <PageTransition>
                 <Tiendas />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/tiendas/:id"
+            element={
+              <PageTransition>
+                <TiendaIndividual />
               </PageTransition>
             }
           />

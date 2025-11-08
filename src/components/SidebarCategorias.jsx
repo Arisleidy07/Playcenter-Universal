@@ -8,13 +8,13 @@ import "../styles/SidebarCategorias.css";
 const buttonVariants = {
   initial: { scale: 1, boxShadow: "none" },
   hover: {
-    scale: 1.04,
-    boxShadow: "0 4px 8px rgba(60, 80, 120, 0.2)",
+    scale: 1.02,
+    boxShadow: "none",
     transition: { type: "spring", stiffness: 200, damping: 20 },
   },
   tap: {
-    scale: 0.97,
-    boxShadow: "0 0 4px rgba(60, 80, 120, 0.4)",
+    scale: 0.98,
+    boxShadow: "none",
   },
 };
 
@@ -41,6 +41,18 @@ function SidebarCategorias({
 }) {
   const navigate = useNavigate();
   const { categories, loading, error } = useCategories();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark') || 
+                    document.documentElement.classList.contains('dark-theme'));
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const handleClick = (cat) => {
     navigate(`/Productos/${cat.ruta}`);
@@ -122,12 +134,19 @@ function SidebarCategorias({
                       whileHover="hover"
                       whileTap="tap"
                       variants={buttonVariants}
-                      className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+                      className={`w-full text-left px-4 py-2 rounded-md font-medium transition-all duration-200 ${
                         isActiva(cat.nombre)
-                          ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 font-semibold"
-                          : "bg-transparent text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
+                          ? "text-blue-900 dark:text-blue-100 font-semibold border border-blue-300/50 dark:border-blue-400/50"
+                          : "text-blue-700 dark:text-blue-300 border border-gray-200/30 dark:border-gray-600/30"
                       }`}
-                      style={{ border: "none", boxShadow: "none" }}
+                      style={{ 
+                        background: isDarkMode 
+                          ? (isActiva(cat.nombre) ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)')
+                          : (isActiva(cat.nombre) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'),
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        boxShadow: 'none'
+                      }}
                     >
                       {cat.nombre}
                     </motion.button>
@@ -150,34 +169,41 @@ function SidebarCategorias({
       <AnimatePresence>
         {mostrarEnMovil && (
           <>
+            {/* Overlay oscuro */}
             <motion.div
-              className="fixed inset-0 bg-gray-200 dark:bg-gray-900 bg-opacity-40 backdrop-blur-sm z-[9998]"
+              className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-[9998]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMostrarEnMovil(false)}
             />
+            {/* Sidebar sólido */}
             <motion.nav
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 250, damping: 30 }}
-              className="fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-300 dark:border-gray-700 z-[9999] flex flex-col shadow-md transition-colors duration-300"
+              className="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-[9999] flex flex-col shadow-2xl transition-colors duration-300"
             >
-              <div className="flex justify-between items-center px-4 py-4 border-b border-gray-300 dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-400 tracking-wide select-none">
+              {/* Header con gradiente */}
+              <div className="flex justify-between items-center px-4 py-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800">
+                <h2 className="text-lg font-bold text-white tracking-wide select-none flex items-center gap-2">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                  </svg>
                   Categorías
                 </h2>
                 <button
                   onClick={() => setMostrarEnMovil(false)}
-                  className="text-red-500 font-bold text-2xl hover:text-red-700"
+                  className="text-white font-bold text-2xl hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
                   aria-label="Cerrar categorías"
                 >
                   ✕
                 </button>
               </div>
 
-              <nav className="flex-1 overflow-y-auto px-4 py-2 scrollbar-light">
+              {/* Contenido */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 bg-gray-50 dark:bg-gray-800">
                 <ul className="space-y-2 text-sm">
                   {allCategories.map((cat, idx) => (
                     <motion.li key={cat.id || idx} whileHover={{ scale: 1.02 }}>
@@ -187,19 +213,18 @@ function SidebarCategorias({
                         whileHover="hover"
                         whileTap="tap"
                         variants={buttonVariants}
-                        className={`w-full text-left px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+                        className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
                           isActiva(cat.nombre)
-                            ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 font-semibold"
-                            : "bg-transparent text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
+                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 border border-blue-300 dark:border-blue-600"
+                            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                         }`}
-                        style={{ border: "none", boxShadow: "none" }}
                       >
                         {cat.nombre}
                       </motion.button>
                     </motion.li>
                   ))}
                 </ul>
-              </nav>
+              </div>
             </motion.nav>
           </>
         )}

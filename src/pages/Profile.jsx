@@ -26,7 +26,7 @@ import {
   Calendar,
   ShoppingBag,
   CircleDollarSign,
-  Eye,
+  Clock,
   ArrowRight,
   Hourglass,
   XCircle,
@@ -40,6 +40,16 @@ import {
   Bell,
   Globe,
   ChevronRight,
+  ChevronDown,
+  Camera,
+  Image as ImageIcon,
+  Store,
+  TrendingUp,
+  Users,
+  Heart,
+  Grid,
+  Plus,
+  BarChart,
 } from "lucide-react";
 import "../styles/Profile.css";
 
@@ -699,11 +709,15 @@ function OrderDetailsModal({
 
 // Componente de menú lateral
 function SidebarMenu({ vista, setVista, onLogout, isMobile, onClose }) {
+  const navigate = useNavigate();
+
   const menuItems = [
-    { id: "cuenta", label: "Mi cuenta", icon: User },
-    { id: "pedidos", label: "Mis pedidos", icon: Package },
-    { id: "direcciones", label: "Mis direcciones", icon: MapPin },
+    { id: "perfil", label: "Ver mi perfil", icon: User },
+    { id: "historial", label: "Historial de búsqueda", icon: Clock },
+    { id: "ubicaciones", label: "Mis direcciones", icon: MapPin },
+    { id: "pedidos", label: "Mis pedidos", icon: ShoppingBag },
     { id: "pagos", label: "Métodos de pago", icon: CreditCard },
+    { id: "tiendas", label: "Mi tienda", icon: Store },
     { id: "configuracion", label: "Configuración", icon: Settings },
   ];
 
@@ -812,13 +826,21 @@ export default function Profile() {
   const { usuario, usuarioInfo, actualizarUsuarioInfo, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [vista, setVista] = useState("cuenta");
+  const [vista, setVista] = useState("perfil");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState({ text: "", tipo: "" });
   const [photoUploadModalOpen, setPhotoUploadModalOpen] = useState(false);
-  
+  const [empresas, setEmpresas] = useState([]);
+  const [stats, setStats] = useState({
+    seguidos: 0,
+    seguidores: 0,
+    publicaciones: 0,
+  });
+
   // Refs para inputs de archivo
   const fileInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
@@ -863,19 +885,24 @@ export default function Profile() {
     if (!usuario) return;
     fetchHistorial();
     fetchDirecciones();
+    fetchEmpresas();
+    fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario]);
 
   const fetchHistorial = async () => {
     try {
+      console.log("🔍 Buscando pedidos para usuario:", usuario.uid);
       const q = query(
         collection(db, "orders"),
         where("userId", "==", usuario.uid)
       );
       const snap = await getDocs(q);
-      setHistorial(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      const pedidos = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      console.log("📦 Pedidos encontrados:", pedidos.length, pedidos);
+      setHistorial(pedidos);
     } catch (err) {
-      console.error("fetchHistorial:", err);
+      console.error("❌ Error fetchHistorial:", err);
     }
   };
 
@@ -889,6 +916,40 @@ export default function Profile() {
       setDirecciones(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
       console.error("fetchDirecciones:", err);
+    }
+  };
+
+  const fetchEmpresas = async () => {
+    try {
+      // TODO: Implementar query real cuando exista la colección
+      setEmpresas([]);
+    } catch (err) {
+      console.error("fetchEmpresas:", err);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      // Contar publicaciones (productos) del usuario
+      const productosQuery = query(
+        collection(db, "productos"),
+        where("creadoPor", "==", usuario.uid)
+      );
+      const productosSnap = await getDocs(productosQuery);
+
+      setStats({
+        seguidos: 0,
+        seguidores: 0,
+        publicaciones: productosSnap.docs.length,
+      });
+    } catch (err) {
+      console.error("fetchStats:", err);
+      // Fallback si falla
+      setStats({
+        seguidos: 0,
+        seguidores: 0,
+        publicaciones: 0,
+      });
     }
   };
 
@@ -1145,11 +1206,235 @@ export default function Profile() {
       animate="enter"
       exit="exit"
     >
-      {/* BOTÓN HAMBURGUESA MÓVIL */}
+      {/* HEADER CON "HOLA, NOMBRE" Y DROPDOWN - ESQUINA */}
+      <div className="profile-new-topbar">
+        <div className="w-full px-3 md:px-4">
+          <div className="flex justify-between items-center">
+            {/* Hola, Nombre con dropdown - Esquina pequeño */}
+            <div className="relative" style={{ zIndex: 100 }}>
+              <button
+                className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-gray-50 transition-colors"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <span className="text-xs md:text-sm font-normal text-gray-700">
+                  Hola, {publicName}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${
+                    dropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown */}
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 min-w-[240px] overflow-hidden"
+                    style={{ zIndex: 101 }}
+                  >
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                      onClick={() => {
+                        setEditModalOpen(true);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <Pencil size={16} />
+                      <span>Editar perfil</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left">
+                      <Users size={16} />
+                      <span>Cambiar cuenta</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left">
+                      <Plus size={16} />
+                      <span>Agregar cuenta</span>
+                    </button>
+                    <div className="h-px bg-gray-200 my-1" />
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        setConfirmLogoutOpen(true);
+                      }}
+                    >
+                      <LogOut size={16} />
+                      <span>Cerrar sesión</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Botón menú lateral - Cambia a X cuando está abierto */}
+            <button
+              className="flex items-center gap-2 px-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all xl:hidden"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
+            >
+              {sidebarOpen ? (
+                <X size={20} className="text-red-600" />
+              ) : (
+                <Menu size={20} />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* CABECERA DEL PERFIL: Avatar + Nombre + Botón Editar */}
+      <div className="w-full px-4 xl:px-8 mt-3 md:mt-4 xl:mt-6 max-w-[1920px] mx-auto">
+        <motion.div
+          className="flex flex-col items-center gap-2 md:gap-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className="relative">
+            <img
+              src={avatarSrc}
+              alt="Avatar"
+              className="w-20 h-20 md:w-24 md:h-24 xl:w-28 xl:h-28 rounded-full object-cover border-3 border-white shadow-lg ring-1 ring-gray-200"
+            />
+            <div className="absolute bottom-0 right-0 w-5 h-5 md:w-6 md:h-6 bg-green-500 border-3 border-white rounded-full" />
+          </div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl xl:text-3xl font-bold text-gray-900">
+              {publicName}
+            </h1>
+            <button
+              className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all hover:scale-110 shadow-md"
+              onClick={() => setEditModalOpen(true)}
+              title="Editar perfil"
+            >
+              <Pencil size={14} className="md:w-4 md:h-4" />
+            </button>
+          </div>
+        </motion.div>
+
+        {/* INDICADORES DE SEGUIMIENTO */}
+        <motion.div
+          className="flex justify-center gap-6 md:gap-8 xl:gap-12 py-3 md:py-4 border-b border-gray-200 mt-3 md:mt-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <button
+            className="flex flex-col items-center hover:opacity-75 hover:scale-105 transition-all group"
+            onClick={() => toast("Próximamente")}
+          >
+            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+              {stats.seguidos}
+            </span>
+            <span className="text-xs md:text-sm text-gray-600">Seguidos</span>
+          </button>
+          <button
+            className="flex flex-col items-center hover:opacity-75 hover:scale-105 transition-all group"
+            onClick={() => toast("Próximamente")}
+          >
+            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+              {stats.seguidores}
+            </span>
+            <span className="text-xs md:text-sm text-gray-600">Seguidores</span>
+          </button>
+          <button
+            className="flex flex-col items-center hover:opacity-75 hover:scale-105 transition-all group"
+            onClick={() => toast("Próximamente")}
+          >
+            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+              {stats.publicaciones}
+            </span>
+            <span className="text-xs md:text-sm text-gray-600">
+              Publicaciones
+            </span>
+          </button>
+        </motion.div>
+
+        {/* MENÚ DE ACCESOS RÁPIDOS (ÍCONOS) - SLIDER VISIBLE */}
+        <motion.div
+          className="py-2 md:py-3 border-b border-gray-200 relative"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          {/* Gradient indicators para mostrar que es slider */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white via-white to-transparent pointer-events-none z-10 xl:hidden" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white via-white to-transparent pointer-events-none z-10 xl:hidden" />
+
+          <div className="overflow-x-auto scrollbar-hide scroll-smooth px-2 md:px-4">
+            <div className="flex justify-start xl:justify-center gap-2 md:gap-2 xl:gap-4 min-w-max xl:flex-wrap xl:max-w-full">
+              {[
+                { id: "perfil", icon: User, label: "Perfil" },
+                { id: "historial", icon: Clock, label: "Historial" },
+                { id: "ubicaciones", icon: MapPin, label: "Direcciones" },
+                { id: "pedidos", icon: ShoppingBag, label: "Pedidos" },
+                { id: "pagos", icon: CreditCard, label: "Pagos" },
+                { id: "tiendas", icon: Store, label: "Mi Tienda" },
+                {
+                  id: "configuracion",
+                  icon: Settings,
+                  label: "Ajustes",
+                  hideOnMobile: false,
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    className={`flex flex-col items-center gap-1 md:gap-1.5 p-1.5 md:p-2 xl:p-2.5 rounded-lg transition-all hover:scale-105 min-w-[60px] md:min-w-[65px] xl:min-w-[80px] ${
+                      vista === item.id && !item.isExternal
+                        ? "bg-blue-50 shadow-sm"
+                        : "hover:bg-gray-50"
+                    }`}
+                    onClick={() => {
+                      setVista(item.id);
+                    }}
+                  >
+                    <div
+                      className={`w-10 h-10 md:w-11 md:h-11 xl:w-14 xl:h-14 flex items-center justify-center rounded-full transition-all ${
+                        vista === item.id
+                          ? "bg-blue-600 text-white scale-105"
+                          : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700"
+                      }`}
+                    >
+                      <Icon
+                        size={item.id === vista ? 18 : 16}
+                        className="md:w-5 md:h-5 xl:w-6 xl:h-6"
+                      />
+                    </div>
+                    <span
+                      className={`text-[9px] md:text-[10px] xl:text-xs font-medium text-center leading-tight max-w-[65px] xl:max-w-none ${
+                        vista === item.id ? "text-blue-600" : "text-gray-700"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Indicador de scroll para móvil */}
+          <div className="flex justify-center gap-1 mt-3 xl:hidden">
+            <div className="w-2 h-2 rounded-full bg-blue-600" />
+            <div className="w-2 h-2 rounded-full bg-gray-300" />
+            <div className="w-2 h-2 rounded-full bg-gray-300" />
+          </div>
+        </motion.div>
+      </div>
+
+      {/* BOTÓN HAMBURGUESA MÓVIL (LEGACY) */}
       <button
         className="sidebar-toggle-btn xl:hidden"
         onClick={() => setSidebarOpen(!sidebarOpen)}
         aria-label="Abrir menú"
+        style={{ display: "none" }}
       >
         <Menu size={24} />
         <span>Perfil</span>
@@ -1168,10 +1453,12 @@ export default function Profile() {
         )}
       </AnimatePresence>
 
-      {/* CONTENEDOR PRINCIPAL CON DOS COLUMNAS */}
-      <div className="profile-container">
-        {/* SIDEBAR LATERAL */}
-        <aside className={`profile-sidebar ${sidebarOpen ? "open" : ""}`}>
+      {/* CONTENEDOR PRINCIPAL - ANCHO COMPLETO */}
+      <div className="w-full">
+        {/* SIDEBAR LATERAL (solo móvil/tablet) */}
+        <aside
+          className={`profile-sidebar xl:hidden ${sidebarOpen ? "open" : ""}`}
+        >
           {/* BOTÓN CERRAR EN MÓVIL */}
           <button
             className="sidebar-close-btn xl:hidden"
@@ -1189,391 +1476,835 @@ export default function Profile() {
           />
         </aside>
 
-        {/* CONTENIDO PRINCIPAL */}
-        <main className="profile-content">
-          <div className="content-card">
-            <AnimatePresence mode="wait">
-            {vista === "cuenta" && (
-              <motion.section
+        {/* CONTENIDO DINÁMICO - ANCHO COMPLETO */}
+        <div className="w-full px-4 xl:px-8 py-6 md:py-8 xl:py-12 max-w-[1920px] mx-auto">
+          <AnimatePresence mode="wait">
+            {/* VISTA PERFIL */}
+            {vista === "perfil" && (
+              <motion.div
                 key="perfil"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
               >
-                <div className="profile-header big">
-                  <div className="avatar-block large">
-                    <img src={avatarSrc} alt="Avatar" className="avatar-img" />
-                  </div>
-                  <div className="profile-meta big">
-                    <h1 className="profile-name">{publicName}</h1>
-                    <p className="profile-email">{form.email}</p>
-                    <p className="muted small">
-                      UID: <span className="mono">{usuario.uid}</span>
-                    </p>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Mi Información
+                </h2>
 
-                    <div className="profile-actions">
+                {/* Card Principal de Información */}
+                <div className="bg-white rounded-2xl p-6 md:p-8 shadow-md border border-gray-200">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                          Nombre Completo
+                        </label>
+                        <p className="text-base md:text-lg font-bold text-gray-900">
+                          {form.nombre || "No especificado"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                          Correo Electrónico
+                        </label>
+                        <p className="text-base md:text-lg text-gray-900 break-all">
+                          {form.email}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                          Teléfono
+                        </label>
+                        <p className="text-base md:text-lg text-gray-900">
+                          {form.telefono || "No especificado"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                          Dirección
+                        </label>
+                        <p className="text-base md:text-lg text-gray-900">
+                          {form.direccion || "No especificada"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-200 flex flex-wrap gap-3">
                       <button
-                        className="btn btn-primary"
-                        onClick={() => setPhotoUploadModalOpen(true)}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:scale-105 font-semibold shadow-md flex items-center gap-2"
+                        onClick={() => setEditModalOpen(true)}
                       >
-                        Cambiar foto
+                        <Pencil size={18} />
+                        Editar perfil
                       </button>
-                      <button
-                        className="btn btn-ghost"
-                        onClick={() => setConfirmRemoveImageOpen(true)}
-                      >
-                        Quitar
-                      </button>
-                      {localPreview && (
-                        <>
-                          <button
-                            className="btn btn-success"
-                            onClick={uploadLocalImage}
-                            disabled={loading}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card de Estadísticas */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-sm border border-blue-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-blue-600 rounded-lg">
+                        <ShoppingBag size={20} className="text-white" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-gray-700">
+                        Total Pedidos
+                      </h3>
+                    </div>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {stats.publicaciones || 0}
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-sm border border-green-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-green-600 rounded-lg">
+                        <MapPin size={20} className="text-white" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-gray-700">
+                        Direcciones
+                      </h3>
+                    </div>
+                    <p className="text-3xl font-bold text-green-600">
+                      {direcciones.length || 0}
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 shadow-sm border border-purple-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-purple-600 rounded-lg">
+                        <User size={20} className="text-white" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-gray-700">
+                        Miembro desde
+                      </h3>
+                    </div>
+                    <p className="text-lg font-bold text-purple-600">
+                      {usuario?.metadata?.creationTime
+                        ? new Date(
+                            usuario.metadata.creationTime
+                          ).toLocaleDateString("es-DO", {
+                            year: "numeric",
+                            month: "short",
+                          })
+                        : "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* VISTA HISTORIAL - Historial de Búsqueda */}
+            {vista === "historial" && (
+              <motion.div
+                key="historial"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
+                  Tu historial de búsqueda
+                </h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  Estos productos se vieron recientemente. Los utilizamos para
+                  personalizar las recomendaciones.
+                </p>
+                <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-200 text-center">
+                  <div className="text-6xl mb-4">👁️</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Próximamente
+                  </h3>
+                  <p className="text-gray-600">
+                    Aquí aparecerán los productos que has visto.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* VISTA UBICACIONES */}
+            {vista === "ubicaciones" && (
+              <motion.div
+                key="ubicaciones"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                    Mis Direcciones
+                  </h2>
+                  <button
+                    className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                    onClick={() => setModalEntregaOpen(true)}
+                  >
+                    <Plus size={20} />
+                    <span className="font-semibold">Agregar dirección</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Opción recoger en tienda */}
+                  <motion.div
+                    className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 md:p-6 shadow-md border-2 border-blue-600 hover:shadow-xl transition-all"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
+                      <div className="p-3 bg-blue-600 text-white rounded-xl">
+                        <Store size={28} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">
+                          Recoger en tienda
+                        </h3>
+                        <p className="text-sm md:text-base text-gray-700 font-semibold mb-1">
+                          Playcenter Santiago
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-600">
+                          {TIENDA_PLAYCENTER.direccionCompleta}
+                        </p>
+                        {TIENDA_PLAYCENTER.ubicacion && (
+                          <a
+                            href={TIENDA_PLAYCENTER.ubicacion}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs md:text-sm text-blue-600 hover:text-blue-800 underline mt-2 inline-block"
                           >
-                            Guardar foto
+                            Ver en Google Maps
+                          </a>
+                        )}
+                      </div>
+                      <button
+                        className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white text-sm md:text-base font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105 shadow-md whitespace-nowrap"
+                        onClick={() =>
+                          handleSeleccionarDireccion(TIENDA_PLAYCENTER)
+                        }
+                      >
+                        Seleccionar
+                      </button>
+                    </div>
+                  </motion.div>
+
+                  {/* Lista de direcciones */}
+                  {direcciones.map((dir) => (
+                    <motion.div
+                      key={dir.id}
+                      className="bg-white rounded-2xl p-4 md:p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all"
+                      whileHover={{ scale: 1.01 }}
+                    >
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-gray-100 text-gray-700 rounded-lg">
+                            <MapPin size={24} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-base md:text-lg font-bold text-gray-900 truncate">
+                              {dir.provincia}, {dir.ciudad}
+                            </h3>
+                            <p className="text-sm md:text-base text-gray-600 mt-1 break-words">
+                              {dir.direccionCompleta}
+                            </p>
+                            {dir.numeroCalle && (
+                              <p className="text-xs md:text-sm text-gray-500 mt-1">
+                                Calle: {dir.numeroCalle}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            className="flex-1 min-w-[100px] px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                            onClick={() => handleSeleccionarDireccion(dir)}
+                          >
+                            <Check size={18} />
+                            <span>Seleccionar</span>
                           </button>
                           <button
-                            className="btn btn-outline"
-                            onClick={cancelLocalPreview}
+                            className="flex-1 min-w-[100px] px-4 py-2.5 border-2 border-gray-300 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                            onClick={() => {
+                              setDireccionEditar(dir);
+                              setModalEntregaOpen(true);
+                            }}
+                          >
+                            <Pencil size={18} />
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            className="px-4 py-2.5 border-2 border-red-300 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-50 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                            onClick={() => confirmarEliminar(dir.id)}
+                          >
+                            <Trash2 size={18} />
+                            <span className="hidden sm:inline">Eliminar</span>
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {direcciones.length === 0 && (
+                    <motion.div
+                      className="text-center py-16 bg-gray-50 rounded-2xl"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <MapPin
+                        size={64}
+                        className="mx-auto mb-4 text-gray-400"
+                      />
+                      <p className="text-lg text-gray-600 font-medium">
+                        No tienes direcciones guardadas
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Agrega una dirección para tus entregas
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* VISTA PEDIDOS */}
+            {vista === "pedidos" && (
+              <motion.div
+                key="pedidos"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                    Mis Pedidos
+                  </h2>
+                  {historial && historial.length > 0 && (
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                      {historial.length}{" "}
+                      {historial.length === 1 ? "pedido" : "pedidos"}
+                    </span>
+                  )}
+                </div>
+                <HistorialSection historial={historial} />
+              </motion.div>
+            )}
+
+            {/* VISTA MÉTODOS DE PAGO */}
+            {vista === "pagos" && (
+              <motion.div
+                key="pagos"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="text-center py-16"
+              >
+                <CreditCard size={64} className="mx-auto text-gray-400 mb-4" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Métodos de Pago
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Gestiona tus métodos de pago
+                </p>
+                <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  Agregar método de pago
+                </button>
+              </motion.div>
+            )}
+
+            {/* VISTA MI TIENDA */}
+            {vista === "tiendas" && (
+              <motion.div
+                key="tiendas"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                  Mi Tienda
+                </h2>
+
+                {stats.publicaciones === 0 ? (
+                  <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-200 text-center">
+                    <div className="text-6xl mb-4">🏪</div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Aún no tienes productos
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Comienza a vender publicando tu primer producto.
+                    </p>
+                    <button
+                      className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all hover:scale-105"
+                      onClick={() => navigate("/admin")}
+                    >
+                      Publicar Producto
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-md border border-blue-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-white rounded-lg shadow-sm">
+                          <Store size={24} className="text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">
+                            Mi Tienda
+                          </h3>
+                          <p className="text-sm text-gray-600">Playcenter</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">
+                            Productos publicados
+                          </span>
+                          <span className="text-xl font-bold text-blue-600">
+                            {stats.publicaciones}
+                          </span>
+                        </div>
+                        <button
+                          className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105"
+                          onClick={() => navigate("/admin")}
+                        >
+                          Gestionar productos
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* CONTENIDO PRINCIPAL (LEGACY - OCULTO) */}
+        <main className="profile-content" style={{ display: "none" }}>
+          <div className="content-card">
+            <AnimatePresence mode="wait">
+              {vista === "cuenta" && (
+                <motion.section
+                  key="perfil"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <div className="profile-header big">
+                    <div className="avatar-block large">
+                      <img
+                        src={avatarSrc}
+                        alt="Avatar"
+                        className="avatar-img"
+                      />
+                    </div>
+                    <div className="profile-meta big">
+                      <h1 className="profile-name">{publicName}</h1>
+                      <p className="profile-email">{form.email}</p>
+                      <p className="muted small">
+                        UID: <span className="mono">{usuario.uid}</span>
+                      </p>
+
+                      <div className="profile-actions">
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => setPhotoUploadModalOpen(true)}
+                        >
+                          Cambiar foto
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          onClick={() => setConfirmRemoveImageOpen(true)}
+                        >
+                          Quitar
+                        </button>
+                        {localPreview && (
+                          <>
+                            <button
+                              className="btn btn-success"
+                              onClick={uploadLocalImage}
+                              disabled={loading}
+                            >
+                              Guardar foto
+                            </button>
+                            <button
+                              className="btn btn-outline"
+                              onClick={cancelLocalPreview}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Inputs ocultos para diferentes opciones */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFile}
+                        className="hidden"
+                        style={{ display: "none" }}
+                      />
+                      <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleFile}
+                        className="hidden"
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-grid big">
+                    <div className="form-row">
+                      <label>Nombre</label>
+                      <input
+                        name="nombre"
+                        value={form.nombre}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                      />
+                    </div>
+                    <div className="form-row">
+                      <label>Email</label>
+                      <input name="email" value={form.email} disabled />
+                    </div>
+                    <div className="form-row">
+                      <label>Teléfono</label>
+                      <input
+                        name="telefono"
+                        value={form.telefono}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                      />
+                    </div>
+                    <div className="form-row full">
+                      <label>Dirección completa</label>
+                      <textarea
+                        name="direccion"
+                        value={form.direccion}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                        rows={4}
+                      />
+                      <p className="muted hint">
+                        Pulsa "Editar" para modificar.
+                      </p>
+                    </div>
+
+                    <div className="form-actions">
+                      {!editMode ? (
+                        <button
+                          onClick={() => setEditMode(true)}
+                          className="btn btn-primary"
+                        >
+                          Editar perfil
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={saveProfile}
+                            className="btn btn-success"
+                            disabled={loading}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditMode(false);
+                              cancelLocalPreview();
+                            }}
+                            className="btn btn-ghost"
                           >
                             Cancelar
                           </button>
                         </>
                       )}
                     </div>
-                    
-                    {/* Inputs ocultos para diferentes opciones */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFile}
-                      className="hidden"
-                      style={{ display: 'none' }}
-                    />
-                    <input
-                      ref={cameraInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handleFile}
-                      className="hidden"
-                      style={{ display: 'none' }}
-                    />
                   </div>
-                </div>
+                </motion.section>
+              )}
 
-                <div className="form-grid big">
-                  <div className="form-row">
-                    <label>Nombre</label>
-                    <input
-                      name="nombre"
-                      value={form.nombre}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>Email</label>
-                    <input name="email" value={form.email} disabled />
-                  </div>
-                  <div className="form-row">
-                    <label>Teléfono</label>
-                    <input
-                      name="telefono"
-                      value={form.telefono}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div className="form-row full">
-                    <label>Dirección completa</label>
-                    <textarea
-                      name="direccion"
-                      value={form.direccion}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                      rows={4}
-                    />
-                    <p className="muted hint">Pulsa "Editar" para modificar.</p>
-                  </div>
+              {vista === "pedidos" && (
+                <motion.section
+                  key="historial"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <h2 className="section-title large">Mis pedidos</h2>
+                  <HistorialSection historial={historial} />
+                </motion.section>
+              )}
 
-                  <div className="form-actions">
-                    {!editMode ? (
+              {vista === "direcciones" && (
+                <motion.section
+                  key="direcciones"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <div className="direcciones-head">
+                    <h2 className="section-title large">Direcciones</h2>
+                    <div>
                       <button
-                        onClick={() => setEditMode(true)}
                         className="btn btn-primary"
+                        onClick={() => {
+                          setDireccionEditar(null);
+                          setModalEntregaOpen(true);
+                        }}
                       >
-                        Editar perfil
+                        Añadir dirección
                       </button>
-                    ) : (
-                      <>
+                    </div>
+                  </div>
+
+                  <div className="cards-list">
+                    <div className="address-card large">
+                      <div className="address-content">
+                        <div className="address-title">
+                          Recoger en: Playcenter Universal Santiago
+                        </div>
+                        <div className="muted break-words">
+                          {TIENDA_PLAYCENTER.direccionCompleta}
+                        </div>
+                        <a
+                          href={TIENDA_PLAYCENTER.ubicacion}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="link"
+                        >
+                          Ver en Maps
+                        </a>
+                      </div>
+                      <div className="address-actions">
                         <button
-                          onClick={saveProfile}
+                          onClick={() =>
+                            handleSeleccionarDireccion(TIENDA_PLAYCENTER)
+                          }
                           className="btn btn-success"
-                          disabled={loading}
                         >
-                          Guardar
+                          Seleccionar
                         </button>
-                        <button
-                          onClick={() => {
-                            setEditMode(false);
-                            cancelLocalPreview();
-                          }}
-                          className="btn btn-ghost"
-                        >
-                          Cancelar
-                        </button>
-                      </>
+                      </div>
+                    </div>
+
+                    {direcciones.length === 0 ? (
+                      <div className="empty">
+                        No tienes direcciones guardadas.
+                      </div>
+                    ) : (
+                      direcciones.map((d) => (
+                        <div key={d.id} className="address-card large">
+                          <div className="address-content">
+                            <div className="address-title break-words">
+                              {d.direccionCompleta ||
+                                `${d.numeroCalle || ""} ${
+                                  d.numeroCasa ? "Casa " + d.numeroCasa : ""
+                                }, ${d.ciudad || ""}, ${d.provincia || ""}`}
+                            </div>
+                            <div className="muted">
+                              Método: {d.metodoEntrega || "domicilio"}
+                            </div>
+                            {d.referencia && (
+                              <div className="muted">Ref: {d.referencia}</div>
+                            )}
+                            {d.ubicacion && (
+                              <a
+                                href={d.ubicacion}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="link"
+                              >
+                                Ver en Maps
+                              </a>
+                            )}
+                          </div>
+
+                          <div className="address-actions">
+                            <button
+                              onClick={() => {
+                                setDireccionEditar(d);
+                                setModalEntregaOpen(true);
+                              }}
+                              className="address-action-btn edit-btn"
+                              aria-label="Editar dirección"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleSeleccionarDireccion(d)}
+                              className="address-action-btn select-btn"
+                              aria-label="Seleccionar dirección"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => confirmarEliminar(d.id)}
+                              className="address-action-btn delete-btn"
+                              aria-label="Eliminar dirección"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
-                </div>
-              </motion.section>
-            )}
 
-            {vista === "pedidos" && (
-              <motion.section
-                key="historial"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <h2 className="section-title large">Mis pedidos</h2>
-                <HistorialSection historial={historial} />
-              </motion.section>
-            )}
-
-            {vista === "direcciones" && (
-              <motion.section
-                key="direcciones"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <div className="direcciones-head">
-                  <h2 className="section-title large">Direcciones</h2>
-                  <div>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
+                  {modalEntregaOpen && (
+                    <Entrega
+                      abierto={modalEntregaOpen}
+                      onClose={async () => {
+                        setModalEntregaOpen(false);
                         setDireccionEditar(null);
-                        setModalEntregaOpen(true);
+                        await fetchDirecciones();
                       }}
-                    >
-                      Añadir dirección
-                    </button>
-                  </div>
-                </div>
+                      usuarioId={usuario.uid}
+                      direccionEditar={direccionEditar}
+                      actualizarLista={fetchDirecciones}
+                    />
+                  )}
+                </motion.section>
+              )}
 
-                <div className="cards-list">
-                  <div className="address-card large">
-                    <div className="address-content">
-                      <div className="address-title">
-                        Recoger en: Playcenter Universal Santiago
-                      </div>
-                      <div className="muted break-words">
-                        {TIENDA_PLAYCENTER.direccionCompleta}
-                      </div>
-                      <a
-                        href={TIENDA_PLAYCENTER.ubicacion}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="link"
+              {vista === "pagos" && (
+                <motion.section
+                  key="pagos"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <h2 className="section-title large">Métodos de pago</h2>
+
+                  <div className="empty-state-beautiful">
+                    <div className="empty-illustration">
+                      <motion.div
+                        className="empty-box"
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
                       >
-                        Ver en Maps
-                      </a>
+                        <CreditCard size={56} />
+                      </motion.div>
                     </div>
-                    <div className="address-actions">
-                      <button
-                        onClick={() =>
-                          handleSeleccionarDireccion(TIENDA_PLAYCENTER)
-                        }
-                        className="btn btn-success"
-                      >
-                        Seleccionar
+                    <h3>Aún no tienes métodos de pago</h3>
+                    <p>
+                      Cuando agregues una tarjeta o método de pago, aparecerá
+                      aquí.
+                    </p>
+                    <div className="empty-cta">
+                      <button className="btn-beautiful-primary">
+                        Agregar método de pago
                       </button>
                     </div>
                   </div>
+                </motion.section>
+              )}
 
-                  {direcciones.length === 0 ? (
-                    <div className="empty">
-                      No tienes direcciones guardadas.
-                    </div>
-                  ) : (
-                    direcciones.map((d) => (
-                      <div key={d.id} className="address-card large">
-                        <div className="address-content">
-                          <div className="address-title break-words">
-                            {d.direccionCompleta ||
-                              `${d.numeroCalle || ""} ${
-                                d.numeroCasa ? "Casa " + d.numeroCasa : ""
-                              }, ${d.ciudad || ""}, ${d.provincia || ""}`}
-                          </div>
-                          <div className="muted">
-                            Método: {d.metodoEntrega || "domicilio"}
-                          </div>
-                          {d.referencia && (
-                            <div className="muted">Ref: {d.referencia}</div>
-                          )}
-                          {d.ubicacion && (
-                            <a
-                              href={d.ubicacion}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="link"
-                            >
-                              Ver en Maps
-                            </a>
-                          )}
-                        </div>
+              {/* VISTA CONFIGURACIÓN */}
+              {vista === "configuracion" && (
+                <motion.div
+                  key="configuracion"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                    Configuración
+                  </h2>
 
-                        <div className="address-actions">
-                          <button
-                            onClick={() => {
-                              setDireccionEditar(d);
-                              setModalEntregaOpen(true);
-                            }}
-                            className="address-action-btn edit-btn"
-                            aria-label="Editar dirección"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleSeleccionarDireccion(d)}
-                            className="address-action-btn select-btn"
-                            aria-label="Seleccionar dirección"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => confirmarEliminar(d.id)}
-                            className="address-action-btn delete-btn"
-                            aria-label="Eliminar dirección"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                          <Lock size={24} className="text-blue-600" />
                         </div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Cambiar contraseña
+                        </h3>
                       </div>
-                    ))
-                  )}
-                </div>
-
-                {modalEntregaOpen && (
-                  <Entrega
-                    abierto={modalEntregaOpen}
-                    onClose={async () => {
-                      setModalEntregaOpen(false);
-                      setDireccionEditar(null);
-                      await fetchDirecciones();
-                    }}
-                    usuarioId={usuario.uid}
-                    direccionEditar={direccionEditar}
-                    actualizarLista={fetchDirecciones}
-                  />
-                )}
-              </motion.section>
-            )}
-
-            {vista === "pagos" && (
-              <motion.section
-                key="pagos"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <h2 className="section-title large">Métodos de pago</h2>
-                
-                <div className="empty-state-beautiful">
-                  <div className="empty-illustration">
-                    <motion.div
-                      className="empty-box"
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <CreditCard size={56} />
-                    </motion.div>
-                  </div>
-                  <h3>Aún no tienes métodos de pago</h3>
-                  <p>Cuando agregues una tarjeta o método de pago, aparecerá aquí.</p>
-                  <div className="empty-cta">
-                    <button className="btn-beautiful-primary">
-                      Agregar método de pago
-                    </button>
-                  </div>
-                </div>
-              </motion.section>
-            )}
-
-            {vista === "configuracion" && (
-              <motion.section
-                key="configuracion"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <h2 className="section-title large">Configuración</h2>
-
-                <div className="cards-list">
-                  <div className="config-card">
-                    <div className="config-card-header">
-                      <Lock size={20} />
-                      <h3>Cambiar contraseña</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Actualiza tu contraseña para mantener tu cuenta segura.
+                      </p>
+                      <button className="w-full px-4 py-2.5 border-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-all hover:scale-105">
+                        Cambiar contraseña
+                      </button>
                     </div>
-                    <p className="config-card-desc">
-                      Actualiza tu contraseña para mantener tu cuenta segura.
-                    </p>
-                    <button className="btn btn-outline">
-                      Cambiar contraseña
-                    </button>
-                  </div>
 
-                  <div className="config-card">
-                    <div className="config-card-header">
-                      <Bell size={20} />
-                      <h3>Notificaciones</h3>
+                    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                          <Bell size={24} className="text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Notificaciones
+                        </h3>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Administra cómo quieres recibir notificaciones.
+                      </p>
+                      <div className="space-y-3">
+                        <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-gray-900">
+                            Notificaciones por email
+                          </span>
+                          <input
+                            type="checkbox"
+                            defaultChecked
+                            className="w-5 h-5 text-blue-600 rounded"
+                          />
+                        </label>
+                        <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-gray-900">
+                            Notificaciones de pedidos
+                          </span>
+                          <input
+                            type="checkbox"
+                            defaultChecked
+                            className="w-5 h-5 text-blue-600 rounded"
+                          />
+                        </label>
+                        <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                          <span className="text-sm font-medium text-gray-900">
+                            Ofertas y promociones
+                          </span>
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 text-blue-600 rounded"
+                          />
+                        </label>
+                      </div>
                     </div>
-                    <p className="config-card-desc">
-                      Administra cómo quieres recibir notificaciones.
-                    </p>
-                    <div className="config-toggle">
-                      <label className="toggle-item">
-                        <span>Notificaciones por email</span>
-                        <input type="checkbox" defaultChecked />
-                      </label>
-                      <label className="toggle-item">
-                        <span>Notificaciones de pedidos</span>
-                        <input type="checkbox" defaultChecked />
-                      </label>
-                      <label className="toggle-item">
-                        <span>Ofertas y promociones</span>
-                        <input type="checkbox" />
-                      </label>
+
+                    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 hover:shadow-xl transition-all">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                          <Globe size={24} className="text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Idioma
+                        </h3>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Selecciona tu idioma preferido.
+                      </p>
+                      <select className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-blue-600 focus:outline-none transition-colors">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                      </select>
                     </div>
                   </div>
-
-                  <div className="config-card">
-                    <div className="config-card-header">
-                      <Globe size={20} />
-                      <h3>Idioma</h3>
-                    </div>
-                    <p className="config-card-desc">
-                      Selecciona tu idioma preferido.
-                    </p>
-                    <select className="config-select">
-                      <option value="es">Español</option>
-                      <option value="en">English</option>
-                    </select>
-                  </div>
-                </div>
-              </motion.section>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </main>
       </div>
@@ -1628,7 +2359,8 @@ export default function Profile() {
                 backgroundColor: "white",
                 padding: "2rem",
                 borderRadius: "16px",
-                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                boxShadow:
+                  "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                 maxWidth: "400px",
                 width: "90%",
               }}
@@ -1689,7 +2421,14 @@ export default function Profile() {
                     e.currentTarget.style.borderColor = "#e5e7eb";
                   }}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                     <circle cx="12" cy="13" r="4"></circle>
                   </svg>
@@ -1723,8 +2462,22 @@ export default function Profile() {
                     e.currentTarget.style.borderColor = "#e5e7eb";
                   }}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                     <polyline points="21 15 16 10 5 21"></polyline>
                   </svg>
@@ -1758,7 +2511,14 @@ export default function Profile() {
                     e.currentTarget.style.borderColor = "#e5e7eb";
                   }}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
                     <polyline points="13 2 13 9 20 9"></polyline>
                   </svg>
@@ -1899,6 +2659,232 @@ export default function Profile() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* MODAL DE EDICIÓN DE PERFIL */}
+      <AnimatePresence>
+        {editModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4"
+            onClick={() => setEditModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-[95%] sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center z-10">
+                <h3 className="text-lg md:text-xl font-bold text-gray-900">
+                  Editar Perfil
+                </h3>
+                <button
+                  onClick={() => setEditModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+                {/* Avatar */}
+                <div className="flex flex-col items-center gap-3 md:gap-4">
+                  <img
+                    src={avatarSrc}
+                    alt="Avatar"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-gray-200"
+                  />
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    <button
+                      onClick={() => {
+                        setPhotoUploadModalOpen(true);
+                        setEditModalOpen(false);
+                      }}
+                      className="px-3 md:px-4 py-2 text-xs md:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                      <Camera size={16} />
+                      Cambiar foto
+                    </button>
+                    {form.fotoURL && (
+                      <button
+                        onClick={() => {
+                          setConfirmRemoveImageOpen(true);
+                          setEditModalOpen(false);
+                        }}
+                        className="px-3 md:px-4 py-2 text-xs md:text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Formulario */}
+                <div className="space-y-3 md:space-y-4">
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      Nombre
+                    </label>
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={form.nombre}
+                      onChange={handleChange}
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Tu nombre completo"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={form.email}
+                      disabled
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      El email no se puede modificar
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      name="telefono"
+                      value={form.telefono}
+                      onChange={handleChange}
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="809-555-1234"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      Dirección
+                    </label>
+                    <textarea
+                      name="direccion"
+                      value={form.direccion}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Tu dirección completa"
+                    />
+                  </div>
+                </div>
+
+                {/* Inputs ocultos */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFile}
+                  style={{ display: "none" }}
+                />
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFile}
+                  style={{ display: "none" }}
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row gap-2 md:gap-3 z-10">
+                <button
+                  onClick={() => setEditModalOpen(false)}
+                  className="w-full sm:flex-1 px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    await saveProfile();
+                    setEditModalOpen(false);
+                  }}
+                  className="w-full sm:flex-1 px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  disabled={loading}
+                >
+                  {loading ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL DE CONFIRMACIÓN LOGOUT */}
+      <AnimatePresence>
+        {confirmLogoutOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4"
+            onClick={() => setConfirmLogoutOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center"
+            >
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <LogOut className="text-red-600" size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                ¿Cerrar sesión?
+              </h3>
+              <p className="text-gray-600 mb-6">
+                ¿Estás seguro que quieres cerrar sesión?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmLogoutOpen(false)}
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL DE ENTREGA */}
+      {modalEntregaOpen && (
+        <Entrega
+          abierto={modalEntregaOpen}
+          onClose={async () => {
+            setModalEntregaOpen(false);
+            setDireccionEditar(null);
+            await fetchDirecciones();
+          }}
+          usuarioId={usuario.uid}
+          direccionEditar={direccionEditar}
+          actualizarLista={fetchDirecciones}
+        />
+      )}
 
       {mensaje.text && (
         <motion.div

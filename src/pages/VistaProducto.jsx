@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaTimes, FaTrash, FaShareSquare } from "react-icons/fa";
 import { useProduct } from "../hooks/useProducts";
@@ -9,9 +9,12 @@ import { useTheme } from "../context/ThemeContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext";
 import BotonCardnet from "../components/BotonCardnet";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 // Components necesarios
 import VisualVariantSelector from "../components/VisualVariantSelector";
+import AdditionalFieldsDisplay from "../components/AdditionalFieldsDisplay";
 const VP_DEBUG = false;
 import ProductosRelacionados from "../components/ProductosRelacionados";
 
@@ -111,10 +114,14 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
   );
 }
 
-// Componente "Acerca de este artículo" con botón "Ver más" responsive
+// Componente "Acerca de este artículo" con botón "Ver más" responsive e inteligente
 function AcercaDeEsteArticulo({ producto }) {
   const [mostrarTodo, setMostrarTodo] = useState(false);
-  const ITEMS_INICIALES = 6; // Mostrar 6 items inicialmente en móvil/tablet
+  
+  // Límites inteligentes basados en longitud de texto
+  const MAX_CARACTERES_TOTAL = 500; // Máximo de caracteres a mostrar inicialmente
+  const MIN_ITEMS = 3; // Mínimo de items a mostrar siempre
+  const MAX_ITEMS = 8; // Máximo de items a mostrar sin importar longitud
 
   const acercaItems = [];
 
@@ -175,9 +182,34 @@ function AcercaDeEsteArticulo({ producto }) {
 
   if (acercaItems.length === 0) return null;
 
-  // Determinar cuántos items mostrar
-  const hayMasItems = acercaItems.length > ITEMS_INICIALES;
-  const itemsAMostrar = mostrarTodo ? acercaItems : acercaItems.slice(0, ITEMS_INICIALES);
+  // LÓGICA INTELIGENTE: Determinar cuántos items mostrar basándose en longitud
+  const calcularItemsAMostrar = () => {
+    let caracteresAcumulados = 0;
+    let itemsAMostrar = 0;
+    
+    for (let i = 0; i < acercaItems.length; i++) {
+      const longitudItem = acercaItems[i].length;
+      caracteresAcumulados += longitudItem;
+      
+      // Si aún no alcanzamos el límite de caracteres Y no hemos superado MAX_ITEMS
+      if (caracteresAcumulados <= MAX_CARACTERES_TOTAL || itemsAMostrar < MIN_ITEMS) {
+        itemsAMostrar++;
+      } else {
+        break; // Ya alcanzamos el límite
+      }
+      
+      // No mostrar más de MAX_ITEMS aunque sean cortos
+      if (itemsAMostrar >= MAX_ITEMS) {
+        break;
+      }
+    }
+    
+    return Math.max(itemsAMostrar, MIN_ITEMS); // Mínimo MIN_ITEMS siempre
+  };
+
+  const itemsIniciales = calcularItemsAMostrar();
+  const hayMasItems = acercaItems.length > itemsIniciales;
+  const itemsVisibles = mostrarTodo ? acercaItems : acercaItems.slice(0, itemsIniciales);
 
   return (
     <div className="space-y-4 xl:order-4 order-4 -mt-2">
@@ -203,7 +235,7 @@ function AcercaDeEsteArticulo({ producto }) {
 
         {/* Móvil/Tablet: mostrar con control "Ver más" */}
         <div className="xl:hidden">
-          {itemsAMostrar.map((detalle, i) => (
+          {itemsVisibles.map((detalle, i) => (
             <li
               key={i}
               className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
@@ -221,7 +253,7 @@ function AcercaDeEsteArticulo({ producto }) {
           onClick={() => setMostrarTodo(!mostrarTodo)}
           className="xl:hidden w-full text-center text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2 group"
         >
-          <span>{mostrarTodo ? 'Ver menos' : `Ver más (${acercaItems.length - ITEMS_INICIALES} más)`}</span>
+          <span>{mostrarTodo ? 'Ver menos' : `Ver más (${acercaItems.length - itemsIniciales} más)`}</span>
           <svg 
             className={`w-4 h-4 transition-transform duration-300 ${mostrarTodo ? 'rotate-180' : 'rotate-0'}`}
             fill="none" 
@@ -533,6 +565,7 @@ function VistaProducto() {
   const [showMobileActions, setShowMobileActions] = useState(true);
   const [cartQuantity, setCartQuantity] = useState(0);
   const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
+  const [tiendaNombreReal, setTiendaNombreReal] = useState(null);
   // compartir y overlay avanzado
   const [shareOpen, setShareOpen] = useState(false);
   const [mediaOverlayOpen, setMediaOverlayOpen] = useState(false);
@@ -841,6 +874,27 @@ function VistaProducto() {
       setCartQuantity(currentInCart?.cantidad || 0);
     }
   }, [carrito, producto, varianteSeleccionada]);
+
+  // Cargar nombre REAL de la tienda desde Firestore
+  useEffect(() => {
+    const cargarNombreTienda = async () => {
+      if (producto?.tienda_id) {
+        try {
+          const tiendaRef = doc(db, 'tiendas', producto.tienda_id);
+          const tiendaSnap = await getDoc(tiendaRef);
+          if (tiendaSnap.exists()) {
+            setTiendaNombreReal(tiendaSnap.data().nombre);
+          }
+        } catch (error) {
+          console.error('Error cargando nombre de tienda:', error);
+          setTiendaNombreReal(producto.tienda_nombre);
+        }
+      } else {
+        setTiendaNombreReal(null);
+      }
+    };
+    cargarNombreTienda();
+  }, [producto?.tienda_id, producto?.tienda_nombre]);
 
   // Ajustar altura de miniaturas para que coincida con imagen principal
   useEffect(() => {
@@ -1884,8 +1938,27 @@ function VistaProducto() {
           <motion.div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4 overflow-visible">
             {/* Título, descripción y precio - PRIMERO (orden correcto) */}
             <h1 className="vp-title xl:order-1 order-1">{producto.nombre}</h1>
+            
+            {/* Enlace Visitar Tienda */}
+            {producto.tienda_id && tiendaNombreReal ? (
+              <Link
+                to={`/tiendas/${producto.tienda_id}`}
+                className="text-blue-600 hover:text-blue-800 underline hover:underline transition-colors xl:order-2 order-2 w-fit block mb-4 font-semibold"
+                aria-label={`Visitar tienda de ${tiendaNombreReal}`}
+              >
+                Visitar tienda de {tiendaNombreReal}
+              </Link>
+            ) : (
+              // Solo mostrar para admins si no hay tienda
+              producto.creadorId && (
+                <div className="text-red-500 text-sm xl:order-2 order-2 mb-4">
+                  Producto sin tienda asignada
+                </div>
+              )
+            )}
+            
             <div
-              className="vp-desc prose max-w-none xl:order-2 order-2"
+              className="vp-desc prose max-w-none xl:order-3 order-3"
               dangerouslySetInnerHTML={{
                 __html: sanitizeBasic(
                   producto.descripcion ||
@@ -1893,7 +1966,7 @@ function VistaProducto() {
                 ),
               }}
             />
-            <div className="xl:order-3 order-3">
+            <div className="xl:order-4 order-4">
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-1">
                   <span className="text-sm text-gray-600 font-medium">DOP</span>
@@ -1951,8 +2024,8 @@ function VistaProducto() {
                   </div>
                 ) : (
                   <button
-                    className={`button w-full sm:w-1/2 ${
-                      !disponible ? "opacity-60 cursor-not-allowed" : ""
+                    className={`w-full sm:w-1/2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl ${
+                      !disponible ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600" : ""
                     }`}
                     onClick={handleAgregar}
                     disabled={!disponible}
@@ -2027,8 +2100,8 @@ function VistaProducto() {
                   </div>
                 ) : (
                   <button
-                    className={`button w-full ${
-                      !disponible ? "opacity-60 cursor-not-allowed" : ""
+                    className={`w-full px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl ${
+                      !disponible ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600" : ""
                     }`}
                     onClick={handleAgregar}
                     disabled={!disponible}
@@ -2105,6 +2178,12 @@ function VistaProducto() {
         <ProductInformationSection
           producto={producto}
           allVariantes={allVariantes}
+        />
+
+        {/* 🔧 CARACTERÍSTICAS ADICIONALES - Campos universales y personalizados */}
+        <AdditionalFieldsDisplay
+          categoriaId={producto?.categoria}
+          caracteristicas={producto?.caracteristicasAdicionales}
         />
 
       </main>

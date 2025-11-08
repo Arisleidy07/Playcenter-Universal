@@ -197,9 +197,12 @@ function PaginaBusqueda() {
           >
             <button
               onClick={() => setMostrarCategorias(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium transition-colors duration-300"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white dark:from-indigo-600 dark:to-purple-700 dark:text-white rounded-full text-sm font-bold shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-700 dark:hover:from-indigo-700 dark:hover:to-purple-800 transition-all duration-300 transform hover:scale-105 active:scale-95 border-2 border-indigo-600 dark:border-indigo-500"
             >
-              📂 Categorías
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+              </svg>
+              <span className="font-extrabold tracking-wide">Categorías</span>
             </button>
             <BotonFiltro onClick={() => setFiltrosVisible(true)} />
           </div>

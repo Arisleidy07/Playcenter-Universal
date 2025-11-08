@@ -30,6 +30,26 @@ import { getValidationSummary } from "../utils/productValidation";
 const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const { usuario, usuarioInfo } = useAuth();
 
+  // Función para detectar la tienda del usuario
+  const detectarTiendaUsuario = () => {
+    // Si eres tú (admin/propietaria de Playcenter Universal)
+    if (usuario?.uid === 'ZeiFzBgosCd0apv9cXL6aQZCYyu2' || 
+        usuario?.email === 'arisleidy.nunez@gmail.com' ||
+        usuarioInfo?.role === 'admin') {
+      return {
+        tienda_id: 'playcenter_universal',
+        tienda_nombre: 'Playcenter Universal'
+      };
+    }
+    
+    // TODO: Aquí buscaremos la tienda del usuario en el futuro
+    // Por ahora, todos los productos van a Playcenter Universal
+    return {
+      tienda_id: 'playcenter_universal',
+      tienda_nombre: 'Playcenter Universal'
+    };
+  };
+
   // Validación simple
   const [isValid, setIsValid] = useState(true);
   const [formData, setFormData] = useState(() => {
@@ -2572,6 +2592,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             ""
           ).toString();
         }
+        // Asignar tienda automáticamente según el usuario
+        if (!productData.tienda_id) {
+          const tiendaUsuario = detectarTiendaUsuario();
+          productData.tienda_id = tiendaUsuario.tienda_id;
+          productData.tienda_nombre = tiendaUsuario.tienda_nombre;
+        }
       }
       // Usar setDoc con merge para crear o actualizar sin fallar
       await setDoc(
@@ -2640,6 +2666,23 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           >
             ×
           </button>
+        </div>
+
+        {/* Indicador de Tienda */}
+        <div className="bg-green-50 border-l-4 border-green-400 p-4 mx-3 md:mx-6 mt-3 rounded-r-lg">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-green-800">
+                Este producto se asignará a:
+              </p>
+              <p className="text-lg font-bold text-green-900">
+                {detectarTiendaUsuario().tienda_nombre}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Form */}

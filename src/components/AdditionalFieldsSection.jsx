@@ -1,38 +1,65 @@
 import React, { useState, useEffect } from "react";
-import { getCategoryFieldsConfig } from "../utils/categoryFieldsConfig";
 import { motion, AnimatePresence } from "framer-motion";
+import { Plus, X, Check, Trash2, Settings, User, Factory, Calendar, Tag } from "lucide-react";
 
 /**
- * Componente para renderizar campos adicionales dinámicos según la categoría
- * Estilo Amazon Seller Central
+ * Componente para renderizar campos adicionales para TODOS los productos
+ * Campos universales + campos personalizados
  */
 const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
-  const [categoryConfig, setCategoryConfig] = useState(null);
   const [customFields, setCustomFields] = useState([]);
   const [showAddCustomField, setShowAddCustomField] = useState(false);
   const [newFieldName, setNewFieldName] = useState("");
+  const [newFieldDescription, setNewFieldDescription] = useState("");
 
-  // Cargar configuración de campos cuando cambia la categoría
+  // Campos estándar universales (aparecen para TODOS los productos)
+  const standardFields = [
+    {
+      id: "clasificacion_edad",
+      nombre: "Clasificación de Edad",
+      tipo: "select",
+      opciones: [
+        "Para todas las edades",
+        "Niños (3+)",
+        "Niños (6+)",
+        "Niños (8+)",
+        "Adolescentes (13+)",
+        "Jóvenes (16+)",
+        "Adultos (18+)"
+      ],
+      placeholder: "Selecciona clasificación de edad",
+      icono: Calendar
+    },
+    {
+      id: "genero",
+      nombre: "Género",
+      tipo: "select",
+      opciones: ["Masculino", "Femenino", "Unisex", "No aplica"],
+      placeholder: "Selecciona género",
+      icono: User
+    },
+    {
+      id: "fabricante",
+      nombre: "Fabricante",
+      tipo: "text",
+      placeholder: "Nombre del fabricante o marca",
+      icono: Factory
+    }
+  ];
+
+  // Cargar campos personalizados existentes
   useEffect(() => {
-    const config = getCategoryFieldsConfig(categoriaId);
-    setCategoryConfig(config);
-
-    // Si hay campos personalizados en value que no están en config, agregarlos
-    if (value && config) {
-      const standardFieldIds = new Set();
-      config.grupos.forEach((grupo) => {
-        grupo.campos.forEach((campo) => standardFieldIds.add(campo.id));
-      });
-
+    if (value) {
+      const standardFieldIds = new Set(standardFields.map(f => f.id));
       const customFieldsFromValue = Object.keys(value).filter(
-        (key) => !standardFieldIds.has(key) && key !== "__customFields"
+        (key) => !standardFieldIds.has(key) && key !== "__customFields" && !key.endsWith("_description")
       );
 
       if (customFieldsFromValue.length > 0) {
         setCustomFields(customFieldsFromValue);
       }
     }
-  }, [categoriaId, value]);
+  }, [value]);
 
   // Handler para cambios en campos
   const handleFieldChange = (fieldId, fieldValue) => {
@@ -55,9 +82,14 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
     if (!customFields.includes(fieldId)) {
       setCustomFields([...customFields, fieldId]);
       handleFieldChange(fieldId, "");
+      // Guardar también la descripción si se proporcionó
+      if (newFieldDescription.trim()) {
+        handleFieldChange(`${fieldId}_description`, newFieldDescription.trim());
+      }
     }
 
     setNewFieldName("");
+    setNewFieldDescription("");
     setShowAddCustomField(false);
   };
 
@@ -66,6 +98,7 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
     setCustomFields(customFields.filter((f) => f !== fieldId));
     const newValue = { ...value };
     delete newValue[fieldId];
+    delete newValue[`${fieldId}_description`]; // También eliminar la descripción
     onChange(newValue);
   };
 
@@ -192,7 +225,7 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
                 className="px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                 title="Eliminar campo personalizado"
               >
-                🗑️
+                <Trash2 size={16} />
               </button>
             )}
           </div>
@@ -200,141 +233,25 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
     }
   };
 
-  // Si no hay categoría seleccionada
-  if (!categoriaId) {
-    return (
-      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 text-center border-2 border-dashed border-blue-200 dark:border-blue-700">
-        <p className="text-blue-600 dark:text-blue-400 font-medium">
-          📋 Selecciona una categoría para ver campos adicionales específicos
-        </p>
-        <p className="text-sm text-blue-500 dark:text-blue-500 mt-2">
-          Los campos cambiarán automáticamente según la categoría del producto
-        </p>
-      </div>
-    );
-  }
+  // Renderizar siempre los campos (sin depender de categoría)
 
-  // Si no hay configuración para esta categoría
-  if (!categoryConfig) {
-    return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-            📝 Campos Personalizados
-          </h4>
-          <button
-            type="button"
-            onClick={() => setShowAddCustomField(!showAddCustomField)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-          >
-            + Agregar Campo
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {showAddCustomField && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
-            >
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Nombre del campo:
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newFieldName}
-                  onChange={(e) => setNewFieldName(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddCustomField();
-                    }
-                  }}
-                  placeholder="Ej: Material, Dimensiones, Garantía"
-                  className="flex-1 px-3 py-2 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={handleAddCustomField}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  ✔
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddCustomField(false);
-                    setNewFieldName("");
-                  }}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                >
-                  ✖
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {customFields.length === 0 && !showAddCustomField && (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-            No hay campos personalizados. Haz clic en "Agregar Campo" para crear
-            uno.
-          </p>
-        )}
-
-        {customFields.length > 0 && (
-          <div className="space-y-3">
-            {customFields.map((fieldId) => {
-              const displayName = fieldId
-                .split("_")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ");
-
-              return (
-                <div key={fieldId}>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {displayName}
-                  </label>
-                  {renderField(
-                    {
-                      id: fieldId,
-                      nombre: displayName,
-                      tipo: "text",
-                      placeholder: `Ingresa ${displayName.toLowerCase()}`,
-                    },
-                    true
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Renderizar campos específicos de la categoría
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span>✨</span> Características Adicionales - {categoryConfig.nombre}
+            <Settings size={20} /> Características Adicionales
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Campos específicos para esta categoría de producto
+            Información adicional del producto
           </p>
         </div>
         <button
           type="button"
           onClick={() => setShowAddCustomField(!showAddCustomField)}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
         >
-          <span>+</span> Campo Personalizado
+          <Plus size={16} /> Agregar Campo
         </button>
       </div>
 
@@ -344,79 +261,95 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-700"
+            className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700"
           >
-            <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-2">
-              Agregar campo personalizado adicional:
+            <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+              Título del campo:
+            </label>
+            <input
+              type="text"
+              value={newFieldName}
+              onChange={(e) => setNewFieldName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  document.getElementById('field-description').focus();
+                }
+              }}
+              placeholder="Ej: Dimensiones, Peso, Puerto"
+              className="w-full px-3 py-2 border-2 border-blue-200 dark:border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white mb-3"
+              autoFocus
+            />
+            <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+              Descripción/Valor:
             </label>
             <div className="flex gap-2">
               <input
+                id="field-description"
                 type="text"
-                value={newFieldName}
-                onChange={(e) => setNewFieldName(e.target.value)}
+                value={newFieldDescription}
+                onChange={(e) => setNewFieldDescription(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     handleAddCustomField();
                   }
                 }}
-                placeholder="Ej: Origen del producto, Tipo de rosca"
-                className="flex-1 px-3 py-2 border-2 border-green-200 dark:border-green-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                autoFocus
+                placeholder="Ej: 15cm x 10cm x 5cm, 2.5kg, USB-C"
+                className="flex-1 px-3 py-2 border-2 border-blue-200 dark:border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
               <button
                 type="button"
                 onClick={handleAddCustomField}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                title="Agregar campo"
               >
-                ✔
+                <Check size={16} />
               </button>
               <button
                 type="button"
                 onClick={() => {
                   setShowAddCustomField(false);
                   setNewFieldName("");
+                  setNewFieldDescription("");
                 }}
                 className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                title="Cancelar"
               >
-                ✖
+                <X size={16} />
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Grupos de campos predefinidos */}
-      {categoryConfig.grupos.map((grupo, grupoIdx) => (
-        <div
-          key={grupoIdx}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 md:p-6 border-l-4 border-blue-400"
-        >
-          <h4 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span>{grupo.icono}</span> {grupo.titulo}
-          </h4>
+      {/* Campos estándar universales */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 md:p-6 border-l-4 border-blue-400">
+        <h4 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Tag size={18} /> Información General
+        </h4>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {grupo.campos.map((campo) => (
-              <div
-                key={campo.id}
-                className={campo.tipo === "textarea" ? "md:col-span-2" : ""}
-              >
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {standardFields.map((campo) => {
+            const IconComponent = campo.icono;
+            return (
+              <div key={campo.id}>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                  <IconComponent size={16} />
                   {campo.nombre}
                 </label>
                 {renderField(campo)}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      ))}
+      </div>
 
       {/* Campos personalizados */}
       {customFields.length > 0 && (
         <div className="bg-green-50 dark:bg-green-900/20 rounded-xl shadow-md p-4 md:p-6 border-l-4 border-green-400">
           <h4 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span>🔧</span> Campos Personalizados
+            <Settings size={18} /> Campos Personalizados
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

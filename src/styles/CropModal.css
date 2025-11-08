@@ -1,0 +1,418 @@
+/* Estilos para el modal de crop con react-easy-crop */
+
+/* Contenedor principal del cropper */
+.reactEasyCrop_Container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+  cursor: move;
+}
+
+/* Imagen que se está recortando */
+.reactEasyCrop_Image,
+.reactEasyCrop_Video {
+  will-change: transform;
+}
+
+/* Área de recorte */
+.reactEasyCrop_CropArea {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 0;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+  cursor: move;
+  border: 2px solid #3b82f6;
+  overflow: hidden;
+}
+
+/* Área de recorte circular (para el logo) */
+.reactEasyCrop_CropArea--round {
+  border-radius: 50%;
+}
+
+/* Grid de referencia */
+.reactEasyCrop_CropAreaGrid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.reactEasyCrop_CropAreaGrid::before,
+.reactEasyCrop_CropAreaGrid::after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.reactEasyCrop_CropAreaGrid::before {
+  left: 33.33%;
+  right: 33.33%;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.reactEasyCrop_CropAreaGrid::after {
+  top: 33.33%;
+  bottom: 33.33%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos para el slider de zoom personalizado */
+input[type="range"].crop-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: #374151;
+  border-radius: 4px;
+  outline: none;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+input[type="range"].crop-slider:hover {
+  opacity: 1;
+}
+
+input[type="range"].crop-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #3b82f6;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s;
+}
+
+input[type="range"].crop-slider::-webkit-slider-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+input[type="range"].crop-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #3b82f6;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s;
+}
+
+input[type="range"].crop-slider::-moz-range-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+/* Animaciones suaves */
+.crop-modal-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.crop-modal-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.crop-modal-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.crop-modal-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Responsive para móviles */
+@media (max-width: 640px) {
+  .reactEasyCrop_CropArea {
+    border-width: 3px;
+  }
+  
+  input[type="range"].crop-slider::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  
+  input[type="range"].crop-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Notificación de éxito temporal */
+.crop-success-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+  z-index: 99999;
+  animation: slideInRight 0.3s ease-out, slideOutRight 0.3s ease-in 2.7s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+/* Efecto de pulsación para botones de control */
+.crop-control-btn:active {
+  transform: scale(0.95);
+}
+
+/* Backdrop blur mejorado */
+.crop-modal-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* === MEJORAS UX ADICIONALES === */
+
+/* Scrollbar moderno y discreto */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Animaciones suaves para botones */
+@keyframes buttonPress {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.button-press:active {
+  animation: buttonPress 0.2s ease-out;
+}
+
+/* Efecto de ondulación para clicks */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Transiciones suaves globales */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mejora de focus para accesibilidad */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Animación de entrada para modales */
+@keyframes modalSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+}
+
+/* Backdrop fade animations */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+}
+
+/* Hover effects para cards */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Botones con efecto pill moderno */
+.btn-pill {
+  border-radius: 9999px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-pill:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-pill:active {
+  transform: scale(0.95);
+}
+
+/* Toast notification animations */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px) translateX(100px);
+  }
+}
+
+/* Skeleton loading animation */
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(229, 231, 235, 0.4) 0%,
+    rgba(229, 231, 235, 0.8) 50%,
+    rgba(229, 231, 235, 0.4) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* Mejoras de rendimiento */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Transiciones de color suaves */
+.color-transition {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Media queries para animaciones reducidas */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

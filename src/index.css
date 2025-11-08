@@ -72,8 +72,59 @@ html.light-theme body {
 
 html.dark-theme,
 html.dark-theme body {
-  background: #000000 !important;
+  background: #111827;
   color: var(--text-primary);
+}
+
+/* Forzar colores correctos de botones en dark mode */
+.dark .bg-blue-500,
+.dark-theme .bg-blue-500,
+html.dark .bg-blue-500,
+html.dark-theme .bg-blue-500 {
+  background-color: #3b82f6 !important;
+}
+
+.dark .bg-blue-500:hover,
+.dark-theme .bg-blue-500:hover,
+html.dark .bg-blue-500:hover,
+html.dark-theme .bg-blue-500:hover {
+  background-color: #2563eb !important;
+}
+
+.dark .bg-blue-600,
+.dark-theme .bg-blue-600,
+html.dark .bg-blue-600,
+html.dark-theme .bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+.dark .bg-blue-600:hover,
+.dark-theme .bg-blue-600:hover,
+html.dark .bg-blue-600:hover,
+html.dark-theme .bg-blue-600:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.dark .hover\:bg-blue-600:hover,
+.dark-theme .hover\:bg-blue-600:hover,
+html.dark .hover\:bg-blue-600:hover,
+html.dark-theme .hover\:bg-blue-600:hover {
+  background-color: #2563eb !important;
+}
+
+.dark .hover\:bg-blue-700:hover,
+.dark-theme .hover\:bg-blue-700:hover,
+html.dark .hover\:bg-blue-700:hover,
+html.dark-theme .hover\:bg-blue-700:hover {
+  background-color: #1d4ed8 !important;
+}
+
+/* Mantener fondo transparente en contenedores de imagen */
+.dark .bg-transparent,
+.dark-theme .bg-transparent,
+html.dark .bg-transparent,
+html.dark-theme .bg-transparent {
+  background-color: transparent !important;
 }
 
 /* Forzar que todo esté pegado al topbar */
@@ -310,11 +361,11 @@ header,
   color: transparent;
 }
 
-/* Categorías */
+/* Sidebar Categorías - Con fondo */
 aside[aria-label="Categorías"] {
-  backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  backdrop-filter: none;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   color: #1e40af;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -322,50 +373,11 @@ aside[aria-label="Categorías"] {
   overflow: hidden;
   height: calc(100vh - 76px);
 }
-aside[aria-label="Categorías"] > div {
-  padding: 1rem;
-  overflow-y: auto;
-  height: 100%;
-  z-index: 10;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(59, 130, 246, 0.6) transparent;
-}
-.scrollbar-light::-webkit-scrollbar {
-  width: 6px;
-}
-.scrollbar-light::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.6);
-  border-radius: 3px;
-}
-.scrollbar-light::-webkit-scrollbar-track {
-  background: transparent;
-}
-aside[aria-label="Categorías"] h2 {
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
-  color: #1e3a8a;
-}
-aside[aria-label="Categorías"] button {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #1e40af;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.3s ease;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-}
-aside[aria-label="Categorías"] button.bg-blue-200 {
-  background: rgba(30, 64, 175, 0.9);
-  color: #e0e7ff;
-}
-aside[aria-label="Categorías"] button:hover {
-  background: rgba(59, 130, 246, 0.8);
-  color: #e0e7ff;
+
+/* Dark mode para sidebar */
+.dark aside[aria-label="Categorías"] {
+  background: #1e293b;
+  border-color: #334155;
 }
 
 @keyframes fadeIn {

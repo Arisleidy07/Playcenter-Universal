@@ -83,6 +83,15 @@ service cloud.firestore {
                      request.resource.data.usuarioId == request.auth.uid;
     }
     
+    // Tiendas - Lectura pública, escritura por admin
+    match /tiendas/{tiendaId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() || 
+                      (request.auth != null && resource.data.propietario_id == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+    
     // Email campaign errors - Solo admin
     match /emailCampaignErrors/{errorId} {
       allow read, write: if isAdmin();

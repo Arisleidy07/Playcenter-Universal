@@ -166,13 +166,11 @@ function TarjetaProducto({ producto }) {
   return (
     <>
       {/* HORIZONTAL en móvil/tablet pequeño, VERTICAL en tablet grande/desktop */}
-      <article
-        className="flex flex-row lg:flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 w-full h-full"
-      >
+      <article className="flex flex-row lg:flex-col bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200 w-full h-full">
         {/* Imagen a la izquierda (móvil/tablet pequeño) o arriba (tablet grande/desktop) */}
         <div
           onClick={irADetalle}
-          className="flex-shrink-0 w-32 sm:w-36 lg:w-full lg:aspect-square flex items-center justify-center overflow-hidden cursor-pointer bg-white dark:bg-gray-900"
+          className="flex-shrink-0 w-32 sm:w-36 lg:w-full lg:aspect-square flex items-center justify-center overflow-hidden cursor-pointer bg-white"
           style={{
             minHeight: "128px", // Imagen más compacta en móvil
           }}
@@ -194,7 +192,7 @@ function TarjetaProducto({ producto }) {
           <div>
             <h3
               onClick={irADetalle}
-              className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 mb-1.5 sm:mb-2 cursor-pointer text-sm sm:text-base lg:text-lg font-semibold"
+              className="text-gray-900 hover:text-blue-600 mb-1.5 sm:mb-2 cursor-pointer text-sm sm:text-base lg:text-lg font-semibold"
               style={{
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
@@ -208,8 +206,10 @@ function TarjetaProducto({ producto }) {
             </h3>
 
             <div className="flex items-baseline gap-1 mb-1.5 sm:mb-2">
-              <span className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400">RD$</span>
-              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <span className="text-xs sm:text-sm lg:text-base text-gray-600">
+                RD$
+              </span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                 {Number(producto.precio).toFixed(2)}
               </span>
             </div>
@@ -219,14 +219,16 @@ function TarjetaProducto({ producto }) {
             <div className="flex items-center justify-between gap-2">
               <button
                 onClick={handleDecremento}
-                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
+                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 rounded-lg hover:bg-gray-300 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
               >
                 −
               </button>
-              <span className="font-semibold text-base sm:text-base lg:text-lg">{cantidadEnCarrito}</span>
+              <span className="font-semibold text-base sm:text-base lg:text-lg">
+                {cantidadEnCarrito}
+              </span>
               <button
                 onClick={handleIncremento}
-                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
+                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 rounded-lg hover:bg-gray-300 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
               >
                 +
               </button>
@@ -240,18 +242,7 @@ function TarjetaProducto({ producto }) {
           ) : (
             <button
               onClick={handleAgregar}
-              className="w-full py-2.5 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm lg:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
-              style={{
-                backgroundColor: "#0066C0",
-                color: "#FFFFFF",
-                border: "1px solid #0066C0",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#004F9A")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "#0066C0")
-              }
+              className="w-full py-2.5 sm:py-2.5 lg:py-3 rounded-xl text-xs sm:text-sm lg:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
               disabled={!disponible}
             >
               <FaShoppingCart className="text-lg sm:text-base lg:text-base" />

@@ -10,12 +10,14 @@ import { normalizar } from "../utils/normalizarCategoria";
 import "../styles/productosGrid.css";
 
 function ProductosPage() {
-  const { categoria } = useParams();
+  const { categoria = "Todos" } = useParams();
   const navigate = useNavigate();
 
   // Get categories and products from database
   const { categories, loading: categoriesLoading } = useCategories();
-  const categoryId = categoria && categoria !== "todos" ? categoria : "";
+  // Normalizar para comparación case-insensitive
+  const categoriaLower = (categoria || "").toLowerCase();
+  const categoryId = categoriaLower !== "todos" && categoria ? categoria : "";
   const { products, loading: productsLoading } =
     useProductsByCategory(categoryId);
 
@@ -29,6 +31,18 @@ function ProductosPage() {
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
   const [topbarHeight, setTopbarHeight] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark') || 
+                    document.documentElement.classList.contains('dark-theme'));
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   // SOLO usa la altura de la TopBar, NO sumes el top del header
   useEffect(() => {
@@ -66,16 +80,40 @@ function ProductosPage() {
   }, [categoria, categories]);
 
   const productosOriginales = useMemo(() => {
-    if (categoriaActiva === "Todos") {
+    if (!products || products.length === 0) {
+      return [];
+    }
+    
+    // Si es "Todos" o la categoría es vacía, devolver todos los productos sin filtrar
+    const categoriaLower = (categoria || "").toLowerCase();
+    if (categoriaActiva === "Todos" || !categoria || categoriaLower === "todos") {
       return products;
     }
-    return products.filter((p) => p?.id);
-  }, [products, categoriaActiva]);
+    
+    // Para categorías específicas, filtrar por categoría
+    return products.filter((p) => {
+      const categoriaProducto = p.categoria || p.categoriaId || "";
+      // Comparar con categoriaActiva o con el parámetro categoria
+      return categoriaProducto === categoriaActiva || 
+             categoriaProducto === categoria;
+    });
+  }, [products, categoriaActiva, categoria]);
 
   const productosFiltrados = useMemo(() => {
-    return (productosOriginales || []).filter((p) => {
-      const cumpleMin = p.precio >= filtros.precio.min;
-      const cumpleMax = p.precio <= filtros.precio.max;
+    if (!productosOriginales || productosOriginales.length === 0) {
+      return [];
+    }
+
+    const filtered = productosOriginales.filter((p) => {
+      // Validar precio correctamente
+      const precio = Number(p.precio);
+      const precioValido = Number.isFinite(precio) && precio > 0 ? precio : 0;
+      
+      // Solo filtrar por precio si el producto tiene un precio válido
+      const cumpleMin = precioValido === 0 || precioValido >= (filtros.precio.min || 0);
+      const cumpleMax = precioValido === 0 || precioValido <= (filtros.precio.max || 1000000);
+      
+      // Validar estado - si ninguno está seleccionado, mostrar todos
       const cumpleEstado =
         (!filtros.estado.nuevo && !filtros.estado.usado && !filtros.estado.usadoComoNuevo && !filtros.estado.reacondicionado && !filtros.estado.reparado) ||
         (filtros.estado.nuevo && p.estado === "Nuevo") ||
@@ -84,6 +122,7 @@ function ProductosPage() {
         (filtros.estado.reacondicionado && p.estado === "Reacondicionado") ||
         (filtros.estado.reparado && p.estado === "Reparado");
 
+      // Validar empresa
       const prodEmpresaNorm =
         p.empresaNorm || (p.empresa || "").toString().trim().toLowerCase();
       const cumpleEmpresa =
@@ -91,6 +130,8 @@ function ProductosPage() {
 
       return cumpleMin && cumpleMax && cumpleEstado && cumpleEmpresa;
     });
+
+    return filtered;
   }, [productosOriginales, filtros, brandFilter]);
 
   const handleCategoriaChange = (nombre, ruta) => {
@@ -149,19 +190,25 @@ function ProductosPage() {
 
         <main className="flex-1 p-0 xl:p-4 relative pb-32">
           <div
-            className="flex justify-between items-center px-3 py-2 xl:hidden bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky transition-colors duration-300"
+            className="flex justify-between items-center px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-700/30 sticky transition-colors duration-300"
             style={{
               top: "var(--content-offset, 100px)",
               zIndex: 40,
               marginTop: 0,
               paddingTop: 0,
+              background: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
             }}
           >
             <button
               onClick={() => setMostrarCategorias(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium transition-colors duration-300"
+              className="flex items-center gap-2.5 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
             >
-              📂 Categorías
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Categorías</span>
             </button>
             <BotonFiltro onClick={() => setFiltrosVisible(true)} />
           </div>
@@ -261,6 +308,7 @@ function ProductosPage() {
           visible={filtrosVisible}
           onClose={() => setFiltrosVisible(false)}
           onReset={handleResetFiltros}
+          productosOriginales={products}
         />
       </div>
     </div>
