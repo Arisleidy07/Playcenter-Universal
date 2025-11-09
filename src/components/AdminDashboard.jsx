@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, limit, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { FiPackage, FiUsers, FiShoppingBag, FiGrid, FiDatabase } from 'react-icons/fi';
+import { FiPackage, FiUsers, FiShoppingBag, FiGrid } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -14,8 +14,6 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
   });
   const [recentProducts, setRecentProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [migrating, setMigrating] = useState(false);
-  const [migrationResult, setMigrationResult] = useState(null);
 
   useEffect(() => {
     // TIEMPO REAL para productos - Se actualiza cuando se eliminan/agregan
@@ -31,7 +29,6 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
         }));
       },
       (error) => {
-        console.error('Error fetching products count:', error);
       }
     );
 
@@ -45,7 +42,6 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
         }));
       },
       (error) => {
-        console.error('Error fetching users count:', error);
       }
     );
 
@@ -59,7 +55,6 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
         }));
       },
       (error) => {
-        console.error('Error fetching categories count:', error);
       }
     );
 
@@ -73,7 +68,6 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
         }));
       },
       (error) => {
-        console.error('Error fetching orders count:', error);
       }
     );
 
@@ -99,13 +93,11 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
           setRecentProducts(productsData);
           setLoading(false);
         }, (error) => {
-          console.error('Error fetching recent products:', error);
           setLoading(false);
         });
         
         return unsubscribe;
       } catch (error) {
-        console.error('Error setting up recent products listener:', error);
         setLoading(false);
       }
     };
@@ -122,116 +114,17 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
     };
   }, []);
 
-  // Función para migrar productos a Play Center Universal
-  const migrateProductsToStore = async () => {
-    if (!confirm('¿Deseas migrar todos los productos sin tienda a "Play Center Universal"?')) {
-      return;
-    }
-
-    setMigrating(true);
-    setMigrationResult(null);
-
-    try {
-      const productosRef = collection(db, 'productos');
-      const snapshot = await getDocs(productosRef);
-      
-      let updated = 0;
-      let skipped = 0;
-      let errors = 0;
-
-      for (const docSnapshot of snapshot.docs) {
-        const productId = docSnapshot.id;
-        const productData = docSnapshot.data();
-        
-        // Si ya tiene tienda, omitir
-        if (productData.tienda_id) {
-          skipped++;
-          continue;
-        }
-        
-        try {
-          const productRef = doc(db, 'productos', productId);
-          await updateDoc(productRef, {
-            tienda_id: 'playcenter_universal',
-            tienda_nombre: 'Play Center Universal'
-          });
-          updated++;
-        } catch (error) {
-          console.error(`Error en ${productId}:`, error);
-          errors++;
-        }
-      }
-
-      setMigrationResult({
-        success: true,
-        updated,
-        skipped,
-        errors,
-        total: snapshot.size
-      });
-
-    } catch (error) {
-      console.error('Error en migración:', error);
-      setMigrationResult({
-        success: false,
-        error: error.message
-      });
-    } finally {
-      setMigrating(false);
-    }
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-blue-900">Dashboard</h2>
           <p className="text-gray-600">Bienvenido al panel de administración</p>
         </div>
-        
-        {/* Migration Button */}
-        <button
-          onClick={migrateProductsToStore}
-          disabled={migrating}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed"
-        >
-          <FiDatabase className="text-lg" />
-          {migrating ? 'Migrando...' : 'Migrar a Play Center Universal'}
-        </button>
       </div>
 
-      {/* Migration Result */}
-      {migrationResult && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`p-4 rounded-lg border ${
-            migrationResult.success
-              ? 'bg-green-50 border-green-200'
-              : 'bg-red-50 border-red-200'
-          }`}
-        >
-          {migrationResult.success ? (
-            <div>
-              <h3 className="font-bold text-green-900 mb-2">✅ Migración Completada</h3>
-              <div className="text-sm text-green-800 space-y-1">
-                <p>✅ Actualizados: {migrationResult.updated}</p>
-                <p>⏭️ Omitidos (ya tenían tienda): {migrationResult.skipped}</p>
-                <p>❌ Errores: {migrationResult.errors}</p>
-                <p>📦 Total: {migrationResult.total}</p>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <h3 className="font-bold text-red-900 mb-2">❌ Error en Migración</h3>
-              <p className="text-sm text-red-800">{migrationResult.error}</p>
-            </div>
-          )}
-        </motion.div>
-      )}
-
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
         <StatsCard 
           title="Productos" 
           count={stats.productos} 
@@ -259,7 +152,7 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
       </div>
 
       {/* Recent Products */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className="w-full bg-white p-6 rounded-lg shadow-sm border">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-900">Productos Recientes</h3>
         </div>

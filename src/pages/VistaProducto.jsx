@@ -14,7 +14,6 @@ import { db } from "../firebase";
 
 // Components necesarios
 import VisualVariantSelector from "../components/VisualVariantSelector";
-import AdditionalFieldsDisplay from "../components/AdditionalFieldsDisplay";
 const VP_DEBUG = false;
 import ProductosRelacionados from "../components/ProductosRelacionados";
 
@@ -160,25 +159,6 @@ function AcercaDeEsteArticulo({ producto }) {
   if (producto.estado) {
     acercaItems.push(`Estado: ${producto.estado}`);
   }
-  
-  // Agregar TODOS los campos de caracteristicasAdicionales
-  if (producto.caracteristicasAdicionales) {
-    const carac = producto.caracteristicasAdicionales;
-    
-    Object.keys(carac).forEach(key => {
-      const value = carac[key];
-      if (value && String(value).trim()) {
-        const label = key
-          .replace(/([A-Z])/g, ' $1')
-          .replace(/^./, str => str.toUpperCase())
-          .trim();
-        const displayValue = Array.isArray(value) 
-          ? value.join(", ") 
-          : String(value);
-        acercaItems.push(`${label}: ${displayValue}`);
-      }
-    });
-  }
 
   if (acercaItems.length === 0) return null;
 
@@ -270,10 +250,6 @@ function AcercaDeEsteArticulo({ producto }) {
 
 // Componente de información del producto
 function ProductInformationSection({ producto, allVariantes }) {
-  // DEBUG: Ver qué datos tiene el producto
-  console.log("📋 ProductInformationSection - producto:", producto);
-  console.log("📋 caracteristicasAdicionales:", producto?.caracteristicasAdicionales);
-  
   // UNIFICAR características en arrays organizados
   const caracteristicas = [];
   const detalles = [];
@@ -345,10 +321,13 @@ function ProductInformationSection({ producto, allVariantes }) {
     Object.keys(carac).forEach((key) => {
       const value = carac[key];
       if (value && String(value).trim()) {
-        // Convertir el key camelCase a texto legible
+        // Convertir el key snake_case o camelCase a texto legible
         const label = key
-          .replace(/([A-Z])/g, ' $1') // Agregar espacio antes de mayúsculas
-          .replace(/^./, str => str.toUpperCase()) // Primera letra mayúscula
+          .split('_') // Separar por guiones bajos
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalizar cada palabra
+          .join(' ') // Unir con espacios
+          .replace(/([A-Z])/g, ' $1') // Agregar espacio antes de mayúsculas (para camelCase)
+          .replace(/\s+/g, ' ') // Limpiar espacios múltiples
           .trim();
         
         const displayValue = Array.isArray(value) ? value.join(", ") : String(value);
@@ -397,46 +376,6 @@ function ProductInformationSection({ producto, allVariantes }) {
     detalles.push({ label: "Fecha de publicación", value: fechaFormateada });
   }
 
-  // Agregar más detalles de características adicionales (legacy)
-  if (producto.caracteristicasAdicionales) {
-    const carac = producto.caracteristicasAdicionales;
-
-    if (carac.garantia && !producto.garantia) {
-      detalles.push({
-        label: "Garantía del fabricante",
-        value: carac.garantia,
-      });
-    }
-    if (carac.contenidoPaquete) {
-      detalles.push({
-        label: "Contenido del paquete",
-        value: carac.contenidoPaquete,
-      });
-    }
-  }
-
-  // DETALLES ADICIONALES (sección adicional si hay datos extra)
-  // Campos legacy de caracteristicasAdicionales
-  if (producto.caracteristicasAdicionales) {
-    const carac = producto.caracteristicasAdicionales;
-
-    if (carac.talla) adicionales.push({ label: "Talla", value: carac.talla });
-    if (carac.estilo) adicionales.push({ label: "Estilo", value: carac.estilo });
-    if (carac.genero) adicionales.push({ label: "Género", value: carac.genero });
-    if (carac.temporada)
-      adicionales.push({ label: "Temporada de uso", value: carac.temporada });
-    if (carac.tipoMaterial)
-      adicionales.push({
-        label: "Tipo de material / acabado",
-        value: carac.tipoMaterial,
-      });
-    if (carac.instruccionesCuidado) {
-      const cuidado = Array.isArray(carac.instruccionesCuidado)
-        ? carac.instruccionesCuidado.join(", ")
-        : carac.instruccionesCuidado;
-      adicionales.push({ label: "Instrucciones de cuidado", value: cuidado });
-    }
-  }
 
   // Si no hay ningún dato, no mostrar la sección
   const hasData =
@@ -2178,12 +2117,6 @@ function VistaProducto() {
         <ProductInformationSection
           producto={producto}
           allVariantes={allVariantes}
-        />
-
-        {/* 🔧 CARACTERÍSTICAS ADICIONALES - Campos universales y personalizados */}
-        <AdditionalFieldsDisplay
-          categoriaId={producto?.categoria}
-          caracteristicas={producto?.caracteristicasAdicionales}
         />
 
       </main>

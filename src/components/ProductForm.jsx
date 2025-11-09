@@ -306,11 +306,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           updateDoc(doc(db, "productos", targetId), {
             videoAcercaArticulo: cleaned,
             fechaActualizacion: new Date(),
-          }).catch((e) => console.error(e));
+          });
         }
       }
     } catch (e) {
-      console.error(e);
     }
     defaultsAppliedRef.current = true;
   }, [formData.videoAcercaArticulo, currentId, product?.id]);
@@ -336,7 +335,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           lastValidated: new Date().toISOString(),
         }));
       } catch (e) {
-        console.error("Error running validation summary:", e);
       }
     };
 
@@ -412,7 +410,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       setFormData((prev) => ({ ...prev, id: newId }));
       return newId;
     } catch (e) {
-      console.error(e);
       // si falla, no bloquear; el handler abortará el upload y mantendrá la preview local
       return null;
     }
@@ -432,7 +429,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         return;
       }
       // Silencioso para otros errores: no bloquear la UI
-      console.error(e);
     }
   };
 
@@ -541,7 +537,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       if (onSave) onSave(draft);
       if (onClose) onClose();
     } catch (e) {
-      console.error("Error al guardar borrador:", e);
       const errorMessage =
         e.code === "permission-denied"
           ? "No tienes permisos para guardar este producto"
@@ -614,20 +609,19 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       }));
       setCategorias(categoriasData);
     } catch (error) {
-      console.error("Error loading categories:", error);
     }
   };
 
   // FUNCIÓN SIMPLE PARA SUBIR IMÁGENES
   const subirImagenSimple = async (file) => {
     try {
-      const fileName = `${Date.now()}-${file.name}`;
+      // Mantener nombre ORIGINAL, solo limpiar caracteres peligrosos
+      const fileName = makeUniqueName(file);
       const storageRef = ref(storage, `productos/${fileName}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (error) {
-      console.error("Error subiendo imagen:", error);
       alert("Error subiendo imagen");
       return null;
     }
@@ -690,7 +684,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           return { ...prev, variantes: newVariants };
         });
       } catch (e) {
-        console.error("Variant video upload failed for file", file?.name, e);
       }
     });
     try {
@@ -710,7 +703,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       );
       setBrands(unique);
     } catch (e) {
-      console.error("Error cargando marcas:", e);
       setBrands([]);
     }
   };
@@ -720,8 +712,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       ...prev,
       [field]: value,
     }));
-    // Persistir inmediatamente cualquier cambio de campo (safe por campo)
-    persistFieldImmediate(field, value);
+    // NO persistir automáticamente - solo guardar cuando usuario presiona "Guardar"
   };
 
   // Enhanced image processing handler
@@ -733,12 +724,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   const handleArrayChange = (field, index, value) => {
     setFormData((prev) => {
-      const nextArr = prev[field].map((item, i) =>
+      const nextArr = (prev[field] || []).map((item, i) =>
         i === index ? value : item
       );
       const next = { ...prev, [field]: nextArr };
-      // Persistir arreglo actualizado
-      persistFieldImmediate(field, nextArr);
+      // NO persistir automáticamente
       return next;
     });
   };
@@ -759,7 +749,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           : "",
       ];
       const next = { ...prev, [field]: appended };
-      persistFieldImmediate(field, appended);
+      // NO persistir automáticamente
       return next;
     });
   };
@@ -768,7 +758,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     setFormData((prev) => {
       const filtered = prev[field].filter((_, i) => i !== index);
       const next = { ...prev, [field]: filtered };
-      persistFieldImmediate(field, filtered);
+      // NO persistir automáticamente
       return next;
     });
   };
@@ -780,23 +770,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         i === index ? { ...variant, [field]: value } : variant
       ),
     }));
-    // Persistir variantes inmediatamente si hay doc
-    const targetId = currentId || product?.id;
-    if (targetId) {
-      try {
-        // Construir el nuevo array en base al estado más reciente conocido
-        setFormData((prev) => {
-          const nuevas = prev.variantes.map((v, i) =>
-            i === index ? { ...v, [field]: value } : v
-          );
-          updateDoc(doc(db, "productos", targetId), {
-            variantes: nuevas,
-            fechaActualizacion: new Date(),
-          }).catch(() => {});
-          return { ...prev, variantes: nuevas };
-        });
-      } catch {}
-    }
+    // NO persistir automáticamente - solo guardar cuando usuario presiona "Guardar"
   };
 
   // Enhanced variant selector change handler
@@ -1098,10 +1072,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index),
     }));
-    persistFieldImmediate(
-      field,
-      formData[field].filter((_, i) => i !== index)
-    );
+    // NO persistir automáticamente
   };
 
   // Set main image handler
@@ -1125,7 +1096,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const [movedItem] = items.splice(fromIndex, 1);
       items.splice(toIndex, 0, movedItem);
 
-      persistFieldImmediate(field, items);
+      // NO persistir automáticamente
       return { ...prev, [field]: items };
     });
   };
@@ -1171,7 +1142,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           return next;
         });
       } catch (e) {
-        console.error("Video upload failed for file", file?.name, e);
       }
     });
     try {
@@ -1330,7 +1300,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           });
         }
       } catch (e) {
-        console.error("Image upload failed for file", file?.name, e);
       }
     });
     try {
@@ -1411,7 +1380,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           return next;
         });
       } catch (e) {
-        console.error("Extras upload failed for file", file?.name, e);
       }
     });
     try {
@@ -1555,10 +1523,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             imagenPrincipal,
             // NO tocar imagenes aquí - solo imagen principal
           };
-          console.log(
-            "💾 Guardando en Firestore y actualizando formData...",
-            next
-          );
           safeUpdateDoc(targetId, {
             imagen: remoteUrl,
             imagenPrincipal,
@@ -1566,7 +1530,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           })
             .then(() => {})
             .catch((err) => {
-              console.error("❌ Error actualizando Firestore:", err);
             });
           return next;
         });
@@ -1577,7 +1540,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         setTempPreviews((prev) => ({ ...prev, imagen: "" }));
       }
     } catch (e) {
-      console.error("handleMainImageUFU error", e);
     } finally {
       setUploadingImages(false);
       setUploadProgress(null);
@@ -1600,7 +1562,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         targetId = await ensureCurrentId();
       }
       if (!targetId) {
-        console.error("❌ No se pudo obtener ID para galería");
         return;
       }
 
@@ -1621,27 +1582,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       );
       const existingVideos = existingUrls.filter(
         (u) => detectTypeFromUrl(u) === "video"
-      );
-
-      console.log(
-        "📁 Nuevas imágenes:",
-        newImageFiles.length,
-        newImageFiles.map((f) => f.file?.name)
-      );
-      console.log(
-        "🎬 Nuevos videos:",
-        newVideoFiles.length,
-        newVideoFiles.map((f) => f.file?.name)
-      );
-      console.log(
-        "🔗 Imágenes existentes:",
-        existingImages.length,
-        existingImages
-      );
-      console.log(
-        "🔗 Videos existentes:",
-        existingVideos.length,
-        existingVideos
       );
 
       // Subir nuevas imágenes
@@ -1667,7 +1607,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             nombreOriginal: fileItem.file.name,
           });
         } catch (e) {
-          console.error("❌ Error subiendo imagen:", fileItem.file.name, e);
         }
       }
 
@@ -1694,7 +1633,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             nombreOriginal: fileItem.file.name,
           });
         } catch (e) {
-          console.error("❌ Error subiendo video:", fileItem.file.name, e);
         }
       }
 
@@ -1739,24 +1677,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           ...validUploadedVideos, // URLs recién subidas con nombre original
         ];
 
-        console.log(
-          "  📸 Imágenes finales:",
-          mergedImages.length,
-          mergedImages
-        );
-
         const shouldSetMain = !prev.imagen && mergedImages.length > 0;
         const mainImage = shouldSetMain ? mergedImages[0].url : prev.imagen;
         const mainImageObj = shouldSetMain
           ? mergedImages[0]
           : prev.imagenPrincipal?.[0] || {};
-
-        if (shouldSetMain) {
-          console.log(
-            "⚠️ No hay imagen principal, usando primera de galería:",
-            mainImage
-          );
-        }
 
         const next = {
           ...prev,
@@ -1777,11 +1702,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
         safeUpdateDoc(targetId, updatePayload)
           .then(() => {
-            console.log(`  - Galería imágenes:`, next.imagenes?.length || 0);
-            console.log(`  - Galería videos:`, next.videoUrls?.length || 0);
           })
           .catch((err) => {
-            console.error(`❌ ERROR FIRESTORE:`, err);
           });
 
         return next;
@@ -1794,7 +1716,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         productVideos: [],
       }));
     } catch (e) {
-      console.error("❌ handleGalleryUFU error general:", e);
     } finally {
       setUploadingImages(false);
       setUploadProgress(null);
@@ -1875,12 +1796,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               return next;
             });
           } catch (e) {
-            console.error("Acerca video upload error", e);
           }
         }
       }
     } catch (e) {
-      console.error("handleAcercaVideosUFU error", e);
     } finally {
       setUploadingImages(false);
       setUploadProgress(null);
@@ -1905,7 +1824,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         targetId = await ensureCurrentId();
       }
       if (!targetId) {
-        console.error("❌ No se pudo obtener ID del producto");
         return;
       }
 
@@ -1934,12 +1852,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
           uploadedUrls.push(remoteUrl);
         } catch (e) {
-          console.error("❌ Error subiendo archivo:", fileItem.file.name, e);
         }
       }
 
       // ✅ CORRECCIÓN: Solo usar lo que el UFU reporta (existentes + nuevos)
-      console.log("📋 URLs subidas (extras):", uploadedUrls);
       setFormData((prev) => {
         // NO usar prevExtras porque ignora eliminaciones del usuario
         // ✅ FILTRO ESTRICTO: Solo URLs válidas
@@ -1963,7 +1879,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         safeUpdateDoc(targetId, { imagenesExtra: merged })
           .then(() => {})
           .catch((err) => {
-            console.error("❌ ERROR FIRESTORE:", err);
           });
 
         return next;
@@ -1972,7 +1887,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       // Limpiar previews temporales
       setTempPreviews((prev) => ({ ...prev, extras: [] }));
     } catch (e) {
-      console.error("❌ handleExtrasUFU error general:", e);
     } finally {
       setUploadingImages(false);
       setUploadProgress(null);
@@ -2071,7 +1985,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         }));
       }
     } catch (e) {
-      console.error("handleVariantMainUFU error", e);
     } finally {
       setUploadingImages(false);
       setUploadProgress(null);
@@ -2161,12 +2074,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               return next;
             });
           } catch (e) {
-            console.error("Variant gallery upload error", e);
           }
         }
       }
     } catch (e) {
-      console.error("handleVariantGalleryUFU error", e);
     } finally {
       setUploadingImages(false);
       setUploadProgress(null);
@@ -2253,12 +2164,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               return next;
             });
           } catch (e) {
-            console.error("Variant video upload error", e);
           }
         }
       }
     } catch (e) {
-      console.error("handleVariantVideosUFU error", e);
     }
   };
 
@@ -2386,7 +2295,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       ]);
       return categoryData.ruta;
     } catch (error) {
-      console.error("Error creating category:", error);
       throw error;
     }
   };
@@ -2475,7 +2383,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         );
       }
 
-      console.log("GUARDANDO PRODUCTO - Categoría:", finalCategoryId);
 
       let productData = {
         ...formData,
@@ -2605,12 +2512,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         { ...productData, fechaActualizacion: new Date() },
         { merge: true }
       );
-      console.log("✅ PRODUCTO GUARDADO:", {
-        id: targetId,
-        categoria: productData.categoria,
-        activo: productData.activo,
-        nombre: productData.nombre,
-      });
       if (isNew) setCurrentId(targetId);
 
       // Disparar evento personalizado para notificar a los hooks
@@ -2627,7 +2528,6 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       if (typeof onSave === "function") onSave();
       if (typeof onClose === "function") onClose();
     } catch (error) {
-      console.error("Error saving product:", error);
       let msg = "Error al guardar el producto";
       if (error?.code === "permission-denied") {
         msg = "No tienes permisos para guardar este producto";
@@ -3172,12 +3072,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                           if (currentId || product?.id) {
                             safeUpdateDoc(currentId || product.id, {
                               varianteImagenPrincipal: valor,
-                            }).catch((err) =>
-                              console.error(
-                                "Error actualizando variante de imagen principal:",
-                                err
-                              )
-                            );
+                            }).catch((err) => {
+                              // Error actualizando variante de imagen principal
+                            });
                           }
                         }}
                         placeholder="Ej: Negro, Azul, Rojo, etc. (Dejar vacío si es genérica)"
@@ -3311,9 +3208,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                   <button
                     type="button"
                     onClick={() => addArrayItem("acerca")}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
+                    className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2"
                   >
-                    + Agregar característica
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar característica
                   </button>
                 </div>
 
@@ -3344,9 +3244,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                   <button
                     type="button"
                     onClick={() => addArrayItem("etiquetas")}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
+                    className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2"
                   >
-                    + Agregar etiqueta
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar etiqueta
                   </button>
                 </div>
               </div>

@@ -458,7 +458,7 @@ function SellerAdminPanel() {
 
   return (
     <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full px-2">
         {/* HEADER */}
         <div className="text-center mb-6">
           <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 text-blue-900">
@@ -700,7 +700,7 @@ export default function Admin() {
 
   return (
     <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full px-2">
         {/* HEADER */}
         <div className="text-center mb-6">
           <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 text-blue-900">

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Check, Trash2, Settings, User, Factory, Calendar, Tag } from "lucide-react";
+import { Plus, X, Check, Trash2, Settings } from "lucide-react";
 
 /**
- * Componente para renderizar campos adicionales para TODOS los productos
- * Campos universales + campos personalizados
+ * Componente para renderizar características adicionales personalizadas
+ * Sistema flexible donde se puede agregar nombre + información según necesidad
  */
 const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
   const [customFields, setCustomFields] = useState([]);
@@ -12,47 +12,11 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldDescription, setNewFieldDescription] = useState("");
 
-  // Campos estándar universales (aparecen para TODOS los productos)
-  const standardFields = [
-    {
-      id: "clasificacion_edad",
-      nombre: "Clasificación de Edad",
-      tipo: "select",
-      opciones: [
-        "Para todas las edades",
-        "Niños (3+)",
-        "Niños (6+)",
-        "Niños (8+)",
-        "Adolescentes (13+)",
-        "Jóvenes (16+)",
-        "Adultos (18+)"
-      ],
-      placeholder: "Selecciona clasificación de edad",
-      icono: Calendar
-    },
-    {
-      id: "genero",
-      nombre: "Género",
-      tipo: "select",
-      opciones: ["Masculino", "Femenino", "Unisex", "No aplica"],
-      placeholder: "Selecciona género",
-      icono: User
-    },
-    {
-      id: "fabricante",
-      nombre: "Fabricante",
-      tipo: "text",
-      placeholder: "Nombre del fabricante o marca",
-      icono: Factory
-    }
-  ];
-
   // Cargar campos personalizados existentes
   useEffect(() => {
     if (value) {
-      const standardFieldIds = new Set(standardFields.map(f => f.id));
       const customFieldsFromValue = Object.keys(value).filter(
-        (key) => !standardFieldIds.has(key) && key !== "__customFields" && !key.endsWith("_description")
+        (key) => key !== "__customFields" && !key.endsWith("_description")
       );
 
       if (customFieldsFromValue.length > 0) {
@@ -72,20 +36,27 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
 
   // Agregar campo personalizado
   const handleAddCustomField = () => {
-    if (!newFieldName.trim()) return;
+    // Requiere al menos nombre O información
+    if (!newFieldName.trim() && !newFieldDescription.trim()) return;
 
-    const fieldId = newFieldName
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "_");
+    let fieldId;
+    
+    if (newFieldName.trim()) {
+      // Si hay nombre, usarlo
+      fieldId = newFieldName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "_");
+    } else {
+      // Si solo hay información, crear un nombre genérico
+      const nextNumber = customFields.filter(f => f.startsWith('caracteristica_')).length + 1;
+      fieldId = `caracteristica_${nextNumber}`;
+    }
 
     if (!customFields.includes(fieldId)) {
       setCustomFields([...customFields, fieldId]);
-      handleFieldChange(fieldId, "");
-      // Guardar también la descripción si se proporcionó
-      if (newFieldDescription.trim()) {
-        handleFieldChange(`${fieldId}_description`, newFieldDescription.trim());
-      }
+      // Guardar el valor (información)
+      handleFieldChange(fieldId, newFieldDescription.trim());
     }
 
     setNewFieldName("");
@@ -264,7 +235,7 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
             className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700"
           >
             <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-              Título del campo:
+              Nombre de la característica (opcional):
             </label>
             <input
               type="text"
@@ -276,12 +247,12 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
                   document.getElementById('field-description').focus();
                 }
               }}
-              placeholder="Ej: Dimensiones, Peso, Puerto"
+              placeholder="Ej: Fabricante, Dimensiones, Peso, Material, etc."
               className="w-full px-3 py-2 border-2 border-blue-200 dark:border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white mb-3"
               autoFocus
             />
             <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-              Descripción/Valor:
+              Información / Valor:
             </label>
             <div className="flex gap-2">
               <input
@@ -295,7 +266,7 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
                     handleAddCustomField();
                   }
                 }}
-                placeholder="Ej: 15cm x 10cm x 5cm, 2.5kg, USB-C"
+                placeholder="Ej: Nintendo, 15cm x 10cm x 5cm, Incluye baterías, etc."
                 className="flex-1 px-3 py-2 border-2 border-blue-200 dark:border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
               <button
@@ -323,33 +294,11 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
         )}
       </AnimatePresence>
 
-      {/* Campos estándar universales */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 md:p-6 border-l-4 border-blue-400">
-        <h4 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Tag size={18} /> Información General
-        </h4>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {standardFields.map((campo) => {
-            const IconComponent = campo.icono;
-            return (
-              <div key={campo.id}>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                  <IconComponent size={16} />
-                  {campo.nombre}
-                </label>
-                {renderField(campo)}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Campos personalizados */}
-      {customFields.length > 0 && (
+      {customFields.length > 0 ? (
         <div className="bg-green-50 dark:bg-green-900/20 rounded-xl shadow-md p-4 md:p-6 border-l-4 border-green-400">
           <h4 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Settings size={18} /> Campos Personalizados
+            <Settings size={18} /> Características Agregadas
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -377,6 +326,13 @@ const AdditionalFieldsSection = ({ categoriaId, value = {}, onChange }) => {
               );
             })}
           </div>
+        </div>
+      ) : !showAddCustomField && (
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-md p-6 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <Settings size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-3" />
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            No hay características adicionales aún. Haz clic en <strong>"Agregar Campo"</strong> para comenzar.
+          </p>
         </div>
       )}
     </div>
