@@ -1,5 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap");
 
+/* Footer IGUAL en tema claro y oscuro - sin reglas de dark-theme */
+.footer-block {
+  background: #000000 !important;
+}
+
+.footer {
+  background: transparent !important;
+  color: #d1d5db !important;
+}
+
 /* Fondo animado futurista */
 .footer-bg-animated {
   position: absolute;
@@ -10,7 +20,6 @@
   opacity: 0.16;
   animation: bgMove 8s linear infinite alternate;
   border-radius: 30px;
-  filter: blur(10px);
 }
 
 @keyframes bgMove {
@@ -22,9 +31,8 @@
   }
 }
 
-/* Glow logo */
+/* Logo sin blur */
 .footer-logo-glow {
-  filter: drop-shadow(0 0 22px #0ff) drop-shadow(0 0 8px #0939ff);
   z-index: 2;
 }
 
@@ -51,11 +59,10 @@
   }
 }
 
-/* Título neon */
+/* Título */
 .footer-title-neon {
   font-family: "Orbitron", "Montserrat", sans-serif;
   color: #fff;
-  text-shadow: 0 0 8px #0ff, 0 0 2px #0939ff;
   letter-spacing: 1.5px;
   font-weight: 700;
   font-size: 1rem;
@@ -84,9 +91,8 @@
 .footer-link-neon {
   font-family: "Montserrat", sans-serif;
   color: #d1d5db;
-  transition: color 0.3s, text-shadow 0.3s, font-weight 0.3s;
+  transition: color 0.3s, font-weight 0.3s;
   font-weight: 500;
-  text-shadow: 0 0 2px #0ff8, 0 0 1px #0939ff8c;
   display: block;
   width: 100%;
   text-align: left;
@@ -95,36 +101,30 @@
 
 .footer-link-neon:hover {
   color: #00fff7;
-  text-shadow: 0 0 8px #00fff7, 0 0 3px #0939ff;
   font-weight: 700;
-  transform: translateY(-2px) scale(1.04);
   text-decoration: underline;
 }
 
-/* Íconos sociales neon */
-.footer-social-icon-neon {
-  box-shadow: 0 0 10px #00fff7, 0 0 4px #0939ff;
-  transition: box-shadow 0.3s, transform 0.3s, filter 0.3s;
-  background: #0c0f16;
-  border-radius: 50%;
-}
-
 .footer-social-icon-neon:hover {
-  filter: brightness(1.2);
-  box-shadow: 0 0 24px #00fff7, 0 0 10px #0939ff;
-  border: 2px solid #00fff7;
+  transform: scale(1.1);
 }
 
 /* Copyright */
 .footer-copyright {
-  text-shadow: 0 0 6px #00fff766, 0 0 2px #0939ff55;
   letter-spacing: 1px;
   font-size: 0.75rem;
+  margin-bottom: 80px !important; /* Más arriba para que no se tape con NavbarInferior */
 }
 
 @media (min-width: 640px) {
   .footer-copyright {
     font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .footer-copyright {
+    margin-bottom: 0 !important; /* En desktop no necesita espacio extra */
   }
 }
 
@@ -189,7 +189,6 @@
   .footer-title-neon {
     font-size: 0.85rem;
     margin-bottom: 6px;
-    text-shadow: 0 0 5px #0ff, 0 0 2px #0939ff;
   }
 
   .footer-nav-list {

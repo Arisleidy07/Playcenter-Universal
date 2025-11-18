@@ -7,6 +7,7 @@ import { useTheme } from "../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import Entrega from "./Entrega";
+import "./Header.css";
 
 const Header = () => {
   const { usuario, usuarioInfo, logout } = useAuth();
@@ -50,7 +51,10 @@ const Header = () => {
 
   useEffect(() => {
     if (buscarInputRef.current) {
-      buscarInputRef.current.focus();
+      // Intentar enfocar, si el SearchBar soporta forwarded ref
+      try {
+        buscarInputRef.current.focus();
+      } catch {}
     }
   }, []);
 
@@ -97,88 +101,41 @@ const Header = () => {
   return (
     <>
       <motion.header
-        initial={{ y: -120, opacity: 0 }}
+        initial={{ y: -80, opacity: 0 }}
         animate={{
-          y: isDesktop && !headerVisible ? -120 : 0,
+          y: isDesktop && !headerVisible ? -80 : 0,
           opacity: isDesktop && !headerVisible ? 0 : 1,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed top-0 left-0 w-full shadow-lg z-[9999] pl-0 pr-4 py-3"
+        className="navbar navbar-expand-xl fixed-top"
         style={{
-          backgroundColor: isDark ? "#111827" : "#ffffff",
-          maxWidth: "100vw",
-          overflowX: "hidden",
+          background: isDark
+            ? "linear-gradient(135deg, rgba(17, 24, 39, 0.98) 0%, rgba(31, 41, 55, 0.98) 100%)"
+            : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 250, 251, 0.98) 100%)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          borderBottom: isDark
+            ? "1px solid rgba(59, 130, 246, 0.15)"
+            : "1px solid rgba(59, 130, 246, 0.12)",
+          boxShadow: isDark
+            ? "0 4px 32px rgba(0, 0, 0, 0.5), 0 0 48px rgba(59, 130, 246, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+            : "0 2px 24px rgba(0, 0, 0, 0.08), 0 0 48px rgba(59, 130, 246, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+          zIndex: 9999,
           pointerEvents: isDesktop && !headerVisible ? "none" : "auto",
-          opacity: 1,
-          backdropFilter: "none",
-          WebkitBackdropFilter: "none",
+          paddingLeft: isDesktop ? "1.5rem" : "0",
+          paddingRight: isDesktop ? "1.5rem" : "0",
+          paddingTop: "0.75rem",
+          paddingBottom: "0.75rem",
+          height: "64px",
         }}
       >
-        <div className="flex items-center justify-between w-full gap-3">
-          {/* Buscador solo móvil/tablet - Más pequeño */}
-          <div id="search-bar-container" className="flex-1 px-2 xl:hidden">
-            <SearchBar
-              onClose={() => {}}
-              ref={buscarInputRef}
-              placeholder="Buscar en pcu.com.do"
-            />
-          </div>
-
-          {/* Botón menú hamburguesa solo móvil/tablet */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="xl:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Abrir menú"
-          >
-            <svg
-              className="w-6 h-6 text-gray-700 dark:text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <div className="container-fluid">
+          <div className="d-flex align-items-center justify-content-between w-100">
+            {/* Buscador solo móvil/tablet - Más pequeño */}
+            <div
+              id="search-bar-container"
+              className="flex-grow-1 px-0 d-lg-none"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-
-          {/* Header completo solo desktop */}
-          <div className="hidden xl:flex w-full items-center justify-between gap-2 2xl:gap-4">
-            <Link
-              to="/"
-              className="flex items-center gap-3 min-w-0 flex-shrink-0"
-            >
-              <img
-                src="/Playlogo.png"
-                alt="Playcenter Universal"
-                className="h-8 2xl:h-10 object-contain"
-              />
-              {/* Método de entrega (movido al header) */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!usuario) return setModalAbierto(true);
-                  setModalEntrega(true);
-                }}
-                className="flex flex-col leading-tight text-left text-xs text-gray-700 dark:text-white font-medium hover:text-[#0ea5e9] dark:hover:text-[#60a5fa] transition"
-              >
-                <span className="flex items-center gap-1 text-[10px] 2xl:text-[11px] text-gray-500 dark:text-gray-300">
-                  <FaMapMarkerAlt className="text-[#4FC3F7] text-[10px]" />
-                  Método de entrega
-                </span>
-                <strong
-                  className="block text-[11px] 2xl:text-[12px] font-semibold text-gray-700 dark:text-white tracking-wide truncate max-w-[100px] 2xl:max-w-[180px]"
-                  title={entregaSubtitle}
-                >
-                  {entregaSubtitle}
-                </strong>
-              </button>
-            </Link>
-
-            <div className="flex-grow max-w-md 2xl:max-w-xl">
               <SearchBar
                 onClose={() => {}}
                 ref={buscarInputRef}
@@ -186,114 +143,331 @@ const Header = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2 xl:gap-3 2xl:gap-4 text-xs xl:text-sm font-medium text-gray-700 dark:text-white flex-shrink-0">
-              <Link
-                to="/"
-                className="nav-link text-gray-700 dark:text-white hover:text-[#4FC3F7] dark:hover:text-[#60a5fa] transition whitespace-nowrap"
+            {/* Botón menú hamburguesa - responsive */}
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="navbar-toggler d-lg-none btn btn-outline-secondary rounded-3"
+              type="button"
+              aria-label="Abrir menú"
+              style={{
+                height: "40px",
+                padding: "0 12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg
+                className="text-dark"
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                Inicio
-              </Link>
-              <Link
-                to="/categorias"
-                className="nav-link text-gray-700 dark:text-white hover:text-[#4FC3F7] dark:hover:text-[#60a5fa] transition whitespace-nowrap"
-              >
-                Categorías
-              </Link>
-              <Link
-                to="/tiendas"
-                className="nav-link text-gray-700 dark:text-white hover:text-[#4FC3F7] dark:hover:text-[#60a5fa] transition whitespace-nowrap"
-              >
-                Tiendas
-              </Link>
-              <Link
-                to="/vender"
-                className="nav-link text-gray-700 dark:text-white hover:text-[#4FC3F7] dark:hover:text-[#60a5fa] transition whitespace-nowrap"
-              >
-                Vender
-              </Link>
-              <Link
-                to="/nosotros"
-                className="nav-link text-gray-700 dark:text-white hover:text-[#4FC3F7] dark:hover:text-[#60a5fa] transition whitespace-nowrap"
-              >
-                Nosotros
-              </Link>
-              <Link
-                to="/contacto"
-                className="nav-link text-gray-700 dark:text-white hover:text-[#4FC3F7] dark:hover:text-[#60a5fa] transition whitespace-nowrap"
-              >
-                Contáctanos
-              </Link>
-              <Link
-                to="/estafetas"
-                className="nav-link text-gray-700 dark:text-white hover:text-[#4FC3F7] dark:hover:text-[#60a5fa] transition whitespace-nowrap"
-              >
-                Estafetas
-              </Link>
-              <Link
-                to="/carrito"
-                className="nav-link text-lg 2xl:text-xl hover:scale-110 transition"
-              >
-                🛒
-              </Link>
-              {(usuarioInfo?.isAdmin ||
-                usuarioInfo?.isSeller ||
-                usuarioInfo?.empresa ||
-                usuarioInfo?.empresaId) && (
-                <Link
-                  to="/admin"
-                  className="px-2 xl:px-3 py-1.5 xl:py-2 rounded bg-[#4FC3F7] text-white hover:bg-[#3BB0F3] shadow transition text-xs 2xl:text-sm whitespace-nowrap"
-                >
-                  Panel Admin
-                </Link>
-              )}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
 
-              {usuario ? (
-                <motion.div className="relative" whileTap={{ scale: 0.95 }}>
-                  <Link to="/profile">
-                    <div className="w-8 h-8 2xl:w-10 2xl:h-10 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow hover:shadow-lg transition cursor-pointer bg-white dark:bg-gray-700">
-                      {usuario.photoURL ? (
-                        <img
-                          src={usuario.photoURL}
-                          alt="Perfil"
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-sm 2xl:text-base">
-                          {usuario.displayName?.charAt(0).toUpperCase() || "U"}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                </motion.div>
-              ) : (
-                <motion.button
-                  onClick={() => setModalAbierto(true)}
-                  className="px-3 xl:px-4 py-1.5 xl:py-2 text-xs 2xl:text-sm bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow transition whitespace-nowrap"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+            {/* Header completo - responsive */}
+            <div className="navbar-collapse d-none d-lg-flex w-100 align-items-center justify-content-between">
+              <div className="header-grid w-100">
+                {/* Logo */}
+                <div
+                  className="navbar-brand d-flex align-items-center header-logo-wrap"
+                  style={{
+                    paddingRight: "0.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                    minWidth: "0",
+                  }}
                 >
-                  Iniciar sesión
-                </motion.button>
-              )}
+                  <Link
+                    to="/"
+                    className="d-flex align-items-center logo-link"
+                    style={{
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      padding: "8px 12px",
+                      borderRadius: "10px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.05)";
+                      e.currentTarget.style.background = isDark
+                        ? "rgba(59, 130, 246, 0.08)"
+                        : "rgba(59, 130, 246, 0.05)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <img
+                      src="/Playlogo.png"
+                      alt="Playcenter Universal"
+                      className="img-fluid play-logo"
+                      style={{
+                        height: "44px",
+                        width: "auto",
+                        objectFit: "contain",
+                        filter: "none", // eliminado drop-shadow/degradado en dark
+                      }}
+                    />
+                  </Link>
+                </div>
+
+                {/* Buscador central — flexible */}
+                <div
+                  className="header-search"
+                  style={{
+                    minWidth: "160px",
+                    maxWidth: "900px",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "40px",
+                    minWidth: "0",
+                  }}
+                >
+                  <SearchBar
+                    onClose={() => {}}
+                    ref={buscarInputRef}
+                    placeholder="Buscar en pcu.com.do"
+                  />
+                </div>
+
+                {/* Acciones / links — puedes scrollear si no caben */}
+                <div
+                  className="header-actions"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    minWidth: "0",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <nav className="navbar-nav d-flex flex-row align-items-center">
+                    <div
+                      className="d-flex align-items-center nav-links"
+                      style={{
+                        gap: "4px",
+                        paddingLeft: "1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch",
+                        minWidth: "0",
+                        paddingBottom: "2px",
+                      }}
+                    >
+                      <Link
+                        to="/"
+                        className="nav-link text-decoration-none rounded"
+                        style={{
+                          color: isDark ? "#f3f4f6" : "#374151",
+                          fontSize: "13px",
+                          padding: "6px 10px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        Inicio
+                      </Link>
+                      <Link
+                        to="/categorias"
+                        className="nav-link text-decoration-none rounded"
+                        style={{
+                          color: isDark ? "#f3f4f6" : "#374151",
+                          fontSize: "13px",
+                          padding: "6px 10px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        Categorías
+                      </Link>
+                      <Link
+                        to="/tiendas"
+                        className="nav-link text-decoration-none rounded"
+                        style={{
+                          color: isDark ? "#f3f4f6" : "#374151",
+                          fontSize: "13px",
+                          padding: "6px 10px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        Tiendas
+                      </Link>
+                      <Link
+                        to="/vender"
+                        className="nav-link text-decoration-none rounded"
+                        style={{
+                          color: isDark ? "#f3f4f6" : "#374151",
+                          fontSize: "13px",
+                          padding: "6px 10px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        Vender
+                      </Link>
+                      <Link
+                        to="/nosotros"
+                        className="nav-link text-decoration-none rounded"
+                        style={{
+                          color: isDark ? "#f3f4f6" : "#374151",
+                          fontSize: "13px",
+                          padding: "6px 10px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        Nosotros
+                      </Link>
+                      <Link
+                        to="/contacto"
+                        className="nav-link text-decoration-none rounded"
+                        style={{
+                          color: isDark ? "#f3f4f6" : "#374151",
+                          fontSize: "13px",
+                          padding: "6px 10px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        Contacto
+                      </Link>
+                      <Link
+                        to="/estafetas"
+                        className="nav-link text-decoration-none rounded"
+                        style={{
+                          color: isDark ? "#f3f4f6" : "#374151",
+                          fontSize: "13px",
+                          padding: "6px 10px",
+                          fontWeight: "500",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        Estafetas
+                      </Link>
+                      <Link
+                        to="/carrito"
+                        className="nav-link text-decoration-none rounded d-flex align-items-center justify-content-center"
+                        style={{
+                          fontSize: "18px",
+                          padding: "6px 10px",
+                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                      >
+                        🛒
+                      </Link>
+                    </div>
+                    {(usuarioInfo?.isAdmin ||
+                      usuarioInfo?.isSeller ||
+                      usuarioInfo?.empresa ||
+                      usuarioInfo?.empresaId) && (
+                      <Link
+                        to="/admin"
+                        className="btn btn-sm ms-3"
+                        style={{
+                          fontSize: "12px",
+                          padding: "6px 14px",
+                          background:
+                            "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                          border: "none",
+                          color: "#ffffff",
+                          fontWeight: "600",
+                          borderRadius: "8px",
+                          boxShadow: isDark
+                            ? "0 4px 12px rgba(59, 130, 246, 0.35)"
+                            : "0 3px 10px rgba(59, 130, 246, 0.25)",
+                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                      >
+                        Admin
+                      </Link>
+                    )}
+                    {usuario ? (
+                      <motion.div
+                        className="position-relative"
+                        style={{ marginLeft: "12px" }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Link to="/profile" className="text-decoration-none">
+                          <div
+                            className="rounded-circle overflow-hidden d-flex align-items-center justify-content-center"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              border: "2px solid rgba(59, 130, 246, 0.5)",
+                              boxShadow: isDark
+                                ? "0 0 16px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 12px rgba(59, 130, 246, 0.15)"
+                                : "0 4px 12px rgba(59, 130, 246, 0.25), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 0 12px rgba(59, 130, 246, 0.08)",
+                              background: isDark ? "#1f2937" : "#ffffff",
+                              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                            }}
+                          >
+                            {usuario.photoURL ? (
+                              <img
+                                src={usuario.photoURL}
+                                alt="Perfil"
+                                className="w-100 h-100 rounded-circle"
+                                style={{ objectFit: "cover" }}
+                              />
+                            ) : (
+                              <div
+                                className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold rounded-circle"
+                                style={{
+                                  fontSize: "16px",
+                                  background:
+                                    "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                                  color: "#ffffff",
+                                }}
+                              >
+                                {usuario.displayName?.charAt(0).toUpperCase() ||
+                                  "U"}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      </motion.div>
+                    ) : (
+                      <motion.button
+                        onClick={() => setModalAbierto(true)}
+                        className="btn ms-3"
+                        style={{
+                          fontSize: "12px",
+                          padding: "6px 16px",
+                          background:
+                            "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                          border: "none",
+                          color: "#ffffff",
+                          fontWeight: "600",
+                          borderRadius: "8px",
+                          boxShadow: isDark
+                            ? "0 4px 12px rgba(59, 130, 246, 0.35)"
+                            : "0 3px 10px rgba(59, 130, 246, 0.25)",
+                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Iniciar sesión
+                      </motion.button>
+                    )}
+                  </nav>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </motion.header>
-
-      {/* Botón admin en móvil */}
-      {(usuarioInfo?.isAdmin ||
-        usuarioInfo?.isSeller ||
-        usuarioInfo?.empresa ||
-        usuarioInfo?.empresaId) && (
-        <div className="xl:hidden fixed bottom-[80px] right-4 z-[9999]">
-          <Link
-            to="/admin"
-            className="bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white px-5 py-3 rounded-full shadow-xl font-semibold text-base"
-          >
-            Panel Admin
-          </Link>
-        </div>
-      )}
 
       {/* Modal de entrega (desde header) */}
       {modalEntrega && usuario && (
@@ -316,7 +490,11 @@ const Header = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMenuOpen(false)}
-              className="xl:hidden fixed inset-0 bg-black/50 z-[99999] backdrop-blur-sm"
+              className="d-xl-none position-fixed top-0 start-0 w-100 h-100"
+              style={{
+                backgroundColor: isDark ? "#000000" : "#000000",
+                zIndex: 99999,
+              }}
             />
 
             {/* Menú drawer */}
@@ -325,23 +503,38 @@ const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="xl:hidden fixed top-0 right-0 h-full w-80 bg-white dark:bg-gray-900 shadow-2xl z-[999999] overflow-y-auto"
+              className="d-xl-none position-fixed top-0 end-0 h-100 shadow-lg overflow-auto"
+              style={{
+                width: "320px",
+                zIndex: 999999,
+                backgroundColor: isDark ? "#111827" : "#ffffff",
+              }}
             >
               {/* Header del menú */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <div className="d-flex align-items-center justify-content-between p-4 border-bottom">
+                <h2
+                  className="h4 fw-bold mb-0"
+                  style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                >
                   Menú
                 </h2>
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="btn p-2 rounded-3"
+                  style={{
+                    backgroundColor: isDark ? "#374151" : "#e5e7eb",
+                    borderColor: isDark ? "#4b5563" : "#d1d5db",
+                    color: isDark ? "#f9fafb" : "#111827",
+                  }}
                   aria-label="Cerrar menú"
                 >
                   <svg
-                    className="w-6 h-6 text-gray-700 dark:text-white"
+                    width="24"
+                    height="24"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
                   >
                     <path
                       strokeLinecap="round"
@@ -355,35 +548,57 @@ const Header = () => {
 
               {/* Perfil o Login */}
               {usuario ? (
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="p-4 border-bottom">
                   <Link
                     to="/profile"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="d-flex align-items-center gap-3 p-3 text-decoration-none rounded-3 hover-primary"
                   >
-                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#4FC3F7] shadow bg-white dark:bg-gray-700">
+                    <div
+                      className="rounded-circle overflow-hidden border border-2 border-primary shadow"
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        backgroundColor: isDark ? "#374151" : "#ffffff",
+                      }}
+                    >
                       {usuario.photoURL ? (
                         <img
                           src={usuario.photoURL}
                           alt="Perfil"
-                          className="w-full h-full object-cover"
+                          className="w-100 h-100"
+                          style={{ objectFit: "cover" }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-[#4FC3F7] text-white flex items-center justify-center font-bold text-lg">
+                        <div
+                          className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold fs-5"
+                          style={{
+                            backgroundColor: isDark ? "#2563eb" : "#3b82f6",
+                            color: "#ffffff",
+                          }}
+                        >
                           {usuario.displayName?.charAt(0).toUpperCase() || "U"}
                         </div>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                    <div className="flex-grow-1">
+                      <p
+                        className="fw-semibold mb-1"
+                        style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                      >
                         {usuario.displayName || "Usuario"}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p
+                        className="small mb-0"
+                        style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+                      >
                         Ver perfil
                       </p>
                     </div>
                     <svg
-                      className="w-5 h-5 text-gray-400"
+                      width="20"
+                      height="20"
+                      className="text-muted"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -398,16 +613,22 @@ const Header = () => {
                   </Link>
                 </div>
               ) : (
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="p-4 border-bottom">
                   <button
                     onClick={() => {
                       setMenuOpen(false);
                       setModalAbierto(true);
                     }}
-                    className="w-full px-4 py-3 bg-[#4FC3F7] hover:bg-[#3BB0F3] text-white rounded-lg font-semibold shadow-md transition-all flex items-center justify-center gap-2"
+                    className="btn w-100 fw-semibold shadow d-flex align-items-center justify-content-center gap-2 py-3"
+                    style={{
+                      backgroundColor: isDark ? "#2563eb" : "#3b82f6",
+                      borderColor: isDark ? "#2563eb" : "#3b82f6",
+                      color: "#ffffff",
+                    }}
                   >
                     <svg
-                      className="w-5 h-5"
+                      width="20"
+                      height="20"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -429,7 +650,8 @@ const Header = () => {
                 <Link
                   to="/"
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
+                  className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                  style={{ color: isDark ? "#f9fafb" : "#111827" }}
                 >
                   <svg
                     className="w-5 h-5"

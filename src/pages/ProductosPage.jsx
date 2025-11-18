@@ -23,7 +23,13 @@ function ProductosPage() {
 
   const [filtros, setFiltros] = useState({
     precio: { min: 0, max: 1000000 },
-    estado: { nuevo: false, usado: false, usadoComoNuevo: false, reacondicionado: false, reparado: false },
+    estado: {
+      nuevo: false,
+      usado: false,
+      usadoComoNuevo: false,
+      reacondicionado: false,
+      reparado: false,
+    },
   });
 
   const [brandFilter, setBrandFilter] = useState({ norm: "", display: "" });
@@ -32,27 +38,50 @@ function ProductosPage() {
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
   const [topbarHeight, setTopbarHeight] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   useEffect(() => {
     const checkTheme = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark') || 
-                    document.documentElement.classList.contains('dark-theme'));
+      setIsDarkMode(
+        document.documentElement.classList.contains("dark") ||
+          document.documentElement.classList.contains("dark-theme")
+      );
     };
     checkTheme();
     const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
-  // SOLO usa la altura de la TopBar, NO sumes el top del header
+  // Medir alturas del topbar y header
   useEffect(() => {
     function measure() {
-      const el = document.querySelector(
+      const topbarEl = document.querySelector(
         ".shadow-md.px-4.py-2.flex.justify-between.items-center"
       );
-      const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0;
-      setTopbarHeight(h);
-      document.documentElement.style.setProperty("--topbar-height", `${h}px`);
+      const headerEl = document.querySelector("header");
+
+      const topbarH = topbarEl
+        ? Math.ceil(topbarEl.getBoundingClientRect().height)
+        : 0;
+      const headerH = headerEl
+        ? Math.ceil(headerEl.getBoundingClientRect().height)
+        : 0;
+
+      setTopbarHeight(topbarH);
+      setHeaderHeight(headerH);
+      document.documentElement.style.setProperty(
+        "--topbar-height",
+        `${topbarH}px`
+      );
+      document.documentElement.style.setProperty(
+        "--header-height",
+        `${headerH}px`
+      );
     }
     measure();
     window.addEventListener("resize", measure);
@@ -66,6 +95,18 @@ function ProductosPage() {
       window.removeEventListener("resize", measure);
       observer.disconnect();
     };
+  }, []);
+
+  // Detectar scroll para animar botones
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const threshold = 50; // Umbral más bajo para activar la animación más rápido
+      setIsScrolled(scrollY > threshold);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -83,19 +124,24 @@ function ProductosPage() {
     if (!products || products.length === 0) {
       return [];
     }
-    
+
     // Si es "Todos" o la categoría es vacía, devolver todos los productos sin filtrar
     const categoriaLower = (categoria || "").toLowerCase();
-    if (categoriaActiva === "Todos" || !categoria || categoriaLower === "todos") {
+    if (
+      categoriaActiva === "Todos" ||
+      !categoria ||
+      categoriaLower === "todos"
+    ) {
       return products;
     }
-    
+
     // Para categorías específicas, filtrar por categoría
     return products.filter((p) => {
       const categoriaProducto = p.categoria || p.categoriaId || "";
       // Comparar con categoriaActiva o con el parámetro categoria
-      return categoriaProducto === categoriaActiva || 
-             categoriaProducto === categoria;
+      return (
+        categoriaProducto === categoriaActiva || categoriaProducto === categoria
+      );
     });
   }, [products, categoriaActiva, categoria]);
 
@@ -108,14 +154,20 @@ function ProductosPage() {
       // Validar precio correctamente
       const precio = Number(p.precio);
       const precioValido = Number.isFinite(precio) && precio > 0 ? precio : 0;
-      
+
       // Solo filtrar por precio si el producto tiene un precio válido
-      const cumpleMin = precioValido === 0 || precioValido >= (filtros.precio.min || 0);
-      const cumpleMax = precioValido === 0 || precioValido <= (filtros.precio.max || 1000000);
-      
+      const cumpleMin =
+        precioValido === 0 || precioValido >= (filtros.precio.min || 0);
+      const cumpleMax =
+        precioValido === 0 || precioValido <= (filtros.precio.max || 1000000);
+
       // Validar estado - si ninguno está seleccionado, mostrar todos
       const cumpleEstado =
-        (!filtros.estado.nuevo && !filtros.estado.usado && !filtros.estado.usadoComoNuevo && !filtros.estado.reacondicionado && !filtros.estado.reparado) ||
+        (!filtros.estado.nuevo &&
+          !filtros.estado.usado &&
+          !filtros.estado.usadoComoNuevo &&
+          !filtros.estado.reacondicionado &&
+          !filtros.estado.reparado) ||
         (filtros.estado.nuevo && p.estado === "Nuevo") ||
         (filtros.estado.usado && p.estado === "Usado") ||
         (filtros.estado.usadoComoNuevo && p.estado === "Usado como nuevo") ||
@@ -144,7 +196,13 @@ function ProductosPage() {
   const handleResetFiltros = () => {
     setFiltros({
       precio: { min: 0, max: 1000000 },
-      estado: { nuevo: false, usado: false, usadoComoNuevo: false, reacondicionado: false, reparado: false },
+      estado: {
+        nuevo: false,
+        usado: false,
+        usadoComoNuevo: false,
+        reacondicionado: false,
+        reparado: false,
+      },
     });
     setBrandFilter({ norm: "", display: "" });
   };
@@ -189,29 +247,62 @@ function ProductosPage() {
         />
 
         <main className="flex-1 p-0 xl:p-4 relative pb-32">
+          {/* Botones de Categorías y Filtros con animación inteligente */}
           <div
-            className="flex justify-between items-center px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-700/30 sticky transition-colors duration-300"
+            className={`flex justify-between items-center px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-700/30 transition-all duration-500 ease-in-out ${
+              isScrolled ? "fixed top-0 left-0 right-0 z-50" : "relative"
+            }`}
             style={{
-              top: "var(--content-offset, 100px)",
-              zIndex: 40,
-              marginTop: 0,
-              paddingTop: 0,
-              background: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+              top: isScrolled ? "var(--content-offset, 100px)" : "auto",
+              background: isScrolled
+                ? isDarkMode
+                  ? "rgba(17, 24, 39, 0.95)"
+                  : "rgba(255, 255, 255, 0.95)"
+                : isDarkMode
+                ? "rgba(17, 24, 39, 0.9)"
+                : "rgba(255, 255, 255, 0.9)",
+              backdropFilter: isScrolled ? "blur(16px)" : "blur(12px)",
+              WebkitBackdropFilter: isScrolled ? "blur(16px)" : "blur(12px)",
+              boxShadow: isScrolled
+                ? "0 4px 20px rgba(0, 0, 0, 0.15)"
+                : "0 1px 3px rgba(0, 0, 0, 0.1)",
+              transform: isScrolled ? "translateY(0)" : "translateY(0)",
             }}
           >
             <button
               onClick={() => setMostrarCategorias(true)}
-              className="flex items-center gap-2.5 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+              className={`flex items-center gap-2.5 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+                isScrolled ? "scale-95" : "scale-100"
+              }`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
               <span>Categorías</span>
             </button>
-            <BotonFiltro onClick={() => setFiltrosVisible(true)} />
+            <BotonFiltro
+              onClick={() => setFiltrosVisible(true)}
+              className={isScrolled ? "scale-95" : "scale-100"}
+            />
           </div>
+
+          {/* Spacer para compensar cuando los botones están fixed */}
+          {isScrolled && (
+            <div
+              className="xl:hidden"
+              style={{ height: "68px" }} // Altura más precisa para la barra de botones
+            />
+          )}
 
           {/* TÍTULO ARRIBA DE LAS BOLITAS */}
           <div className="mb-6 mt-4 px-4 xl:px-0">

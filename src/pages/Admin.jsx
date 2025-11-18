@@ -1,16 +1,44 @@
 import React, { useEffect, useState, useRef } from "react";
-import { collection, onSnapshot, query, doc, where, getDocs, addDoc, updateDoc, deleteDoc, setDoc, orderBy } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import {
+  collection,
+  onSnapshot,
+  query,
+  doc,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  orderBy,
+} from "firebase/firestore";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { db, storage } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Admin.css";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductForm from "../components/ProductForm";
-import ProductManagement from '../components/ProductManagement';
-import CategoryManagement from '../components/CategoryManagement';
-import AdminDashboard from '../components/AdminDashboard';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { FiBarChart2, FiBox, FiTag, FiUsers, FiSearch, FiMapPin, FiShoppingCart, FiUser, FiShield, FiEye } from "react-icons/fi";
+import ProductManagement from "../components/ProductManagement";
+import CategoryManagement from "../components/CategoryManagement";
+import AdminDashboard from "../components/AdminDashboard";
+import LoadingSpinner from "../components/LoadingSpinner";
+import {
+  FiBarChart2,
+  FiBox,
+  FiTag,
+  FiUsers,
+  FiSearch,
+  FiMapPin,
+  FiShoppingCart,
+  FiUser,
+  FiShield,
+  FiEye,
+} from "react-icons/fi";
 import { migrateAllLegacyProductMedia } from "../utils/legacyMediaMigrator";
 
 // Colores base
@@ -123,12 +151,22 @@ function UsuarioFullView({ usuario, onClose }) {
     migrationRanRef.current = true;
     (async () => {
       try {
-        console.log("[Migración] Iniciando migración de medios legacy a Firebase Storage...");
+        console.log(
+          "[Migración] Iniciando migración de medios legacy a Firebase Storage..."
+        );
         await migrateAllLegacyProductMedia((p) => {
           if (!p) return;
-          if (p.type === "skip") console.log(`[Migración] (${p.index}/${p.total}) Sin cambios:`, p.id);
-          else if (p.type === "migrated") console.log(`[Migración] (${p.index}/${p.total}) Migrado:`, p.id);
-          else if (p.type === "done") console.log(`[Migración] Completada. Migrados: ${p.migratedCount}/${p.total}`);
+          if (p.type === "skip")
+            console.log(
+              `[Migración] (${p.index}/${p.total}) Sin cambios:`,
+              p.id
+            );
+          else if (p.type === "migrated")
+            console.log(`[Migración] (${p.index}/${p.total}) Migrado:`, p.id);
+          else if (p.type === "done")
+            console.log(
+              `[Migración] Completada. Migrados: ${p.migratedCount}/${p.total}`
+            );
         });
       } catch (e) {
         console.error("[Migración] Error ejecutando migración:", e);
@@ -177,7 +215,11 @@ function UsuarioFullView({ usuario, onClose }) {
               </h2>
               <p className="admin-user-email">{usuarioData?.email}</p>
               <div className="admin-user-badges">
-                <span className={usuario.id === ADMIN_UID ? "badge-admin" : "badge-user"}>
+                <span
+                  className={
+                    usuario.id === ADMIN_UID ? "badge-admin" : "badge-user"
+                  }
+                >
                   {usuario.id === ADMIN_UID ? "Admin" : "Usuario"}
                 </span>
               </div>
@@ -276,11 +318,17 @@ function UsuarioFullView({ usuario, onClose }) {
 
             {loadingCompras ? (
               <div className="flex items-center justify-center py-12">
-                <LoadingSpinner size="medium" color="blue" text="Cargando compras..." />
+                <LoadingSpinner
+                  size="medium"
+                  color="blue"
+                  text="Cargando compras..."
+                />
               </div>
             ) : compras.length === 0 ? (
               <div className="text-center py-12 bg-blue-50 rounded-xl">
-                <div className="text-6xl mb-4 text-blue-700 flex items-center justify-center"><FiShoppingCart /></div>
+                <div className="text-6xl mb-4 text-blue-700 flex items-center justify-center">
+                  <FiShoppingCart />
+                </div>
                 <p className="text-xl text-blue-700 font-medium">
                   No hay compras registradas
                 </p>
@@ -336,12 +384,13 @@ function UsuarioFullView({ usuario, onClose }) {
                               {producto.nombre}
                             </span>
                             <span className="product-quantity">
-                              Cantidad: {producto.cantidad} • {new Intl.NumberFormat("es-DO", {
+                              Cantidad: {producto.cantidad} •{" "}
+                              {new Intl.NumberFormat("es-DO", {
                                 style: "currency",
                                 currency: "DOP",
                               }).format(producto.precio)}
                             </span>
-                            <button 
+                            <button
                               className="btn-view-product"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -349,7 +398,9 @@ function UsuarioFullView({ usuario, onClose }) {
                               }}
                               title="Ver producto"
                             >
-                              <span className="inline-flex items-center gap-1"><FiEye /> Ver producto</span>
+                              <span className="inline-flex items-center gap-1">
+                                <FiEye /> Ver producto
+                              </span>
                             </button>
                           </div>
                         </div>
@@ -362,7 +413,7 @@ function UsuarioFullView({ usuario, onClose }) {
                     </div>
 
                     <div className="admin-order-actions">
-                      <button 
+                      <button
                         className="btn-admin btn-view"
                         onClick={() => setSelectedOrder(order)}
                       >
@@ -380,7 +431,7 @@ function UsuarioFullView({ usuario, onClose }) {
             )}
           </section>
         </div>
-        
+
         {/* Modal de detalles de orden */}
         <AnimatePresence>
           {selectedOrder && (
@@ -413,12 +464,16 @@ function OrdersList() {
   const [orders, setOrders] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   React.useEffect(() => {
-    const q = query(collection(db, 'orders'), orderBy('fecha', 'desc'));
-    const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setOrders(data);
-      setLoading(false);
-    }, () => setLoading(false));
+    const q = query(collection(db, "orders"), orderBy("fecha", "desc"));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setOrders(data);
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
     return () => unsub();
   }, []);
   if (loading) {
@@ -429,18 +484,38 @@ function OrdersList() {
     );
   }
   if (orders.length === 0) {
-    return <div className="text-center text-gray-600 py-8">No hay pedidos registrados.</div>;
+    return (
+      <div className="text-center text-gray-600 py-8">
+        No hay pedidos registrados.
+      </div>
+    );
   }
   return (
     <div className="divide-y border rounded-lg">
-      {orders.map(o => (
+      {orders.map((o) => (
         <div key={o.id} className="p-4 flex items-center justify-between">
           <div>
-            <p className="font-medium text-blue-900">Pedido #{o.id.slice(-8)}</p>
-            <p className="text-sm text-gray-600">{o.fecha?.seconds ? new Date(o.fecha.seconds * 1000).toLocaleString() : ''}</p>
+            <p className="font-medium text-blue-900">
+              Pedido #{o.id.slice(-8)}
+            </p>
+            <p className="text-sm text-gray-600">
+              {o.fecha?.seconds
+                ? new Date(o.fecha.seconds * 1000).toLocaleString()
+                : ""}
+            </p>
           </div>
           <div className="text-right">
-            <span className={`px-2 py-1 rounded-full text-xs ${o.estado==='completado'?'bg-green-100 text-green-800':o.estado==='pendiente'?'bg-yellow-100 text-yellow-800':'bg-gray-100 text-gray-800'}`}>{o.estado || 'Pendiente'}</span>
+            <span
+              className={`px-2 py-1 rounded-full text-xs ${
+                o.estado === "completado"
+                  ? "bg-green-100 text-green-800"
+                  : o.estado === "pendiente"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {o.estado || "Pendiente"}
+            </span>
           </div>
         </div>
       ))}
@@ -457,7 +532,10 @@ function SellerAdminPanel() {
   const [editingProduct, setEditingProduct] = useState(null);
 
   return (
-    <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
+    <main
+      className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6"
+      style={{ paddingTop: "calc(var(--content-offset, 100px) + 60px)" }}
+    >
       <div className="w-full px-2">
         {/* HEADER */}
         <div className="text-center mb-6">
@@ -579,8 +657,11 @@ export default function Admin() {
       </div>
     );
 
-  const isGlobalAdmin = usuario?.uid === ADMIN_UID || usuarioInfo?.isAdmin === true;
-  const isSeller = Boolean(usuarioInfo?.isSeller || usuarioInfo?.empresa || usuarioInfo?.empresaId);
+  const isGlobalAdmin =
+    usuario?.uid === ADMIN_UID || usuarioInfo?.isAdmin === true;
+  const isSeller = Boolean(
+    usuarioInfo?.isSeller || usuarioInfo?.empresa || usuarioInfo?.empresaId
+  );
 
   // Acceso vendedor: panel simplificado
   if (!isGlobalAdmin && isSeller) {
@@ -614,24 +695,24 @@ export default function Admin() {
             onAddProduct={() => {
               setEditingProduct(null);
               setShowProductForm(true);
-              setActiveTab('products');
+              setActiveTab("products");
             }}
             onEditProduct={(product) => {
               setEditingProduct(product);
               setShowProductForm(true);
             }}
-            onOpenCategories={() => setActiveTab('categories')}
-            onViewAllProducts={() => setActiveTab('products')}
-            onViewAllOrders={() => setActiveTab('orders')}
-            onViewProducts={() => setActiveTab('products')}
-            onViewCategories={() => setActiveTab('categories')}
-            onViewUsers={() => setActiveTab('users')}
-            onViewOrders={() => setActiveTab('orders')}
+            onOpenCategories={() => setActiveTab("categories")}
+            onViewAllProducts={() => setActiveTab("products")}
+            onViewAllOrders={() => setActiveTab("orders")}
+            onViewProducts={() => setActiveTab("products")}
+            onViewCategories={() => setActiveTab("categories")}
+            onViewUsers={() => setActiveTab("users")}
+            onViewOrders={() => setActiveTab("orders")}
           />
         );
       case "products":
         return (
-          <ProductManagement 
+          <ProductManagement
             onAddProduct={() => {
               setEditingProduct(null);
               setShowProductForm(true);
@@ -648,7 +729,9 @@ export default function Admin() {
         return (
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h2>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                Gestión de Usuarios
+              </h2>
               <input
                 type="text"
                 value={filtro}
@@ -658,31 +741,65 @@ export default function Admin() {
               />
             </div>
             {usuariosFiltrados.length === 0 ? (
-              <div className="text-gray-600">No hay usuarios que coincidan con la búsqueda.</div>
+              <div className="text-gray-600">
+                No hay usuarios que coincidan con la búsqueda.
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registrado</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Nombre
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Teléfono
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Código
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Registrado
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rol
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {usuariosFiltrados.map((u) => (
-                      <tr key={u.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setUsuarioSeleccionado(u)}>
-                        <td className="px-4 py-2 text-sm text-gray-900 font-medium">{u.displayName || u.nombre || 'Usuario'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-700">{u.email || '-'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-700">{u.telefono || '-'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-700">{u.codigo || '-'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-700">{formatDate(u.createdAt) || '-'}</td>
+                      <tr
+                        key={u.id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => setUsuarioSeleccionado(u)}
+                      >
+                        <td className="px-4 py-2 text-sm text-gray-900 font-medium">
+                          {u.displayName || u.nombre || "Usuario"}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-700">
+                          {u.email || "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-700">
+                          {u.telefono || "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-700">
+                          {u.codigo || "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-700">
+                          {formatDate(u.createdAt) || "-"}
+                        </td>
                         <td className="px-4 py-2 text-sm">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${u.id === ADMIN_UID ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-                            {u.id === ADMIN_UID ? 'Admin' : 'Usuario'}
+                          <span
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              u.id === ADMIN_UID
+                                ? "bg-green-100 text-green-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {u.id === ADMIN_UID ? "Admin" : "Usuario"}
                           </span>
                         </td>
                       </tr>
@@ -699,19 +816,23 @@ export default function Admin() {
   };
 
   return (
-    <main className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6" style={{ paddingTop: 'var(--content-offset, 100px)' }}>
+    <main
+      className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6"
+      style={{ paddingTop: "calc(var(--content-offset, 100px) + 60px)" }}
+    >
       <div className="w-full px-2">
         {/* HEADER */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 text-blue-900">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-blue-900">
             Panel Administrativo
           </h1>
-          <p className="text-base sm:text-xl text-blue-700 font-medium">
+          <p className="text-sm sm:text-base lg:text-lg text-blue-700 font-medium">
             Gestión Completa del Sistema
           </p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
             <span className="bg-blue-100 text-blue-900 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
-              <FiUsers /> {usuarios.length} {usuarios.length === 1 ? "usuario" : "usuarios"} registrados
+              <FiUsers /> {usuarios.length}{" "}
+              {usuarios.length === 1 ? "usuario" : "usuarios"} registrados
             </span>
             <span className="bg-green-100 text-green-900 px-4 py-2 rounded-full text-sm font-bold">
               Sincronización en tiempo real
@@ -728,7 +849,8 @@ export default function Admin() {
               { id: "categories", label: "Categorías", icon: <FiTag /> },
               { id: "orders", label: "Pedidos", icon: <FiSearch /> },
               { id: "users", label: "Usuarios", icon: <FiUsers /> },
-            ].map((tab) => (              <button
+            ].map((tab) => (
+              <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
@@ -756,7 +878,6 @@ export default function Admin() {
           {renderTabContent()}
         </motion.div>
 
-
         {/* MODALS */}
         {usuarioSeleccionado && (
           <UsuarioFullView
@@ -764,7 +885,7 @@ export default function Admin() {
             onClose={() => setUsuarioSeleccionado(null)}
           />
         )}
-        
+
         {showProductForm && (
           <ProductForm
             product={editingProduct}
@@ -779,7 +900,7 @@ export default function Admin() {
           />
         )}
       </div>
-      
+
       {/* Modal de detalles de orden */}
       <AnimatePresence>
         {selectedOrder && (
@@ -796,53 +917,61 @@ export default function Admin() {
 /* Modal de detalles de orden */
 function OrderDetailsModal({ order, onClose }) {
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-DO', {
-      style: 'currency',
-      currency: 'DOP'
+    return new Intl.NumberFormat("es-DO", {
+      style: "currency",
+      currency: "DOP",
     }).format(amount || 0);
   };
 
   const formatOrderDate = (fecha) => {
-    if (!fecha) return 'Fecha no disponible';
+    if (!fecha) return "Fecha no disponible";
     let date;
-    if (typeof fecha === 'object' && fecha.seconds) {
+    if (typeof fecha === "object" && fecha.seconds) {
       date = new Date(fecha.seconds * 1000);
     } else {
       date = new Date(fecha);
     }
-    return date.toLocaleDateString('es-DO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("es-DO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getStatusColor = (estado) => {
     switch (estado) {
-      case 'completado': return 'status-completed';
-      case 'cancelado': return 'status-cancelled';
-      case 'pendiente': return 'status-pending';
-      default: return 'status-pending';
+      case "completado":
+        return "status-completed";
+      case "cancelado":
+        return "status-cancelled";
+      case "pendiente":
+        return "status-pending";
+      default:
+        return "status-pending";
     }
   };
 
   const getStatusText = (estado) => {
     switch (estado) {
-      case 'completado': return '✓ Completado';
-      case 'cancelado': return '✗ Cancelado';
-      case 'pendiente': return '⏳ Pendiente';
-      default: return '⏳ Pendiente';
+      case "completado":
+        return "✓ Completado";
+      case "cancelado":
+        return "✗ Cancelado";
+      case "pendiente":
+        return "⏳ Pendiente";
+      default:
+        return "⏳ Pendiente";
     }
   };
 
   React.useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
   return (
@@ -910,15 +1039,18 @@ function OrderDetailsModal({ order, onClose }) {
                         Precio unitario: {formatCurrency(producto.precio)}
                       </span>
                       <span className="subtotal">
-                        Subtotal: {formatCurrency(
+                        Subtotal:{" "}
+                        {formatCurrency(
                           producto.subtotal ||
                             producto.precio * producto.cantidad
                         )}
                       </span>
                     </div>
-                    <button 
+                    <button
                       className="btn-view-product-modal"
-                      onClick={() => window.location.href = `/producto/${producto.id}`}
+                      onClick={() =>
+                        (window.location.href = `/producto/${producto.id}`)
+                      }
                       title="Ver producto"
                     >
                       👁️ Ver producto

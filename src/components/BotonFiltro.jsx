@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 
-function BotonFiltro({ onClick }) {
+function BotonFiltro({ onClick, className = "" }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2.5 px-5 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+      className={`flex items-center gap-2.5 px-5 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 ${className}`}
     >
       <svg
         className="w-5 h-5"

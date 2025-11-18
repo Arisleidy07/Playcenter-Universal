@@ -29,8 +29,13 @@ function Footer() {
   };
 
   return (
-    <div className="footer-block">
-      <footer className="footer futuristic-footer relative bg-black text-gray-300 py-12 text-sm sm:text-base">
+    <div className="footer-block" style={{ background: "#000000c1" }}>
+      <footer
+        className="footer futuristic-footer relative py-12 text-sm sm:text-base"
+        style={{
+          color: "#d1d5db !important",
+        }}
+      >
         <div className="footer-bg-animated" />
         <div className="w-full flex justify-center mb-10 relative z-20">
           <img
@@ -41,26 +46,49 @@ function Footer() {
         </div>
 
         <div className="footer-cols-wrapper relative z-20 max-w-7xl mx-auto px-4 sm:px-6 xl:px-8 grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-
           <div className="footer-col">
-            <h3 className="footer-title-neon text-base sm:text-lg font-bold mb-3">Playcenter Universal</h3>
-            <p>Tu universo de tecnología y gaming en Santiago, R.D.</p>
-            <p className="mt-3 flex justify-center sm:justify-start items-center gap-2">
+            <h3
+              className="footer-title-neon text-base sm:text-lg font-bold mb-3"
+              style={{ color: "#ffffff" }}
+            >
+              Playcenter Universal
+            </h3>
+            <p style={{ color: "#d1d5db" }}>
+              Tu universo de tecnología y gaming en Santiago, R.D.
+            </p>
+            <p
+              className="mt-3 flex justify-center sm:justify-start items-center gap-2"
+              style={{ color: "#d1d5db" }}
+            >
               <FaMapMarkerAlt /> Av. Estrella Sadhalá #55, frente a la doble vía
             </p>
-            <p className="mt-2 flex justify-center sm:justify-start items-center gap-2">
+            <p
+              className="mt-2 flex justify-center sm:justify-start items-center gap-2"
+              style={{ color: "#d1d5db" }}
+            >
               <FaPhoneAlt /> +1 (809) 582-1212 (Internet)
             </p>
-            <p className="mt-2 flex justify-center sm:justify-start items-center gap-2">
+            <p
+              className="mt-2 flex justify-center sm:justify-start items-center gap-2"
+              style={{ color: "#d1d5db" }}
+            >
               <FaPhoneAlt /> +1 (849) 635-7000 (Tienda)
             </p>
-            <p className="mt-2 flex justify-center sm:justify-start items-center gap-2">
+            <p
+              className="mt-2 flex justify-center sm:justify-start items-center gap-2"
+              style={{ color: "#d1d5db" }}
+            >
               <FaEnvelope /> playcenter121@gmail.com
             </p>
           </div>
 
           <div className="footer-col">
-            <h3 className="footer-title-neon text-base sm:text-lg font-semibold mb-3">Navegación</h3>
+            <h3
+              className="footer-title-neon text-base sm:text-lg font-semibold mb-3"
+              style={{ color: "#ffffff" }}
+            >
+              Navegación
+            </h3>
             <ul className="footer-nav-list">
               {[
                 ["Categorías", "/categorias", false],
@@ -95,20 +123,42 @@ function Footer() {
           </div>
 
           <div className="footer-col">
-            <h3 className="footer-title-neon text-base sm:text-lg font-semibold mb-3">Horario</h3>
-            <p>Lunes a Viernes: 8:30am - 5:30pm</p>
-            <p>Sábados: 8:30am - 12:30pm</p>
-            <p>Domingos: Cerrado</p>
+            <h3
+              className="footer-title-neon text-base sm:text-lg font-semibold mb-3"
+              style={{ color: "#ffffff" }}
+            >
+              Horario
+            </h3>
+            <p style={{ color: "#d1d5db" }}>Lunes a Viernes: 8:30am - 5:30pm</p>
+            <p style={{ color: "#d1d5db" }}>Sábados: 8:30am - 12:30pm</p>
+            <p style={{ color: "#d1d5db" }}>Domingos: Cerrado</p>
           </div>
 
           <div className="footer-col">
-            <h3 className="footer-title-neon text-base sm:text-lg font-bold mb-3">Conéctate con nosotros</h3>
+            <h3
+              className="footer-title-neon text-base sm:text-lg font-bold mb-3"
+              style={{ color: "#ffffff" }}
+            >
+              Conéctate con nosotros
+            </h3>
             <div className="grid grid-cols-2 gap-4 justify-items-center sm:justify-items-start">
               {[
                 ["https://www.facebook.com/pcu12", "/Facebook.png", "Facebook"],
-                ["https://www.instagram.com/playcenter_universal/?hl=es", "/Instagram.png", "Instagram"],
-                ["https://www.tiktok.com/@playcenter_universal?lang=es", "/tiktok.png", "TikTok"],
-                ["https://youtube.com/@playcenteruniversal1916", "/Youtube.png", "YouTube"],
+                [
+                  "https://www.instagram.com/playcenter_universal/?hl=es",
+                  "/Instagram.png",
+                  "Instagram",
+                ],
+                [
+                  "https://www.tiktok.com/@playcenter_universal?lang=es",
+                  "/tiktok.png",
+                  "TikTok",
+                ],
+                [
+                  "https://youtube.com/@playcenteruniversal1916",
+                  "/Youtube.png",
+                  "YouTube",
+                ],
               ].map(([url, imgSrc, alt]) => (
                 <a
                   key={alt}
@@ -126,11 +176,14 @@ function Footer() {
               ))}
             </div>
           </div>
-
         </div>
 
-        <p className="footer-copyright text-center text-gray-500 text-[11px] sm:text-xs mt-10 relative z-20">
-          © {new Date().getFullYear()} Playcenter Universal. Todos los derechos reservados.
+        <p
+          className="footer-copyright text-center text-[11px] sm:text-xs mt-10 relative z-20"
+          style={{ color: "#6b7280" }}
+        >
+          {new Date().getFullYear()} Playcenter Universal. Todos los derechos
+          reservados.
         </p>
 
         <ModalLoginAlert

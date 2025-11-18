@@ -1,16 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
-import { FiPackage, FiUsers, FiShoppingBag, FiGrid } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+} from "firebase/firestore";
+import { db } from "../firebase";
+import { FiPackage, FiUsers, FiShoppingBag, FiGrid } from "react-icons/fi";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
-const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProducts, onViewCategories }) => {
+const AdminDashboard = ({
+  onEditProduct,
+  onViewUsers,
+  onViewOrders,
+  onViewProducts,
+  onViewCategories,
+}) => {
   const [stats, setStats] = useState({
     productos: 0,
     categorias: 0,
     usuarios: 0,
-    pedidos: 0
+    pedidos: 0,
   });
   const [recentProducts, setRecentProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,84 +30,92 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
   useEffect(() => {
     // TIEMPO REAL para productos - Se actualiza cuando se eliminan/agregan
     const unsubscribeProducts = onSnapshot(
-      query(collection(db, 'productos')),
+      query(collection(db, "productos")),
       (snapshot) => {
-        const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
-        const validProductsCount = snapshot.docs.filter(doc => !phantomProducts.includes(doc.id)).length;
-        
-        setStats(prevStats => ({
+        const phantomProducts = JSON.parse(
+          localStorage.getItem("phantomProducts") || "[]"
+        );
+        const validProductsCount = snapshot.docs.filter(
+          (doc) => !phantomProducts.includes(doc.id)
+        ).length;
+
+        setStats((prevStats) => ({
           ...prevStats,
-          productos: validProductsCount
+          productos: validProductsCount,
         }));
       },
-      (error) => {
-      }
+      (error) => {}
     );
 
     // TIEMPO REAL para usuarios
     const unsubscribeUsers = onSnapshot(
-      query(collection(db, 'usuarios')),
+      query(collection(db, "usuarios")),
       (snapshot) => {
-        setStats(prevStats => ({
+        setStats((prevStats) => ({
           ...prevStats,
-          usuarios: snapshot.size
+          usuarios: snapshot.size,
         }));
       },
-      (error) => {
-      }
+      (error) => {}
     );
 
     // TIEMPO REAL para categorías
     const unsubscribeCategories = onSnapshot(
-      query(collection(db, 'categorias')),
+      query(collection(db, "categorias")),
       (snapshot) => {
-        setStats(prevStats => ({
+        setStats((prevStats) => ({
           ...prevStats,
-          categorias: snapshot.size
+          categorias: snapshot.size,
         }));
       },
-      (error) => {
-      }
+      (error) => {}
     );
 
     // TIEMPO REAL para pedidos
     const unsubscribeOrders = onSnapshot(
-      query(collection(db, 'pedidos')),
+      query(collection(db, "pedidos")),
       (snapshot) => {
-        setStats(prevStats => ({
+        setStats((prevStats) => ({
           ...prevStats,
-          pedidos: snapshot.size
+          pedidos: snapshot.size,
         }));
       },
-      (error) => {
-      }
+      (error) => {}
     );
 
     const fetchRecentProducts = () => {
       try {
         const q = query(
-          collection(db, 'productos'),
-          orderBy('fechaCreacion', 'desc'),
+          collection(db, "productos"),
+          orderBy("fechaCreacion", "desc"),
           limit(5)
         );
-        
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          // Filtrar productos fantasma
-          const phantomProducts = JSON.parse(localStorage.getItem('phantomProducts') || '[]');
-          
-          const productsData = snapshot.docs
-            .filter(doc => doc.exists() && !phantomProducts.includes(doc.id))
-            .map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            }));
-          
-          setRecentProducts(productsData);
-          setLoading(false);
-        }, (error) => {
-          setLoading(false);
-        });
-        
+
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            // Filtrar productos fantasma
+            const phantomProducts = JSON.parse(
+              localStorage.getItem("phantomProducts") || "[]"
+            );
+
+            const productsData = snapshot.docs
+              .filter(
+                (doc) => doc.exists() && !phantomProducts.includes(doc.id)
+              )
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+
+            setRecentProducts(productsData);
+            setLoading(false);
+          },
+          (error) => {
+            setLoading(false);
+          }
+        );
+
         return unsubscribe;
       } catch (error) {
         setLoading(false);
@@ -103,7 +123,7 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
     };
 
     const unsubscribeRecentProducts = fetchRecentProducts();
-    
+
     return () => {
       // Limpiar todos los listeners
       if (unsubscribeProducts) unsubscribeProducts();
@@ -118,35 +138,39 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
     <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-blue-900">Dashboard</h2>
-          <p className="text-gray-600">Bienvenido al panel de administración</p>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900">
+            Dashboard
+          </h2>
+          <p className="text-sm sm:text-base text-gray-600">
+            Bienvenido al panel de administración
+          </p>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-        <StatsCard 
-          title="Productos" 
-          count={stats.productos} 
-          icon={<FiPackage className="text-blue-500" size={24} />} 
+        <StatsCard
+          title="Productos"
+          count={stats.productos}
+          icon={<FiPackage className="text-blue-500" size={24} />}
           onClick={onViewProducts}
         />
-        <StatsCard 
-          title="Categorías" 
-          count={stats.categorias} 
-          icon={<FiGrid className="text-green-500" size={24} />} 
+        <StatsCard
+          title="Categorías"
+          count={stats.categorias}
+          icon={<FiGrid className="text-green-500" size={24} />}
           onClick={onViewCategories}
         />
-        <StatsCard 
-          title="Usuarios" 
-          count={stats.usuarios} 
-          icon={<FiUsers className="text-purple-500" size={24} />} 
+        <StatsCard
+          title="Usuarios"
+          count={stats.usuarios}
+          icon={<FiUsers className="text-purple-500" size={24} />}
           onClick={onViewUsers}
         />
-        <StatsCard 
-          title="Pedidos" 
-          count={stats.pedidos} 
-          icon={<FiShoppingBag className="text-orange-500" size={24} />} 
+        <StatsCard
+          title="Pedidos"
+          count={stats.pedidos}
+          icon={<FiShoppingBag className="text-orange-500" size={24} />}
           onClick={onViewOrders}
         />
       </div>
@@ -154,9 +178,11 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
       {/* Recent Products */}
       <div className="w-full bg-white p-6 rounded-lg shadow-sm border">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-900">Productos Recientes</h3>
+          <h3 className="text-lg font-bold text-gray-900">
+            Productos Recientes
+          </h3>
         </div>
-        
+
         {loading ? (
           <div className="flex justify-center items-center h-32">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
@@ -181,29 +207,43 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {recentProducts.map(product => (
+                {recentProducts.map((product) => (
                   <tr key={product.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 relative">
                           {(() => {
                             try {
-                              const mainImage = product.imagen || 
-                                             (Array.isArray(product.imagenes) && product.imagenes.length > 0 ? product.imagenes[0] : null) ||
-                                             (Array.isArray(product.variantes) && product.variantes.length > 0 && product.variantes[0].imagen ? product.variantes[0].imagen : null) ||
-                                             (Array.isArray(product.media) && product.media.length > 0 ? product.media[0].url : null) ||
-                                             (Array.isArray(product.variantes) && product.variantes.length > 0 && 
-                                              Array.isArray(product.variantes[0].media) && product.variantes[0].media.length > 0 ? 
-                                              product.variantes[0].media[0].url : null);
-                              
+                              const mainImage =
+                                product.imagen ||
+                                (Array.isArray(product.imagenes) &&
+                                product.imagenes.length > 0
+                                  ? product.imagenes[0]
+                                  : null) ||
+                                (Array.isArray(product.variantes) &&
+                                product.variantes.length > 0 &&
+                                product.variantes[0].imagen
+                                  ? product.variantes[0].imagen
+                                  : null) ||
+                                (Array.isArray(product.media) &&
+                                product.media.length > 0
+                                  ? product.media[0].url
+                                  : null) ||
+                                (Array.isArray(product.variantes) &&
+                                product.variantes.length > 0 &&
+                                Array.isArray(product.variantes[0].media) &&
+                                product.variantes[0].media.length > 0
+                                  ? product.variantes[0].media[0].url
+                                  : null);
+
                               return mainImage ? (
-                                <img 
-                                  className="h-10 w-10 rounded-full object-cover" 
-                                  src={mainImage} 
-                                  alt="" 
+                                <img
+                                  className="h-10 w-10 rounded-full object-cover"
+                                  src={mainImage}
+                                  alt=""
                                   onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'flex';
+                                    e.target.style.display = "none";
+                                    e.target.nextSibling.style.display = "flex";
                                   }}
                                 />
                               ) : (
@@ -219,13 +259,16 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
                               );
                             }
                           })()}
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs" style={{display: 'none'}}>
+                          <div
+                            className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs"
+                            style={{ display: "none" }}
+                          >
                             N/A
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {product.nombre || 'Sin nombre'}
+                            {product.nombre || "Sin nombre"}
                           </div>
                           <div className="text-sm text-gray-500">
                             ID: {product.id.substring(0, 8)}...
@@ -235,25 +278,36 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {new Intl.NumberFormat('es-DO', {
-                          style: 'currency',
-                          currency: 'DOP'
+                        {new Intl.NumberFormat("es-DO", {
+                          style: "currency",
+                          currency: "DOP",
                         }).format(product.precio || 0)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${product.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {product.activo ? 'Activo' : 'Inactivo'}
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          product.activo
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {product.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button 
-                        onClick={() => onEditProduct && onEditProduct(product)} 
+                      <button
+                        onClick={() => onEditProduct && onEditProduct(product)}
                         className="text-blue-600 hover:text-blue-900 mr-4 font-medium cursor-pointer"
                       >
                         Editar
                       </button>
-                      <Link to={`/producto/${product.id}`} className="text-green-600 hover:text-green-900" target="_blank" rel="noopener noreferrer">
+                      <Link
+                        to={`/producto/${product.id}`}
+                        className="text-green-600 hover:text-green-900"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         Ver
                       </Link>
                     </td>
@@ -267,9 +321,9 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
             <p className="text-gray-500">No hay productos recientes</p>
           </div>
         )}
-        
+
         <div className="mt-4 text-right">
-          <button 
+          <button
             onClick={onViewProducts}
             className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
           >
@@ -283,8 +337,12 @@ const AdminDashboard = ({ onEditProduct, onViewUsers, onViewOrders, onViewProduc
 
 const StatsCard = ({ title, count, icon, onClick }) => {
   return (
-    <motion.div 
-      whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}
+    <motion.div
+      whileHover={{
+        y: -5,
+        boxShadow:
+          "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      }}
       className="bg-white p-6 rounded-lg shadow-sm border transition-all cursor-pointer"
       onClick={onClick}
     >

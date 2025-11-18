@@ -115,7 +115,38 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 768px) {
+/* Responsive dropzone */
+@media (max-width: 640px) {
+  .ufu-dropzone {
+    padding: 1rem 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  .ufu-dropzone-desktop-text {
+    display: none;
+  }
+
+  .ufu-mobile-buttons {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ufu-mobile-button {
+    flex: 1;
+    max-width: 140px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .ufu-dropzone-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
   .ufu-dropzone {
     padding: 1.25rem 1rem;
   }
@@ -137,15 +168,39 @@
   }
 }
 
-/* Grid de vista previa */
+/* Grid de vista previa - RESPONSIVE */
 .ufu-preview-grid {
   margin-top: 1.5rem;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
   position: relative;
   min-height: 50px;
   will-change: contents;
+}
+
+/* Móvil: 1 columna */
+@media (max-width: 640px) {
+  .ufu-preview-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Tablet: 2 columnas */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .ufu-preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* Desktop: 3-4 columnas */
+@media (min-width: 1025px) {
+  .ufu-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
 }
 
 /* Item de vista previa */
@@ -182,8 +237,27 @@
   justify-content: center;
   color: #9ca3af;
   flex: 1;
-  min-height: 200px;
+  min-height: 150px;
   border: 1px solid #e2e8f0;
+}
+
+/* Responsive media heights */
+@media (max-width: 640px) {
+  .ufu-preview-media {
+    min-height: 120px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .ufu-preview-media {
+    min-height: 140px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .ufu-preview-media {
+    min-height: 180px;
+  }
 }
 
 .ufu-preview-media img,
@@ -265,6 +339,31 @@
   margin-top: 0.125rem;
 }
 
+/* Responsive text sizes */
+@media (max-width: 640px) {
+  .ufu-preview-item-info {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .ufu-preview-item-name {
+    font-size: 0.75rem;
+  }
+
+  .ufu-preview-item-size {
+    font-size: 0.7rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .ufu-preview-item-name {
+    font-size: 0.775rem;
+  }
+
+  .ufu-preview-item-size {
+    font-size: 0.725rem;
+  }
+}
+
 /* Controles overlay */
 .ufu-controls-overlay {
   position: absolute;
@@ -297,6 +396,32 @@
   justify-content: center;
   color: #374151; /* gray-700 */
   z-index: 5;
+}
+
+/* Botones más grandes en móvil para touch */
+@media (max-width: 640px) {
+  .ufu-control-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ufu-control-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .ufu-control-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .ufu-control-button svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .ufu-control-button:hover {

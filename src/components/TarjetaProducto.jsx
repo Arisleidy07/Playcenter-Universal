@@ -5,6 +5,7 @@ import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import ModalLoginAlert from "./ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext";
+import { useTheme } from "../context/ThemeContext";
 import "../styles/TarjetaProducto.css";
 // (sin imports extra)
 
@@ -46,6 +47,7 @@ function TarjetaProducto({ producto }) {
   } = useCarrito();
   const { usuario, usuarioInfo } = useAuth();
   const { abrirModal } = useAuthModal();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
@@ -166,75 +168,101 @@ function TarjetaProducto({ producto }) {
   return (
     <>
       {/* HORIZONTAL en móvil/tablet pequeño, VERTICAL en tablet grande/desktop */}
-      <article className="flex flex-row lg:flex-col bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200 w-full h-full">
+      <article
+        className="card h-100 border-2 shadow-sm hover-lift hover-shadow"
+        style={{
+          backgroundColor: isDark ? "#1f2937" : "#ffffff",
+          borderColor: isDark ? "#374151" : "#e5e7eb",
+        }}
+      >
         {/* Imagen a la izquierda (móvil/tablet pequeño) o arriba (tablet grande/desktop) */}
         <div
           onClick={irADetalle}
-          className="flex-shrink-0 w-32 sm:w-36 lg:w-full lg:aspect-square flex items-center justify-center overflow-hidden cursor-pointer bg-white"
+          className="d-flex d-lg-block position-relative overflow-hidden"
           style={{
-            minHeight: "128px", // Imagen más compacta en móvil
+            cursor: "pointer",
+            minHeight: "128px",
+            width: "128px",
           }}
         >
-          {imagen ? (
-            <img
-              src={imagen}
-              alt={producto.nombre}
-              className="w-full h-full object-contain"
-              loading="lazy"
-            />
-          ) : (
-            <div className="text-gray-400 text-sm">Sin imagen</div>
-          )}
+          <div
+            className="d-flex align-items-center justify-content-center w-100 h-100"
+            style={{ backgroundColor: isDark ? "#374151" : "#ffffff" }}
+          >
+            {imagen ? (
+              <img
+                src={imagen}
+                alt={producto.nombre}
+                className="w-100 h-100"
+                style={{ objectFit: "contain" }}
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className="small"
+                style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+              >
+                Sin imagen
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Información a la derecha (móvil/tablet pequeño) o abajo (tablet grande/desktop) */}
-        <div className="flex flex-col justify-between p-2.5 sm:p-3 lg:p-4 flex-1">
+        <div className="card-body d-flex flex-column justify-content-between flex-grow-1 p-3">
           <div>
             <h3
               onClick={irADetalle}
-              className="text-gray-900 hover:text-blue-600 mb-1.5 sm:mb-2 cursor-pointer text-sm sm:text-base lg:text-lg font-semibold"
+              className="card-title fw-semibold mb-2"
               style={{
+                cursor: "pointer",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
                 lineHeight: "1.3em",
                 maxHeight: "2.6em",
+                fontSize: "clamp(0.875rem, 2vw, 1.125rem)",
+                color: isDark ? "#f9fafb" : "#111827",
               }}
             >
               {producto.nombre}
             </h3>
 
-            <div className="flex items-baseline gap-1 mb-1.5 sm:mb-2">
-              <span className="text-xs sm:text-sm lg:text-base text-gray-600">
+            <div className="d-flex align-items-baseline gap-1 mb-2">
+              <span
+                className="small"
+                style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+              >
                 RD$
               </span>
-              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+              <span
+                className="h5 fw-bold mb-0"
+                style={{ color: isDark ? "#f3f4f6" : "#111827" }}
+              >
                 {Number(producto.precio).toFixed(2)}
               </span>
             </div>
           </div>
 
           {enCarrito ? (
-            <div className="flex items-center justify-between gap-2">
+            <div className="d-flex align-items-center justify-content-between gap-2">
               <button
                 onClick={handleDecremento}
-                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 rounded-lg hover:bg-gray-300 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
+                className="btn btn-outline-secondary btn-sm rounded-3 fw-semibold"
               >
                 −
               </button>
-              <span className="font-semibold text-base sm:text-base lg:text-lg">
-                {cantidadEnCarrito}
-              </span>
+              <span className="fw-semibold">{cantidadEnCarrito}</span>
               <button
                 onClick={handleIncremento}
-                className="px-3 sm:px-3 lg:px-3.5 py-1.5 sm:py-1.5 bg-gray-200 rounded-lg hover:bg-gray-300 text-base sm:text-base font-semibold transition-all hover:scale-105 active:scale-95"
+                className="btn btn-outline-secondary btn-sm rounded-3 fw-semibold"
               >
                 +
               </button>
               <button
                 onClick={handleQuitar}
-                className="px-2.5 sm:px-2.5 py-1.5 sm:py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-base sm:text-base transition-all hover:scale-105 active:scale-95"
+                className="btn btn-danger btn-sm rounded-3"
               >
                 <FaTrashAlt />
               </button>
@@ -242,12 +270,13 @@ function TarjetaProducto({ producto }) {
           ) : (
             <button
               onClick={handleAgregar}
-              className="w-full py-2.5 sm:py-2.5 lg:py-3 rounded-xl text-xs sm:text-sm lg:text-base font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
+              className="btn btn-primary w-100 rounded-3 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow"
               disabled={!disponible}
             >
-              <FaShoppingCart className="text-lg sm:text-base lg:text-base" />
-              <span className="hidden sm:inline lg:hidden">Agregar</span>
-              <span className="hidden lg:inline">Agregar al Carrito</span>
+              <FaShoppingCart />
+              <span className="d-none d-sm-inline d-lg-none">Agregar</span>
+              <span className="d-none d-lg-inline">Agregar al Carrito</span>
+              <span className="d-sm-none">+</span>
             </button>
           )}
         </div>

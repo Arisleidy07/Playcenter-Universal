@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import {
+  updateProfile,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
 import { subirImagenCloudinary } from "../utils/subirImagenCloudinary";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
@@ -13,6 +18,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Entrega from "../components/Entrega";
@@ -43,13 +49,14 @@ import {
   ChevronDown,
   Camera,
   Image as ImageIcon,
+  Upload,
+  Eye,
   Store,
-  TrendingUp,
   Users,
-  Heart,
-  Grid,
-  Plus,
+  TrendingUp,
   BarChart,
+  Plus,
+  Star,
 } from "lucide-react";
 import "../styles/Profile.css";
 
@@ -217,20 +224,6 @@ function HistorialSection({ historial }) {
 
   return (
     <>
-      {/* Ajustes compact/responsive (inline para no tocar tu CSS base) */}
-      <style>{`
-        .history-compact { --fs-1:.95rem; --fs-2:.9rem; --fs-3:.85rem; --pad-1:.55rem; --pad-2:.8rem; --radius:12px; }
-        .history-compact .order-card-beautiful { padding: var(--pad-2); border-radius: var(--radius); }
-        .history-compact .order-number-beautiful { font-size: var(--fs-1); }
-        .history-compact .order-date-beautiful { font-size: var(--fs-3); opacity:.8; }
-        .history-compact .status-badge-beautiful { padding:.35rem .55rem; border-radius:999px; font-size: var(--fs-3); }
-        .history-compact .order-total-beautiful { font-size: var(--fs-1); }
-        .history-compact .products-grid { gap:.5rem; }
-        .history-compact .product-preview-beautiful { padding: var(--pad-1); border-radius:10px; }
-        .history-compact .product-name-beautiful { font-size: var(--fs-2); }
-        .history-compact .product-details-beautiful { font-size: var(--fs-3); opacity:.85; }
-      `}</style>
-
       {SHOW_FILTERS && (
         <motion.div
           className="history-filters"
@@ -265,7 +258,7 @@ function HistorialSection({ historial }) {
       {/* Contenedor de órdenes (compacto) */}
       <motion.div
         variants={itemFade}
-        className="orders-container-beautiful history-compact"
+        className="orders-container-beautiful"
         layout
       >
         <AnimatePresence>
@@ -289,7 +282,6 @@ function HistorialSection({ historial }) {
                 whileHover={{
                   scale: 1.01,
                   y: -3,
-                  boxShadow: "0 16px 32px rgba(0,0,0,0.08)",
                 }}
                 whileTap={{ scale: 0.99 }}
                 layout
@@ -298,14 +290,7 @@ function HistorialSection({ historial }) {
                   className="order-card-glow"
                   style={{ background: statusConfig.gradient }}
                 />
-                <div
-                  className="order-header-beautiful"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: "0.6rem",
-                  }}
-                >
+                <div className="order-header-beautiful">
                   <div className="order-info-beautiful">
                     <motion.h4
                       className="order-number-beautiful"
@@ -333,14 +318,7 @@ function HistorialSection({ historial }) {
                     </motion.p>
                   </div>
 
-                  <div
-                    className="order-status-beautiful"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: ".5rem",
-                    }}
-                  >
+                  <div className="order-status-beautiful">
                     <motion.div
                       className={`status-badge-beautiful ${statusConfig.color}`}
                       style={{
@@ -348,6 +326,11 @@ function HistorialSection({ historial }) {
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 6,
+                        padding: "8px 16px",
+                        borderRadius: "999px",
+                        color: "#ffffff",
+                        fontWeight: "bold",
+                        fontSize: "0.875rem",
                       }}
                       whileHover={{ scale: 1.05 }}
                       initial={{ scale: 0 }}
@@ -355,13 +338,23 @@ function HistorialSection({ historial }) {
                       transition={{ delay: 0.35, type: "spring" }}
                     >
                       <StatusIcon size={14} />
-                      <span className="status-text">{statusConfig.text}</span>
+                      <span
+                        className="status-text"
+                        style={{ color: "#ffffff" }}
+                      >
+                        {statusConfig.text}
+                      </span>
                     </motion.div>
                     <motion.div
                       className="order-total-beautiful"
                       initial={{ opacity: 0, x: 12 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 }}
+                      style={{
+                        color: "#000000",
+                        fontSize: "1.5rem",
+                        fontWeight: "bold",
+                      }}
                     >
                       {formatCurrency(order.total)}
                     </motion.div>
@@ -392,10 +385,23 @@ function HistorialSection({ historial }) {
                           <Package size={18} />
                         </div>
                         <div className="product-preview-info-beautiful">
-                          <span className="product-name-beautiful">
+                          <span
+                            className="product-name-beautiful"
+                            style={{
+                              color: "#000000",
+                              fontWeight: "600",
+                              fontSize: "0.95rem",
+                            }}
+                          >
                             {producto.nombre}
                           </span>
-                          <span className="product-details-beautiful">
+                          <span
+                            className="product-details-beautiful"
+                            style={{
+                              color: "#4b5563",
+                              fontSize: "0.875rem",
+                            }}
+                          >
                             {producto.cantidad}x •{" "}
                             {formatCurrency(producto.precio)}
                           </span>
@@ -467,113 +473,253 @@ function HistorialSection({ historial }) {
         </AnimatePresence>
       </motion.div>
 
-      {/* Modal de detalles */}
-      {/* Modal de detalles FULLSCREEN en móvil */}
+      {/* Modal FULLSCREEN con estilos inline */}
       <AnimatePresence>
         {selectedOrder && (
-          <motion.div
-            className="order-modal-overlay-beautiful"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={() => setSelectedOrder(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.85)",
+              zIndex: 99999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px",
+            }}
           >
-            <motion.div
-              className="order-modal-beautiful"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+            <div
               onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "#ffffff",
+                borderRadius: "16px",
+                width: "100%",
+                maxWidth: "800px",
+                maxHeight: "90vh",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                border: "3px solid #2563eb",
+              }}
             >
-              <div className="modal-header-beautiful">
-                <div className="modal-title-section">
-                  <h3 className="modal-title">
+              {/* Header */}
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                  color: "white",
+                  padding: "24px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: "1.5rem",
+                      fontWeight: "bold",
+                    }}
+                  >
                     {selectedOrder.numeroOrden ||
                       `Orden #${selectedOrder.id.slice(-8)}`}
-                  </h3>
-                  <div className="modal-subtitle">Detalles de tu compra</div>
+                  </h2>
+                  <p
+                    style={{
+                      margin: "4px 0 0 0",
+                      fontSize: "0.9rem",
+                      opacity: 0.9,
+                    }}
+                  >
+                    Detalles de tu pedido
+                  </p>
                 </div>
                 <button
-                  className="close-modal-beautiful"
                   onClick={() => setSelectedOrder(null)}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.2)",
+                    border: "none",
+                    color: "white",
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "8px",
+                    fontSize: "28px",
+                    cursor: "pointer",
+                    lineHeight: 1,
+                  }}
                 >
                   ×
                 </button>
               </div>
 
-              <div className="modal-content-beautiful">
+              {/* Contenido scrolleable */}
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "24px",
+                  background: "#f9fafb",
+                }}
+              >
                 {/* Resumen */}
-                <div className="order-summary-beautiful">
-                  <div className="summary-card">
-                    <div className="summary-item">
-                      <span className="summary-label">
-                        <Calendar size={14} /> Fecha
+                <div
+                  style={{
+                    background: "white",
+                    borderRadius: "12px",
+                    padding: "20px",
+                    marginBottom: "20px",
+                    border: "2px solid #e5e7eb",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: "0 0 16px 0",
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      color: "#111827",
+                    }}
+                  >
+                    Resumen
+                  </h3>
+                  <div style={{ display: "grid", gap: "12px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "#6b7280",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <Calendar size={16} /> Fecha:
                       </span>
-                      <span className="summary-value">
-                        {new Date(
-                          selectedOrder.fecha?.seconds
-                            ? selectedOrder.fecha.seconds * 1000
-                            : selectedOrder.fecha
-                        ).toLocaleString("es-DO")}
-                      </span>
+                      <strong style={{ color: "#111827" }}>
+                        {formatOrderDate(selectedOrder.fecha)}
+                      </strong>
                     </div>
-                    <div className="summary-item">
-                      <span className="summary-label">
-                        <ShoppingBag size={14} /> Estado
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "#6b7280",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <ShoppingBag size={16} /> Estado:
                       </span>
-                      <span className="summary-status">
+                      <strong style={{ color: "#111827" }}>
                         {selectedOrder.estado}
-                      </span>
+                      </strong>
                     </div>
-                    <div className="summary-item">
-                      <span className="summary-label">
-                        <CircleDollarSign size={14} /> Total
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        paddingTop: "12px",
+                        borderTop: "1px solid #e5e7eb",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "#6b7280",
+                          fontSize: "1.1rem",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Total:
                       </span>
-                      <span className="summary-total">
-                        DOP{" "}
-                        {new Intl.NumberFormat("es-DO").format(
-                          selectedOrder.total
-                        )}
-                      </span>
+                      <strong style={{ color: "#2563eb", fontSize: "1.25rem" }}>
+                        {formatCurrency(selectedOrder.total)}
+                      </strong>
                     </div>
                   </div>
                 </div>
 
                 {/* Productos */}
-                <div className="products-grid-modal">
-                  {selectedOrder.productos?.map((producto, idx) => (
-                    <div key={idx} className="product-item-beautiful">
-                      <div className="product-info-modal">
-                        <span className="product-name-modal">
-                          {producto.nombre}
-                        </span>
-                        <span className="product-details-modal">
-                          {producto.cantidad} × DOP{" "}
-                          {new Intl.NumberFormat("es-DO").format(
-                            producto.precio
-                          )}
-                        </span>
-                      </div>
-                      <div className="product-subtotal-beautiful">
-                        DOP{" "}
-                        {new Intl.NumberFormat("es-DO").format(
-                          producto.cantidad * producto.precio
-                        )}
-                      </div>
-                      <button
-                        className="btn-view-product-modal"
-                        onClick={() =>
-                          (window.location.href = `/producto/${producto.id}`)
-                        }
+                <div
+                  style={{
+                    background: "white",
+                    borderRadius: "12px",
+                    padding: "20px",
+                    border: "2px solid #e5e7eb",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: "0 0 16px 0",
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      color: "#111827",
+                    }}
+                  >
+                    Productos ({selectedOrder.productos?.length || 0})
+                  </h3>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}
+                  >
+                    {selectedOrder.productos?.map((producto, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "12px",
+                          background: "#f9fafb",
+                          borderRadius: "8px",
+                          border: "1px solid #e5e7eb",
+                        }}
                       >
-                        <Eye size={16} /> Ver producto
-                      </button>
-                    </div>
-                  ))}
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              fontWeight: "600",
+                              color: "#111827",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            {producto.nombre}
+                          </div>
+                          <div
+                            style={{ fontSize: "0.875rem", color: "#6b7280" }}
+                          >
+                            {producto.cantidad} ×{" "}
+                            {formatCurrency(producto.precio)}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            fontWeight: "bold",
+                            color: "#2563eb",
+                            fontSize: "1.1rem",
+                          }}
+                        >
+                          {formatCurrency(producto.cantidad * producto.precio)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
     </>
@@ -844,17 +990,17 @@ export default function Profile() {
   const [loadingTienda, setLoadingTienda] = useState(true);
   const [cambiarPasswordOpen, setCambiarPasswordOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
-    actual: '',
-    nueva: '',
-    confirmar: ''
+    actual: "",
+    nueva: "",
+    confirmar: "",
   });
-  const [passwordError, setPasswordError] = useState('');
+  const [passwordError, setPasswordError] = useState("");
   const [notificaciones, setNotificaciones] = useState({
     email: true,
     pedidos: true,
-    ofertas: false
+    ofertas: false,
   });
-  const [idioma, setIdioma] = useState('es');
+  const [idioma, setIdioma] = useState("es");
 
   // Refs para inputs de archivo
   const fileInputRef = React.useRef(null);
@@ -898,28 +1044,36 @@ export default function Profile() {
 
   useEffect(() => {
     if (!usuario) return;
+
     fetchHistorial();
     fetchDirecciones();
     fetchEmpresas();
-    fetchStats();
-    fetchMiTienda();
     loadNotificaciones();
+
+    // Iniciar listeners en tiempo real
+    const unsubscribeStats = fetchStats();
+    const unsubscribeTienda = fetchMiTienda();
+
+    // Limpiar listeners al desmontar
+    return () => {
+      if (unsubscribeStats) unsubscribeStats.then((unsub) => unsub && unsub());
+      if (unsubscribeTienda)
+        unsubscribeTienda.then((unsub) => unsub && unsub());
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario]);
 
   const fetchHistorial = async () => {
     try {
-      console.log("🔍 Buscando pedidos para usuario:", usuario.uid);
       const q = query(
         collection(db, "orders"),
         where("userId", "==", usuario.uid)
       );
       const snap = await getDocs(q);
       const pedidos = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      console.log("📦 Pedidos encontrados:", pedidos.length, pedidos);
       setHistorial(pedidos);
     } catch (err) {
-      console.error("❌ Error fetchHistorial:", err);
+      console.error("Error fetchHistorial:", err);
     }
   };
 
@@ -947,18 +1101,23 @@ export default function Profile() {
 
   const fetchStats = async () => {
     try {
-      // Contar publicaciones (productos) del usuario
+      // Contar publicaciones (productos) del usuario en TIEMPO REAL
       const productosQuery = query(
         collection(db, "productos"),
-        where("creadoPor", "==", usuario.uid)
+        where("tienda_id", "==", "playcenter_universal")
       );
-      const productosSnap = await getDocs(productosQuery);
 
-      setStats({
-        seguidos: 0,
-        seguidores: 0,
-        publicaciones: productosSnap.docs.length,
+      // Listener en tiempo real
+      const unsubscribe = onSnapshot(productosQuery, (snapshot) => {
+        setStats({
+          seguidos: 0,
+          seguidores: 0,
+          publicaciones: snapshot.docs.length,
+        });
       });
+
+      // Guardar unsubscribe para limpieza
+      return unsubscribe;
     } catch (err) {
       console.error("fetchStats:", err);
       // Fallback si falla
@@ -973,27 +1132,40 @@ export default function Profile() {
   const fetchMiTienda = async () => {
     try {
       setLoadingTienda(true);
-      console.log('🔍 Buscando tienda para usuario:', usuario.uid);
-      
-      const tiendasQuery = query(
-        collection(db, 'tiendas'),
-        where('propietario_id', '==', usuario.uid)
-      );
-      
-      const tiendasSnap = await getDocs(tiendasQuery);
-      
-      if (!tiendasSnap.empty) {
-        const tiendaData = { id: tiendasSnap.docs[0].id, ...tiendasSnap.docs[0].data() };
-        console.log('✅ Tienda encontrada:', tiendaData);
-        setMiTienda(tiendaData);
-      } else {
-        console.log('❌ No se encontró tienda');
-        setMiTienda(null);
-      }
+
+      // Buscar la tienda principal en TIEMPO REAL
+      const playcenterRef = doc(db, "tiendas", "playcenter_universal");
+
+      // Listener en tiempo real para la tienda
+      const unsubscribe = onSnapshot(playcenterRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const playcenterData = {
+            id: docSnap.id,
+            ...docSnap.data(),
+          };
+
+          // Verificar si el usuario es admin o si la tienda no tiene propietario
+          const esAdmin = usuarioInfo?.es_admin || usuarioInfo?.rol === "admin";
+          const tieneSinPropietario =
+            !playcenterData.propietario_id ||
+            playcenterData.propietario_id === "ADMIN";
+
+          if (esAdmin || tieneSinPropietario) {
+            setMiTienda(playcenterData);
+          } else {
+            setMiTienda(null);
+          }
+        } else {
+          setMiTienda(null);
+        }
+        setLoadingTienda(false);
+      });
+
+      // Guardar unsubscribe para limpieza
+      return unsubscribe;
     } catch (err) {
-      console.error('Error fetchMiTienda:', err);
+      console.error("Error fetchMiTienda:", err);
       setMiTienda(null);
-    } finally {
       setLoadingTienda(false);
     }
   };
@@ -1008,44 +1180,54 @@ export default function Profile() {
   const handleNotificacionChange = (tipo) => {
     const nuevas = { ...notificaciones, [tipo]: !notificaciones[tipo] };
     setNotificaciones(nuevas);
-    localStorage.setItem(`notificaciones_${usuario.uid}`, JSON.stringify(nuevas));
-    toast('Notificaciones actualizadas', 'success');
+    localStorage.setItem(
+      `notificaciones_${usuario.uid}`,
+      JSON.stringify(nuevas)
+    );
+    toast("Notificaciones actualizadas", "success");
   };
 
   const handleIdiomaChange = (e) => {
     const nuevoIdioma = e.target.value;
     setIdioma(nuevoIdioma);
     localStorage.setItem(`idioma_${usuario.uid}`, nuevoIdioma);
-    toast('Idioma actualizado', 'success');
+    toast("Idioma actualizado", "success");
   };
 
   const handleCambiarPassword = async () => {
-    setPasswordError('');
-    if (!passwordForm.actual || !passwordForm.nueva || !passwordForm.confirmar) {
-      setPasswordError('Todos los campos son requeridos');
+    setPasswordError("");
+    if (
+      !passwordForm.actual ||
+      !passwordForm.nueva ||
+      !passwordForm.confirmar
+    ) {
+      setPasswordError("Todos los campos son requeridos");
       return;
     }
     if (passwordForm.nueva !== passwordForm.confirmar) {
-      setPasswordError('Las contraseñas no coinciden');
+      setPasswordError("Las contraseñas no coinciden");
       return;
     }
     if (passwordForm.nueva.length < 6) {
-      setPasswordError('La contraseña debe tener al menos 6 caracteres');
+      setPasswordError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
     setLoading(true);
     try {
-      const credential = EmailAuthProvider.credential(usuario.email, passwordForm.actual);
+      const credential = EmailAuthProvider.credential(
+        usuario.email,
+        passwordForm.actual
+      );
       await reauthenticateWithCredential(usuario, credential);
       await updatePassword(usuario, passwordForm.nueva);
-      setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+      setPasswordForm({ actual: "", nueva: "", confirmar: "" });
       setCambiarPasswordOpen(false);
-      toast('Contraseña actualizada correctamente', 'success');
+      toast("Contraseña actualizada correctamente", "success");
     } catch (err) {
-      if (err.code === 'auth/wrong-password') {
-        setPasswordError('La contraseña actual es incorrecta');
+      if (err.code === "auth/wrong-password") {
+        setPasswordError("La contraseña actual es incorrecta");
       } else {
-        setPasswordError('Error: ' + err.message);
+        setPasswordError("Error: " + err.message);
       }
     } finally {
       setLoading(false);
@@ -1456,15 +1638,11 @@ export default function Profile() {
 
         {/* MENÚ DE ACCESOS RÁPIDOS (ÍCONOS) - SLIDER VISIBLE */}
         <motion.div
-          className="py-2 md:py-3 border-b border-gray-200 relative"
+          className="py-2 md:py-3 border-b border-gray-200"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          {/* Gradient indicators para mostrar que es slider */}
-          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white via-white to-transparent pointer-events-none z-10 xl:hidden" />
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white via-white to-transparent pointer-events-none z-10 xl:hidden" />
-
           <div className="overflow-x-auto scrollbar-hide scroll-smooth px-2 md:px-4">
             <div className="flex justify-start xl:justify-center gap-2 md:gap-2 xl:gap-4 min-w-max xl:flex-wrap xl:max-w-full">
               {[
@@ -1498,7 +1676,7 @@ export default function Profile() {
                       className={`w-10 h-10 md:w-11 md:h-11 xl:w-14 xl:h-14 flex items-center justify-center rounded-full transition-all ${
                         vista === item.id
                           ? "bg-blue-600 text-white scale-105"
-                          : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700"
+                          : "bg-gray-100 text-gray-700"
                       }`}
                     >
                       <Icon
@@ -1943,7 +2121,8 @@ export default function Profile() {
                       No tienes una tienda aún
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Contacta al administrador para crear tu tienda y comenzar a vender.
+                      Contacta al administrador para crear tu tienda y comenzar
+                      a vender.
                     </p>
                     <Link
                       to="/contacto"
@@ -1960,11 +2139,11 @@ export default function Profile() {
                           <img
                             src={miTienda.banner}
                             alt={`Banner de ${miTienda.nombre}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                           />
                         </div>
                       )}
-                      
+
                       <div className="p-6 md:p-8">
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6">
                           {miTienda.logo && (
@@ -1976,11 +2155,20 @@ export default function Profile() {
                               />
                             </div>
                           )}
-                          
+
                           <div className="flex-1">
-                            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                              {miTienda.nombre}
-                            </h3>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
+                                {miTienda.nombre}
+                              </h3>
+                              {(miTienda.principal ||
+                                miTienda.es_admin ||
+                                usuarioInfo?.es_admin) && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg">
+                                  <span>DUEÑA</span>
+                                </span>
+                              )}
+                            </div>
                             {miTienda.descripcion && (
                               <p className="text-gray-700 text-base">
                                 {miTienda.descripcion}
@@ -1999,7 +2187,7 @@ export default function Profile() {
                             </p>
                             <p className="text-xs text-gray-600">Productos</p>
                           </div>
-                          
+
                           <div className="bg-white rounded-xl p-4 text-center shadow-sm">
                             <div className="flex items-center justify-center gap-2 text-green-600 mb-1">
                               <Users size={20} />
@@ -2009,7 +2197,7 @@ export default function Profile() {
                             </p>
                             <p className="text-xs text-gray-600">Seguidores</p>
                           </div>
-                          
+
                           <div className="bg-white rounded-xl p-4 text-center shadow-sm">
                             <div className="flex items-center justify-center gap-2 text-purple-600 mb-1">
                               <TrendingUp size={20} />
@@ -2019,13 +2207,14 @@ export default function Profile() {
                             </p>
                             <p className="text-xs text-gray-600">Ventas</p>
                           </div>
-                          
+
                           <div className="bg-white rounded-xl p-4 text-center shadow-sm">
                             <div className="flex items-center justify-center gap-2 text-yellow-600 mb-1">
                               <Star size={20} />
                             </div>
                             <p className="text-2xl font-bold text-gray-900">
-                              {miTienda.valoracion_promedio?.toFixed(1) || '5.0'}
+                              {miTienda.valoracion_promedio?.toFixed(1) ||
+                                "5.0"}
                             </p>
                             <p className="text-xs text-gray-600">Rating</p>
                           </div>
@@ -2444,7 +2633,7 @@ export default function Profile() {
                           <input
                             type="checkbox"
                             checked={notificaciones.email}
-                            onChange={() => handleNotificacionChange('email')}
+                            onChange={() => handleNotificacionChange("email")}
                             className="w-5 h-5 text-blue-600 rounded cursor-pointer"
                           />
                         </label>
@@ -2455,7 +2644,7 @@ export default function Profile() {
                           <input
                             type="checkbox"
                             checked={notificaciones.pedidos}
-                            onChange={() => handleNotificacionChange('pedidos')}
+                            onChange={() => handleNotificacionChange("pedidos")}
                             className="w-5 h-5 text-blue-600 rounded cursor-pointer"
                           />
                         </label>
@@ -2466,7 +2655,7 @@ export default function Profile() {
                           <input
                             type="checkbox"
                             checked={notificaciones.ofertas}
-                            onChange={() => handleNotificacionChange('ofertas')}
+                            onChange={() => handleNotificacionChange("ofertas")}
                             className="w-5 h-5 text-blue-600 rounded cursor-pointer"
                           />
                         </label>
@@ -3030,8 +3219,8 @@ export default function Profile() {
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4"
             onClick={() => {
               setCambiarPasswordOpen(false);
-              setPasswordError('');
-              setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+              setPasswordError("");
+              setPasswordForm({ actual: "", nueva: "", confirmar: "" });
             }}
           >
             <motion.div
@@ -3050,17 +3239,15 @@ export default function Profile() {
                   <button
                     onClick={() => {
                       setCambiarPasswordOpen(false);
-                      setPasswordError('');
-                      setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+                      setPasswordError("");
+                      setPasswordForm({ actual: "", nueva: "", confirmar: "" });
                     }}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   >
                     <X size={20} />
                   </button>
                 </div>
-                <h3 className="text-2xl font-bold">
-                  Cambiar Contraseña
-                </h3>
+                <h3 className="text-2xl font-bold">Cambiar Contraseña</h3>
                 <p className="text-blue-100 text-sm mt-1">
                   Actualiza tu contraseña de forma segura
                 </p>
@@ -3070,7 +3257,10 @@ export default function Profile() {
               <div className="p-6 space-y-4">
                 {passwordError && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                    <XCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                    <XCircle
+                      size={20}
+                      className="text-red-600 flex-shrink-0 mt-0.5"
+                    />
                     <p className="text-sm text-red-800">{passwordError}</p>
                   </div>
                 )}
@@ -3082,7 +3272,12 @@ export default function Profile() {
                   <input
                     type="password"
                     value={passwordForm.actual}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, actual: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        actual: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="••••••••"
                   />
@@ -3095,7 +3290,12 @@ export default function Profile() {
                   <input
                     type="password"
                     value={passwordForm.nueva}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, nueva: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        nueva: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="••••••••"
                   />
@@ -3111,7 +3311,12 @@ export default function Profile() {
                   <input
                     type="password"
                     value={passwordForm.confirmar}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmar: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        confirmar: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="••••••••"
                   />
@@ -3123,8 +3328,8 @@ export default function Profile() {
                 <button
                   onClick={() => {
                     setCambiarPasswordOpen(false);
-                    setPasswordError('');
-                    setPasswordForm({ actual: '', nueva: '', confirmar: '' });
+                    setPasswordError("");
+                    setPasswordForm({ actual: "", nueva: "", confirmar: "" });
                   }}
                   className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
                 >
@@ -3141,7 +3346,7 @@ export default function Profile() {
                       Guardando...
                     </>
                   ) : (
-                    'Cambiar contraseña'
+                    "Cambiar contraseña"
                   )}
                 </button>
               </div>

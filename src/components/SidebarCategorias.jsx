@@ -136,15 +136,12 @@ function SidebarCategorias({
                       variants={buttonVariants}
                       className={`w-full text-left px-4 py-2 rounded-md font-medium transition-all duration-200 ${
                         isActiva(cat.nombre)
-                          ? "text-blue-900 dark:text-blue-100 font-semibold border border-blue-300/50 dark:border-blue-400/50"
-                          : "text-blue-700 dark:text-blue-300 border border-gray-200/30 dark:border-gray-600/30"
+                          ? "text-blue-900 dark:text-blue-100 font-semibold border border-blue-300 dark:border-blue-600 bg-white/20 dark:bg-blue-800"
+                          : "text-blue-700 dark:text-blue-300 border border-gray-200 dark:border-gray-600 bg-white/10 dark:bg-gray-700"
                       }`}
                       style={{ 
-                        background: isDarkMode 
-                          ? (isActiva(cat.nombre) ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)')
-                          : (isActiva(cat.nombre) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'),
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
+                        backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
+                        WebkitBackdropFilter: isDarkMode ? 'none' : 'blur(8px)',
                         boxShadow: 'none'
                       }}
                     >
@@ -171,9 +168,10 @@ function SidebarCategorias({
           <>
             {/* Overlay oscuro */}
             <motion.div
-              className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-[9998]"
+              className="fixed inset-0 bg-gray-900 dark:bg-black z-[9998]"
+              style={{ opacity: isDarkMode ? 1 : 0.5 }}
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              animate={{ opacity: isDarkMode ? 1 : 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setMostrarEnMovil(false)}
             />
@@ -183,7 +181,7 @@ function SidebarCategorias({
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", stiffness: 250, damping: 30 }}
-              className="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-[9999] flex flex-col shadow-2xl transition-colors duration-300"
+              className="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-[9999] flex flex-col shadow-2xl transition-colors duration-300"
             >
               {/* Header con gradiente */}
               <div className="flex justify-between items-center px-4 py-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800">
@@ -195,7 +193,7 @@ function SidebarCategorias({
                 </h2>
                 <button
                   onClick={() => setMostrarEnMovil(false)}
-                  className="text-white font-bold text-2xl hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
+                  className="text-white font-bold text-2xl hover:bg-blue-800 dark:hover:bg-blue-900 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
                   aria-label="Cerrar categorías"
                 >
                   ✕
@@ -215,7 +213,7 @@ function SidebarCategorias({
                         variants={buttonVariants}
                         className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
                           isActiva(cat.nombre)
-                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 border border-blue-300 dark:border-blue-600"
+                            ? "bg-blue-100 dark:bg-blue-800 text-blue-900 dark:text-blue-100 border border-blue-300 dark:border-blue-700"
                             : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                         }`}
                       >

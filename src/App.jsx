@@ -11,9 +11,11 @@ import { initSecurity } from "./security/hostCheck";
 
 function AppContent() {
   const { theme } = useTheme();
-  
+
   return (
-    <div className={`min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300`}>
+    <div
+      className={`min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300`}
+    >
       <Header />
       <TopBar />
       <main className="flex-grow">
@@ -29,25 +31,25 @@ function AppContent() {
 
 function App() {
   const [securityPassed, setSecurityPassed] = useState(false);
-  
+
   useEffect(() => {
     // Verificar seguridad al cargar la app
     const isSecure = initSecurity();
     setSecurityPassed(isSecure);
-    
+
     // Limpiar localStorage de sistema obsoleto de productos eliminados
     try {
-      localStorage.removeItem('deletedProductIds');
+      localStorage.removeItem("deletedProductIds");
     } catch (e) {
       // Ignorar errores de localStorage
     }
   }, []);
-  
+
   // Si no pasa la verificación de seguridad, no renderizar nada
   if (!securityPassed) {
     return null;
   }
-  
+
   return (
     <ThemeProvider>
       <AppContent />

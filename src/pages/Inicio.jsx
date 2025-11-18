@@ -56,10 +56,10 @@ function Inicio() {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-100 min-h-screen flex items-center justify-center">
-        <div className="text-center text-red-600">
-          <p className="text-lg">Error cargando productos</p>
-          <p className="text-sm">{error}</p>
+      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-primary bg-gradient">
+        <div className="text-center text-danger">
+          <p className="fs-5">Error cargando productos</p>
+          <p className="small">{error}</p>
         </div>
       </div>
     );
@@ -190,12 +190,12 @@ function Inicio() {
 
   return (
     <div
-      className="bg-transparent min-h-screen transition-colors duration-300"
+      className="bg-transparent min-vh-100"
       style={{ paddingTop: "var(--content-offset, 100px)" }}
     >
       {/* SLIDER MÓVIL - Solo teléfonos (< 640px) */}
       <motion.div
-        className="block sm:hidden w-full max-w-full mx-auto"
+        className="d-block d-sm-none w-100 mx-auto"
         style={{ marginTop: 0, marginBottom: 0, padding: 0 }}
         variants={fadeIn}
         initial="hidden"
@@ -206,7 +206,7 @@ function Inicio() {
 
       {/* VIDEO EN TABLET Y DESKTOP - Visible desde 640px (sm:) */}
       <div
-        className="hidden sm:block w-full"
+        className="d-none d-sm-block w-100"
         style={{ marginTop: 0, marginBottom: 0, padding: 0 }}
       >
         <video
@@ -220,58 +220,354 @@ function Inicio() {
           loop
           muted
           playsInline
-          className="w-full h-auto object-cover"
+          className="w-100 h-auto"
           style={{
             marginTop: 0,
             marginBottom: 0,
             padding: 0,
             display: "block",
             verticalAlign: "top",
+            objectFit: "cover",
           }}
         />
       </div>
 
       {/* SLIDER GRANDE EN TABLET Y DESKTOP - Visible desde 640px (sm:) - MÁS SEPARADO */}
       <motion.div
-        className="hidden sm:block w-full max-w-[95%] lg:max-w-[1600px] mx-auto px-2 sm:px-4 mt-12"
+        className="d-none d-sm-block w-100 container-fluid px-2 px-sm-4 mt-5"
+        style={{ maxWidth: "95%", maxWidthLg: "1600px" }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
-        <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-indigo-100 dark:ring-gray-900">
+        <div className="rounded-4 overflow-hidden shadow-lg border border-primary border-opacity-25">
           <SliderAnuncios />
         </div>
       </motion.div>
 
       {/* BLOQUES CUADRADOS - CATEGORÍAS DINÁMICAS */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-[95%] lg:max-w-[1600px] mx-auto px-2 sm:px-4 mt-8 sm:mt-14">
-        {categories.slice(0, 4).map((category, idx) => {
-          const categoryProducts = productsByCategory[category.id] || [];
-          const featuredProducts = categoryProducts.slice(0, 4);
+      <section
+        className="container-fluid px-2 px-sm-4 mt-4 mt-sm-5"
+        style={{ maxWidth: "95%", maxWidthLg: "1600px" }}
+      >
+        <div className="row g-3 g-sm-4 g-lg-5">
+          {categories.slice(0, 4).map((category, idx) => {
+            const categoryProducts = productsByCategory[category.id] || [];
+            const featuredProducts = categoryProducts.slice(0, 4);
 
-          return (
+            return (
+              <motion.div
+                key={category.id}
+                className="col-12 col-sm-6 col-lg-4 col-xl-3"
+                variants={fadeIn}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.1 * idx }}
+              >
+                <div className="card h-100 shadow hover-lift border-2 border-light">
+                  <div className="card-body d-flex flex-column justify-content-between p-4 p-sm-5">
+                    <h3 className="fs-5 fs-sm-4 fw-bold mb-2 mb-sm-3 text-primary">
+                      {category.nombre}
+                    </h3>
+                    <div className="row g-2 g-sm-3 flex-grow-1">
+                      {featuredProducts.map((product, i) => {
+                        const img =
+                          getMainImage(product) || "/placeholder-product.svg";
+                        return (
+                          <div className="col-6" key={product.id}>
+                            <Link to={`/producto/${product.id}`}>
+                              <div
+                                className="bg-light rounded-3 overflow-hidden d-flex align-items-center justify-content-center p-1 p-sm-2"
+                                style={{ aspectRatio: "4/3" }}
+                              >
+                                <img
+                                  src={img}
+                                  alt={product.nombre}
+                                  className="w-100 h-100"
+                                  style={{
+                                    objectFit: "contain",
+                                    transition: "transform 0.2s",
+                                  }}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "/placeholder-product.svg";
+                                  }}
+                                />
+                              </div>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Link
+                      to={`/Productos/${category.ruta}`}
+                      className="text-primary small mt-2 mt-sm-3 text-decoration-none fw-medium"
+                    >
+                      Explora {category.nombre} →
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* BANNER afisionados - SOLO DESKTOP */}
+      <motion.div
+        className="d-none d-xl-block container-fluid px-4 mt-5"
+        style={{ maxWidth: "1600px" }}
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
+        <Link
+          to="/Productos/coleccionables"
+          className="d-block overflow-hidden rounded-4 shadow-lg hover-shadow text-decoration-none"
+        >
+          <img
+            src="/ads/aficionados.png"
+            alt="Ver Nuestras colecciones"
+            className="w-100 h-auto hover-lift"
+            style={{ objectFit: "cover" }}
+          />
+        </Link>
+      </motion.div>
+
+      {/* BANNERS GRANDES - SOLO COMPUTADORA */}
+      <section
+        className="d-none d-xl-block container-fluid px-4 mt-5"
+        style={{ maxWidth: "1600px" }}
+      >
+        <div className="row g-4">
+          {[
+            {
+              to: "/Productos/retro-consolas",
+              src: "/ads/retro.png",
+              alt: "Retro Consolas",
+            },
+            {
+              to: "/Productos/camaras",
+              src: "/ads/camaras.png",
+              alt: "Cámaras",
+            },
+          ].map((banner, idx) => (
             <motion.div
-              key={category.id}
-              className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[380px] sm:h-[440px] flex flex-col justify-between p-4 sm:p-5 group border border-gray-200 dark:border-gray-800"
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.1 * idx }}
+              key={idx}
+              className="col-12 col-md-6"
+              whileHover={{ scale: 1.01 }}
             >
-              <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-indigo-700 dark:text-indigo-400 tracking-tight">
-                {category.nombre}
-              </h3>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 flex-grow">
-                {featuredProducts.map((product, i) => {
-                  const img =
-                    getMainImage(product) || "/placeholder-product.svg";
+              <div
+                className="overflow-hidden rounded-4 shadow-lg hover-shadow"
+                style={{ height: "400px" }}
+              >
+                <Link
+                  to={banner.to}
+                  className="d-block w-100 h-100 text-decoration-none"
+                >
+                  <img
+                    src={banner.src}
+                    alt={banner.alt}
+                    className="w-100 h-100 hover-lift"
+                    style={{ objectFit: "cover", objectPosition: "center" }}
+                  />
+                </Link>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* CATEGORÍAS DESTACADAS */}
+      <motion.section
+        className="container-fluid mt-5 px-4"
+        style={{ maxWidth: "1600px" }}
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="card shadow border-2 border-light">
+          <div className="card-body p-4 p-lg-5">
+            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
+              Explora nuestras categorías
+            </h2>
+            <div className="row g-3 g-sm-4">
+              {[
+                {
+                  to: "/Productos/audifonos",
+                  src: "/ads/audifonoscate.png",
+                  alt: "Audífonos",
+                },
+                {
+                  to: "/Productos/mouses",
+                  src: "/ads/mousecate.png",
+                  alt: "Mouses",
+                },
+                {
+                  to: "/Productos/teclados",
+                  src: "/ads/tecladocate.png",
+                  alt: "Teclados",
+                },
+                {
+                  to: "/Productos/camaras",
+                  src: "/ads/camaracate.png",
+                  alt: "Cámaras",
+                },
+                {
+                  to: "/Productos/discos-duros",
+                  src: "/ads/discodurocate.png",
+                  alt: "Discos Duros",
+                },
+                {
+                  to: "/Productos/controles",
+                  src: "/ads/controlcate.png",
+                  alt: "Controles",
+                },
+              ].map((cat, i) => (
+                <div className="col-6 col-sm-4 col-md-3 col-xl-2" key={cat.alt}>
+                  <Link to={cat.to} className="text-decoration-none">
+                    <img
+                      src={cat.src}
+                      alt={cat.alt}
+                      className="w-100 rounded-3 hover-lift shadow-sm"
+                      style={{ aspectRatio: "1/1", objectFit: "cover" }}
+                    />
+                  </Link>
+                </div>
+              ))}
+            </div>
+            <div className="text-end mt-4">
+              <Link
+                to="/Productos"
+                className="text-primary text-decoration-none fw-medium"
+              >
+                Ver todas las categorías →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* BANNER ESTAFETAS - SOLO DESKTOP */}
+      <motion.div
+        className="d-none d-xl-block container-fluid px-4 mt-5"
+        style={{ maxWidth: "1600px" }}
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
+        <Link
+          to="/estafetas"
+          className="d-block overflow-hidden rounded-4 shadow-lg hover-shadow text-decoration-none"
+        >
+          <img
+            src="/ads/ESTAFETAS.png"
+            alt="Ver Nuestras Estafetas"
+            className="w-100 h-auto hover-lift"
+            style={{ objectFit: "cover" }}
+          />
+        </Link>
+      </motion.div>
+
+      {/* GALERÍA DESTACADA DE PRODUCTOS */}
+      <motion.section
+        className="container-fluid mt-5 px-4"
+        style={{ maxWidth: "1600px" }}
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="card shadow border-2 border-light">
+          <div className="card-body p-4 p-lg-5">
+            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
+              Descubre nuestros productos
+            </h2>
+            <div className="row g-3 g-sm-4">
+              {Object.values(productsByCategory)
+                .flat()
+                .slice(0, 6)
+                .map((producto) => (
+                  <div
+                    className="col-6 col-sm-4 col-md-3 col-xl-2"
+                    key={producto.id}
+                  >
+                    <Link
+                      to={`/producto/${producto.id}`}
+                      className="text-decoration-none"
+                    >
+                      <div className="card border-2 border-light shadow-sm hover-lift">
+                        <div
+                          className="card-body p-2 d-flex align-items-center justify-content-center overflow-hidden"
+                          style={{ aspectRatio: "1/1" }}
+                        >
+                          <img
+                            src={
+                              getMainImage(producto) ||
+                              "/placeholder-product.svg"
+                            }
+                            alt={producto.nombre}
+                            className="w-100 h-100"
+                            style={{ objectFit: "contain" }}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "/placeholder-product.svg";
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
+            </div>
+            <div className="text-end mt-4">
+              <Link
+                to="/Productos"
+                className="text-primary text-decoration-none fw-medium"
+              >
+                Explora nuestros productos →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* SLIDER HOGAR INTELIGENTE (dinámico desde Firestore) */}
+      <motion.section
+        className="container-fluid mt-5 px-4"
+        style={{ maxWidth: "1600px" }}
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="card shadow border-2 border-light">
+          <div className="card-body p-4 p-lg-5">
+            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
+              Hogar Inteligente en Oferta
+            </h2>
+            <div
+              className="d-flex gap-3 overflow-auto pb-3"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {getProductsByRoute("hogar-inteligente")
+                .slice(0, 10)
+                .map((p) => {
+                  const img = getMainImage(p) || "/placeholder-product.svg";
                   return (
-                    <Link to={`/producto/${product.id}`} key={product.id}>
-                      <div className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2">
+                    <Link
+                      to={`/producto/${p.id}`}
+                      className="text-decoration-none flex-shrink-0 px-2"
+                      style={{ minWidth: "180px" }}
+                      key={p.id}
+                    >
+                      <div
+                        className="bg-light rounded-3 overflow-hidden d-flex align-items-center justify-content-center p-2"
+                        style={{ width: "100%", height: "180px" }}
+                      >
                         <img
                           src={img}
-                          alt={product.nombre}
-                          className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform"
+                          alt={p.nombre}
+                          className="w-100 h-100 hover-lift"
+                          style={{ objectFit: "contain" }}
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = "/placeholder-product.svg";
@@ -281,289 +577,75 @@ function Inicio() {
                     </Link>
                   );
                 })}
-              </div>
+            </div>
+            <div className="text-end mt-4">
               <Link
-                to={`/Productos/${category.ruta}`}
-                className="text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm mt-2 sm:mt-3 hover:underline font-medium"
+                to="/Productos/hogar-inteligente"
+                className="text-primary text-decoration-none fw-medium"
               >
-                Explora {category.nombre} →
+                Descubre cómo transformar tu casa en un hogar inteligente →
               </Link>
-            </motion.div>
-          );
-        })}
-      </section>
-
-      {/* BANNER afisionados - SOLO DESKTOP */}
-      <motion.div
-        className="hidden xl:block max-w-[1600px] mx-auto px-4 mt-10"
-        variants={fadeIn}
-        initial="hidden"
-        animate="visible"
-      >
-        <Link
-          to="/Productos/coleccionables"
-          className="block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition"
-        >
-          <img
-            src="/ads/aficionados.png"
-            alt="Ver Nuestras colecciones"
-            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </Link>
-      </motion.div>
-
-      {/* BANNERS GRANDES - SOLO COMPUTADORA */}
-      <section className="hidden xl:grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-14">
-        {[
-          {
-            to: "/Productos/retro-consolas",
-            src: "/ads/retro.png",
-            alt: "Retro Consolas",
-          },
-          {
-            to: "/Productos/camaras",
-            src: "/ads/camaras.png",
-            alt: "Cámaras",
-          },
-        ].map((banner, idx) => (
-          <motion.div
-            key={idx}
-            className="overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition h-[220px] sm:h-[300px] md:h-[400px] group"
-            whileHover={{ scale: 1.01 }}
-          >
-            <Link to={banner.to} className="block w-full h-full">
-              <img
-                src={banner.src}
-                alt={banner.alt}
-                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-400"
-              />
-            </Link>
-          </motion.div>
-        ))}
-      </section>
-
-      {/* CATEGORÍAS DESTACADAS */}
-      <motion.section
-        className="max-w-[1600px] mx-auto mt-20 px-4"
-        variants={fadeIn}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="bg-white dark:bg-black rounded-2xl shadow-lg p-8 transition-colors duration-300 border border-gray-200 dark:border-gray-800">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
-            Explora nuestras categorías
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-7">
-            {[
-              {
-                to: "/Productos/audifonos",
-                src: "/ads/audifonoscate.png",
-                alt: "Audífonos",
-              },
-              {
-                to: "/Productos/mouses",
-                src: "/ads/mousecate.png",
-                alt: "Mouses",
-              },
-              {
-                to: "/Productos/teclados",
-                src: "/ads/tecladocate.png",
-                alt: "Teclados",
-              },
-              {
-                to: "/Productos/camaras",
-                src: "/ads/camaracate.png",
-                alt: "Cámaras",
-              },
-              {
-                to: "/Productos/discos-duros",
-                src: "/ads/discodurocate.png",
-                alt: "Discos Duros",
-              },
-              {
-                to: "/Productos/controles",
-                src: "/ads/controlcate.png",
-                alt: "Controles",
-              },
-            ].map((cat, i) => (
-              <Link to={cat.to} key={cat.alt}>
-                <img
-                  src={cat.src}
-                  alt={cat.alt}
-                  className="rounded-xl hover:scale-110 transition object-cover w-full aspect-[1/1] shadow-sm"
-                />
-              </Link>
-            ))}
-          </div>
-          <div className="text-right mt-6">
-            <Link
-              to="/Productos"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline text-base font-medium"
-            >
-              Ver todas las categorías →
-            </Link>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* BANNER ESTAFETAS - SOLO DESKTOP */}
-      <motion.div
-        className="hidden xl:block max-w-[1600px] mx-auto px-4 mt-10"
-        variants={fadeIn}
-        initial="hidden"
-        animate="visible"
-      >
-        <Link
-          to="/estafetas"
-          className="block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition"
-        >
-          <img
-            src="/ads/ESTAFETAS.png"
-            alt="Ver Nuestras Estafetas"
-            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </Link>
-      </motion.div>
-
-      {/* GALERÍA DESTACADA DE PRODUCTOS */}
-      <motion.section
-        className="max-w-[1600px] mx-auto mt-20 px-4"
-        variants={fadeIn}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="bg-white dark:bg-black rounded-2xl shadow-lg p-8 transition-colors duration-300 border border-gray-200 dark:border-gray-800">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
-            Descubre nuestros productos
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-7">
-            {Object.values(productsByCategory)
-              .flat()
-              .slice(0, 6)
-              .map((producto) => (
-                <Link to={`/producto/${producto.id}`} key={producto.id}>
-                  <div className="bg-white dark:bg-black rounded-xl overflow-hidden shadow hover:shadow-md transition border border-gray-200 dark:border-gray-800">
-                    <div className="w-full aspect-[1/1] flex items-center justify-center p-2 overflow-hidden">
-                      <img
-                        src={
-                          getMainImage(producto) || "/placeholder-product.svg"
-                        }
-                        alt={producto.nombre}
-                        className="max-w-full max-h-full w-auto h-auto object-contain"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "/placeholder-product.svg";
-                        }}
-                      />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-          </div>
-          <div className="text-right mt-6">
-            <Link
-              to="/Productos"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline text-base font-medium"
-            >
-              Explora nuestros productos →
-            </Link>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* SLIDER HOGAR INTELIGENTE (dinámico desde Firestore) */}
-      <motion.section
-        className="max-w-[1600px] mx-auto mt-20 px-4"
-        variants={fadeIn}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="bg-white dark:bg-black rounded-2xl shadow-lg p-8 transition-colors duration-300 border border-gray-200 dark:border-gray-800">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
-            Hogar Inteligente en Oferta
-          </h2>
-          <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-            {getProductsByRoute("hogar-inteligente")
-              .slice(0, 10)
-              .map((p) => {
-                const img = getMainImage(p) || "/placeholder-product.svg";
-                return (
-                  <Link
-                    to={`/producto/${p.id}`}
-                    className="min-w-[180px] px-2"
-                    key={p.id}
-                  >
-                    <div className="w-full h-[180px] bg-white dark:bg-gray-700 rounded-xl overflow-hidden flex items-center justify-center p-2">
-                      <img
-                        src={img}
-                        alt={p.nombre}
-                        className="max-w-full max-h-full w-auto h-auto object-contain hover:scale-110 transition"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "/placeholder-product.svg";
-                        }}
-                      />
-                    </div>
-                  </Link>
-                );
-              })}
-          </div>
-          <div className="text-right mt-6">
-            <Link
-              to="/Productos/hogar-inteligente"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline text-base font-medium"
-            >
-              Descubre cómo transformar tu casa en un hogar inteligente →
-            </Link>
+            </div>
           </div>
         </div>
       </motion.section>
 
       {/* TU RINCÓN VARIADO (dinámico desde Firestore) */}
       <motion.section
-        className="max-w-[1600px] mx-auto mt-20 px-4"
+        className="container-fluid mt-5 px-4"
+        style={{ maxWidth: "1600px" }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
-        <div className="bg-white dark:bg-black rounded-2xl shadow-lg p-8 transition-colors duration-300 border border-gray-200 dark:border-gray-800">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
-            Tu Rincón Variado
-          </h2>
-          <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-            {getProductsByRoute("tu-rincon-variado")
-              .slice(0, 12)
-              .map((p) => {
-                const img = getMainImage(p) || "/placeholder-product.svg";
-                return (
-                  <Link
-                    to={`/producto/${p.id}`}
-                    key={p.id}
-                    className="min-w-[180px] px-2"
-                    title={p.nombre}
-                  >
-                    <div className="w-full h-[180px] bg-white dark:bg-gray-700 rounded-xl overflow-hidden flex items-center justify-center p-2">
-                      <img
-                        src={img}
-                        alt={p.nombre}
-                        className="max-w-full max-h-full w-auto h-auto object-contain hover:scale-110 transition-transform duration-300"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "/placeholder-product.svg";
-                        }}
-                      />
-                    </div>
-                  </Link>
-                );
-              })}
-          </div>
-          <div className="text-right mt-6">
-            <Link
-              to="/Productos/tu-rincon-variado"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline text-base font-medium"
+        <div className="card shadow border-2 border-light">
+          <div className="card-body p-4 p-lg-5">
+            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
+              Tu Rincón Variado
+            </h2>
+            <div
+              className="d-flex gap-3 overflow-auto pb-3"
+              style={{ scrollbarWidth: "none" }}
             >
-              Explora nuestro Rincón Variado →
-            </Link>
+              {getProductsByRoute("tu-rincon-variado")
+                .slice(0, 12)
+                .map((p) => {
+                  const img = getMainImage(p) || "/placeholder-product.svg";
+                  return (
+                    <Link
+                      to={`/producto/${p.id}`}
+                      key={p.id}
+                      className="text-decoration-none flex-shrink-0 px-2"
+                      style={{ minWidth: "180px" }}
+                      title={p.nombre}
+                    >
+                      <div
+                        className="bg-light rounded-3 overflow-hidden d-flex align-items-center justify-content-center p-2"
+                        style={{ width: "100%", height: "180px" }}
+                      >
+                        <img
+                          src={img}
+                          alt={p.nombre}
+                          className="w-100 h-100 hover-lift"
+                          style={{ objectFit: "contain" }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/placeholder-product.svg";
+                          }}
+                        />
+                      </div>
+                    </Link>
+                  );
+                })}
+            </div>
+            <div className="text-end mt-4">
+              <Link
+                to="/Productos/tu-rincon-variado"
+                className="text-primary text-decoration-none fw-medium"
+              >
+                Explora nuestro Rincón Variado →
+              </Link>
+            </div>
           </div>
         </div>
       </motion.section>

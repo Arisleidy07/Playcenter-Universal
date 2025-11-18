@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaWhatsapp,
   FaMoneyCheckAlt,
   FaUniversity,
   FaRegCopy,
   FaCheck,
+  FaTimes,
 } from "react-icons/fa";
 
 const estafetas = [
@@ -133,12 +134,47 @@ const cuentasBancarias = [
 
 export default function Estafetas() {
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const handleCopy = (numero, index) => {
     navigator.clipboard.writeText(numero);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };
+
+  const openImageModal = (estafeta) => {
+    setSelectedImage(estafeta);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setTimeout(() => setSelectedImage(null), 300);
+  };
+
+  // Cerrar modal con tecla ESC
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && modalOpen) {
+        closeModal();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [modalOpen]);
+
+  // Prevenir scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (modalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [modalOpen]);
 
   return (
     <div
@@ -153,56 +189,53 @@ export default function Estafetas() {
         mediante transferencia bancaria.
       </p>
 
-      {/* Cuentas Bancarias */}
-      <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 border border-blue-200 dark:border-gray-700 rounded-2xl p-7 mb-12 shadow-lg">
-        <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-3">
-          <FaMoneyCheckAlt className="text-blue-500 dark:text-blue-300" />
-          Cuentas Bancarias para Transferencias
+      {/* Cuentas Bancarias - Diseño Compacto */}
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 border border-blue-200 dark:border-gray-700 rounded-xl p-4 md:p-6 mb-8 md:mb-12 shadow-lg">
+        <h2 className="text-lg md:text-xl font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-2">
+          <FaMoneyCheckAlt className="text-base md:text-lg" />
+          Cuentas Bancarias
         </h2>
-        <p className="text-red-600 dark:text-red-400 font-semibold mb-2">
-          ⚠️ Incluye tu <span className="underline">código de cliente</span> o
-          <span className="underline"> nombre completo</span> en la descripción
-          del pago.
+        <p className="text-xs md:text-sm text-red-600 dark:text-red-400 font-semibold mb-2">
+          ⚠️ Incluye tu código o nombre en la descripción del pago
         </p>
-        <p className="text-gray-700 dark:text-gray-300 mb-4 text-[15px]">
-          Es indispensable enviar el comprobante de pago al 809-582-1212 para
-          poder aplicarlo.
-          <br />
-          <span className="text-red-500 dark:text-red-400 font-bold">
-            Sin el comprobante no podremos procesar tu pago.
-          </span>
+        <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mb-3 md:mb-4">
+          Envía el comprobante al{" "}
+          <span className="font-bold">809-582-1212</span>
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {cuentasBancarias.map((cuenta, index) => (
             <div
               key={index}
-              className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-5 flex flex-col shadow group hover:shadow-xl transition"
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 md:p-4 shadow-sm hover:shadow-md transition"
             >
-              <h3 className="text-lg font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-2 mb-2">
-                <FaUniversity className="text-indigo-500 dark:text-indigo-300" />
+              <h3 className="text-sm md:text-base font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1 mb-2">
+                <FaUniversity className="text-xs md:text-sm" />
                 {cuenta.banco}
               </h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                <span className="font-semibold mr-1">Número: </span>
-                <span className="text-gray-900 dark:text-gray-100 font-mono flex items-center">
-                  {cuenta.numero}
+              <div className="space-y-1">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 flex items-center justify-between">
+                  <span className="font-mono text-gray-900 dark:text-gray-100 text-xs md:text-sm">
+                    {cuenta.numero}
+                  </span>
                   <button
                     onClick={() => handleCopy(cuenta.numero, index)}
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 ml-1"
-                    title="Copiar número"
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 ml-2 p-1"
+                    title="Copiar"
                   >
-                    {copiedIndex === index ? <FaCheck /> : <FaRegCopy />}
+                    {copiedIndex === index ? (
+                      <FaCheck size={14} />
+                    ) : (
+                      <FaRegCopy size={14} />
+                    )}
                   </button>
-                </span>
-              </p>
-              <p className="text-gray-700 dark:text-gray-300 mb-1">
-                <span className="font-semibold">Tipo: </span>
-                {cuenta.tipo}
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-semibold">Titular: </span>
-                {cuenta.titular}
-              </p>
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {cuenta.tipo}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">
+                  {cuenta.titular}
+                </p>
+              </div>
             </div>
           ))}
         </div>
@@ -215,11 +248,15 @@ export default function Estafetas() {
             key={punto.id}
             className="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition"
           >
-            <div className="w-full md:w-1/2 h-64 md:h-auto bg-blue-50 dark:bg-gray-700 flex items-center justify-center p-3">
+            <div
+              className="w-full md:w-1/2 h-64 md:h-auto bg-blue-50 dark:bg-gray-700 flex items-center justify-center p-3 cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors group"
+              onClick={() => openImageModal(punto)}
+              title="Click para ver imagen completa"
+            >
               <img
                 src={punto.imagen}
                 alt={punto.nombre}
-                className="w-full h-full object-contain rounded-xl"
+                className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
               />
             </div>
             <div className="p-6 flex flex-col justify-between flex-1">
@@ -257,6 +294,89 @@ export default function Estafetas() {
       <p className="text-center text-gray-500 dark:text-gray-400 mt-12 text-lg">
         ¡Agradecemos su preferencia! Estamos para servirle.
       </p>
+
+      {/* Modal de Vista Completa */}
+      {modalOpen && selectedImage && (
+        <div
+          className="estafeta-modal-bg fixed inset-0 z-[9999] flex flex-col"
+          style={{ backgroundColor: "#ffffff" }}
+          onClick={closeModal}
+        >
+          <style>
+            {`
+              @media (prefers-color-scheme: dark) {
+                .estafeta-modal-bg {
+                  background-color: #000000 !important;
+                }
+                .estafeta-modal-info {
+                  background-color: #000000 !important;
+                  border-color: #1f2937 !important;
+                }
+                .estafeta-modal-btn {
+                  background-color: #374151 !important;
+                  color: #ffffff !important;
+                }
+                .estafeta-modal-btn:hover {
+                  background-color: #4b5563 !important;
+                }
+              }
+              html.dark .estafeta-modal-bg {
+                background-color: #000000 !important;
+              }
+              html.dark .estafeta-modal-info {
+                background-color: #000000 !important;
+                border-color: #1f2937 !important;
+              }
+              html.dark .estafeta-modal-btn {
+                background-color: #374151 !important;
+                color: #ffffff !important;
+              }
+              html.dark .estafeta-modal-btn:hover {
+                background-color: #4b5563 !important;
+              }
+            `}
+          </style>
+
+          {/* Botón Cerrar - Moderno */}
+          <button
+            onClick={closeModal}
+            className="estafeta-modal-btn absolute top-6 right-6 z-[10000] p-4 rounded-full transition-all duration-300 shadow-2xl hover:scale-110 hover:rotate-90"
+            style={{ backgroundColor: "#f3f4f6", color: "#111827" }}
+            title="Cerrar"
+          >
+            <FaTimes size={22} />
+          </button>
+
+          {/* Imagen Grande con Object Contain */}
+          <div
+            className="flex-1 w-full flex items-center justify-center px-4 py-6 md:px-8 md:py-8"
+            style={{ height: "calc(100vh - 140px)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selectedImage.imagen}
+              alt={selectedImage.nombre}
+              className="w-full h-full object-contain"
+              style={{ maxHeight: "100%", maxWidth: "100%" }}
+            />
+          </div>
+
+          {/* Información Moderna */}
+          <div
+            className="estafeta-modal-info border-t-2 p-5 md:p-8"
+            style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}
+          >
+            <div className="max-w-4xl mx-auto">
+              <h3 className="text-xl md:text-3xl lg:text-4xl font-bold text-blue-600 dark:text-blue-400 text-center mb-2 md:mb-3">
+                {selectedImage.nombre}
+              </h3>
+              <p className="text-base md:text-xl lg:text-2xl text-gray-700 dark:text-gray-200 text-center font-medium leading-relaxed">
+                {selectedImage.descripcion}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

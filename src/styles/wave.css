@@ -7,7 +7,11 @@
   overflow: hidden;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(circle at 30% 30%, #dec75eaa, transparent 70%),
-              radial-gradient(circle at 70% 70%, #ff3a3ae6, transparent 70%);
-  backdrop-filter: blur(60px);
+  background: radial-gradient(
+      circle at 30% 30%,
+      rgba(59, 130, 246, 0.08),
+      transparent 70%
+    ),
+    radial-gradient(circle at 70% 70%, rgba(37, 99, 235, 0.06), transparent 70%);
+  backdrop-filter: blur(40px);
 }

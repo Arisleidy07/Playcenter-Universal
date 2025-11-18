@@ -136,6 +136,8 @@ export default function TopBar() {
     display: "flex",
     margin: 0,
     padding: 0,
+    borderTop: "none", // Sin border superior
+    marginTop: 0, // Sin margin superior
   };
 
   return (
@@ -148,7 +150,8 @@ export default function TopBar() {
     >
       <div className="flex items-center gap-2 text-[10px] sm:text-xs md:text-sm whitespace-nowrap theme-text text-gray-700 dark:text-gray-200">
         {/* Flecha de retroceso - SOLO visible en Vista Producto */}
-        {(location.pathname.startsWith('/producto/') || location.pathname.startsWith('/Producto/')) && (
+        {(location.pathname.startsWith("/producto/") ||
+          location.pathname.startsWith("/Producto/")) && (
           <button
             onClick={() => navigate(-1)}
             className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-200 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md"
