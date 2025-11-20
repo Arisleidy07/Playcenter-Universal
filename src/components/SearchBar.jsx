@@ -326,7 +326,24 @@ const SearchBar = forwardRef(
               onClick={() =>
                 setMostrarDropdownCategorias(!mostrarDropdownCategorias)
               }
-              className="h-full px-3 md:px-4 py-2 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-700 border border-gray-300 dark:border-gray-600 rounded-l-md text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-100 transition-all duration-200 flex items-center gap-2 min-w-[80px] md:min-w-[110px] max-w-[120px] md:max-w-[140px] shadow-sm hover:shadow"
+              className="h-full px-4 md:px-5 py-2.5 rounded-l-md text-[13px] md:text-sm font-semibold transition-all duration-200 flex items-center gap-2 min-w-[120px] md:min-w-[160px] shadow-sm hover:shadow"
+              style={{
+                background: isDark
+                  ? "linear-gradient(to bottom, #374151, #1f2937)"
+                  : "linear-gradient(to bottom, #f9fafb, #e5e7eb)",
+                border: isDark ? "1px solid #4b5563" : "1px solid #d1d5db",
+                color: isDark ? "#f3f4f6" : "#1f2937",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = isDark
+                  ? "linear-gradient(to bottom, #4b5563, #374151)"
+                  : "linear-gradient(to bottom, #e5e7eb, #d1d5db)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = isDark
+                  ? "linear-gradient(to bottom, #374151, #1f2937)"
+                  : "linear-gradient(to bottom, #f9fafb, #e5e7eb)";
+              }}
             >
               <span className="truncate flex-1">
                 {categoriaSeleccionada === "todas"
@@ -334,9 +351,12 @@ const SearchBar = forwardRef(
                   : categoriaSeleccionada}
               </span>
               <svg
-                className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${
-                  mostrarDropdownCategorias ? "rotate-180" : ""
-                }`}
+                className="w-3 h-3 flex-shrink-0 transition-transform duration-200"
+                style={{
+                  transform: mostrarDropdownCategorias
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                }}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -353,14 +373,23 @@ const SearchBar = forwardRef(
             {/* DROPDOWN DE CATEGORÍAS - MODERNO */}
             {mostrarDropdownCategorias && (
               <div
-                className="absolute top-full left-0 mt-2 w-72 md:w-80 max-h-[500px] overflow-hidden border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-[10000] backdrop-blur-sm"
+                className="absolute top-full left-0 mt-2 w-80 md:w-96 max-h-[500px] overflow-hidden rounded-xl shadow-2xl z-[10000] backdrop-blur-sm"
                 style={{
                   backgroundColor: isDark ? "#111827" : "#ffffff",
+                  border: isDark ? "1px solid #374151" : "1px solid #e5e7eb",
                   opacity: 1,
                 }}
               >
                 {/* Header del dropdown */}
-                <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 border-b border-blue-400 dark:border-blue-500">
+                <div
+                  className="px-4 py-3 border-b"
+                  style={{
+                    background: isDark
+                      ? "linear-gradient(to right, #2563eb, #1d4ed8)"
+                      : "linear-gradient(to right, #3b82f6, #2563eb)",
+                    borderBottomColor: isDark ? "#1e40af" : "#60a5fa",
+                  }}
+                >
                   <p className="text-sm font-bold text-white">
                     Selecciona una categoría
                   </p>
@@ -375,11 +404,39 @@ const SearchBar = forwardRef(
                       setCategoriaSeleccionada("todas");
                       setMostrarDropdownCategorias(false);
                     }}
-                    className={`w-full text-left px-4 py-3.5 text-sm font-medium transition-all duration-200 flex items-center gap-3 ${
-                      categoriaSeleccionada === "todas"
-                        ? "bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-l-4 border-blue-600"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 border-l-4 border-transparent"
-                    }`}
+                    className="w-full text-left px-4 py-3.5 text-sm font-medium transition-all duration-200 flex items-center gap-3"
+                    style={{
+                      backgroundColor:
+                        categoriaSeleccionada === "todas"
+                          ? isDark
+                            ? "rgba(37, 99, 235, 0.2)"
+                            : "#eff6ff"
+                          : "transparent",
+                      color:
+                        categoriaSeleccionada === "todas"
+                          ? isDark
+                            ? "#93c5fd"
+                            : "#1d4ed8"
+                          : isDark
+                          ? "#d1d5db"
+                          : "#374151",
+                      borderLeft:
+                        categoriaSeleccionada === "todas"
+                          ? "4px solid #2563eb"
+                          : "4px solid transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (categoriaSeleccionada !== "todas") {
+                        e.currentTarget.style.backgroundColor = isDark
+                          ? "#1f2937"
+                          : "#f9fafb";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (categoriaSeleccionada !== "todas") {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }
+                    }}
                   >
                     {categoriaSeleccionada === "todas" ? (
                       <svg
@@ -400,7 +457,14 @@ const SearchBar = forwardRef(
                   </button>
 
                   {/* Separador */}
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent my-1"></div>
+                  <div
+                    className="h-px my-1"
+                    style={{
+                      background: isDark
+                        ? "linear-gradient(to right, transparent, #374151, transparent)"
+                        : "linear-gradient(to right, transparent, #e5e7eb, transparent)",
+                    }}
+                  ></div>
 
                   {/* LISTA DE CATEGORÍAS */}
                   {categoriasDisponibles.map((cat, index) => (
@@ -411,13 +475,39 @@ const SearchBar = forwardRef(
                         setCategoriaSeleccionada(cat);
                         setMostrarDropdownCategorias(false);
                       }}
-                      className={`w-full text-left px-4 py-3.5 text-sm font-medium transition-all duration-200 flex items-center gap-3 ${
-                        categoriaSeleccionada === cat
-                          ? "bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-l-4 border-blue-600"
-                          : "hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 border-l-4 border-transparent"
-                      }`}
+                      className="w-full text-left px-4 py-3.5 text-sm font-medium transition-all duration-200 flex items-center gap-3"
                       style={{
+                        backgroundColor:
+                          categoriaSeleccionada === cat
+                            ? isDark
+                              ? "rgba(37, 99, 235, 0.2)"
+                              : "#eff6ff"
+                            : "transparent",
+                        color:
+                          categoriaSeleccionada === cat
+                            ? isDark
+                              ? "#93c5fd"
+                              : "#1d4ed8"
+                            : isDark
+                            ? "#d1d5db"
+                            : "#374151",
+                        borderLeft:
+                          categoriaSeleccionada === cat
+                            ? "4px solid #2563eb"
+                            : "4px solid transparent",
                         animationDelay: `${index * 20}ms`,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (categoriaSeleccionada !== cat) {
+                          e.currentTarget.style.backgroundColor = isDark
+                            ? "#1f2937"
+                            : "#f9fafb";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (categoriaSeleccionada !== cat) {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }
                       }}
                     >
                       {categoriaSeleccionada === cat ? (
@@ -445,7 +535,10 @@ const SearchBar = forwardRef(
 
           {/* INPUT DE BÚSQUEDA */}
           <div className="flex-grow relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+            <FaSearch
+              className="absolute left-3 top-1/2 transform -translate-y-1/2"
+              style={{ color: isDark ? "#6b7280" : "#9ca3af" }}
+            />
             <input
               type="text"
               ref={ref}
@@ -453,11 +546,17 @@ const SearchBar = forwardRef(
               onChange={(e) => setBusqueda(e.target.value)}
               onFocus={() => setMostrarResultados(true)}
               placeholder={placeholder}
-              className="w-full border-y border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               style={{
                 fontSize: window.innerWidth < 768 ? "12px" : "14px",
                 paddingTop: window.innerWidth < 768 ? "6px" : "12px",
                 paddingBottom: window.innerWidth < 768 ? "6px" : "12px",
+                borderTop: isDark ? "1px solid #4b5563" : "1px solid #d1d5db",
+                borderBottom: isDark
+                  ? "1px solid #4b5563"
+                  : "1px solid #d1d5db",
+                backgroundColor: isDark ? "#1f2937" : "#ffffff",
+                color: isDark ? "#f3f4f6" : "#111827",
               }}
               autoComplete="off"
             />
@@ -466,7 +565,16 @@ const SearchBar = forwardRef(
           {/* BOTÓN DE BUSCAR - SOLO ÍCONO */}
           <button
             type="submit"
-            className="w-12 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-r-md transition flex items-center justify-center"
+            className="w-12 text-white rounded-r-md transition flex items-center justify-center"
+            style={{
+              backgroundColor: "#2563eb",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#1d4ed8";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#2563eb";
+            }}
             title="Buscar"
           >
             <FaSearch className="text-sm" />

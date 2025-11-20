@@ -27,7 +27,28 @@ const trailImages = Array.from(
 function Inicio() {
   const { productsByCategory, categories, loading, error } =
     useProductsByCategories();
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
+  const videoRef = React.useRef(null);
+
+  // Forzar recarga del video cuando cambie el tema
+  React.useEffect(() => {
+    const videoSrc =
+      theme === "dark"
+        ? "/videos/pcu-intro-negro.mp4"
+        : "/videos/pcu-intro-blanco.mp4";
+
+    if (videoRef.current) {
+      // Cambiar el src directamente
+      const source = videoRef.current.querySelector("source");
+      if (source) {
+        source.src = videoSrc;
+      }
+      videoRef.current.load();
+      videoRef.current
+        .play()
+        .catch((err) => console.log("Video autoplay:", err));
+    }
+  }, [theme]);
 
   // Logging para debug - mostrar categorías disponibles
   React.useEffect(() => {
@@ -56,7 +77,12 @@ function Inicio() {
 
   if (error) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-primary bg-gradient">
+      <div
+        style={{
+          backgroundColor: isDark ? "#000000" : "#ffffff",
+          minHeight: "100vh",
+        }}
+      >
         <div className="text-center text-danger">
           <p className="fs-5">Error cargando productos</p>
           <p className="small">{error}</p>
@@ -190,8 +216,11 @@ function Inicio() {
 
   return (
     <div
-      className="bg-transparent min-vh-100"
-      style={{ paddingTop: "var(--content-offset, 100px)" }}
+      className="min-vh-100"
+      style={{
+        paddingTop: "var(--content-offset, 100px)",
+        backgroundColor: isDark ? "#000000" : "#ffffff",
+      }}
     >
       {/* SLIDER MÓVIL - Solo teléfonos (< 640px) */}
       <motion.div
@@ -211,11 +240,7 @@ function Inicio() {
       >
         <video
           key={theme}
-          src={
-            theme === "dark"
-              ? "/videos/pcu-intro-negro.mp4"
-              : "/videos/pcu-intro-blanco.mp4"
-          }
+          ref={videoRef}
           autoPlay
           loop
           muted
@@ -229,7 +254,16 @@ function Inicio() {
             verticalAlign: "top",
             objectFit: "cover",
           }}
-        />
+        >
+          <source
+            src={
+              theme === "dark"
+                ? "/videos/pcu-intro-negro.mp4"
+                : "/videos/pcu-intro-blanco.mp4"
+            }
+            type="video/mp4"
+          />
+        </video>
       </div>
 
       {/* SLIDER GRANDE EN TABLET Y DESKTOP - Visible desde 640px (sm:) - MÁS SEPARADO */}
@@ -240,77 +274,60 @@ function Inicio() {
         initial="hidden"
         animate="visible"
       >
-        <div className="rounded-4 overflow-hidden shadow-lg border border-primary border-opacity-25">
-          <SliderAnuncios />
-        </div>
+        <SliderAnuncios />
       </motion.div>
 
       {/* BLOQUES CUADRADOS - CATEGORÍAS DINÁMICAS */}
-      <section
-        className="container-fluid px-2 px-sm-4 mt-4 mt-sm-5"
-        style={{ maxWidth: "95%", maxWidthLg: "1600px" }}
-      >
-        <div className="row g-3 g-sm-4 g-lg-5">
-          {categories.slice(0, 4).map((category, idx) => {
-            const categoryProducts = productsByCategory[category.id] || [];
-            const featuredProducts = categoryProducts.slice(0, 4);
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-[95%] lg:max-w-[1600px] mx-auto px-2 sm:px-4 mt-8 sm:mt-16">
+        {categories.slice(0, 4).map((category, idx) => {
+          const categoryProducts = productsByCategory[category.id] || [];
+          const featuredProducts = categoryProducts.slice(0, 4);
 
-            return (
-              <motion.div
-                key={category.id}
-                className="col-12 col-sm-6 col-lg-4 col-xl-3"
-                variants={fadeIn}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: 0.1 * idx }}
-              >
-                <div className="card h-100 shadow hover-lift border-2 border-light">
-                  <div className="card-body d-flex flex-column justify-content-between p-4 p-sm-5">
-                    <h3 className="fs-5 fs-sm-4 fw-bold mb-2 mb-sm-3 text-primary">
-                      {category.nombre}
-                    </h3>
-                    <div className="row g-2 g-sm-3 flex-grow-1">
-                      {featuredProducts.map((product, i) => {
-                        const img =
-                          getMainImage(product) || "/placeholder-product.svg";
-                        return (
-                          <div className="col-6" key={product.id}>
-                            <Link to={`/producto/${product.id}`}>
-                              <div
-                                className="bg-light rounded-3 overflow-hidden d-flex align-items-center justify-content-center p-1 p-sm-2"
-                                style={{ aspectRatio: "4/3" }}
-                              >
-                                <img
-                                  src={img}
-                                  alt={product.nombre}
-                                  className="w-100 h-100"
-                                  style={{
-                                    objectFit: "contain",
-                                    transition: "transform 0.2s",
-                                  }}
-                                  onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = "/placeholder-product.svg";
-                                  }}
-                                />
-                              </div>
-                            </Link>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <Link
-                      to={`/Productos/${category.ruta}`}
-                      className="text-primary small mt-2 mt-sm-3 text-decoration-none fw-medium"
-                    >
-                      Explora {category.nombre} →
+          return (
+            <motion.div
+              key={category.id}
+              className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+            >
+              <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-indigo-700 dark:text-indigo-400 tracking-tight">
+                {category.nombre}
+              </h3>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 flex-grow">
+                {featuredProducts.map((product) => {
+                  const img =
+                    getMainImage(product) || "/placeholder-product.svg";
+                  return (
+                    <Link to={`/producto/${product.id}`} key={product.id}>
+                      <div
+                        className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2"
+                        style={{ maxHeight: "120px" }}
+                      >
+                        <img
+                          src={img}
+                          alt={product.nombre}
+                          className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform"
+                          style={{ maxHeight: "110px" }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/placeholder-product.svg";
+                          }}
+                        />
+                      </div>
                     </Link>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  );
+                })}
+              </div>
+              <Link
+                to={`/Productos/${category.ruta}`}
+                className="text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm mt-2 sm:mt-3 hover:underline font-medium"
+              >
+                Explora {category.nombre} →
+              </Link>
+            </motion.div>
+          );
+        })}
       </section>
 
       {/* BANNER afisionados - SOLO DESKTOP */}
@@ -380,18 +397,49 @@ function Inicio() {
 
       {/* CATEGORÍAS DESTACADAS */}
       <motion.section
-        className="container-fluid mt-5 px-4"
+        className="container-fluid mt-4 px-3 px-md-4"
         style={{ maxWidth: "1600px" }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
-        <div className="card shadow border-2 border-light">
-          <div className="card-body p-4 p-lg-5">
-            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
-              Explora nuestras categorías
-            </h2>
-            <div className="row g-3 g-sm-4">
+        <div
+          className="shadow"
+          style={{
+            backgroundColor: isDark ? "#1e293b" : "#ffffff",
+            border: isDark
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : "1px solid rgba(0, 0, 0, 0.08)",
+            borderRadius: "0.5rem",
+            height: "auto",
+            width: "100%",
+          }}
+        >
+          <div className="card-body p-2 p-md-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2
+                className="h6 fw-bold text-dark dark:text-gray-100 mb-0"
+                style={{ fontSize: "clamp(14px, 2vw, 18px)" }}
+              >
+                Explora nuestras categorías
+              </h2>
+              <Link
+                to="/Productos"
+                className="text-primary dark:text-blue-400 text-decoration-none fw-medium text-xs sm:text-sm"
+                style={{ fontSize: "clamp(11px, 2vw, 13px)" }}
+              >
+                Ver todas →
+              </Link>
+            </div>
+            <div
+              className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
+              style={{
+                scrollbarWidth: "thin",
+                WebkitOverflowScrolling: "touch",
+                alignItems: "flex-start",
+                minHeight: "unset",
+              }}
+            >
               {[
                 {
                   to: "/Productos/audifonos",
@@ -424,25 +472,31 @@ function Inicio() {
                   alt: "Controles",
                 },
               ].map((cat, i) => (
-                <div className="col-6 col-sm-4 col-md-3 col-xl-2" key={cat.alt}>
-                  <Link to={cat.to} className="text-decoration-none">
+                <Link
+                  to={cat.to}
+                  key={cat.alt}
+                  className="text-decoration-none flex-shrink-0"
+                >
+                  <div
+                    className="rounded-3 overflow-hidden d-flex align-items-center justify-content-center w-[140px] h-[140px] md:w-[180px] md:h-[180px]"
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(255, 255, 255, 0.03)"
+                        : "rgba(0, 0, 0, 0.02)",
+                      border: isDark
+                        ? "1px solid rgba(255, 255, 255, 0.08)"
+                        : "1px solid rgba(0, 0, 0, 0.06)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
                     <img
                       src={cat.src}
                       alt={cat.alt}
-                      className="w-100 rounded-3 hover-lift shadow-sm"
-                      style={{ aspectRatio: "1/1", objectFit: "cover" }}
+                      className="w-100 h-100 object-contain hover-lift"
                     />
-                  </Link>
-                </div>
+                  </div>
+                </Link>
               ))}
-            </div>
-            <div className="text-end mt-4">
-              <Link
-                to="/Productos"
-                className="text-primary text-decoration-none fw-medium"
-              >
-                Ver todas las categorías →
-              </Link>
             </div>
           </div>
         </div>
@@ -471,103 +525,78 @@ function Inicio() {
 
       {/* GALERÍA DESTACADA DE PRODUCTOS */}
       <motion.section
-        className="container-fluid mt-5 px-4"
+        className="container-fluid mt-4 px-3 px-md-4"
         style={{ maxWidth: "1600px" }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
-        <div className="card shadow border-2 border-light">
-          <div className="card-body p-4 p-lg-5">
-            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
-              Descubre nuestros productos
-            </h2>
-            <div className="row g-3 g-sm-4">
-              {Object.values(productsByCategory)
-                .flat()
-                .slice(0, 6)
-                .map((producto) => (
-                  <div
-                    className="col-6 col-sm-4 col-md-3 col-xl-2"
-                    key={producto.id}
-                  >
-                    <Link
-                      to={`/producto/${producto.id}`}
-                      className="text-decoration-none"
-                    >
-                      <div className="card border-2 border-light shadow-sm hover-lift">
-                        <div
-                          className="card-body p-2 d-flex align-items-center justify-content-center overflow-hidden"
-                          style={{ aspectRatio: "1/1" }}
-                        >
-                          <img
-                            src={
-                              getMainImage(producto) ||
-                              "/placeholder-product.svg"
-                            }
-                            alt={producto.nombre}
-                            className="w-100 h-100"
-                            style={{ objectFit: "contain" }}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "/placeholder-product.svg";
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                ))}
-            </div>
-            <div className="text-end mt-4">
+        <div
+          className="shadow"
+          style={{
+            backgroundColor: isDark ? "#1e293b" : "#ffffff",
+            border: isDark
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : "1px solid rgba(0, 0, 0, 0.08)",
+            borderRadius: "0.5rem",
+            height: "auto",
+            width: "100%",
+          }}
+        >
+          <div className="card-body p-2 p-md-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2
+                className="h6 fw-bold text-dark dark:text-gray-100 mb-0"
+                style={{ fontSize: "clamp(14px, 2vw, 18px)" }}
+              >
+                Descubre nuestros productos
+              </h2>
               <Link
                 to="/Productos"
-                className="text-primary text-decoration-none fw-medium"
+                className="text-primary dark:text-blue-400 text-decoration-none fw-medium text-xs sm:text-sm"
+                style={{ fontSize: "clamp(11px, 2vw, 13px)" }}
               >
-                Explora nuestros productos →
+                Ver más →
               </Link>
             </div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* SLIDER HOGAR INTELIGENTE (dinámico desde Firestore) */}
-      <motion.section
-        className="container-fluid mt-5 px-4"
-        style={{ maxWidth: "1600px" }}
-        variants={fadeIn}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="card shadow border-2 border-light">
-          <div className="card-body p-4 p-lg-5">
-            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
-              Hogar Inteligente en Oferta
-            </h2>
             <div
-              className="d-flex gap-3 overflow-auto pb-3"
-              style={{ scrollbarWidth: "none" }}
+              className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
+              style={{
+                scrollbarWidth: "thin",
+                WebkitOverflowScrolling: "touch",
+                alignItems: "flex-start",
+                minHeight: "unset",
+              }}
             >
-              {getProductsByRoute("hogar-inteligente")
+              {Object.values(productsByCategory)
+                .flat()
                 .slice(0, 10)
-                .map((p) => {
-                  const img = getMainImage(p) || "/placeholder-product.svg";
+                .map((producto) => {
+                  const img =
+                    getMainImage(producto) || "/placeholder-product.svg";
                   return (
                     <Link
-                      to={`/producto/${p.id}`}
-                      className="text-decoration-none flex-shrink-0 px-2"
-                      style={{ minWidth: "180px" }}
-                      key={p.id}
+                      to={`/producto/${producto.id}`}
+                      key={producto.id}
+                      className="text-decoration-none flex-shrink-0"
+                      title={producto.nombre}
                     >
                       <div
-                        className="bg-light rounded-3 overflow-hidden d-flex align-items-center justify-content-center p-2"
-                        style={{ width: "100%", height: "180px" }}
+                        className="rounded-3 overflow-hidden d-flex align-items-center justify-content-center w-[140px] h-[140px] md:w-[180px] md:h-[180px]"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(255, 255, 255, 0.03)"
+                            : "rgba(0, 0, 0, 0.02)",
+                          border: isDark
+                            ? "1px solid rgba(255, 255, 255, 0.08)"
+                            : "1px solid rgba(0, 0, 0, 0.06)",
+                          backdropFilter: "blur(10px)",
+                        }}
                       >
                         <img
                           src={img}
-                          alt={p.nombre}
-                          className="w-100 h-100 hover-lift"
-                          style={{ objectFit: "contain" }}
+                          alt={producto.nombre}
+                          className="w-100 h-100 object-contain hover-lift"
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = "/placeholder-product.svg";
@@ -578,13 +607,90 @@ function Inicio() {
                   );
                 })}
             </div>
-            <div className="text-end mt-4">
+          </div>
+        </div>
+      </motion.section>
+
+      {/* SLIDER HOGAR INTELIGENTE (dinámico desde Firestore) */}
+      <motion.section
+        className="container-fluid mt-4 px-3 px-md-4"
+        style={{ maxWidth: "1600px" }}
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
+        <div
+          className="shadow"
+          style={{
+            backgroundColor: isDark ? "#1e293b" : "#ffffff",
+            border: isDark
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : "1px solid rgba(0, 0, 0, 0.08)",
+            borderRadius: "0.5rem",
+            height: "auto",
+            width: "100%",
+          }}
+        >
+          <div className="card-body p-2 p-md-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2
+                className="h6 fw-bold text-dark dark:text-gray-100 mb-0"
+                style={{ fontSize: "clamp(12px, 2vw, 16px)" }}
+              >
+                Hogar Inteligente en Oferta
+              </h2>
               <Link
                 to="/Productos/hogar-inteligente"
-                className="text-primary text-decoration-none fw-medium"
+                className="text-primary dark:text-blue-400 text-decoration-none fw-medium text-xs sm:text-sm"
+                style={{ fontSize: "clamp(11px, 2vw, 13px)" }}
               >
-                Descubre cómo transformar tu casa en un hogar inteligente →
+                Ver más →
               </Link>
+            </div>
+            <div
+              className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
+              style={{
+                scrollbarWidth: "thin",
+                WebkitOverflowScrolling: "touch",
+                alignItems: "flex-start",
+                minHeight: "unset",
+              }}
+            >
+              {getProductsByRoute("hogar-inteligente")
+                .slice(0, 10)
+                .map((p) => {
+                  const img = getMainImage(p) || "/placeholder-product.svg";
+                  return (
+                    <Link
+                      to={`/producto/${p.id}`}
+                      className="text-decoration-none flex-shrink-0"
+                      key={p.id}
+                    >
+                      <div
+                        className="rounded-3 overflow-hidden d-flex align-items-center justify-content-center w-[140px] h-[140px] md:w-[180px] md:h-[180px]"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(255, 255, 255, 0.03)"
+                            : "rgba(0, 0, 0, 0.02)",
+                          border: isDark
+                            ? "1px solid rgba(255, 255, 255, 0.08)"
+                            : "1px solid rgba(0, 0, 0, 0.06)",
+                          backdropFilter: "blur(10px)",
+                        }}
+                      >
+                        <img
+                          src={img}
+                          alt={p.nombre}
+                          className="w-100 h-100 object-contain hover-lift"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/placeholder-product.svg";
+                          }}
+                        />
+                      </div>
+                    </Link>
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -592,20 +698,48 @@ function Inicio() {
 
       {/* TU RINCÓN VARIADO (dinámico desde Firestore) */}
       <motion.section
-        className="container-fluid mt-5 px-4"
+        className="container-fluid mt-4 px-3 px-md-4"
         style={{ maxWidth: "1600px" }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
-        <div className="card shadow border-2 border-light">
-          <div className="card-body p-4 p-lg-5">
-            <h2 className="h2 h1-lg fw-bold mb-4 text-dark">
-              Tu Rincón Variado
-            </h2>
+        <div
+          className="shadow"
+          style={{
+            backgroundColor: isDark ? "#1e293b" : "#ffffff",
+            border: isDark
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : "1px solid rgba(0, 0, 0, 0.08)",
+            borderRadius: "0.5rem",
+            height: "auto",
+            width: "100%",
+          }}
+        >
+          <div className="card-body p-2 p-md-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2
+                className="h6 fw-bold text-dark dark:text-gray-100 mb-0"
+                style={{ fontSize: "clamp(12px, 2vw, 16px)" }}
+              >
+                Tu Rincón Variado
+              </h2>
+              <Link
+                to="/Productos/tu-rincon-variado"
+                className="text-primary dark:text-blue-400 text-decoration-none fw-medium text-xs sm:text-sm"
+                style={{ fontSize: "clamp(11px, 2vw, 13px)" }}
+              >
+                Ver más →
+              </Link>
+            </div>
             <div
-              className="d-flex gap-3 overflow-auto pb-3"
-              style={{ scrollbarWidth: "none" }}
+              className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
+              style={{
+                scrollbarWidth: "thin",
+                WebkitOverflowScrolling: "touch",
+                alignItems: "flex-start",
+                minHeight: "unset",
+              }}
             >
               {getProductsByRoute("tu-rincon-variado")
                 .slice(0, 12)
@@ -615,19 +749,25 @@ function Inicio() {
                     <Link
                       to={`/producto/${p.id}`}
                       key={p.id}
-                      className="text-decoration-none flex-shrink-0 px-2"
-                      style={{ minWidth: "180px" }}
+                      className="text-decoration-none flex-shrink-0"
                       title={p.nombre}
                     >
                       <div
-                        className="bg-light rounded-3 overflow-hidden d-flex align-items-center justify-content-center p-2"
-                        style={{ width: "100%", height: "180px" }}
+                        className="rounded-3 overflow-hidden d-flex align-items-center justify-content-center w-[140px] h-[140px] md:w-[180px] md:h-[180px]"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(255, 255, 255, 0.03)"
+                            : "rgba(0, 0, 0, 0.02)",
+                          border: isDark
+                            ? "1px solid rgba(255, 255, 255, 0.08)"
+                            : "1px solid rgba(0, 0, 0, 0.06)",
+                          backdropFilter: "blur(10px)",
+                        }}
                       >
                         <img
                           src={img}
                           alt={p.nombre}
-                          className="w-100 h-100 hover-lift"
-                          style={{ objectFit: "contain" }}
+                          className="w-100 h-100 object-contain hover-lift"
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = "/placeholder-product.svg";
@@ -637,14 +777,6 @@ function Inicio() {
                     </Link>
                   );
                 })}
-            </div>
-            <div className="text-end mt-4">
-              <Link
-                to="/Productos/tu-rincon-variado"
-                className="text-primary text-decoration-none fw-medium"
-              >
-                Explora nuestro Rincón Variado →
-              </Link>
             </div>
           </div>
         </div>
@@ -684,7 +816,7 @@ function Inicio() {
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-[95%] lg:max-w-[1600px] mx-auto px-2 sm:px-4 mt-8 sm:mt-16">
         {/* Cámaras de Vigilancia */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[380px] sm:h-[440px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
           variants={fadeIn}
           initial="hidden"
           animate="visible"
@@ -697,11 +829,15 @@ function Inicio() {
               .slice(0, 4)
               .map((p) => (
                 <Link to={`/producto/${p.id}`} key={p.id}>
-                  <div className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2">
+                  <div
+                    className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2"
+                    style={{ maxHeight: "120px" }}
+                  >
                     <img
                       src={getMainImage(p) || "/placeholder-product.svg"}
                       alt={p.nombre}
                       className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform"
+                      style={{ maxHeight: "110px" }}
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = "/placeholder-product.svg";
@@ -721,7 +857,7 @@ function Inicio() {
 
         {/* Discos Duros */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[380px] sm:h-[440px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
           variants={fadeIn}
           initial="hidden"
           animate="visible"
@@ -734,11 +870,15 @@ function Inicio() {
               .slice(0, 4)
               .map((p) => (
                 <Link to={`/producto/${p.id}`} key={p.id}>
-                  <div className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2">
+                  <div
+                    className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2"
+                    style={{ maxHeight: "120px" }}
+                  >
                     <img
                       src={getMainImage(p) || "/placeholder-product.svg"}
                       alt={p.nombre}
                       className="max-w-full max-h-full w-auto h-auto object-contain hover:scale-105 transition-transform"
+                      style={{ maxHeight: "110px" }}
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = "/placeholder-product.svg";
@@ -758,7 +898,7 @@ function Inicio() {
 
         {/* Memorias USB */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[380px] sm:h-[440px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
           variants={fadeIn}
           initial="hidden"
           animate="visible"
@@ -771,11 +911,15 @@ function Inicio() {
               .slice(0, 4)
               .map((p) => (
                 <Link to={`/producto/${p.id}`} key={p.id}>
-                  <div className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2">
+                  <div
+                    className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2"
+                    style={{ maxHeight: "120px" }}
+                  >
                     <img
                       src={getMainImage(p) || "/placeholder-product.svg"}
                       alt={p.nombre}
                       className="max-w-full max-h-full w-auto h-auto object-contain hover:scale-105 transition-transform"
+                      style={{ maxHeight: "110px" }}
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = "/placeholder-product.svg";
@@ -795,7 +939,7 @@ function Inicio() {
 
         {/* Cables */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[380px] sm:h-[440px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
           variants={fadeIn}
           initial="hidden"
           animate="visible"
@@ -808,11 +952,15 @@ function Inicio() {
               .slice(0, 4)
               .map((p) => (
                 <Link to={`/producto/${p.id}`} key={p.id}>
-                  <div className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2">
+                  <div
+                    className="w-full aspect-[4/3] bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 sm:p-2"
+                    style={{ maxHeight: "120px" }}
+                  >
                     <img
                       src={getMainImage(p) || "/placeholder-product.svg"}
                       alt={p.nombre || "Cable"}
                       className="max-w-full max-h-full w-auto h-auto object-contain hover:scale-105 transition-transform"
+                      style={{ maxHeight: "110px" }}
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = "/placeholder-product.svg";
@@ -836,57 +984,298 @@ function Inicio() {
         <Anim />
       </div>
 
-      {/* CONTACTO */}
+      {/* CONTACTO - DISEÑO MODERNO */}
       <motion.section
-        className="max-w-4xl mx-auto px-6 py-20 text-center mt-10"
+        className="container-fluid px-3 px-md-4 py-5 mt-5"
+        style={{ maxWidth: "1400px" }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
-        <h2 className="text-3xl sm:text-4xl font-extrabold mb-6 text-gray-800 dark:text-gray-100">
-          ¿Tienes dudas?{" "}
-          <span className="text-indigo-700">Contáctanos ahora</span>
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-10 max-w-xl mx-auto">
-          Nuestro equipo está listo para ayudarte por WhatsApp, teléfono o
-          correo. Atención rápida y profesional.
-        </p>
-        <div className="bg-white dark:bg-black shadow-2xl rounded-2xl p-10 max-w-3xl mx-auto flex flex-col gap-6 border border-indigo-100 dark:border-gray-800 transition-colors duration-300">
-          <p className="flex items-center justify-center text-gray-700 dark:text-gray-300 gap-3">
-            <FaMapMarkerAlt className="text-indigo-700" />
-            <span>Av. Estrella Sadhalá, Santiago, República Dominicana</span>
-          </p>
-          <p className="flex items-center justify-center text-gray-700 dark:text-gray-300 gap-3">
-            <FaPhone className="text-indigo-700" />
-            <span>+1 (849)-635-7000 (Tienda)</span>
-          </p>
-          <p className="flex items-center justify-center text-gray-700 dark:text-gray-300 gap-3">
-            <FaPhone className="text-indigo-700" />
-            <span>+1 (809)-582-1212 (Internet)</span>
-          </p>
-          <p className="flex items-center justify-center text-gray-700 dark:text-gray-300 gap-3">
-            <FaEnvelope className="text-indigo-700" />
-            <span>playcenter121@gmail.com</span>
-          </p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center mt-4">
-            <a
-              href="https://wa.me/18496357000?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-700 text-white rounded-lg shadow-md hover:bg-indigo-800 transition w-full sm:w-auto"
+        {/* Header */}
+        <div className="text-center mb-4 mb-md-5">
+          <h2
+            className="h3 h2-md fw-bold mb-2 mb-md-3"
+            style={{
+              color: isDark ? "#f1f5f9" : "#1e293b",
+              fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
+            }}
+          >
+            ¿Tienes dudas?{" "}
+            <span
+              style={{
+                background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
             >
-              <FaWhatsapp className="text-xl" />
-              WhatsApp Tienda
-            </a>
-            <a
-              href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 text-white rounded-lg shadow-md hover:bg-gray-800 transition w-full sm:w-auto"
-            >
-              <FaWhatsapp className="text-xl" />
-              WhatsApp Internet
-            </a>
+              Contáctanos ahora
+            </span>
+          </h2>
+          <p
+            className="text-muted mb-0"
+            style={{
+              fontSize: "clamp(0.875rem, 2vw, 1.1rem)",
+              maxWidth: "600px",
+              margin: "0 auto",
+            }}
+          >
+            Atención rápida y profesional. Estamos aquí para ayudarte.
+          </p>
+        </div>
+
+        {/* Contenedor principal con gradiente */}
+        <div
+          className="rounded-4 p-3 p-md-4 p-lg-5 shadow-lg"
+          style={{
+            background: isDark
+              ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+              : "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+            border: `2px solid ${isDark ? "#334155" : "#cbd5e1"}`,
+          }}
+        >
+          {/* Grid de información */}
+          <div className="row g-3 g-md-4 mb-4">
+            {/* Dirección */}
+            <div className="col-12 col-md-6">
+              <div
+                className="h-100 rounded-3 p-3 p-md-4 d-flex align-items-center gap-3 shadow-sm"
+                style={{
+                  backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                  border: `1px solid ${isDark ? "#475569" : "#e2e8f0"}`,
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 16px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    background:
+                      "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+                  }}
+                >
+                  <FaMapMarkerAlt className="text-white" size={20} />
+                </div>
+                <div className="flex-grow-1">
+                  <p className="small text-muted mb-1 fw-medium">Ubicación</p>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{
+                      color: isDark ? "#f1f5f9" : "#1e293b",
+                      fontSize: "clamp(0.8rem, 1.5vw, 0.95rem)",
+                    }}
+                  >
+                    Av. Estrella Sadhalá, Santiago
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Teléfono Tienda */}
+            <div className="col-12 col-md-6">
+              <div
+                className="h-100 rounded-3 p-3 p-md-4 d-flex align-items-center gap-3 shadow-sm"
+                style={{
+                  backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                  border: `1px solid ${isDark ? "#475569" : "#e2e8f0"}`,
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 16px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    background:
+                      "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  }}
+                >
+                  <FaPhone className="text-white" size={18} />
+                </div>
+                <div className="flex-grow-1">
+                  <p className="small text-muted mb-1 fw-medium">Tienda</p>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{
+                      color: isDark ? "#f1f5f9" : "#1e293b",
+                      fontSize: "clamp(0.8rem, 1.5vw, 0.95rem)",
+                    }}
+                  >
+                    +1 (849)-635-7000
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Teléfono Internet */}
+            <div className="col-12 col-md-6">
+              <div
+                className="h-100 rounded-3 p-3 p-md-4 d-flex align-items-center gap-3 shadow-sm"
+                style={{
+                  backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                  border: `1px solid ${isDark ? "#475569" : "#e2e8f0"}`,
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 16px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    background:
+                      "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
+                  }}
+                >
+                  <FaPhone className="text-white" size={18} />
+                </div>
+                <div className="flex-grow-1">
+                  <p className="small text-muted mb-1 fw-medium">Internet</p>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{
+                      color: isDark ? "#f1f5f9" : "#1e293b",
+                      fontSize: "clamp(0.8rem, 1.5vw, 0.95rem)",
+                    }}
+                  >
+                    +1 (809)-582-1212
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="col-12 col-md-6">
+              <div
+                className="h-100 rounded-3 p-3 p-md-4 d-flex align-items-center gap-3 shadow-sm"
+                style={{
+                  backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                  border: `1px solid ${isDark ? "#475569" : "#e2e8f0"}`,
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 16px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    background:
+                      "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                  }}
+                >
+                  <FaEnvelope className="text-white" size={18} />
+                </div>
+                <div className="flex-grow-1">
+                  <p className="small text-muted mb-1 fw-medium">Email</p>
+                  <p
+                    className="mb-0 fw-semibold"
+                    style={{
+                      color: isDark ? "#f1f5f9" : "#1e293b",
+                      fontSize: "clamp(0.8rem, 1.5vw, 0.95rem)",
+                    }}
+                  >
+                    playcenter121@gmail.com
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Botones de WhatsApp */}
+          <div className="row g-3">
+            <div className="col-12 col-md-6">
+              <a
+                href="https://wa.me/18496357000?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn w-100 d-flex align-items-center justify-content-center gap-2 py-3 fw-bold shadow-lg"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #25d366 0%, #128c7e 100%)",
+                  color: "#ffffff",
+                  fontSize: "clamp(0.9rem, 2vw, 1.05rem)",
+                  border: "none",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.03)";
+                  e.currentTarget.style.boxShadow =
+                    "0 10px 25px rgba(37, 211, 102, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                <FaWhatsapp size={24} />
+                WhatsApp Tienda
+              </a>
+            </div>
+            <div className="col-12 col-md-6">
+              <a
+                href="https://wa.me/18095821212?text=Hola%20PlayCenter%2C%20estoy%20interesad%40%20en%20un%20producto%20que%20vi%20en%20su%20página."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn w-100 d-flex align-items-center justify-content-center gap-2 py-3 fw-bold shadow-lg"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                  color: "#ffffff",
+                  fontSize: "clamp(0.9rem, 2vw, 1.05rem)",
+                  border: "none",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.03)";
+                  e.currentTarget.style.boxShadow =
+                    "0 10px 25px rgba(59, 130, 246, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "";
+                }}
+              >
+                <FaWhatsapp size={24} />
+                WhatsApp Internet
+              </a>
+            </div>
           </div>
         </div>
       </motion.section>

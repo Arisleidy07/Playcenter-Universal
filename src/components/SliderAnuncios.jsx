@@ -155,22 +155,56 @@ function SliderAnuncios() {
 
       {/* Botones de navegación */}
       <button
+        data-slider-nav
         onClick={handlePrev}
-        className="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-1.5 sm:p-3 z-20 transition"
         aria-label="Anterior"
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: window.innerWidth < 640 ? "8px" : "16px",
+          transform: "translateY(-50%)",
+          zIndex: 20,
+          cursor: "pointer",
+        }}
       >
-        <ChevronLeft className="text-white w-4 h-4 sm:w-6 sm:h-6" />
+        <ChevronLeft
+          size={window.innerWidth < 640 ? 28 : 36}
+          color="#ffffff"
+          strokeWidth={3}
+        />
       </button>
       <button
+        data-slider-nav
         onClick={handleNext}
-        className="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-1.5 sm:p-3 z-20 transition"
         aria-label="Siguiente"
+        style={{
+          position: "absolute",
+          top: "50%",
+          right: window.innerWidth < 640 ? "8px" : "16px",
+          transform: "translateY(-50%)",
+          zIndex: 20,
+          cursor: "pointer",
+        }}
       >
-        <ChevronRight className="text-white w-4 h-4 sm:w-6 sm:h-6" />
+        <ChevronRight
+          size={window.innerWidth < 640 ? 28 : 36}
+          color="#ffffff"
+          strokeWidth={3}
+        />
       </button>
 
       {/* Indicadores */}
-      <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+      <div
+        style={{
+          position: "absolute",
+          bottom: window.innerWidth < 640 ? "12px" : "24px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          gap: "8px",
+          zIndex: 20,
+        }}
+      >
         {anuncios.map((_, idx) => (
           <button
             key={idx}
@@ -179,11 +213,19 @@ function SliderAnuncios() {
               setIndex(idx);
             }}
             aria-label={`Ir al slide ${idx + 1}`}
-            className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${
-              idx === index
-                ? "bg-white opacity-90 scale-110"
-                : "bg-white opacity-40"
-            } transition`}
+            style={{
+              width: window.innerWidth < 640 ? "10px" : "12px",
+              height: window.innerWidth < 640 ? "10px" : "12px",
+              borderRadius: "50%",
+              backgroundColor:
+                idx === index ? "#ffffff" : "rgba(255, 255, 255, 0.4)",
+              opacity: idx === index ? 0.9 : 0.4,
+              transform: idx === index ? "scale(1.1)" : "scale(1)",
+              transition: "all 0.3s ease",
+              border: "none",
+              cursor: "pointer",
+              outline: "none",
+            }}
           />
         ))}
       </div>

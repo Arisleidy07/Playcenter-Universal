@@ -13,15 +13,15 @@
 
 /* TEMA OSCURO */
 html.dark-theme {
-  --bg-primary: #111827;
-  --bg-secondary: #1f2937;
-  --bg-tertiary: #374151;
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --bg-tertiary: #1e293b;
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
-  --border-color: #374151;
-  --card-bg: #1f2937;
-  --input-bg: #374151;
-  --hover-bg: #4b5563;
+  --border-color: #334155;
+  --card-bg: #1e293b;
+  --input-bg: #1e293b;
+  --hover-bg: #334155;
 }
 
 /* Aplicar tema a elementos generales */
@@ -81,12 +81,18 @@ html.dark-theme textarea::placeholder {
 }
 
 /* Botones */
-html.dark-theme button:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600) {
+html.dark-theme
+  button:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(
+    .bg-blue-600
+  ) {
   background-color: var(--bg-tertiary) !important;
   color: var(--text-primary) !important;
 }
 
-html.dark-theme button:hover:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600) {
+html.dark-theme
+  button:hover:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(
+    .bg-blue-600
+  ) {
   background-color: var(--hover-bg) !important;
 }
 
@@ -98,11 +104,16 @@ html.dark-theme .hover\:bg-gray-100:hover {
 
 /* Gradientes de fondo */
 html.dark-theme .bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #1f2937, #111827, #0f172a) !important;
+  background: linear-gradient(
+    to bottom right,
+    #000000,
+    #000000,
+    #000000
+  ) !important;
 }
 
 html.dark-theme .bg-gradient-to-r {
-  background: linear-gradient(to right, #1f2937, #111827) !important;
+  background: linear-gradient(to right, #000000, #000000) !important;
 }
 
 /* Rings */
@@ -113,7 +124,7 @@ html.dark-theme .ring-2 {
 
 /* Modales y dropdowns */
 html.dark-theme .bg-opacity-75 {
-  background-color: rgba(17, 24, 39, 0.75) !important;
+  background-color: rgba(0, 0, 0, 0.75) !important;
 }
 
 /* Scrollbars */

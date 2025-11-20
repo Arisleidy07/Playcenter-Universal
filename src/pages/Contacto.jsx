@@ -44,23 +44,21 @@ function Contacto() {
 
       {/* Main Content */}
       <div className="w-full max-w-4xl mx-auto relative">
+        {/* Toy Image - Only on desktop */}
+        <img
+          src="/toy/asoma.png"
+          alt="Muñeco asomándose"
+          className="hidden xl:block absolute -top-20 right-4 w-40 h-auto z-10 pointer-events-none"
+        />
+
         {/* Glass Card */}
         <div
-          className={`relative backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-xl border overflow-visible ${
+          className={`relative backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-xl border ${
             isDark
               ? "bg-gray-800/80 border-blue-500/30"
               : "bg-white/80 border-gray-200/50"
           }`}
         >
-          {/* Muñequito ASOMÁNDOSE - Posición corregida */}
-          <img
-            src="/toy/asoma.png"
-            alt="Muñeco asomándose"
-            className="hidden xl:block absolute -top-20 right-4 w-40 h-auto z-10 pointer-events-none"
-            style={{
-              filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))",
-            }}
-          />
           <div className="space-y-4 sm:space-y-6">
             <InfoItem
               icon={<FaMapMarkerAlt />}

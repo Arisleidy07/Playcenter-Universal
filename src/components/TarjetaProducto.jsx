@@ -168,13 +168,7 @@ function TarjetaProducto({ producto }) {
   return (
     <>
       {/* HORIZONTAL en móvil/tablet pequeño, VERTICAL en tablet grande/desktop */}
-      <article
-        className="card h-100 border-2 shadow-sm hover-lift hover-shadow"
-        style={{
-          backgroundColor: isDark ? "#1f2937" : "#ffffff",
-          borderColor: isDark ? "#374151" : "#e5e7eb",
-        }}
-      >
+      <article className="card h-100 border-2 shadow-sm hover-lift hover-shadow bg-white dark:bg-gray-800">
         {/* Imagen a la izquierda (móvil/tablet pequeño) o arriba (tablet grande/desktop) */}
         <div
           onClick={irADetalle}
@@ -185,10 +179,7 @@ function TarjetaProducto({ producto }) {
             width: "128px",
           }}
         >
-          <div
-            className="d-flex align-items-center justify-content-center w-100 h-100"
-            style={{ backgroundColor: isDark ? "#374151" : "#ffffff" }}
-          >
+          <div className="d-flex align-items-center justify-content-center w-100 h-100 bg-white dark:bg-gray-700">
             {imagen ? (
               <img
                 src={imagen}
@@ -198,10 +189,7 @@ function TarjetaProducto({ producto }) {
                 loading="lazy"
               />
             ) : (
-              <div
-                className="small"
-                style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-              >
+              <div className="small text-gray-600 dark:text-gray-400">
                 Sin imagen
               </div>
             )}
@@ -213,7 +201,7 @@ function TarjetaProducto({ producto }) {
           <div>
             <h3
               onClick={irADetalle}
-              className="card-title fw-semibold mb-2"
+              className="card-title fw-semibold mb-2 text-gray-900 dark:text-gray-100"
               style={{
                 cursor: "pointer",
                 display: "-webkit-box",
@@ -223,23 +211,16 @@ function TarjetaProducto({ producto }) {
                 lineHeight: "1.3em",
                 maxHeight: "2.6em",
                 fontSize: "clamp(0.875rem, 2vw, 1.125rem)",
-                color: isDark ? "#f9fafb" : "#111827",
               }}
             >
               {producto.nombre}
             </h3>
 
             <div className="d-flex align-items-baseline gap-1 mb-2">
-              <span
-                className="small"
-                style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-              >
+              <span className="small text-gray-600 dark:text-gray-400">
                 RD$
               </span>
-              <span
-                className="h5 fw-bold mb-0"
-                style={{ color: isDark ? "#f3f4f6" : "#111827" }}
-              >
+              <span className="h5 fw-bold mb-0 text-gray-900 dark:text-gray-100">
                 {Number(producto.precio).toFixed(2)}
               </span>
             </div>

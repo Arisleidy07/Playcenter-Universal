@@ -6,34 +6,50 @@
 .navbar {
   font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont,
     "Segoe UI", "Roboto", sans-serif;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-weight: 500;
+  background: white !important;
+  color: #111827 !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Tema oscuro para navbar */
+html.dark .navbar,
+html.dark-theme .navbar {
+  background: linear-gradient(
+    135deg,
+    #1e3a8a 0%,
+    #1e40af 50%,
+    #1e3a8a 100%
+  ) !important;
+  color: #f3f4f6 !important;
 }
 
 /* Layout grid para evitar recortes: logo | búsqueda (flexible) | acciones */
 .header-grid {
   display: grid;
-  grid-template-columns: auto minmax(220px, 1fr) auto;
-  gap: 0.75rem;
+  grid-template-columns: auto minmax(350px, 1fr) auto;
+  gap: 0.5rem;
   align-items: center;
   width: 100%;
 }
 
 /* Wrapper logo para evitar que sea recortado */
 .header-logo-wrap {
-  padding-right: 0.5rem;
+  padding-left: 0.5rem;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 /* Logo: sin degradado en dark theme (removido) */
 .play-logo {
-  height: 44px;
+  height: 36px;
   width: auto;
   object-fit: contain;
-  filter: none !important; /* aseguramos que no haya drop-shadow/degradado */
-  transition: transform 0.18s ease, filter 0.18s ease;
+  filter: none !important;
+  transition: transform 0.18s ease;
 }
 
 .play-logo.dark {
@@ -41,15 +57,14 @@
   filter: none !important;
 }
 
-/* Búsqueda flexible */
+/* Búsqueda flexible - más delgada pero larga */
 .header-search {
-  min-width: 160px;
-  max-width: 900px;
+  min-width: 350px;
+  max-width: 1400px;
   width: 100%;
   display: flex;
   align-items: center;
-  min-height: 40px;
-  min-width: 0; /* importante para permitir shrink */
+  min-height: 36px;
 }
 
 /* Acciones: permitir que el bloque se reduzca y que sus links hagan scroll si no caben */
@@ -58,68 +73,65 @@
   align-items: center;
   justify-content: flex-end;
   min-width: 0;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  padding-right: 0.5rem;
 }
 
 /* Contenedor de links: si no caben, scroll horizontal en lugar de cortar */
 .nav-links {
   display: flex;
-  gap: 6px;
+  gap: 0;
   align-items: center;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   min-width: 0;
-  padding-bottom: 2px;
+  padding: 0;
 }
 
 .nav-links::-webkit-scrollbar {
-  height: 6px;
-}
-.nav-links::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-  border-radius: 999px;
+  display: none;
 }
 
 /* Enlaces nav: evitar wrapping y permitir shrink correcto */
 .nav-link {
   color: inherit;
-  font-weight: 600;
-  font-size: 13px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  font-size: 9px;
+  padding: 3px 3px;
+  border-radius: 3px;
+  transition: all 0.15s ease;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
   flex: 0 0 auto;
   min-width: 0;
+  letter-spacing: 0;
 }
 
 /* Hover */
 .nav-link:hover {
-  background: rgba(59, 130, 246, 0.06);
+  background: rgba(59, 130, 246, 0.08);
   color: #3b82f6;
   text-decoration: none;
-  transform: translateY(-1px);
 }
 
 /* Botón admin y login */
 .admin-btn {
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 8px;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 5px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
-  margin-left: 0.5rem;
+  margin-left: 4px;
 }
 
 .login-btn {
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 8px;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 5px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
@@ -127,21 +139,22 @@
 
 /* Avatar */
 .user-avatar {
-  width: 40px;
-  height: 40px;
-  border: 2px solid rgba(59, 130, 246, 0.5);
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(59, 130, 246, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   overflow: hidden;
   background: var(--avatar-bg, #ffffff);
-  min-width: 40px;
+  min-width: 36px;
+  margin-left: 4px;
 }
 
 /* Iniciales si no hay foto */
 .user-initials {
-  font-size: 16px;
+  font-size: 14px;
   color: #ffffff;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
@@ -184,34 +197,130 @@
 /* Desktop: ajustamos grid para pantallas grandes */
 @media (min-width: 1280px) {
   .navbar {
-    height: 64px !important;
-    padding: 0.75rem 1.5rem !important;
+    height: 60px !important;
+    padding: 0.5rem 0 !important;
   }
 
-  /* El logo no tiene min/max fijos que rompan el layout */
-  .navbar-brand {
-    padding-right: 1rem !important;
-    margin-right: 0.5rem !important;
+  .header-grid {
+    gap: 0.75rem;
   }
 
   /* La búsqueda es flexible y puede crecer hasta ocupar el espacio disponible */
   .header-search {
-    min-width: 240px;
-    max-width: 900px;
+    min-width: 450px;
+    max-width: 1400px;
   }
 
   .nav-link {
-    font-size: 13px;
-    padding: 6px 10px;
+    font-size: 9px;
+    padding: 3px 3px;
+  }
+}
+
+/* Responsive para tablets */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .navbar {
+    height: 56px !important;
+  }
+
+  .header-search {
+    min-width: 250px;
   }
 }
 
 /* Pequeñas mejoras visuales para tema oscuro */
 html.dark-theme .nav-link:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
 }
 
-/* Legacy classes kept for compatibility if other parts rely on them */
-.navbar .navbar-brand a {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Método de entrega compacto */
+.delivery-btn {
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #374151;
+}
+
+html.dark .delivery-btn,
+html.dark-theme .delivery-btn {
+  background: rgba(30, 58, 138, 0.3);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #e5e7eb;
+}
+
+.delivery-btn:hover {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Ícono del botón hamburguesa */
+.hamburger-icon {
+  color: #111827;
+  transition: color 0.3s ease;
+}
+
+html.dark .hamburger-icon,
+html.dark-theme .hamburger-icon {
+  color: #f3f4f6;
+}
+
+/* Ícono de delivery */
+.delivery-icon {
+  color: #3b82f6;
+  transition: color 0.3s ease;
+}
+
+html.dark .delivery-icon,
+html.dark-theme .delivery-icon {
+  color: #60a5fa;
+}
+
+/* Ícono del carrito */
+.cart-icon {
+  stroke: #374151;
+  transition: stroke 0.3s ease;
+}
+
+html.dark .cart-icon,
+html.dark-theme .cart-icon {
+  stroke: #e5e7eb;
+}
+
+/* Link del carrito */
+.cart-link {
+  color: #374151;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+html.dark .cart-link,
+html.dark-theme .cart-link {
+  color: #e5e7eb;
+}
+
+.cart-link:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+html.dark .cart-link:hover,
+html.dark-theme .cart-link:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+html.dark .cart-link:hover .cart-icon,
+html.dark-theme .cart-link:hover .cart-icon {
+  stroke: #60a5fa;
+}
+
+/* Animaciones suaves */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

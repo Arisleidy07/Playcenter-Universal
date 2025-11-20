@@ -27,7 +27,7 @@ body {
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-gradient: linear-gradient(to bottom right, #eef2ff, #ffffff, #dbeafe);
-  --text-primary: #1e293b;
+  --text-primary: #000000;
   --text-secondary: #64748b;
   --text-muted: #94a3b8;
   --border-color: #e2e8f0;
@@ -47,15 +47,15 @@ body {
 :root.dark-theme {
   --bg-primary: #000000;
   --bg-secondary: #000000;
-  --bg-gradient: linear-gradient(135deg, #1e293b, #111827);
+  --bg-gradient: linear-gradient(135deg, #000000, #000000);
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-  --border-color: #334155;
+  --border-color: #333333;
   --shadow: rgba(0, 0, 0, 0.5);
   --shadow-lg: rgba(0, 0, 0, 0.7);
-  --card-bg: linear-gradient(135deg, #1f2937, #374151);
-  --card-hover: #1a1a1a;
+  --card-bg: #1a1a1a;
+  --card-hover: #2a2a2a;
   --accent-primary: #ffc107;
   --accent-secondary: #ffd54f;
   --header-bg: rgba(0, 0, 0, 0.95);
@@ -66,16 +66,32 @@ body {
 }
 
 /* Aplicar colores del tema */
-html.light-theme,
-html.light-theme body {
-  background: var(--bg-gradient);
-  color: var(--text-primary);
+html,
+body {
+  background: #ffffff;
+  color: #1e293b;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* FONDO NEGRO PURO - ABSOLUTO #000000 */
+html.dark,
+html.dark body,
 html.dark-theme,
 html.dark-theme body {
-  background: #111827;
-  color: var(--text-primary);
+  background: #000000 !important;
+  background-color: #000000 !important;
+  color: #f1f5f9 !important;
+}
+
+#root {
+  background: transparent;
+  min-height: 100vh;
+}
+
+html.dark #root,
+html.dark-theme #root {
+  background: #000000 !important;
+  background-color: #000000 !important;
 }
 
 /* Forzar colores correctos de botones en dark mode */
@@ -127,6 +143,133 @@ html.dark-theme .hover\:bg-blue-700:hover {
 html.dark .bg-transparent,
 html.dark-theme .bg-transparent {
   background-color: transparent !important;
+}
+
+/* ELIMINADAS LAS REGLAS GLOBALES DE TARJETAS Y BG-GRAY - Cada elemento tiene su propio estilo */
+
+/* Scroll horizontal para segundo header - entre 1052px y 1604px */
+@media (min-width: 1052px) and (max-width: 1604px) {
+  .d-none.d-lg-block {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+  }
+
+  .d-none.d-lg-block::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .d-none.d-lg-block::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .d-none.d-lg-block::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 3px;
+  }
+
+  .d-none.d-lg-block::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* Textos en tema oscuro */
+html.dark .text-gray-900,
+html.dark-theme .text-gray-900 {
+  color: #f9fafb !important;
+}
+
+html.dark .text-gray-800,
+html.dark-theme .text-gray-800 {
+  color: #f3f4f6 !important;
+}
+
+html.dark .text-gray-700,
+html.dark-theme .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+html.dark .text-gray-600,
+html.dark-theme .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+html.dark .text-gray-500,
+html.dark-theme .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+html.dark .text-gray-400,
+html.dark-theme .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+/* Bordes en tema oscuro */
+html.dark .border-gray-200,
+html.dark-theme .border-gray-200 {
+  border-color: #333333 !important;
+}
+
+html.dark .border-gray-300,
+html.dark-theme .border-gray-300 {
+  border-color: #444444 !important;
+}
+
+/* Sombras en tema oscuro */
+html.dark .shadow,
+html.dark .shadow-sm,
+html.dark .shadow-md,
+html.dark-theme .shadow,
+html.dark-theme .shadow-sm,
+html.dark-theme .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* SearchBar y sugerencias en tema oscuro */
+html.dark .search-dropdown-scroll,
+html.dark-theme .search-dropdown-scroll {
+  background-color: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+/* Dropdown de categorías en tema oscuro */
+html.dark .absolute.top-full,
+html.dark-theme .absolute.top-full {
+  background-color: #1a1a1a !important;
+}
+
+/* Opciones del dropdown */
+html.dark .hover\:bg-gray-50:hover,
+html.dark-theme .hover\:bg-gray-50:hover {
+  background-color: #2a2a2a !important;
+}
+
+html.dark .bg-blue-50,
+html.dark-theme .bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.5) !important;
+}
+
+/* Botón de categoría seleccionada en SearchBar */
+html.dark button.bg-blue-50,
+html.dark-theme button.bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.7) !important;
+  color: #93c5fd !important;
+}
+
+html.dark button.text-blue-700,
+html.dark-theme button.text-blue-700 {
+  color: #93c5fd !important;
+}
+
+/* RESETEAR COMPLETAMENTE botones dentro del slider - NO deben ser afectados por dark mode */
+[data-slider-nav] {
+  all: unset !important;
+  cursor: pointer !important;
+}
+
+[data-slider-nav] svg {
+  color: #ffffff !important;
+  stroke: currentColor !important;
 }
 
 /* Forzar que todo esté pegado al topbar */
@@ -378,8 +521,8 @@ aside[aria-label="Categorías"] {
 
 /* Dark mode para sidebar */
 .dark aside[aria-label="Categorías"] {
-  background: #1e293b;
-  border-color: #334155;
+  background: #000000;
+  border-color: #333333;
 }
 
 @keyframes fadeIn {

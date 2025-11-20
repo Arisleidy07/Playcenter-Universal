@@ -35,11 +35,17 @@
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: linear-gradient(135deg, #1e293b, #111827);
+  background: white;
   z-index: 9999999 !important;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+html.dark .entrega-slider,
+html.dark-theme .entrega-slider {
+  background: linear-gradient(135deg, #1e293b, #111827);
 }
 
 .entrega-slider-content {
@@ -91,12 +97,24 @@
   color: #1f2937;
   margin: 0;
   line-height: 1.2;
+  transition: color 0.3s ease;
+}
+
+html.dark .entrega-title,
+html.dark-theme .entrega-title {
+  color: #f9fafb;
 }
 
 .entrega-subtitle {
   font-size: 14px;
   color: var(--muted);
   margin: 4px 0 0;
+  transition: color 0.3s ease;
+}
+
+html.dark .entrega-subtitle,
+html.dark-theme .entrega-subtitle {
+  color: #9ca3af;
 }
 
 .entrega-close-btn {
@@ -114,10 +132,22 @@
   height: 56px;
 }
 
+html.dark .entrega-close-btn,
+html.dark-theme .entrega-close-btn {
+  background: #374151;
+  color: #9ca3af;
+}
+
 .entrega-close-btn:hover {
   background: #e5e7eb;
   color: #374151;
   transform: scale(1.05);
+}
+
+html.dark .entrega-close-btn:hover,
+html.dark-theme .entrega-close-btn:hover {
+  background: #4b5563;
+  color: #e5e7eb;
 }
 
 .entrega-close-btn svg {
@@ -145,6 +175,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-sm);
+}
+
+html.dark .method-card,
+html.dark-theme .method-card {
+  background: #1f2937;
+  border-color: #374151;
 }
 
 .method-card:hover {
@@ -188,12 +224,24 @@
   font-weight: 700;
   color: #1f2937;
   margin: 0 0 4px;
+  transition: color 0.3s ease;
+}
+
+html.dark .method-title,
+html.dark-theme .method-title {
+  color: #f9fafb;
 }
 
 .method-desc {
   font-size: 13px;
   color: var(--muted);
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+html.dark .method-desc,
+html.dark-theme .method-desc {
+  color: #9ca3af;
 }
 
 .method-check {
@@ -333,6 +381,12 @@
   font-size: 14px;
   font-weight: 600;
   color: #374151;
+  transition: color 0.3s ease;
+}
+
+html.dark .form-label,
+html.dark-theme .form-label {
+  color: #e5e7eb;
 }
 
 .form-input {
@@ -342,6 +396,14 @@
   font-size: 14px;
   transition: all 0.2s ease;
   background: white;
+  color: #111827;
+}
+
+html.dark .form-input,
+html.dark-theme .form-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
 }
 
 .form-input:focus {
@@ -350,8 +412,19 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+html.dark .form-input:focus,
+html.dark-theme .form-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
 .form-input::placeholder {
   color: #9ca3af;
+}
+
+html.dark .form-input::placeholder,
+html.dark-theme .form-input::placeholder {
+  color: #6b7280;
 }
 
 .province-selector {
@@ -367,6 +440,12 @@
   transition: all 0.2s ease;
 }
 
+html.dark .province-selector,
+html.dark-theme .province-selector {
+  background: #374151;
+  border-color: #4b5563;
+}
+
 .province-selector:hover {
   border-color: var(--accent-light);
 }
@@ -374,10 +453,21 @@
 .province-text {
   font-size: 14px;
   color: #374151;
+  transition: color 0.3s ease;
+}
+
+html.dark .province-text,
+html.dark-theme .province-text {
+  color: #f9fafb;
 }
 
 .province-text.placeholder {
   color: #9ca3af;
+}
+
+html.dark .province-text.placeholder,
+html.dark-theme .province-text.placeholder {
+  color: #6b7280;
 }
 
 .province-chevron {
@@ -502,6 +592,12 @@
   font-weight: 700;
   color: #1f2937;
   margin: 0 0 20px;
+  transition: color 0.3s ease;
+}
+
+html.dark .saved-title,
+html.dark-theme .saved-title {
+  color: #f9fafb;
 }
 
 .loading-state {
@@ -524,6 +620,12 @@
   margin-bottom: 12px;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
+}
+
+html.dark .address-card,
+html.dark-theme .address-card {
+  background: #1f2937;
+  border-color: #374151;
 }
 
 .address-card:hover {
@@ -560,6 +662,12 @@
   font-weight: 700;
   color: #1f2937;
   margin: 0 0 4px;
+  transition: color 0.3s ease;
+}
+
+html.dark .address-name,
+html.dark-theme .address-name {
+  color: #f9fafb;
 }
 
 .address-details {
@@ -567,6 +675,12 @@
   color: var(--muted);
   margin: 0 0 8px;
   line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+html.dark .address-details,
+html.dark-theme .address-details {
+  color: #9ca3af;
 }
 
 .address-map-link {

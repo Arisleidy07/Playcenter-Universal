@@ -2132,110 +2132,99 @@ export default function Profile() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 rounded-2xl overflow-hidden shadow-lg border-2 border-blue-200">
-                      {miTienda.banner && (
-                        <div className="w-full h-32 md:h-48 bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
-                          <img
-                            src={miTienda.banner}
-                            alt={`Banner de ${miTienda.nombre}`}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      )}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    {miTienda.banner && (
+                      <div className="w-full h-40 md:h-56 bg-gray-100 overflow-hidden">
+                        <img
+                          src={miTienda.banner}
+                          alt={`Banner de ${miTienda.nombre}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
 
-                      <div className="p-6 md:p-8">
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6">
-                          {miTienda.logo && (
-                            <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-full shadow-lg border-4 border-white flex-shrink-0 overflow-hidden">
-                              <img
-                                src={miTienda.logo}
-                                alt={`Logo de ${miTienda.nombre}`}
-                                className="w-full h-full object-contain p-2"
-                              />
-                            </div>
-                          )}
+                    <div className="p-6 md:p-8">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+                        {miTienda.logo && (
+                          <div
+                            className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-lg shadow-sm flex-shrink-0 overflow-hidden flex items-center justify-center"
+                            style={{ border: "1px solid rgba(0, 0, 0, 0.08)" }}
+                          >
+                            <img
+                              src={miTienda.logo}
+                              alt={`Logo de ${miTienda.nombre}`}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "contain",
+                                padding: "8px",
+                              }}
+                            />
+                          </div>
+                        )}
 
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
-                                {miTienda.nombre}
-                              </h3>
-                              {(miTienda.principal ||
-                                miTienda.es_admin ||
-                                usuarioInfo?.es_admin) && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg">
-                                  <span>DUEÑA</span>
-                                </span>
-                              )}
-                            </div>
-                            {miTienda.descripcion && (
-                              <p className="text-gray-700 text-base">
-                                {miTienda.descripcion}
-                              </p>
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                              {miTienda.nombre}
+                            </h3>
+                            {(miTienda.principal ||
+                              miTienda.es_admin ||
+                              usuarioInfo?.es_admin) && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 bg-gray-900 text-white text-xs font-semibold rounded">
+                                DUEÑA
+                              </span>
                             )}
                           </div>
+                          {miTienda.descripcion && (
+                            <p className="text-gray-600 text-sm md:text-base">
+                              {miTienda.descripcion}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Package size={18} className="text-gray-700" />
+                            <p className="text-sm font-medium text-gray-700">
+                              Productos
+                            </p>
+                          </div>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {stats.publicaciones}
+                          </p>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-                            <div className="flex items-center justify-center gap-2 text-blue-600 mb-1">
-                              <Package size={20} />
-                            </div>
-                            <p className="text-2xl font-bold text-gray-900">
-                              {stats.publicaciones}
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Users size={18} className="text-gray-700" />
+                            <p className="text-sm font-medium text-gray-700">
+                              Seguidores
                             </p>
-                            <p className="text-xs text-gray-600">Productos</p>
                           </div>
-
-                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-                            <div className="flex items-center justify-center gap-2 text-green-600 mb-1">
-                              <Users size={20} />
-                            </div>
-                            <p className="text-2xl font-bold text-gray-900">
-                              {miTienda.seguidores || 0}
-                            </p>
-                            <p className="text-xs text-gray-600">Seguidores</p>
-                          </div>
-
-                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-                            <div className="flex items-center justify-center gap-2 text-purple-600 mb-1">
-                              <TrendingUp size={20} />
-                            </div>
-                            <p className="text-2xl font-bold text-gray-900">
-                              {miTienda.ventas || 0}
-                            </p>
-                            <p className="text-xs text-gray-600">Ventas</p>
-                          </div>
-
-                          <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-                            <div className="flex items-center justify-center gap-2 text-yellow-600 mb-1">
-                              <Star size={20} />
-                            </div>
-                            <p className="text-2xl font-bold text-gray-900">
-                              {miTienda.valoracion_promedio?.toFixed(1) ||
-                                "5.0"}
-                            </p>
-                            <p className="text-xs text-gray-600">Rating</p>
-                          </div>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {miTienda.seguidores || 0}
+                          </p>
                         </div>
+                      </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <button
-                            className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:scale-105 font-semibold shadow-md flex items-center justify-center gap-2"
-                            onClick={() => navigate("/admin")}
-                          >
-                            <BarChart size={20} />
-                            Gestionar productos
-                          </button>
-                          <Link
-                            to={`/tiendas/${miTienda.id}`}
-                            className="w-full px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all hover:scale-105 font-semibold flex items-center justify-center gap-2"
-                          >
-                            <Store size={20} />
-                            Ver página pública
-                          </Link>
-                        </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          className="w-full px-5 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center justify-center gap-2"
+                          onClick={() => navigate("/admin")}
+                        >
+                          <BarChart size={18} />
+                          Gestionar productos
+                        </button>
+                        <Link
+                          to={`/tiendas/${miTienda.id}`}
+                          className="w-full px-5 py-3 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center gap-2"
+                        >
+                          <Store size={18} />
+                          Ver tienda
+                        </Link>
                       </div>
                     </div>
                   </div>

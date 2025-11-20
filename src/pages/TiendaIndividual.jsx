@@ -743,9 +743,7 @@ export default function TiendaIndividual() {
                     ) : (
                       <>
                         <UserPlus size={14} />
-                        <span>
-                          {usuario ? "Seguir" : "Seguir "}
-                        </span>
+                        <span>{usuario ? "Seguir" : "Seguir "}</span>
                       </>
                     )}
                   </button>
@@ -890,27 +888,28 @@ export default function TiendaIndividual() {
               {/* Búsqueda móvil */}
               <div className="position-relative w-100">
                 <Search
-                  className="position-absolute start-0 top-50 translate-middle-y text-muted ms-3"
-                  size={20}
+                  className="position-absolute start-0 top-50 translate-middle-y text-muted ms-2"
+                  size={16}
                 />
                 <input
                   type="text"
-                  placeholder="Buscar productos..."
+                  placeholder="Buscar..."
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
-                  className="form-control form-control-lg rounded-3 ps-5 pe-5 shadow-sm border-2"
+                  className="form-control form-control-sm rounded-2 ps-4 pe-4 shadow-sm"
                   style={{
-                    paddingLeft: "3rem",
-                    paddingRight: busqueda ? "3rem" : "1rem",
+                    paddingLeft: "2.25rem",
+                    paddingRight: busqueda ? "2.25rem" : "0.75rem",
+                    fontSize: "0.875rem",
                   }}
                 />
                 {busqueda && (
                   <button
                     onClick={() => setBusqueda("")}
-                    className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted me-2 p-1"
+                    className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted me-1 p-1"
                     style={{ border: "none" }}
                   >
-                    <X size={20} />
+                    <X size={16} />
                   </button>
                 )}
               </div>
@@ -918,14 +917,15 @@ export default function TiendaIndividual() {
               {/* Botón para abrir modal de categorías móvil */}
               <button
                 onClick={() => setShowCategoryModal(true)}
-                className="btn btn-outline-secondary btn-lg d-flex align-items-center justify-content-between w-100 rounded-3 shadow-sm"
+                className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-between w-100 rounded-2 shadow-sm"
+                style={{ fontSize: "0.875rem", padding: "0.5rem 0.75rem" }}
               >
-                <span className="fw-semibold">
+                <span className="fw-medium">
                   {categoriaSeleccionada === "todas"
-                    ? "Todas las categorías"
+                    ? "Todas"
                     : categoriaSeleccionada}
                 </span>
-                <ChevronRight size={20} className="text-muted" />
+                <ChevronRight size={16} className="text-muted" />
               </button>
             </div>
           </div>
@@ -1890,7 +1890,7 @@ export default function TiendaIndividual() {
         <div
           className="lg:hidden fixed inset-0 z-[99999] flex flex-col"
           style={{
-            backgroundColor: isDarkMode
+            backgroundColor: isDark
               ? "#111827 !important"
               : "#ffffff !important",
             opacity: "1 !important",
@@ -1905,32 +1905,32 @@ export default function TiendaIndividual() {
         >
           {/* Header */}
           <div
-            className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex items-center justify-between"
+            className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center justify-between"
             style={{
-              backgroundColor: isDarkMode ? "#111827" : "#ffffff",
+              backgroundColor: isDark ? "#111827" : "#ffffff",
               opacity: 1,
             }}
           >
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">
               Categorías
             </h2>
             <button
               onClick={() => setShowCategoryModal(false)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
-              <X size={24} className="text-gray-500 dark:text-gray-400" />
+              <X size={20} className="text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
           {/* Lista de categorías */}
           <div
-            className="flex-1 overflow-y-auto px-4 py-6"
+            className="flex-1 overflow-y-auto px-3 py-3"
             style={{
-              backgroundColor: isDarkMode ? "#111827" : "#ffffff",
+              backgroundColor: isDark ? "#111827" : "#ffffff",
               opacity: 1,
             }}
           >
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {categorias.map((categoria, index) => (
                 <button
                   key={categoria}
@@ -1938,19 +1938,19 @@ export default function TiendaIndividual() {
                     setCategoriaSeleccionada(categoria);
                     setShowCategoryModal(false);
                   }}
-                  className={`w-full text-left px-6 py-5 rounded-2xl transition-all duration-200 flex items-center justify-between ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-between ${
                     categoriaSeleccionada === categoria
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl scale-[1.02]"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
                       : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700"
                   }`}
                   style={{ opacity: 1 }}
                 >
-                  <span className="font-bold text-lg">
-                    {categoria === "todas" ? "Todas las categorías" : categoria}
+                  <span className="font-semibold text-sm">
+                    {categoria === "todas" ? "Todas" : categoria}
                   </span>
                   {categoriaSeleccionada === categoria && (
-                    <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md">
-                      <div className="w-3.5 h-3.5 bg-blue-600 rounded-full" />
+                    <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
+                      <div className="w-2.5 h-2.5 bg-blue-600 rounded-full" />
                     </div>
                   )}
                 </button>
@@ -1960,14 +1960,14 @@ export default function TiendaIndividual() {
 
           {/* Footer con información */}
           <div
-            className="flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-3"
+            className="flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 py-2"
             style={{
-              backgroundColor: isDarkMode ? "#1f2937" : "#f9fafb",
+              backgroundColor: isDark ? "#1f2937" : "#f9fafb",
               opacity: 1,
             }}
           >
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              {productos.length} productos disponibles
+              {productos.length} productos
             </p>
           </div>
         </div>

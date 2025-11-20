@@ -12,7 +12,7 @@ import "./Header.css";
 const Header = () => {
   const { usuario, usuarioInfo, logout } = useAuth();
   const { setModalAbierto } = useAuthModal();
-  const { isDark } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const buscarInputRef = useRef(null);
   const navigate = useNavigate();
   const lastScrollY = useRef(0);
@@ -100,374 +100,789 @@ const Header = () => {
 
   return (
     <>
-      <motion.header
-        initial={{ y: -80, opacity: 0 }}
+      {/* ESTRUCTURA DE 2 HEADERS COMO AMAZON */}
+      <motion.div
+        initial={{ y: -200, opacity: 0 }}
         animate={{
-          y: isDesktop && !headerVisible ? -80 : 0,
+          y: isDesktop && !headerVisible ? -200 : 0,
           opacity: isDesktop && !headerVisible ? 0 : 1,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="navbar navbar-expand-xl fixed-top"
+        className="fixed-top"
         style={{
-          background: isDark
-            ? "linear-gradient(135deg, rgba(17, 24, 39, 0.98) 0%, rgba(31, 41, 55, 0.98) 100%)"
-            : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 250, 251, 0.98) 100%)",
-          backdropFilter: "blur(20px) saturate(180%)",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
-          borderBottom: isDark
-            ? "1px solid rgba(59, 130, 246, 0.15)"
-            : "1px solid rgba(59, 130, 246, 0.12)",
-          boxShadow: isDark
-            ? "0 4px 32px rgba(0, 0, 0, 0.5), 0 0 48px rgba(59, 130, 246, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-            : "0 2px 24px rgba(0, 0, 0, 0.08), 0 0 48px rgba(59, 130, 246, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
           zIndex: 9999,
           pointerEvents: isDesktop && !headerVisible ? "none" : "auto",
-          paddingLeft: isDesktop ? "1.5rem" : "0",
-          paddingRight: isDesktop ? "1.5rem" : "0",
-          paddingTop: "0.75rem",
-          paddingBottom: "0.75rem",
-          height: "64px",
         }}
       >
-        <div className="container-fluid">
-          <div className="d-flex align-items-center justify-content-between w-100">
-            {/* Buscador solo móvil/tablet - Más pequeño */}
-            <div
-              id="search-bar-container"
-              className="flex-grow-1 px-0 d-lg-none"
-            >
-              <SearchBar
-                onClose={() => {}}
-                ref={buscarInputRef}
-                placeholder="Buscar en pcu.com.do"
-              />
-            </div>
-
-            {/* Botón menú hamburguesa - responsive */}
-            <button
-              onClick={() => setMenuOpen(true)}
-              className="navbar-toggler d-lg-none btn btn-outline-secondary rounded-3"
-              type="button"
-              aria-label="Abrir menú"
-              style={{
-                height: "40px",
-                padding: "0 12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <svg
-                className="text-dark"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        {/* 1. HEADER PRINCIPAL (GRANDE) - ARRIBA DEL TODO */}
+        <header
+          className="navbar navbar-expand-xl"
+          style={{
+            background: isDark
+              ? "linear-gradient(135deg, rgba(17, 24, 39, 0.98) 0%, rgba(31, 41, 55, 0.98) 100%)"
+              : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 250, 251, 0.98) 100%)",
+            backdropFilter: "blur(20px) saturate(180%)",
+            WebkitBackdropFilter: "blur(20px) saturate(180%)",
+            borderBottom: isDark
+              ? "1px solid rgba(59, 130, 246, 0.15)"
+              : "1px solid rgba(59, 130, 246, 0.12)",
+            boxShadow: isDark
+              ? "0 4px 32px rgba(0, 0, 0, 0.5), 0 0 48px rgba(59, 130, 246, 0.08)"
+              : "0 2px 24px rgba(0, 0, 0, 0.08), 0 0 48px rgba(59, 130, 246, 0.05)",
+            paddingLeft: "0",
+            paddingRight: "0",
+            paddingTop: "0.75rem",
+            paddingBottom: "0.75rem",
+            height: "64px",
+          }}
+        >
+          <div className="container-fluid">
+            <div className="d-flex align-items-center justify-content-between w-100">
+              {/* Buscador solo móvil/tablet - Más pequeño */}
+              <div
+                id="search-bar-container"
+                className="flex-grow-1 px-0 d-lg-none"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
+                <SearchBar
+                  onClose={() => {}}
+                  ref={buscarInputRef}
+                  placeholder="Buscar en pcu.com.do"
                 />
-              </svg>
-            </button>
+              </div>
 
-            {/* Header completo - responsive */}
-            <div className="navbar-collapse d-none d-lg-flex w-100 align-items-center justify-content-between">
-              <div className="header-grid w-100">
-                {/* Logo */}
-                <div
-                  className="navbar-brand d-flex align-items-center header-logo-wrap"
-                  style={{
-                    paddingRight: "0.5rem",
-                    display: "flex",
-                    alignItems: "center",
-                    minWidth: "0",
-                  }}
+              {/* Botón menú hamburguesa - responsive */}
+              <button
+                onClick={() => setMenuOpen(true)}
+                className="navbar-toggler d-lg-none btn btn-outline-secondary rounded-3"
+                type="button"
+                aria-label="Abrir menú"
+                style={{
+                  height: "40px",
+                  padding: "0 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg
+                  className="hamburger-icon"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <Link
-                    to="/"
-                    className="d-flex align-items-center logo-link"
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+
+              {/* Header completo - responsive */}
+              <div className="navbar-collapse d-none d-lg-flex w-100 align-items-center justify-content-between">
+                <div className="header-grid w-100">
+                  {/* Logo + Método de Entrega */}
+                  <div
+                    className="d-flex align-items-center gap-2"
                     style={{
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      padding: "8px 12px",
-                      borderRadius: "10px",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "scale(1.05)";
-                      e.currentTarget.style.background = isDark
-                        ? "rgba(59, 130, 246, 0.08)"
-                        : "rgba(59, 130, 246, 0.05)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.background = "transparent";
+                      paddingLeft: "0.5rem",
+                      minWidth: "0",
                     }}
                   >
-                    <img
-                      src="/Playlogo.png"
-                      alt="Playcenter Universal"
-                      className="img-fluid play-logo"
+                    <Link
+                      to="/"
+                      className="d-flex align-items-center"
                       style={{
-                        height: "44px",
-                        width: "auto",
-                        objectFit: "contain",
-                        filter: "none", // eliminado drop-shadow/degradado en dark
-                      }}
-                    />
-                  </Link>
-                </div>
-
-                {/* Buscador central — flexible */}
-                <div
-                  className="header-search"
-                  style={{
-                    minWidth: "160px",
-                    maxWidth: "900px",
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    minHeight: "40px",
-                    minWidth: "0",
-                  }}
-                >
-                  <SearchBar
-                    onClose={() => {}}
-                    ref={buscarInputRef}
-                    placeholder="Buscar en pcu.com.do"
-                  />
-                </div>
-
-                {/* Acciones / links — puedes scrollear si no caben */}
-                <div
-                  className="header-actions"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    minWidth: "0",
-                    gap: "0.5rem",
-                  }}
-                >
-                  <nav className="navbar-nav d-flex flex-row align-items-center">
-                    <div
-                      className="d-flex align-items-center nav-links"
-                      style={{
-                        gap: "4px",
-                        paddingLeft: "1rem",
-                        display: "flex",
-                        alignItems: "center",
-                        overflowX: "auto",
-                        WebkitOverflowScrolling: "touch",
-                        minWidth: "0",
-                        paddingBottom: "2px",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        padding: "0",
                       }}
                     >
-                      <Link
-                        to="/"
-                        className="nav-link text-decoration-none rounded"
+                      <img
+                        src="/Playlogo.png"
+                        alt="Playcenter Universal"
+                        className="img-fluid"
                         style={{
-                          color: isDark ? "#f3f4f6" : "#374151",
-                          fontSize: "13px",
-                          padding: "6px 10px",
-                          fontWeight: "500",
-                          transition: "all 0.2s ease",
+                          height: "36px",
+                          width: "auto",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </Link>
+
+                    {/* Método de entrega al lado del logo */}
+                    {usuario && (
+                      <button
+                        onClick={() => setModalEntrega(true)}
+                        className="btn btn-sm delivery-btn d-flex align-items-center gap-1"
+                        style={{
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        Inicio
-                      </Link>
-                      <Link
-                        to="/categorias"
-                        className="nav-link text-decoration-none rounded"
-                        style={{
-                          color: isDark ? "#f3f4f6" : "#374151",
-                          fontSize: "13px",
-                          padding: "6px 10px",
-                          fontWeight: "500",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Categorías
-                      </Link>
-                      <Link
-                        to="/tiendas"
-                        className="nav-link text-decoration-none rounded"
-                        style={{
-                          color: isDark ? "#f3f4f6" : "#374151",
-                          fontSize: "13px",
-                          padding: "6px 10px",
-                          fontWeight: "500",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Tiendas
-                      </Link>
-                      <Link
-                        to="/vender"
-                        className="nav-link text-decoration-none rounded"
-                        style={{
-                          color: isDark ? "#f3f4f6" : "#374151",
-                          fontSize: "13px",
-                          padding: "6px 10px",
-                          fontWeight: "500",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Vender
-                      </Link>
-                      <Link
-                        to="/nosotros"
-                        className="nav-link text-decoration-none rounded"
-                        style={{
-                          color: isDark ? "#f3f4f6" : "#374151",
-                          fontSize: "13px",
-                          padding: "6px 10px",
-                          fontWeight: "500",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Nosotros
-                      </Link>
-                      <Link
-                        to="/contacto"
-                        className="nav-link text-decoration-none rounded"
-                        style={{
-                          color: isDark ? "#f3f4f6" : "#374151",
-                          fontSize: "13px",
-                          padding: "6px 10px",
-                          fontWeight: "500",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Contacto
-                      </Link>
-                      <Link
-                        to="/estafetas"
-                        className="nav-link text-decoration-none rounded"
-                        style={{
-                          color: isDark ? "#f3f4f6" : "#374151",
-                          fontSize: "13px",
-                          padding: "6px 10px",
-                          fontWeight: "500",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Estafetas
-                      </Link>
+                        <FaMapMarkerAlt size={10} className="delivery-icon" />
+                        <div style={{ textAlign: "left", lineHeight: "1.1" }}>
+                          <div style={{ fontSize: "9px", opacity: 0.7 }}>
+                            Enviar a
+                          </div>
+                          <div style={{ fontSize: "10px", fontWeight: "600" }}>
+                            {entregaSubtitle.length > 15
+                              ? entregaSubtitle.substring(0, 15) + "..."
+                              : entregaSubtitle}
+                          </div>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Buscador central - GIGANTE */}
+                  <div
+                    className="header-search"
+                    style={{
+                      maxWidth: "1600px",
+                      width: "100%",
+                      flex: "1 1 auto",
+                      display: "flex",
+                      alignItems: "center",
+                      minHeight: "42px",
+                      overflow: "visible",
+                    }}
+                  >
+                    <SearchBar
+                      onClose={() => {}}
+                      ref={buscarInputRef}
+                      placeholder="Buscar en pcu.com.do"
+                    />
+                  </div>
+
+                  {/* Acciones - Solo Carrito y Perfil */}
+                  <div
+                    className="header-actions"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      minWidth: "0",
+                      gap: "0.75rem",
+                      paddingRight: "0.5rem",
+                    }}
+                  >
+                    <nav className="navbar-nav d-flex flex-row align-items-center gap-2">
+                      {/* Carrito con ícono SVG */}
                       <Link
                         to="/carrito"
-                        className="nav-link text-decoration-none rounded d-flex align-items-center justify-content-center"
+                        className="text-decoration-none d-flex align-items-center justify-content-center"
                         style={{
-                          fontSize: "18px",
-                          padding: "6px 10px",
-                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                          padding: "6px",
+                          transition: "all 0.15s ease",
                         }}
                       >
-                        🛒
+                        <svg
+                          width="24"
+                          height="24"
+                          fill="none"
+                          className="cart-icon"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                          />
+                        </svg>
                       </Link>
-                    </div>
-                    {(usuarioInfo?.isAdmin ||
-                      usuarioInfo?.isSeller ||
-                      usuarioInfo?.empresa ||
-                      usuarioInfo?.empresaId) && (
-                      <Link
-                        to="/admin"
-                        className="btn btn-sm ms-3"
-                        style={{
-                          fontSize: "12px",
-                          padding: "6px 14px",
-                          background:
-                            "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                          border: "none",
-                          color: "#ffffff",
-                          fontWeight: "600",
-                          borderRadius: "8px",
-                          boxShadow: isDark
-                            ? "0 4px 12px rgba(59, 130, 246, 0.35)"
-                            : "0 3px 10px rgba(59, 130, 246, 0.25)",
-                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                        }}
-                      >
-                        Admin
-                      </Link>
-                    )}
-                    {usuario ? (
-                      <motion.div
-                        className="position-relative"
-                        style={{ marginLeft: "12px" }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Link to="/profile" className="text-decoration-none">
-                          <div
-                            className="rounded-circle overflow-hidden d-flex align-items-center justify-content-center"
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              border: "2px solid rgba(59, 130, 246, 0.5)",
-                              boxShadow: isDark
-                                ? "0 0 16px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 12px rgba(59, 130, 246, 0.15)"
-                                : "0 4px 12px rgba(59, 130, 246, 0.25), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 0 12px rgba(59, 130, 246, 0.08)",
-                              background: isDark ? "#1f2937" : "#ffffff",
-                              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                            }}
-                          >
-                            {usuario.photoURL ? (
-                              <img
-                                src={usuario.photoURL}
-                                alt="Perfil"
-                                className="w-100 h-100 rounded-circle"
-                                style={{ objectFit: "cover" }}
-                              />
-                            ) : (
-                              <div
-                                className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold rounded-circle"
-                                style={{
-                                  fontSize: "16px",
-                                  background:
-                                    "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                                  color: "#ffffff",
-                                }}
-                              >
-                                {usuario.displayName?.charAt(0).toUpperCase() ||
-                                  "U"}
-                              </div>
-                            )}
-                          </div>
+
+                      {/* Admin si aplica */}
+                      {(usuarioInfo?.isAdmin ||
+                        usuarioInfo?.isSeller ||
+                        usuarioInfo?.empresa ||
+                        usuarioInfo?.empresaId) && (
+                        <Link
+                          to="/admin"
+                          className="btn btn-sm"
+                          style={{
+                            fontSize: "10px",
+                            padding: "4px 10px",
+                            background:
+                              "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                            border: "none",
+                            color: "#ffffff",
+                            fontWeight: "600",
+                            borderRadius: "5px",
+                            marginLeft: "4px",
+                            boxShadow: "0 2px 8px rgba(59, 130, 246, 0.2)",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          Admin
                         </Link>
-                      </motion.div>
-                    ) : (
-                      <motion.button
-                        onClick={() => setModalAbierto(true)}
-                        className="btn ms-3"
-                        style={{
-                          fontSize: "12px",
-                          padding: "6px 16px",
-                          background:
-                            "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                          border: "none",
-                          color: "#ffffff",
-                          fontWeight: "600",
-                          borderRadius: "8px",
-                          boxShadow: isDark
-                            ? "0 4px 12px rgba(59, 130, 246, 0.35)"
-                            : "0 3px 10px rgba(59, 130, 246, 0.25)",
-                          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                        }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        Iniciar sesión
-                      </motion.button>
-                    )}
-                  </nav>
+                      )}
+                      {usuario ? (
+                        <motion.div
+                          className="position-relative"
+                          style={{ marginLeft: "4px" }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Link to="/profile" className="text-decoration-none">
+                            <div
+                              className="rounded-circle overflow-hidden d-flex align-items-center justify-content-center"
+                              style={{
+                                width: "36px",
+                                height: "36px",
+                                border: "2px solid rgba(59, 130, 246, 0.4)",
+                                boxShadow: "0 2px 8px rgba(59, 130, 246, 0.2)",
+                                background: isDark ? "#1f2937" : "#ffffff",
+                                transition: "all 0.2s ease",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {usuario.photoURL ? (
+                                <img
+                                  src={usuario.photoURL}
+                                  alt="Perfil"
+                                  className="w-100 h-100"
+                                  style={{ objectFit: "cover" }}
+                                />
+                              ) : (
+                                <div
+                                  className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold"
+                                  style={{
+                                    fontSize: "14px",
+                                    background:
+                                      "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                                    color: "#ffffff",
+                                  }}
+                                >
+                                  {usuario.displayName
+                                    ?.charAt(0)
+                                    .toUpperCase() || "U"}
+                                </div>
+                              )}
+                            </div>
+                          </Link>
+                        </motion.div>
+                      ) : (
+                        <motion.button
+                          onClick={() => setModalAbierto(true)}
+                          className="btn"
+                          style={{
+                            fontSize: "10px",
+                            padding: "4px 10px",
+                            background:
+                              "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                            border: "none",
+                            color: "#ffffff",
+                            fontWeight: "600",
+                            borderRadius: "5px",
+                            marginLeft: "4px",
+                            boxShadow: "0 2px 8px rgba(59, 130, 246, 0.2)",
+                            transition: "all 0.2s ease",
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Iniciar sesión
+                        </motion.button>
+                      )}
+                    </nav>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </header>
+
+        {/* 2. SEGUNDO HEADER (BARRA DE NAVEGACIÓN PREMIUM CON ICONOS + TEMA) */}
+        <div
+          className="d-none d-lg-block"
+          style={{
+            background: isDark
+              ? "linear-gradient(135deg, rgba(31, 41, 55, 0.98) 0%, rgba(17, 24, 39, 0.98) 100%)"
+              : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 250, 251, 0.98) 100%)",
+            backdropFilter: "blur(20px) saturate(180%)",
+            WebkitBackdropFilter: "blur(20px) saturate(180%)",
+            borderBottom: isDark
+              ? "1px solid rgba(59, 130, 246, 0.15)"
+              : "1px solid rgba(59, 130, 246, 0.12)",
+            padding: "0.75rem 0",
+            boxShadow: isDark
+              ? "0 4px 16px rgba(0, 0, 0, 0.4), 0 0 32px rgba(59, 130, 246, 0.08)"
+              : "0 2px 12px rgba(0, 0, 0, 0.08), 0 0 32px rgba(59, 130, 246, 0.05)",
+            overflowX: "auto",
+            overflowY: "hidden",
+          }}
+        >
+          <div className="container-fluid" style={{ minWidth: "max-content" }}>
+            <div
+              className="d-flex align-items-center justify-content-between"
+              style={{
+                paddingLeft: "1rem",
+                paddingRight: "1rem",
+                minWidth: "max-content",
+              }}
+            >
+              {/* Navegación con iconos GRANDES y separadores */}
+              <nav
+                className="d-flex align-items-center"
+                style={{ gap: "0.5rem" }}
+              >
+                <Link
+                  to="/"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
+                  Inicio
+                </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/categorias"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                    />
+                  </svg>
+                  Categorías
+                </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/tiendas"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                  Tiendas
+                </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/vender"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Vender
+                </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/nosotros"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Nosotros
+                </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/contacto"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Contacto
+                </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/carrito"
+                  className="text-decoration-none d-flex align-items-center gap-2 cart-link"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    className="cart-icon"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  Carrito
+                </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/estafetas"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Estafetas
+                </Link>
+              </nav>
+
+              {/* Botón de cambio de tema (Luna/Sol) */}
+              <button
+                onClick={toggleTheme}
+                className="d-flex align-items-center justify-content-center"
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  border: "none",
+                  background: isDark
+                    ? "rgba(59, 130, 246, 0.15)"
+                    : "rgba(59, 130, 246, 0.1)",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                aria-label="Cambiar tema"
+              >
+                {isDark ? (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#60a5fa"
+                    strokeWidth="2"
+                  >
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                  </svg>
+                ) : (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="#3b82f6"
+                  >
+                    <path d="m12.3 4.9c.4-.2.6-.7.5-1.1s-.6-.8-1.1-.8c-4.9.1-8.7 4.1-8.7 9 0 5 4 9 9 9 3.8 0 7.1-2.4 8.4-5.9.2-.4 0-.9-.4-1.2s-.9-.2-1.2.1c-1 .9-2.3 1.4-3.7 1.4-3.1 0-5.7-2.5-5.7-5.7 0-1.9 1.1-3.8 2.9-4.8zm2.8 12.5c.5 0 1 0 1.4-.1-1.2 1.1-2.8 1.7-4.5 1.7-3.9 0-7-3.1-7-7 0-2.5 1.4-4.8 3.5-6-.7 1.1-1 2.4-1 3.8-.1 4.2 3.4 7.6 7.6 7.6z"></path>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-      </motion.header>
+      </motion.div>
 
       {/* Modal de entrega (desde header) */}
       {modalEntrega && usuario && (

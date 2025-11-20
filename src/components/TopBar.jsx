@@ -143,12 +143,24 @@ export default function TopBar() {
   return (
     <div
       ref={topbarRef}
-      style={{ ...topStyle, padding: "0.25rem 0.5rem", margin: 0 }}
-      className="flex topbar-base topbar-tech bg-white dark:bg-gradient-to-r dark:from-blue-900 dark:via-blue-800 dark:to-blue-900 shadow-md justify-between items-center transition-colors duration-300"
+      style={{
+        ...topStyle,
+        padding: "0.25rem 0.5rem",
+        margin: 0,
+        background:
+          theme === "dark"
+            ? "linear-gradient(to right, #1e3a8a, #1e40af, #1e3a8a)"
+            : "#ffffff",
+        color: theme === "dark" ? "#e5e7eb" : "#374151",
+      }}
+      className="flex topbar-base topbar-tech shadow-md justify-between items-center transition-colors duration-300"
       role="region"
       aria-label="Top bar"
     >
-      <div className="flex items-center gap-2 text-[10px] sm:text-xs md:text-sm whitespace-nowrap theme-text text-gray-700 dark:text-gray-200">
+      <div
+        className="flex items-center gap-2 text-[10px] sm:text-xs md:text-sm whitespace-nowrap theme-text"
+        style={{ color: theme === "dark" ? "#e5e7eb" : "#374151" }}
+      >
         {/* Flecha de retroceso - SOLO visible en Vista Producto */}
         {(location.pathname.startsWith("/producto/") ||
           location.pathname.startsWith("/Producto/")) && (

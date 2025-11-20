@@ -19,3 +19,24 @@
     sans-serif;
   letter-spacing: 0.3px;
 }
+
+/* Estilos de tema para TopBar */
+.topbar-base {
+  background-color: #ffffff !important;
+}
+
+html.dark .topbar-base,
+html.dark-theme .topbar-base {
+  background: linear-gradient(to right, #1e3a8a, #1e40af, #1e3a8a) !important;
+  color: #e5e7eb !important;
+}
+
+/* Texto del TopBar */
+.theme-text {
+  transition: color 0.3s ease;
+}
+
+html.dark .theme-text,
+html.dark-theme .theme-text {
+  color: #e5e7eb !important;
+}

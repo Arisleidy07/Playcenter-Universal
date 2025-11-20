@@ -7,11 +7,24 @@
   border-radius: 9999px;
   height: 40px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: border 0.3s ease;
+  transition: border 0.3s ease, background-color 0.3s ease;
+}
+
+html.dark .search-form,
+html.dark-theme .search-form {
+  background: rgba(30, 58, 138, 0.4);
+  border: 2px solid rgba(147, 197, 253, 0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .search-form:focus-within {
   border-color: #9b4dff;
+}
+
+html.dark .search-form:focus-within,
+html.dark-theme .search-form:focus-within {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.1);
 }
 
 .search-form input {
@@ -22,11 +35,22 @@
   width: 120px;
   font-size: 14px;
   color: #333;
+  transition: color 0.3s ease;
+}
+
+html.dark .search-form input,
+html.dark-theme .search-form input {
+  color: #f3f4f6;
 }
 
 .search-form input::placeholder {
   color: #888;
   font-weight: 400;
+}
+
+html.dark .search-form input::placeholder,
+html.dark-theme .search-form input::placeholder {
+  color: #9ca3af;
 }
 
 /* Responsive width */
@@ -49,9 +73,19 @@
   height: 32px;
 }
 
+html.dark .search-form button,
+html.dark-theme .search-form button {
+  color: #93c5fd;
+}
+
 .search-form button:hover {
   transform: scale(1.1);
   color: #9b4dff;
+}
+
+html.dark .search-form button:hover,
+html.dark-theme .search-form button:hover {
+  color: #bfdbfe;
 }
 
 /* Estilos para el scroll suave del dropdown de búsqueda */
