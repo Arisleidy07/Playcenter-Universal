@@ -218,7 +218,7 @@ function Inicio() {
     <div
       className="min-vh-100"
       style={{
-        paddingTop: "var(--content-offset, 100px)",
+        paddingTop: "var(--content-offset, 120px)",
         backgroundColor: isDark ? "#000000" : "#ffffff",
       }}
     >
@@ -435,6 +435,7 @@ function Inicio() {
               className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
               style={{
                 scrollbarWidth: "thin",
+                scrollbarColor: isDark ? "#475569 #1e293b" : "#cbd5e1 #f1f5f9",
                 WebkitOverflowScrolling: "touch",
                 alignItems: "flex-start",
                 minHeight: "unset",
@@ -563,6 +564,7 @@ function Inicio() {
               className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
               style={{
                 scrollbarWidth: "thin",
+                scrollbarColor: isDark ? "#475569 #1e293b" : "#cbd5e1 #f1f5f9",
                 WebkitOverflowScrolling: "touch",
                 alignItems: "flex-start",
                 minHeight: "unset",
@@ -651,6 +653,7 @@ function Inicio() {
               className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
               style={{
                 scrollbarWidth: "thin",
+                scrollbarColor: isDark ? "#475569 #1e293b" : "#cbd5e1 #f1f5f9",
                 WebkitOverflowScrolling: "touch",
                 alignItems: "flex-start",
                 minHeight: "unset",
@@ -736,6 +739,7 @@ function Inicio() {
               className="d-flex flex-nowrap gap-2 gap-md-3 overflow-x-auto pb-1"
               style={{
                 scrollbarWidth: "thin",
+                scrollbarColor: isDark ? "#475569 #1e293b" : "#cbd5e1 #f1f5f9",
                 WebkitOverflowScrolling: "touch",
                 alignItems: "flex-start",
                 minHeight: "unset",

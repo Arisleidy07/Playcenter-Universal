@@ -22,37 +22,37 @@ const normalizarTexto = (texto) => {
 // Buscar en producto de forma MUY PERMISIVA (1 letra funciona)
 const buscarEnProducto = (producto, terminoOriginal) => {
   if (!terminoOriginal) return true;
-  
+
   const terminoNorm = normalizarTexto(terminoOriginal);
   const palabrasBusqueda = terminoNorm.split(" ").filter(Boolean);
-  
+
   const nombreNorm = normalizarTexto(producto.nombre || "");
   const descripcionNorm = normalizarTexto(producto.descripcion || "");
   const categoriaNorm = normalizarTexto(producto.categoria || "");
   const marcaNorm = normalizarTexto(producto.empresa || producto.marca || "");
-  
+
   // PRIORIDAD 1: Coincidencia exacta completa
   if (nombreNorm === terminoNorm) return true;
-  
+
   // PRIORIDAD 2: El nombre comienza con el término
   if (nombreNorm.startsWith(terminoNorm)) return true;
-  
+
   // PRIORIDAD 3: El nombre contiene el término completo
   if (nombreNorm.includes(terminoNorm)) return true;
-  
+
   // PRIORIDAD 4: Marca contiene el término completo
   if (marcaNorm.includes(terminoNorm)) return true;
-  
+
   // PRIORIDAD 5: Categoría contiene el término completo
   if (categoriaNorm.includes(terminoNorm)) return true;
-  
+
   // PRIORIDAD 6: Descripción contiene el término completo
   if (descripcionNorm.includes(terminoNorm)) return true;
-  
+
   // PRIORIDAD 7: Buscar palabra por palabra (MUY PERMISIVO)
   let coincidencias = 0;
-  
-  palabrasBusqueda.forEach(palabra => {
+
+  palabrasBusqueda.forEach((palabra) => {
     if (nombreNorm.includes(palabra)) {
       coincidencias++;
     }
@@ -66,7 +66,7 @@ const buscarEnProducto = (producto, terminoOriginal) => {
       coincidencias++;
     }
   });
-  
+
   // MUY PERMISIVO: Si hay al menos 1 coincidencia, mostrar
   return coincidencias > 0;
 };
@@ -116,7 +116,7 @@ function PaginaBusqueda() {
   const esCategoria = queryOriginal.includes(" en ");
   let terminoBusqueda = queryOriginal;
   let categoriaFiltro = null;
-  
+
   if (esCategoria) {
     const partes = queryOriginal.split(" en ");
     terminoBusqueda = partes[0].trim();
@@ -129,14 +129,14 @@ function PaginaBusqueda() {
       (productosActivos || []).filter((prod) => {
         // Primero buscar por el término
         const coincideTermino = buscarEnProducto(prod, terminoBusqueda);
-        
+
         // Si hay filtro de categoría, aplicarlo también
         if (categoriaFiltro) {
           const categoriaNorm = normalizarTexto(prod.categoria || "");
           const filtroNorm = normalizarTexto(categoriaFiltro);
           return coincideTermino && categoriaNorm === filtroNorm;
         }
-        
+
         return coincideTermino;
       }),
     [productosActivos, terminoBusqueda, categoriaFiltro]
@@ -170,7 +170,7 @@ function PaginaBusqueda() {
       style={{
         position: "relative",
         margin: 0,
-        paddingTop: "var(--content-offset, 100px)",
+        paddingTop: "180px",
         transition: "padding-top 0.2s",
         boxSizing: "border-box",
       }}
@@ -229,7 +229,10 @@ function PaginaBusqueda() {
             )}
             {resultadosFiltrados.length > 0 && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {resultadosFiltrados.length} {resultadosFiltrados.length === 1 ? 'producto encontrado' : 'productos encontrados'}
+                {resultadosFiltrados.length}{" "}
+                {resultadosFiltrados.length === 1
+                  ? "producto encontrado"
+                  : "productos encontrados"}
               </p>
             )}
           </div>

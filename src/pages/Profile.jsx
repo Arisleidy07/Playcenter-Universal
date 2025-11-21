@@ -1482,6 +1482,7 @@ export default function Profile() {
   return (
     <motion.main
       className="profile-page"
+      style={{ paddingTop: "180px" }}
       variants={pageVariant}
       initial="hidden"
       animate="enter"

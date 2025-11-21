@@ -532,17 +532,14 @@ function SellerAdminPanel() {
   const [editingProduct, setEditingProduct] = useState(null);
 
   return (
-    <main
-      className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6"
-      style={{ paddingTop: "calc(var(--content-offset, 100px) + 60px)" }}
-    >
+    <main className="admin-page min-h-screen bg-gray-50 dark:bg-gray-900 px-2 sm:px-6 pb-2 sm:pb-6">
       <div className="w-full px-2">
         {/* HEADER */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 text-blue-900">
+          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 text-gray-900 dark:text-white">
             Panel del Vendedor
           </h1>
-          <p className="text-base sm:text-xl text-blue-700 font-medium">
+          <p className="text-base sm:text-xl text-gray-700 dark:text-gray-300 font-medium">
             Gestiona tus productos en tiempo real
           </p>
           {usuarioInfo?.empresa && (
@@ -816,32 +813,29 @@ export default function Admin() {
   };
 
   return (
-    <main
-      className="admin-page min-h-screen bg-blue-50 p-2 sm:p-6"
-      style={{ paddingTop: "calc(var(--content-offset, 100px) + 60px)" }}
-    >
+    <main className="admin-page min-h-screen bg-gray-50 dark:bg-gray-900 px-2 sm:px-6 pb-2 sm:pb-6">
       <div className="w-full px-2">
         {/* HEADER */}
         <div className="text-center mb-6">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-blue-900">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-gray-900 dark:text-white">
             Panel Administrativo
           </h1>
-          <p className="text-sm sm:text-base lg:text-lg text-blue-700 font-medium">
+          <p className="text-sm sm:text-base lg:text-lg text-gray-700 dark:text-gray-300 font-medium">
             Gestión Completa del Sistema
           </p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            <span className="bg-blue-100 text-blue-900 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
+            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
               <FiUsers /> {usuarios.length}{" "}
               {usuarios.length === 1 ? "usuario" : "usuarios"} registrados
             </span>
-            <span className="bg-green-100 text-green-900 px-4 py-2 rounded-full text-sm font-bold">
+            <span className="bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-300 px-4 py-2 rounded-full text-sm font-bold">
               Sincronización en tiempo real
             </span>
           </div>
         </div>
 
         {/* NAVIGATION TABS */}
-        <div className="bg-white rounded-xl shadow-lg p-1 mb-8 border border-blue-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-1 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="flex flex-wrap gap-1">
             {[
               { id: "dashboard", label: "Dashboard", icon: <FiBarChart2 /> },
@@ -855,8 +849,8 @@ export default function Admin() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-blue-700 text-white shadow-md"
-                    : "text-blue-700 hover:bg-blue-50"
+                    ? "bg-blue-600 dark:bg-blue-500 text-white shadow-md"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
               >
                 <span className="inline-flex items-center gap-2">

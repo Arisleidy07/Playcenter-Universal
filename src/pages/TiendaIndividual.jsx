@@ -568,7 +568,7 @@ export default function TiendaIndividual() {
     return (
       <div
         className="min-vh-100 d-flex align-items-center justify-content-center"
-        style={{ paddingTop: "var(--content-offset, 120px)" }}
+        style={{ paddingTop: "var(--content-offset, 140px)" }}
       >
         <div className="text-center">
           <div
@@ -594,7 +594,7 @@ export default function TiendaIndividual() {
     <div
       className="min-vh-100"
       style={{
-        paddingTop: "var(--content-offset, 120px)",
+        paddingTop: "180px",
         backgroundColor: isDark ? "#111827" : "#ffffff",
       }}
     >

@@ -4,7 +4,7 @@ export default function Vender() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ paddingTop: 'var(--content-offset, 100px)' }}
+      style={{ paddingTop: "180px" }}
     >
       <div className="max-w-2xl w-full text-center">
         <div className="bg-white rounded-3xl shadow-2xl p-12 border-2 border-gray-100">
@@ -27,10 +27,12 @@ export default function Vender() {
             Función No Disponible
           </h1>
           <p className="text-lg text-gray-600 mb-8">
-            La opción de <strong>Vender</strong> no está disponible en este momento.
+            La opción de <strong>Vender</strong> no está disponible en este
+            momento.
           </p>
           <p className="text-md text-gray-500">
-            Por favor, vuelva más tarde. Estamos trabajando para habilitarla pronto.
+            Por favor, vuelva más tarde. Estamos trabajando para habilitarla
+            pronto.
           </p>
           <div className="mt-10">
             <a

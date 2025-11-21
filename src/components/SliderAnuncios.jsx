@@ -2,6 +2,29 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Estilos para los botones de navegación
+const navButtonStyles = `
+  .slider-nav-button:hover {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(255, 255, 255, 1) !important;
+    transform: translateY(-50%) scale(1.1) !important;
+  }
+  .slider-nav-button:active {
+    transform: translateY(-50%) scale(0.95) !important;
+  }
+`;
+
+// Insertar estilos en el head si no existen
+if (
+  typeof document !== "undefined" &&
+  !document.getElementById("slider-nav-styles")
+) {
+  const styleTag = document.createElement("style");
+  styleTag.id = "slider-nav-styles";
+  styleTag.textContent = navButtonStyles;
+  document.head.appendChild(styleTag);
+}
+
 const anuncios = [
   {
     id: 1,
@@ -153,56 +176,86 @@ function SliderAnuncios() {
         )}
       </div>
 
-      {/* Botones de navegación */}
+      {/* Flechas ARRIBA del slider - Izquierda */}
       <button
-        data-slider-nav
         onClick={handlePrev}
         aria-label="Anterior"
         style={{
           position: "absolute",
-          top: "50%",
-          left: window.innerWidth < 640 ? "8px" : "16px",
-          transform: "translateY(-50%)",
-          zIndex: 20,
+          top: "16px",
+          left: "16px",
+          zIndex: 30,
           cursor: "pointer",
+          background: "rgba(0, 0, 0, 0.6)",
+          borderRadius: "8px",
+          width: "50px",
+          height: "50px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "2px solid #ffffff",
+          transition: "all 0.2s ease",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.6)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.background = "rgba(0, 0, 0, 0.8)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.background = "rgba(0, 0, 0, 0.6)";
         }}
       >
-        <ChevronLeft
-          size={window.innerWidth < 640 ? 28 : 36}
-          color="#ffffff"
-          strokeWidth={3}
-        />
+        <ChevronLeft size={28} color="#ffffff" strokeWidth={3} />
       </button>
+
+      {/* Flechas ARRIBA del slider - Derecha */}
       <button
-        data-slider-nav
         onClick={handleNext}
         aria-label="Siguiente"
         style={{
           position: "absolute",
-          top: "50%",
-          right: window.innerWidth < 640 ? "8px" : "16px",
-          transform: "translateY(-50%)",
-          zIndex: 20,
+          top: "16px",
+          right: "16px",
+          zIndex: 30,
           cursor: "pointer",
+          background: "rgba(0, 0, 0, 0.6)",
+          borderRadius: "8px",
+          width: "50px",
+          height: "50px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "2px solid #ffffff",
+          transition: "all 0.2s ease",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.6)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.background = "rgba(0, 0, 0, 0.8)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.background = "rgba(0, 0, 0, 0.6)";
         }}
       >
-        <ChevronRight
-          size={window.innerWidth < 640 ? 28 : 36}
-          color="#ffffff"
-          strokeWidth={3}
-        />
+        <ChevronRight size={28} color="#ffffff" strokeWidth={3} />
       </button>
 
-      {/* Indicadores */}
+      {/* Indicadores - Circulitos blancos individuales */}
       <div
         style={{
           position: "absolute",
-          bottom: window.innerWidth < 640 ? "12px" : "24px",
+          bottom: window.innerWidth < 640 ? "12px" : "20px",
           left: "50%",
           transform: "translateX(-50%)",
           display: "flex",
-          gap: "8px",
+          gap: "10px",
           zIndex: 20,
+          padding: "8px 12px",
+          background: "rgba(0, 0, 0, 0.4)",
+          borderRadius: "20px",
+          backdropFilter: "blur(8px)",
         }}
       >
         {anuncios.map((_, idx) => (
@@ -214,17 +267,33 @@ function SliderAnuncios() {
             }}
             aria-label={`Ir al slide ${idx + 1}`}
             style={{
-              width: window.innerWidth < 640 ? "10px" : "12px",
-              height: window.innerWidth < 640 ? "10px" : "12px",
+              width: window.innerWidth < 640 ? "8px" : "10px",
+              height: window.innerWidth < 640 ? "8px" : "10px",
               borderRadius: "50%",
-              backgroundColor:
-                idx === index ? "#ffffff" : "rgba(255, 255, 255, 0.4)",
-              opacity: idx === index ? 0.9 : 0.4,
-              transform: idx === index ? "scale(1.1)" : "scale(1)",
+              backgroundColor: "#ffffff",
+              opacity: idx === index ? 1 : 0.6,
+              transform: idx === index ? "scale(1.3)" : "scale(1)",
               transition: "all 0.3s ease",
-              border: "none",
+              border: "1px solid #ffffff",
               cursor: "pointer",
               outline: "none",
+              boxShadow:
+                idx === index
+                  ? "0 0 8px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3)"
+                  : "0 1px 3px rgba(0, 0, 0, 0.3)",
+              padding: 0,
+            }}
+            onMouseEnter={(e) => {
+              if (idx !== index) {
+                e.currentTarget.style.opacity = "0.9";
+                e.currentTarget.style.transform = "scale(1.2)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (idx !== index) {
+                e.currentTarget.style.opacity = "0.6";
+                e.currentTarget.style.transform = "scale(1)";
+              }
             }}
           />
         ))}

@@ -74,7 +74,7 @@ export default function Tiendas() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ paddingTop: "var(--content-offset, 120px)" }}
+        style={{ paddingTop: "var(--content-offset, 140px)" }}
       >
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
@@ -88,7 +88,7 @@ export default function Tiendas() {
     <div
       className="min-h-screen"
       style={{
-        paddingTop: "calc(var(--content-offset, 120px) + 16px)",
+        paddingTop: "180px",
         backgroundColor: isDark ? "#000000" : "#f9fafb",
       }}
     >
@@ -275,7 +275,7 @@ function TiendaCard({ tienda, index }) {
           <div
             className="relative w-full flex justify-center items-center overflow-hidden"
             style={{
-              backgroundColor: isDark ? "#2d3748" : "#f5f5f5",
+              backgroundColor: "transparent",
               minHeight: "200px",
             }}
           >
@@ -283,7 +283,7 @@ function TiendaCard({ tienda, index }) {
               <img
                 src={tienda.banner}
                 alt={`Banner de ${tienda.nombre}`}
-                className="w-full h-auto object-contain transition-all duration-500 group-hover:scale-105"
+                className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 style={{
                   objectFit: "contain",
                   imageRendering: "auto",
@@ -292,21 +292,12 @@ function TiendaCard({ tienda, index }) {
                   display: "block",
                 }}
                 loading="eager"
-                onLoad={(e) => {
-                  e.target.style.opacity = 1;
-                  e.target.style.visibility = "visible";
-                }}
               />
             ) : (
-              <div className="w-full h-48 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 group-hover:from-blue-600 group-hover:to-purple-700 transition-all duration-300">
-                <Store
-                  size={64}
-                  className="text-white opacity-40 group-hover:opacity-60 transition-opacity duration-300"
-                />
+              <div className="w-full h-48 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                <Store size={64} className="text-white opacity-40" />
               </div>
             )}
-            {/* Overlay sutil en hover */}
-            <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/10 transition-all duration-300" />
           </div>
 
           {/* Zona inferior: Logo + Nombre + Botón - PERFECTAMENTE BALANCEADO */}
@@ -337,13 +328,16 @@ function TiendaCard({ tienda, index }) {
               {/* Nombre de la tienda responsive */}
               <div className="flex-1 min-w-0">
                 <h2
-                  className="text-lg md:text-xl font-bold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200"
-                  style={{ textDecoration: "none" }}
+                  className="text-lg md:text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200"
+                  style={{ textDecoration: "none", overflow: "hidden" }}
                 >
                   {tienda.nombre}
                 </h2>
                 {tienda.descripcion && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
+                  <p
+                    className="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                    style={{ overflow: "hidden" }}
+                  >
                     {tienda.descripcion}
                   </p>
                 )}

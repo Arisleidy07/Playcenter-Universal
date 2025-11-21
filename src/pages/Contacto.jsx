@@ -18,7 +18,7 @@ function Contacto() {
           ? "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700"
           : "bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-100"
       }`}
-      style={{ paddingTop: "calc(var(--content-offset, 100px) + 2rem)" }}
+      style={{ paddingTop: "180px" }}
     >
       <Wave />
 

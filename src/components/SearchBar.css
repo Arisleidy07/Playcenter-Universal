@@ -168,3 +168,21 @@ html.dark-theme .search-form button:hover {
     margin-right: 0 !important;
   }
 }
+
+/* Alineación base - inline styles manejan el resto */
+.relative.w-full form {
+  display: flex;
+  gap: 0;
+}
+
+/* Responsive: reducir altura en móvil */
+@media (max-width: 640px) {
+  .relative.w-full form,
+  .relative.w-full form > *,
+  .relative.w-full form button,
+  .relative.w-full form input {
+    height: 38px !important;
+    line-height: 38px !important;
+    font-size: 12px !important;
+  }
+}

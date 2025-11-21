@@ -318,21 +318,38 @@ const SearchBar = forwardRef(
 
     return (
       <div className="relative w-full" ref={wrapperRef}>
-        <form onSubmit={handleSubmit} className="flex w-full gap-0">
+        <form
+          onSubmit={handleSubmit}
+          className="flex w-full gap-0"
+          style={{
+            alignItems: "center",
+            height: "42px",
+            margin: 0,
+            padding: 0,
+          }}
+        >
           {/* DROPDOWN DE CATEGORÍAS - UI/UX MODERNO */}
-          <div className="relative" ref={dropdownRef}>
+          <div
+            className="relative"
+            ref={dropdownRef}
+            style={{ height: "42px", margin: 0, padding: 0 }}
+          >
             <button
               type="button"
               onClick={() =>
                 setMostrarDropdownCategorias(!mostrarDropdownCategorias)
               }
-              className="h-full px-4 md:px-5 py-2.5 rounded-l-md text-[13px] md:text-sm font-semibold transition-all duration-200 flex items-center gap-2 min-w-[120px] md:min-w-[160px] shadow-sm hover:shadow"
+              className="px-3 md:px-4 rounded-l-md text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-2 min-w-[100px] md:min-w-[140px] shadow-sm hover:shadow"
               style={{
+                height: "42px",
                 background: isDark
                   ? "linear-gradient(to bottom, #374151, #1f2937)"
                   : "linear-gradient(to bottom, #f9fafb, #e5e7eb)",
                 border: isDark ? "1px solid #4b5563" : "1px solid #d1d5db",
                 color: isDark ? "#f3f4f6" : "#1f2937",
+                margin: 0,
+                paddingTop: 0,
+                paddingBottom: 0,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = isDark
@@ -345,17 +362,32 @@ const SearchBar = forwardRef(
                   : "linear-gradient(to bottom, #f9fafb, #e5e7eb)";
               }}
             >
-              <span className="truncate flex-1">
+              <span
+                className="flex-1"
+                style={{
+                  background: "transparent",
+                  backgroundColor: "transparent",
+                  boxShadow: "none",
+                  outline: "none",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {categoriaSeleccionada === "todas"
                   ? "Todas"
                   : categoriaSeleccionada}
               </span>
               <svg
-                className="w-3 h-3 flex-shrink-0 transition-transform duration-200"
+                className="flex-shrink-0 transition-transform duration-200"
                 style={{
+                  width: "12px",
+                  height: "12px",
                   transform: mostrarDropdownCategorias
                     ? "rotate(180deg)"
                     : "rotate(0deg)",
+                  background: "transparent",
+                  backgroundColor: "transparent",
                 }}
                 fill="none"
                 stroke="currentColor"
@@ -534,10 +566,19 @@ const SearchBar = forwardRef(
           </div>
 
           {/* INPUT DE BÚSQUEDA */}
-          <div className="flex-grow relative">
+          <div
+            className="flex-grow relative"
+            style={{ height: "42px", margin: 0, padding: 0 }}
+          >
             <FaSearch
-              className="absolute left-3 top-1/2 transform -translate-y-1/2"
-              style={{ color: isDark ? "#6b7280" : "#9ca3af" }}
+              className="absolute pointer-events-none"
+              style={{
+                left: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: isDark ? "#6b7280" : "#9ca3af",
+                fontSize: "13px",
+              }}
             />
             <input
               type="text"
@@ -548,15 +589,19 @@ const SearchBar = forwardRef(
               placeholder={placeholder}
               className="w-full pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               style={{
-                fontSize: window.innerWidth < 768 ? "12px" : "14px",
-                paddingTop: window.innerWidth < 768 ? "6px" : "12px",
-                paddingBottom: window.innerWidth < 768 ? "6px" : "12px",
+                fontSize: "13px",
+                height: "42px",
                 borderTop: isDark ? "1px solid #4b5563" : "1px solid #d1d5db",
                 borderBottom: isDark
                   ? "1px solid #4b5563"
                   : "1px solid #d1d5db",
+                borderLeft: "none",
+                borderRight: "none",
                 backgroundColor: isDark ? "#1f2937" : "#ffffff",
                 color: isDark ? "#f3f4f6" : "#111827",
+                paddingTop: "0",
+                paddingBottom: "0",
+                lineHeight: "42px",
               }}
               autoComplete="off"
             />
@@ -565,9 +610,13 @@ const SearchBar = forwardRef(
           {/* BOTÓN DE BUSCAR - SOLO ÍCONO */}
           <button
             type="submit"
-            className="w-12 text-white rounded-r-md transition flex items-center justify-center"
+            className="w-12 text-white rounded-r-md transition flex items-center justify-center flex-shrink-0"
             style={{
+              height: "42px",
               backgroundColor: "#2563eb",
+              margin: 0,
+              paddingTop: 0,
+              paddingBottom: 0,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = "#1d4ed8";

@@ -68,22 +68,30 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 transition-all duration-300 group rounded-lg"
       >
         <div className="flex items-center gap-3">
-          <div className={`w-1.5 h-6 rounded-full bg-gradient-to-b transition-all duration-300 ${
-            isOpen 
-              ? 'from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50' 
-              : 'from-gray-400 to-gray-500 group-hover:from-blue-500 group-hover:to-blue-600'
-          }`}></div>
-          <h3 className={`text-sm font-bold transition-all duration-300 ${
-            isOpen 
-              ? 'text-blue-600 dark:text-blue-400' 
-              : 'text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
-          }`}>
+          <div
+            className={`w-1.5 h-6 rounded-full bg-gradient-to-b transition-all duration-300 ${
+              isOpen
+                ? "from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50"
+                : "from-gray-400 to-gray-500 group-hover:from-blue-500 group-hover:to-blue-600"
+            }`}
+          ></div>
+          <h3
+            className={`text-sm font-bold transition-all duration-300 ${
+              isOpen
+                ? "text-blue-600 dark:text-blue-400"
+                : "text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400"
+            }`}
+          >
             {title}
           </h3>
         </div>
-        <div className={`flex items-center gap-2 transition-all duration-300 ${
-          isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
-        }`}>
+        <div
+          className={`flex items-center gap-2 transition-all duration-300 ${
+            isOpen
+              ? "text-blue-600 dark:text-blue-400"
+              : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+          }`}
+        >
           <svg
             className={`w-5 h-5 transform transition-all duration-500 ease-out ${
               isOpen ? "rotate-180 scale-110" : "rotate-0 scale-100"
@@ -116,7 +124,7 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
 // Componente "Acerca de este artículo" con botón "Ver más" responsive e inteligente
 function AcercaDeEsteArticulo({ producto }) {
   const [mostrarTodo, setMostrarTodo] = useState(false);
-  
+
   // Límites inteligentes basados en longitud de texto
   const MAX_CARACTERES_TOTAL = 500; // Máximo de caracteres a mostrar inicialmente
   const MIN_ITEMS = 3; // Mínimo de items a mostrar siempre
@@ -126,9 +134,7 @@ function AcercaDeEsteArticulo({ producto }) {
 
   // Agregar items del array acerca
   if (Array.isArray(producto.acerca)) {
-    acercaItems.push(
-      ...producto.acerca.filter((item) => item && item.trim())
-    );
+    acercaItems.push(...producto.acerca.filter((item) => item && item.trim()));
   }
 
   // Agregar información IMPORTANTE del producto automáticamente
@@ -166,30 +172,35 @@ function AcercaDeEsteArticulo({ producto }) {
   const calcularItemsAMostrar = () => {
     let caracteresAcumulados = 0;
     let itemsAMostrar = 0;
-    
+
     for (let i = 0; i < acercaItems.length; i++) {
       const longitudItem = acercaItems[i].length;
       caracteresAcumulados += longitudItem;
-      
+
       // Si aún no alcanzamos el límite de caracteres Y no hemos superado MAX_ITEMS
-      if (caracteresAcumulados <= MAX_CARACTERES_TOTAL || itemsAMostrar < MIN_ITEMS) {
+      if (
+        caracteresAcumulados <= MAX_CARACTERES_TOTAL ||
+        itemsAMostrar < MIN_ITEMS
+      ) {
         itemsAMostrar++;
       } else {
         break; // Ya alcanzamos el límite
       }
-      
+
       // No mostrar más de MAX_ITEMS aunque sean cortos
       if (itemsAMostrar >= MAX_ITEMS) {
         break;
       }
     }
-    
+
     return Math.max(itemsAMostrar, MIN_ITEMS); // Mínimo MIN_ITEMS siempre
   };
 
   const itemsIniciales = calcularItemsAMostrar();
   const hayMasItems = acercaItems.length > itemsIniciales;
-  const itemsVisibles = mostrarTodo ? acercaItems : acercaItems.slice(0, itemsIniciales);
+  const itemsVisibles = mostrarTodo
+    ? acercaItems
+    : acercaItems.slice(0, itemsIniciales);
 
   return (
     <div className="space-y-4 xl:order-4 order-4 -mt-2">
@@ -197,7 +208,7 @@ function AcercaDeEsteArticulo({ producto }) {
         <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
         Acerca de este artículo
       </h3>
-      
+
       {/* Lista de items - En desktop muestra todo, en móvil/tablet controla con estado */}
       <ul className="space-y-3">
         {/* Desktop: mostrar todo siempre */}
@@ -208,7 +219,9 @@ function AcercaDeEsteArticulo({ producto }) {
               className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
             >
               <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
-              <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">{detalle}</span>
+              <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">
+                {detalle}
+              </span>
             </li>
           ))}
         </div>
@@ -221,7 +234,9 @@ function AcercaDeEsteArticulo({ producto }) {
               className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
             >
               <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
-              <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">{detalle}</span>
+              <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">
+                {detalle}
+              </span>
             </li>
           ))}
         </div>
@@ -233,14 +248,25 @@ function AcercaDeEsteArticulo({ producto }) {
           onClick={() => setMostrarTodo(!mostrarTodo)}
           className="xl:hidden w-full text-center text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2 group"
         >
-          <span>{mostrarTodo ? 'Ver menos' : `Ver más (${acercaItems.length - itemsIniciales} más)`}</span>
-          <svg 
-            className={`w-4 h-4 transition-transform duration-300 ${mostrarTodo ? 'rotate-180' : 'rotate-0'}`}
-            fill="none" 
-            stroke="currentColor" 
+          <span>
+            {mostrarTodo
+              ? "Ver menos"
+              : `Ver más (${acercaItems.length - itemsIniciales} más)`}
+          </span>
+          <svg
+            className={`w-4 h-4 transition-transform duration-300 ${
+              mostrarTodo ? "rotate-180" : "rotate-0"
+            }`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
       )}
@@ -316,21 +342,23 @@ function ProductInformationSection({ producto, allVariantes }) {
   // Agregar TODOS los campos de caracteristicasAdicionales
   if (producto.caracteristicasAdicionales) {
     const carac = producto.caracteristicasAdicionales;
-    
+
     // Iterar sobre TODOS los campos y agregarlos
     Object.keys(carac).forEach((key) => {
       const value = carac[key];
       if (value && String(value).trim()) {
         // Convertir el key snake_case o camelCase a texto legible
         const label = key
-          .split('_') // Separar por guiones bajos
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalizar cada palabra
-          .join(' ') // Unir con espacios
-          .replace(/([A-Z])/g, ' $1') // Agregar espacio antes de mayúsculas (para camelCase)
-          .replace(/\s+/g, ' ') // Limpiar espacios múltiples
+          .split("_") // Separar por guiones bajos
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalizar cada palabra
+          .join(" ") // Unir con espacios
+          .replace(/([A-Z])/g, " $1") // Agregar espacio antes de mayúsculas (para camelCase)
+          .replace(/\s+/g, " ") // Limpiar espacios múltiples
           .trim();
-        
-        const displayValue = Array.isArray(value) ? value.join(", ") : String(value);
+
+        const displayValue = Array.isArray(value)
+          ? value.join(", ")
+          : String(value);
         caracteristicas.push({ label, value: displayValue });
       }
     });
@@ -376,7 +404,6 @@ function ProductInformationSection({ producto, allVariantes }) {
     detalles.push({ label: "Fecha de publicación", value: fechaFormateada });
   }
 
-
   // Si no hay ningún dato, no mostrar la sección
   const hasData =
     caracteristicas.length > 0 || detalles.length > 0 || adicionales.length > 0;
@@ -391,10 +418,9 @@ function ProductInformationSection({ producto, allVariantes }) {
             Información del producto
           </h2>
         </div>
-        
+
         {/* DOS COLUMNAS en desktop, UNA en móvil/tablet */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
-          
           {/* COLUMNA IZQUIERDA */}
           <div className="space-y-5">
             {/* Características y especificaciones */}
@@ -469,7 +495,6 @@ function ProductInformationSection({ producto, allVariantes }) {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </section>
@@ -819,13 +844,13 @@ function VistaProducto() {
     const cargarNombreTienda = async () => {
       if (producto?.tienda_id) {
         try {
-          const tiendaRef = doc(db, 'tiendas', producto.tienda_id);
+          const tiendaRef = doc(db, "tiendas", producto.tienda_id);
           const tiendaSnap = await getDoc(tiendaRef);
           if (tiendaSnap.exists()) {
             setTiendaNombreReal(tiendaSnap.data().nombre);
           }
         } catch (error) {
-          console.error('Error cargando nombre de tienda:', error);
+          console.error("Error cargando nombre de tienda:", error);
           setTiendaNombreReal(producto.tienda_nombre);
         }
       } else {
@@ -1599,7 +1624,10 @@ function VistaProducto() {
   return (
     <>
       {/* Sin topbar móvil: solo contenido */}
-      <main className="vp-main min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800 flex flex-col items-stretch overflow-visible">
+      <main
+        className="vp-main min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800 flex flex-col items-stretch overflow-visible"
+        style={{ paddingTop: "180px" }}
+      >
         <section className="w-full xl:grid xl:grid-cols-12 xl:gap-6 flex flex-col gap-8 overflow-visible">
           {/* Columna Izquierda - Galería (6 columnas) CON STICKY COMO AMAZON */}
           {showLeftColumn && (
@@ -1877,7 +1905,7 @@ function VistaProducto() {
           <motion.div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4 overflow-visible">
             {/* Título, descripción y precio - PRIMERO (orden correcto) */}
             <h1 className="vp-title xl:order-1 order-1">{producto.nombre}</h1>
-            
+
             {/* Enlace Visitar Tienda */}
             {producto.tienda_id && tiendaNombreReal ? (
               <Link
@@ -1895,7 +1923,7 @@ function VistaProducto() {
                 </div>
               )
             )}
-            
+
             <div
               className="vp-desc prose max-w-none xl:order-3 order-3"
               dangerouslySetInnerHTML={{
@@ -1964,7 +1992,9 @@ function VistaProducto() {
                 ) : (
                   <button
                     className={`w-full sm:w-1/2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl ${
-                      !disponible ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600" : ""
+                      !disponible
+                        ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600"
+                        : ""
                     }`}
                     onClick={handleAgregar}
                     disabled={!disponible}
@@ -2040,7 +2070,9 @@ function VistaProducto() {
                 ) : (
                   <button
                     className={`w-full px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl ${
-                      !disponible ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600" : ""
+                      !disponible
+                        ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600"
+                        : ""
                     }`}
                     onClick={handleAgregar}
                     disabled={!disponible}
@@ -2118,7 +2150,6 @@ function VistaProducto() {
           producto={producto}
           allVariantes={allVariantes}
         />
-
       </main>
 
       {/* Modal de galería fullscreen - ESTILO AMAZON EXACTO */}

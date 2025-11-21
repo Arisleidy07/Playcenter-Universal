@@ -36,10 +36,19 @@
 }
 
 .admin-page {
-  background: var(--admin-bg);
-  min-height: 100vh;
-  font-family: Inter, system-ui, sans-serif;
-  color: #0f172a;
+  background: var(--admin-bg) !important;
+  min-height: 100vh !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  color: #0f172a !important;
+  padding-top: 180px !important;
+  margin-top: 0 !important;
+  position: relative !important;
+  top: 0 !important;
+}
+
+/* Forzar padding-top en main.admin-page para sobreescribir Tailwind */
+main.admin-page {
+  padding-top: 180px !important;
 }
 
 /* Header */
@@ -775,7 +784,26 @@
 }
 
 /* Responsive Admin Styles */
+@media (min-width: 1280px) {
+  .admin-page,
+  main.admin-page {
+    padding-top: 200px !important;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1279px) {
+  .admin-page,
+  main.admin-page {
+    padding-top: 190px !important;
+  }
+}
+
 @media (max-width: 1024px) {
+  .admin-page,
+  main.admin-page {
+    padding-top: 180px !important;
+  }
+
   .admin-orders-grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 16px;
@@ -783,8 +811,10 @@
 }
 
 @media (max-width: 768px) {
-  .admin-page {
+  .admin-page,
+  main.admin-page {
     padding: 1rem;
+    padding-top: 180px !important;
   }
 
   .admin-orders-grid {

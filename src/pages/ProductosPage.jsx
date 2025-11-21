@@ -231,7 +231,7 @@ function ProductosPage() {
       style={{
         position: "relative",
         margin: 0,
-        paddingTop: "var(--content-offset, 100px)",
+        paddingTop: "180px",
         transition: "padding-top 0.2s",
         boxSizing: "border-box",
       }}

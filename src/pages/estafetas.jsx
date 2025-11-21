@@ -179,7 +179,7 @@ export default function Estafetas() {
   return (
     <div
       className="max-w-[1400px] mx-auto px-4 py-10"
-      style={{ paddingTop: "var(--content-offset, 100px)" }}
+      style={{ paddingTop: "180px" }}
     >
       <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-2 text-gray-800 dark:text-gray-100 tracking-tight">
         Estafetas de Pago y Métodos de Pago

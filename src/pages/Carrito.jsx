@@ -111,10 +111,7 @@ export default function Carrito() {
   }));
 
   return (
-    <main
-      className="carrito-page"
-      style={{ paddingTop: "var(--content-offset, 100px)" }}
-    >
+    <main className="carrito-page" style={{ paddingTop: "180px" }}>
       {carrito.length === 0 ? (
         <div className="carrito-empty-wrap">
           <div className="carrito-empty-box">
@@ -232,7 +229,10 @@ export default function Carrito() {
                     <h2 className="carrito-nombre">{item.nombre}</h2>
 
                     <div className="carrito-subtotal">
-                      RD$ {formatPriceRD((Number(item.precio) || 0) * item.cantidad)}
+                      RD${" "}
+                      {formatPriceRD(
+                        (Number(item.precio) || 0) * item.cantidad
+                      )}
                     </div>
 
                     <p
@@ -254,7 +254,13 @@ export default function Carrito() {
                     </p>
 
                     <div className="carrito-actions">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -279,7 +285,8 @@ export default function Carrito() {
                               item.cantidad < maxStock
                             ) {
                               // Usar producto LIVE de Firestore para tener datos actualizados
-                              const productoCompleto = productosLive[item.id] || item;
+                              const productoCompleto =
+                                productosLive[item.id] || item;
                               agregarAlCarrito(
                                 productoCompleto,
                                 item.colorSeleccionado ?? null
@@ -288,7 +295,8 @@ export default function Carrito() {
                           }}
                           className="vp-qty-btn"
                           disabled={
-                            Number.isFinite(maxStock) && item.cantidad >= maxStock
+                            Number.isFinite(maxStock) &&
+                            item.cantidad >= maxStock
                           }
                           aria-label="Aumentar cantidad"
                         >
