@@ -150,14 +150,18 @@
 
 /* Layout principal estilo Amazon */
 .vp-main {
-  padding-top: calc(
-    var(--content-offset, 100px) + 8px
-  ) !important; /* Mínimo espacio para que sticky no tape */
+  padding-top: 110px !important; /* Espacio suficiente para Header + TopBar */
   max-width: 100%; /* Ancho máximo como Amazon */
   margin: 0; /* Centrado */
   background: #fff; /* Fondo blanco limpio */
   padding-left: 0;
   padding-right: 0;
+}
+
+@media (min-width: 1280px) {
+  .vp-main {
+    padding-top: 125px !important; /* Más espacio en desktop */
+  }
 }
 
 @media (min-width: 1280px) {
@@ -712,9 +716,7 @@
 @media (min-width: 1280px) {
   .amazon-gallery-layout {
     position: sticky;
-    top: calc(
-      var(--content-offset, 120px) + 16px
-    ); /* Respeta TopBar + margen */
+    top: 170px; /* Respeta TopBar + margen */
     z-index: 50; /* Por encima de botones pero debajo de modales */
   }
 }
@@ -1475,7 +1477,7 @@
 @media (min-width: 1280px) {
   .vp-main-image-sticky {
     position: sticky;
-    top: calc(var(--content-offset, 120px) + 16px);
+    top: 170px;
     align-self: flex-start;
     z-index: 40;
   }
@@ -1491,7 +1493,7 @@
 @media (min-width: 1280px) {
   .vp-image-quality-sticky {
     position: sticky;
-    top: calc(var(--content-offset, 120px) + 16px);
+    top: 170px;
     align-self: flex-start;
     z-index: 40;
   }
@@ -1506,9 +1508,7 @@
 @media (min-width: 1280px) {
   .vp-buy-card {
     position: sticky;
-    top: calc(
-      var(--content-offset, 120px) + 16px
-    ); /* Debajo del TopBar + margen */
+    top: 170px; /* Debajo del TopBar + margen */
     align-self: flex-start;
     z-index: 1; /* BAJO - para que el zoom los tape */
   }

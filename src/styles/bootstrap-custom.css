@@ -634,11 +634,7 @@ button,
   -webkit-backdrop-filter: none !important;
 }
 
-/* Asegurar fondos sólidos en tema oscuro */
-[data-bs-theme="dark"] *,
-.dark * {
-  background-color: inherit;
-}
+/* Asegurar fondos sólidos en tema oscuro - ELIMINADO porque tapaba botones */
 
 /* Overlays sólidos */
 .modal-backdrop {

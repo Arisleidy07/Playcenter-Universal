@@ -2,29 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Estilos para los botones de navegación
-const navButtonStyles = `
-  .slider-nav-button:hover {
-    background: rgba(0, 0, 0, 0.5) !important;
-    border-color: rgba(255, 255, 255, 1) !important;
-    transform: translateY(-50%) scale(1.1) !important;
-  }
-  .slider-nav-button:active {
-    transform: translateY(-50%) scale(0.95) !important;
-  }
-`;
-
-// Insertar estilos en el head si no existen
-if (
-  typeof document !== "undefined" &&
-  !document.getElementById("slider-nav-styles")
-) {
-  const styleTag = document.createElement("style");
-  styleTag.id = "slider-nav-styles";
-  styleTag.textContent = navButtonStyles;
-  document.head.appendChild(styleTag);
-}
-
 const anuncios = [
   {
     id: 1,
@@ -176,70 +153,34 @@ function SliderAnuncios() {
         )}
       </div>
 
-      {/* Flechas ARRIBA del slider - Izquierda */}
+      {/* Flecha IZQUIERDA */}
       <button
         onClick={handlePrev}
-        aria-label="Anterior"
         style={{
+          all: "unset",
           position: "absolute",
-          top: "16px",
+          top: "50%",
           left: "16px",
-          zIndex: 30,
+          transform: "translateY(-50%)",
           cursor: "pointer",
-          background: "rgba(0, 0, 0, 0.6)",
-          borderRadius: "8px",
-          width: "50px",
-          height: "50px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "2px solid #ffffff",
-          transition: "all 0.2s ease",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.6)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.1)";
-          e.currentTarget.style.background = "rgba(0, 0, 0, 0.8)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.background = "rgba(0, 0, 0, 0.6)";
         }}
       >
-        <ChevronLeft size={28} color="#ffffff" strokeWidth={3} />
+        <ChevronLeft size={40} color="#ffffff" strokeWidth={3} />
       </button>
 
-      {/* Flechas ARRIBA del slider - Derecha */}
+      {/* Flecha DERECHA */}
       <button
         onClick={handleNext}
-        aria-label="Siguiente"
         style={{
+          all: "unset",
           position: "absolute",
-          top: "16px",
+          top: "50%",
           right: "16px",
-          zIndex: 30,
+          transform: "translateY(-50%)",
           cursor: "pointer",
-          background: "rgba(0, 0, 0, 0.6)",
-          borderRadius: "8px",
-          width: "50px",
-          height: "50px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "2px solid #ffffff",
-          transition: "all 0.2s ease",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.6)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.1)";
-          e.currentTarget.style.background = "rgba(0, 0, 0, 0.8)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.background = "rgba(0, 0, 0, 0.6)";
         }}
       >
-        <ChevronRight size={28} color="#ffffff" strokeWidth={3} />
+        <ChevronRight size={40} color="#ffffff" strokeWidth={3} />
       </button>
 
       {/* Indicadores - Circulitos blancos individuales */}

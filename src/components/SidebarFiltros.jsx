@@ -77,7 +77,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
       className="hidden xl:block w-56 max-w-[240px] relative z-40"
       style={{
         height: "100vh",
-        paddingTop: 0,
+        paddingTop: "60px",
         overflow: "hidden",
         backgroundColor: "transparent",
         border: "none",
@@ -150,7 +150,10 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
               onChange={() =>
                 setFiltros((f) => ({
                   ...f,
-                  estado: { ...f.estado, usadoComoNuevo: !f.estado?.usadoComoNuevo },
+                  estado: {
+                    ...f.estado,
+                    usadoComoNuevo: !f.estado?.usadoComoNuevo,
+                  },
                 }))
               }
             />
@@ -207,8 +210,8 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
             />
           </Box>
           <div className="flex justify-between text-sm mt-2 text-gray-700 dark:text-gray-300">
-            <span>RD${filtros.precio.min.toLocaleString('es-DO')}</span>
-            <span>RD${filtros.precio.max.toLocaleString('es-DO')}</span>
+            <span>RD${filtros.precio.min.toLocaleString("es-DO")}</span>
+            <span>RD${filtros.precio.max.toLocaleString("es-DO")}</span>
           </div>
         </div>
 

@@ -1495,10 +1495,10 @@ export default function Profile() {
             {/* Hola, Nombre con dropdown - Esquina pequeño */}
             <div className="relative" style={{ zIndex: 100 }}>
               <button
-                className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                <span className="text-xs md:text-sm font-normal text-gray-700">
+                <span className="text-xs md:text-sm font-normal text-gray-700 dark:text-gray-200">
                   Hola, {publicName}
                 </span>
                 <ChevronDown
@@ -1516,11 +1516,11 @@ export default function Profile() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 min-w-[240px] overflow-hidden"
+                    className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 min-w-[240px] overflow-hidden"
                     style={{ zIndex: 101 }}
                   >
                     <button
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left text-gray-900 dark:text-gray-100"
                       onClick={() => {
                         setEditModalOpen(true);
                         setDropdownOpen(false);
@@ -1529,15 +1529,15 @@ export default function Profile() {
                       <Pencil size={16} />
                       <span>Editar perfil</span>
                     </button>
-                    <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left">
+                    <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left text-gray-900 dark:text-gray-100">
                       <Users size={16} />
                       <span>Cambiar cuenta</span>
                     </button>
-                    <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left">
+                    <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left text-gray-900 dark:text-gray-100">
                       <Plus size={16} />
                       <span>Agregar cuenta</span>
                     </button>
-                    <div className="h-px bg-gray-200 my-1" />
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-1" />
                     <button
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600"
                       onClick={() => {
@@ -1555,7 +1555,7 @@ export default function Profile() {
 
             {/* Botón menú lateral - Cambia a X cuando está abierto */}
             <button
-              className="flex items-center gap-2 px-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all xl:hidden"
+              className="flex items-center gap-2 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all xl:hidden text-gray-900 dark:text-gray-100"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               aria-label={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
             >
@@ -1581,12 +1581,12 @@ export default function Profile() {
             <img
               src={avatarSrc}
               alt="Avatar"
-              className="w-20 h-20 md:w-24 md:h-24 xl:w-28 xl:h-28 rounded-full object-cover border-3 border-white shadow-lg ring-1 ring-gray-200"
+              className="w-20 h-20 md:w-24 md:h-24 xl:w-28 xl:h-28 rounded-full object-cover border-3 border-white dark:border-gray-700 shadow-lg ring-1 ring-gray-200 dark:ring-gray-600"
             />
-            <div className="absolute bottom-0 right-0 w-5 h-5 md:w-6 md:h-6 bg-green-500 border-3 border-white rounded-full" />
+            <div className="absolute bottom-0 right-0 w-5 h-5 md:w-6 md:h-6 bg-green-500 border-3 border-white dark:border-gray-700 rounded-full" />
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl xl:text-3xl font-bold text-gray-900">
+            <h1 className="text-xl md:text-2xl xl:text-3xl font-bold text-gray-900 dark:text-gray-100">
               {publicName}
             </h1>
             <button
@@ -1601,7 +1601,7 @@ export default function Profile() {
 
         {/* INDICADORES DE SEGUIMIENTO */}
         <motion.div
-          className="flex justify-center gap-6 md:gap-8 xl:gap-12 py-3 md:py-4 border-b border-gray-200 mt-3 md:mt-4"
+          className="flex justify-center gap-6 md:gap-8 xl:gap-12 py-3 md:py-4 border-b border-gray-200 dark:border-gray-700 mt-3 md:mt-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -1610,28 +1610,32 @@ export default function Profile() {
             className="flex flex-col items-center hover:opacity-75 hover:scale-105 transition-all group"
             onClick={() => toast("Próximamente")}
           >
-            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
               {stats.seguidos}
             </span>
-            <span className="text-xs md:text-sm text-gray-600">Seguidos</span>
+            <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
+              Seguidos
+            </span>
           </button>
           <button
             className="flex flex-col items-center hover:opacity-75 hover:scale-105 transition-all group"
             onClick={() => toast("Próximamente")}
           >
-            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
               {stats.seguidores}
             </span>
-            <span className="text-xs md:text-sm text-gray-600">Seguidores</span>
+            <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
+              Seguidores
+            </span>
           </button>
           <button
             className="flex flex-col items-center hover:opacity-75 hover:scale-105 transition-all group"
             onClick={() => toast("Próximamente")}
           >
-            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+            <span className="text-lg md:text-xl xl:text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
               {stats.publicaciones}
             </span>
-            <span className="text-xs md:text-sm text-gray-600">
+            <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
               Publicaciones
             </span>
           </button>
@@ -1639,7 +1643,7 @@ export default function Profile() {
 
         {/* MENÚ DE ACCESOS RÁPIDOS (ÍCONOS) - SLIDER VISIBLE */}
         <motion.div
-          className="py-2 md:py-3 border-b border-gray-200"
+          className="py-2 md:py-3 border-b border-gray-200 dark:border-gray-700"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -1666,8 +1670,8 @@ export default function Profile() {
                     key={item.id}
                     className={`flex flex-col items-center gap-1 md:gap-1.5 p-1.5 md:p-2 xl:p-2.5 rounded-lg transition-all hover:scale-105 min-w-[60px] md:min-w-[65px] xl:min-w-[80px] ${
                       vista === item.id && !item.isExternal
-                        ? "bg-blue-50 shadow-sm"
-                        : "hover:bg-gray-50"
+                        ? "bg-blue-50 dark:bg-blue-900/30 shadow-sm"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                     onClick={() => {
                       setVista(item.id);
@@ -1677,7 +1681,7 @@ export default function Profile() {
                       className={`w-10 h-10 md:w-11 md:h-11 xl:w-14 xl:h-14 flex items-center justify-center rounded-full transition-all ${
                         vista === item.id
                           ? "bg-blue-600 text-white scale-105"
-                          : "bg-gray-100 text-gray-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                       }`}
                     >
                       <Icon
@@ -1687,7 +1691,9 @@ export default function Profile() {
                     </div>
                     <span
                       className={`text-[9px] md:text-[10px] xl:text-xs font-medium text-center leading-tight max-w-[65px] xl:max-w-none ${
-                        vista === item.id ? "text-blue-600" : "text-gray-700"
+                        vista === item.id
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-gray-700 dark:text-gray-300"
                       }`}
                     >
                       {item.label}
@@ -1701,8 +1707,8 @@ export default function Profile() {
           {/* Indicador de scroll para móvil */}
           <div className="flex justify-center gap-1 mt-3 xl:hidden">
             <div className="w-2 h-2 rounded-full bg-blue-600" />
-            <div className="w-2 h-2 rounded-full bg-gray-300" />
-            <div className="w-2 h-2 rounded-full bg-gray-300" />
+            <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600" />
+            <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600" />
           </div>
         </motion.div>
       </div>
@@ -2096,19 +2102,10 @@ export default function Profile() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                <div className="mb-6">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
                     Mi Tienda
                   </h2>
-                  {miTienda && (
-                    <Link
-                      to={`/tiendas/${miTienda.id}`}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all hover:scale-105 font-semibold shadow-md flex items-center gap-2"
-                    >
-                      <Store size={20} />
-                      Ver mi tienda
-                    </Link>
-                  )}
                 </div>
 
                 {loadingTienda ? (
@@ -2116,12 +2113,12 @@ export default function Profile() {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
                   </div>
                 ) : !miTienda ? (
-                  <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-200 text-center">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-700 text-center">
                     <div className="text-6xl mb-4">🏪</div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                       No tienes una tienda aún
                     </h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
                       Contacta al administrador para crear tu tienda y comenzar
                       a vender.
                     </p>
@@ -2133,100 +2130,92 @@ export default function Profile() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    {miTienda.banner && (
-                      <div className="w-full h-40 md:h-56 bg-gray-100 overflow-hidden">
-                        <img
-                          src={miTienda.banner}
-                          alt={`Banner de ${miTienda.nombre}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-
-                    <div className="p-6 md:p-8">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-                        {miTienda.logo && (
-                          <div
-                            className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-lg shadow-sm flex-shrink-0 overflow-hidden flex items-center justify-center"
-                            style={{ border: "1px solid rgba(0, 0, 0, 0.08)" }}
-                          >
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
+                    {/* Header con logo */}
+                    <div className="p-5 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center gap-4">
+                        {miTienda.logo ? (
+                          <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-gray-600">
                             <img
                               src={miTienda.logo}
-                              alt={`Logo de ${miTienda.nombre}`}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "contain",
-                                padding: "8px",
-                              }}
+                              alt={miTienda.nombre}
+                              className="w-full h-full object-contain p-2"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex-shrink-0 flex items-center justify-center">
+                            <Store
+                              className="text-blue-600 dark:text-blue-400"
+                              size={28}
                             />
                           </div>
                         )}
 
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900">
-                              {miTienda.nombre}
-                            </h3>
-                            {(miTienda.principal ||
-                              miTienda.es_admin ||
-                              usuarioInfo?.es_admin) && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 bg-gray-900 text-white text-xs font-semibold rounded">
-                                DUEÑA
-                              </span>
-                            )}
-                          </div>
+                        <div className="flex-1 min-w-0">
+                          <h3
+                            className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate"
+                            title={miTienda.nombre}
+                          >
+                            {miTienda.nombre}
+                          </h3>
                           {miTienda.descripcion && (
-                            <p className="text-gray-600 text-sm md:text-base">
+                            <p
+                              className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1"
+                              title={miTienda.descripcion}
+                              style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                              }}
+                            >
                               {miTienda.descripcion}
                             </p>
                           )}
                         </div>
                       </div>
+                    </div>
 
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Package size={18} className="text-gray-700" />
-                            <p className="text-sm font-medium text-gray-700">
-                              Productos
-                            </p>
-                          </div>
-                          <p className="text-2xl font-bold text-gray-900">
+                    {/* Stats */}
+                    <div className="px-5 py-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-around">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                             {stats.publicaciones}
                           </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            Productos
+                          </p>
                         </div>
-
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Users size={18} className="text-gray-700" />
-                            <p className="text-sm font-medium text-gray-700">
-                              Seguidores
-                            </p>
-                          </div>
-                          <p className="text-2xl font-bold text-gray-900">
+                        <div className="w-px h-10 bg-gray-300 dark:bg-gray-600"></div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                             {miTienda.seguidores || 0}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            Seguidores
                           </p>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button
-                          className="w-full px-5 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center justify-center gap-2"
-                          onClick={() => navigate("/admin")}
-                        >
-                          <BarChart size={18} />
-                          Gestionar productos
-                        </button>
-                        <Link
-                          to={`/tiendas/${miTienda.id}`}
-                          className="w-full px-5 py-3 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center gap-2"
-                        >
-                          <Store size={18} />
-                          Ver tienda
-                        </Link>
-                      </div>
+                    {/* Botones */}
+                    <div className="p-4 flex gap-2">
+                      <button
+                        onClick={() => navigate("/admin")}
+                        className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center justify-center gap-2"
+                      >
+                        <BarChart size={16} />
+                        Gestionar
+                      </button>
+                      <Link
+                        to={`/tiendas/${miTienda.id}`}
+                        className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-sm flex items-center justify-center gap-2"
+                      >
+                        <Store size={16} />
+                        Ver Tienda
+                      </Link>
                     </div>
                   </div>
                 )}

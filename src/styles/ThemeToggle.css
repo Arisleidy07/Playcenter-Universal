@@ -12,12 +12,11 @@
   background-color: var(--bg-color);
   border-radius: 100%;
   border: 2px solid var(--main-color);
-  box-shadow:
-    3px 3px 0px var(--main-color),
-    3px 3px 6px rgba(0, 0, 0, 0.25),
+  box-shadow: 3px 3px 0px var(--main-color), 3px 3px 6px rgba(0, 0, 0, 0.25),
     inset -2px -2px 3px rgba(0, 0, 0, 0.2),
     inset 2px 2px 3px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  z-index: 10000;
 }
 
 .theme-toggle__input {
@@ -41,13 +40,15 @@
 
 .theme-toggle__icon--moon {
   fill: var(--main-color);
-  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
 
 .theme-toggle__icon--sun {
   stroke: var(--main-color);
   display: none;
-  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 10px rgba(255, 193, 7, 0.5));
+  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 0 10px rgba(255, 193, 7, 0.5));
 }
 
 .theme-toggle__input:checked ~ .theme-toggle__icon--sun {
@@ -59,17 +60,13 @@
 }
 
 .theme-toggle:active {
-  box-shadow: 
-    0px 0px 0px var(--main-color),
-    inset 0 0 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0px 0px 0px var(--main-color), inset 0 0 8px rgba(0, 0, 0, 0.4);
   transform: translate(4px, 4px);
 }
 
 .theme-toggle:hover {
   transform: scale(1.08);
-  box-shadow: 
-    5px 5px 0px var(--main-color),
-    5px 5px 12px rgba(0, 0, 0, 0.4),
+  box-shadow: 5px 5px 0px var(--main-color), 5px 5px 12px rgba(0, 0, 0, 0.4),
     inset -2px -2px 4px rgba(0, 0, 0, 0.2),
     inset 2px 2px 4px rgba(255, 255, 255, 0.15);
 }
@@ -78,17 +75,13 @@
 html.dark-theme .theme-toggle {
   --bg-color: #fefefe;
   --main-color: #111;
-  box-shadow: 
-    4px 4px 0px var(--main-color),
-    4px 4px 8px rgba(0, 0, 0, 0.5),
+  box-shadow: 4px 4px 0px var(--main-color), 4px 4px 8px rgba(0, 0, 0, 0.5),
     inset -2px -2px 4px rgba(0, 0, 0, 0.1),
     inset 2px 2px 4px rgba(255, 255, 255, 0.3);
 }
 
 html.dark-theme .theme-toggle:hover {
-  box-shadow: 
-    5px 5px 0px var(--main-color),
-    5px 5px 12px rgba(0, 0, 0, 0.6),
+  box-shadow: 5px 5px 0px var(--main-color), 5px 5px 12px rgba(0, 0, 0, 0.6),
     inset -2px -2px 4px rgba(0, 0, 0, 0.1),
     inset 2px 2px 4px rgba(255, 255, 255, 0.4);
 }

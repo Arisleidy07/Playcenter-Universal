@@ -231,7 +231,7 @@ function ProductosPage() {
       style={{
         position: "relative",
         margin: 0,
-        paddingTop: "180px",
+        paddingTop: "calc(var(--content-offset, 140px) + 10px)",
         transition: "padding-top 0.2s",
         boxSizing: "border-box",
       }}
@@ -305,7 +305,7 @@ function ProductosPage() {
           )}
 
           {/* TÍTULO ARRIBA DE LAS BOLITAS */}
-          <div className="mb-6 mt-4 px-4 xl:px-0">
+          <div className="mb-2 mt-4 px-4 xl:px-0">
             <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
               {categoriaActiva === "Todos"
                 ? "Todos los productos"
@@ -321,7 +321,7 @@ function ProductosPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3 sm:gap-4 px-4 xl:px-0 mb-6 justify-center sm:justify-start">
+          <div className="flex flex-wrap gap-3 sm:gap-4 px-4 xl:px-0 mb-2 justify-start">
             {logosEmpresa.map((empresa) => {
               const isActive = brandFilter.norm === empresa.norm;
               return (

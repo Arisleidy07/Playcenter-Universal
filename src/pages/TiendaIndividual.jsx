@@ -61,6 +61,7 @@ export default function TiendaIndividual() {
   const [busqueda, setBusqueda] = useState("");
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Estados para edición de tienda
   const [editData, setEditData] = useState({
@@ -465,10 +466,10 @@ export default function TiendaIndividual() {
       setBannerFile(null);
       setLogoFile(null);
 
-      alert("¡Tienda actualizada exitosamente!");
+      // Mostrar modal de éxito
+      setShowSuccessModal(true);
     } catch (error) {
-      console.error("Error al actualizar tienda:", error);
-      alert("Error al actualizar la tienda");
+      alert("Error al actualizar la tienda. Por favor intenta de nuevo.");
     } finally {
       setUploading(false);
     }
@@ -594,8 +595,7 @@ export default function TiendaIndividual() {
     <div
       className="min-vh-100"
       style={{
-        paddingTop: "180px",
-        backgroundColor: isDark ? "#111827" : "#ffffff",
+        paddingTop: "125px",
       }}
     >
       {/* BANNER COMPLETO - Full Width ULTRA HORIZONTAL */}
@@ -724,9 +724,24 @@ export default function TiendaIndividual() {
                   <button
                     onClick={handleSeguir}
                     disabled={loadingSeguir}
-                    className={`btn btn-sm d-flex align-items-center gap-2 shadow-sm ${
-                      siguiendo ? "btn-outline-secondary" : "btn-primary"
-                    } ${loadingSeguir ? "disabled" : ""}`}
+                    className="btn btn-sm d-flex align-items-center gap-2"
+                    style={{
+                      backgroundColor: siguiendo
+                        ? isDark
+                          ? "#374151"
+                          : "#e5e7eb"
+                        : "#3b82f6",
+                      color: siguiendo
+                        ? isDark
+                          ? "#f3f4f6"
+                          : "#1f2937"
+                        : "#ffffff",
+                      border: siguiendo
+                        ? `1px solid ${isDark ? "#4b5563" : "#d1d5db"}`
+                        : "none",
+                      opacity: loadingSeguir ? 0.6 : 1,
+                      cursor: loadingSeguir ? "not-allowed" : "pointer",
+                    }}
                   >
                     {loadingSeguir ? (
                       <div
@@ -784,9 +799,24 @@ export default function TiendaIndividual() {
               <button
                 onClick={handleSeguir}
                 disabled={loadingSeguir}
-                className={`btn btn-sm d-flex align-items-center gap-2 shadow-sm ${
-                  siguiendo ? "btn-outline-secondary" : "btn-primary"
-                } ${loadingSeguir ? "disabled" : ""}`}
+                className="btn btn-sm d-flex align-items-center gap-2"
+                style={{
+                  backgroundColor: siguiendo
+                    ? isDark
+                      ? "#374151"
+                      : "#e5e7eb"
+                    : "#3b82f6",
+                  color: siguiendo
+                    ? isDark
+                      ? "#f3f4f6"
+                      : "#1f2937"
+                    : "#ffffff",
+                  border: siguiendo
+                    ? `1px solid ${isDark ? "#4b5563" : "#d1d5db"}`
+                    : "none",
+                  opacity: loadingSeguir ? 0.6 : 1,
+                  cursor: loadingSeguir ? "not-allowed" : "pointer",
+                }}
               >
                 {loadingSeguir ? (
                   <div
@@ -1031,348 +1061,508 @@ export default function TiendaIndividual() {
             }
           `}</style>
           <div className="modal-edit-tienda w-100 h-100 d-flex flex-column">
-            {/* Header limpio y profesional */}
-            <div className="flex-shrink-0 bg-white border-bottom border-2 border-light shadow">
+            {/* Header COMPACTO */}
+            <div
+              className="flex-shrink-0 bg-white border-bottom shadow-sm"
+              style={{ padding: "12px 24px" }}
+            >
               <div
-                className="container-fluid px-4 py-3 d-flex align-items-center justify-content-between"
-                style={{ maxWidth: "72rem" }}
+                className="d-flex align-items-center justify-content-between"
+                style={{ maxWidth: "1200px", margin: "0 auto" }}
               >
-                <div className="d-flex align-items-center gap-3">
-                  <div className="p-3 bg-primary bg-gradient rounded-3 shadow">
-                    <Edit size={24} className="text-white" />
-                  </div>
-                  <div>
-                    <h2 className="h2 fw-bold text-dark mb-1">Editar Tienda</h2>
-                    <p className="small text-muted mb-0">
-                      Personaliza tu tienda
-                    </p>
-                  </div>
+                <div className="d-flex align-items-center gap-2">
+                  <Edit size={20} className="text-primary" />
+                  <h5
+                    className="mb-0 fw-bold"
+                    style={{
+                      fontSize: "18px",
+                      fontFamily:
+                        "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                    }}
+                  >
+                    Editar Tienda
+                  </h5>
                 </div>
                 <button
                   onClick={() => setShowEditModal(false)}
-                  className="btn btn-outline-secondary rounded-3 p-2"
-                  title="Cerrar"
+                  className="btn btn-sm btn-light rounded-circle p-2"
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <X size={24} />
+                  <X size={18} />
                 </button>
               </div>
             </div>
 
-            {/* Contenido del Modal - Espaciado profesional */}
-            <div className="flex-grow-1 overflow-auto">
+            {/* Contenido del Modal - Diseño Optimizado */}
+            <div
+              className="flex-grow-1 overflow-auto"
+              style={{ backgroundColor: isDark ? "#0f172a" : "#f8fafc" }}
+            >
               <div
                 className="container-fluid px-4 py-4"
-                style={{ maxWidth: "72rem" }}
+                style={{ maxWidth: "80rem" }}
               >
-                <div className="row g-4">
-                  {/* Nombre de la Tienda */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="col-12"
-                  >
-                    <div className="card border-2 shadow-sm">
-                      <div className="card-body">
-                        <label className="form-label fw-semibold d-flex align-items-center gap-2 mb-3">
-                          <Store size={18} className="text-primary" />
-                          Nombre de la Tienda
-                        </label>
-                        <input
-                          type="text"
-                          value={editData.nombre}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              nombre: e.target.value,
-                            }))
-                          }
-                          className="form-control form-control-lg rounded-3 border-2"
-                          placeholder="Ej: Mi Tienda Oficial"
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Descripción */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="col-12"
-                  >
-                    <div className="card border-2 shadow-sm">
-                      <div className="card-body">
-                        <label className="form-label fw-semibold d-flex align-items-center gap-2 mb-3">
-                          <Info size={18} className="text-info" />
-                          Descripción
-                        </label>
-                        <textarea
-                          value={editData.descripcion}
-                          onChange={(e) =>
-                            setEditData((prev) => ({
-                              ...prev,
-                              descripcion: e.target.value,
-                            }))
-                          }
-                          rows={4}
-                          className="form-control rounded-3 border-2"
-                          placeholder="Describe tu tienda, productos y servicios..."
-                          style={{ resize: "none" }}
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Enlaces Múltiples */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-white dark:from-gray-800 dark:to-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"
-                  >
-                    <div className="flex justify-between items-center mb-5">
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                        <Globe
-                          size={20}
-                          className="text-gray-600 dark:text-green-400"
-                        />
-                        Enlaces y Redes Sociales
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditData((prev) => ({
-                            ...prev,
-                            enlaces: [
-                              ...(prev.enlaces || []),
-                              { titulo: "", tipo: "otro", url: "" },
-                            ],
-                          }));
-                        }}
-                        className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-xl flex items-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-[1.02]"
-                      >
-                        <Plus size={18} />
-                        Agregar Enlace
-                      </button>
-                    </div>
-
-                    <div className="space-y-4">
-                      {(editData.enlaces || []).map((enlace, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="p-5 bg-white dark:bg-gray-700 rounded-2xl border border-gray-200 dark:border-gray-500 hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md"
-                        >
-                          <div className="grid grid-cols-12 gap-4">
-                            {/* Título */}
-                            <div className="col-span-12 pb-3 mb-3 border-b border-gray-200 dark:border-gray-500">
-                              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                                Título
-                              </label>
-                              <input
-                                type="text"
-                                value={enlace.titulo || ""}
-                                onChange={(e) => {
-                                  const newEnlaces = [...editData.enlaces];
-                                  newEnlaces[index].titulo = e.target.value;
-                                  setEditData((prev) => ({
-                                    ...prev,
-                                    enlaces: newEnlaces,
-                                  }));
-                                }}
-                                placeholder="Ej: TikTok de mi tienda, WhatsApp Ventas..."
-                                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 text-sm transition-all duration-200 hover:border-gray-300 hover:bg-white dark:hover:bg-gray-900"
-                              />
-                            </div>
-
-                            {/* Ícono */}
-                            <div className="col-span-12 sm:col-span-5">
-                              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                                Ícono
-                              </label>
-                              <select
-                                value={enlace.tipo || "otro"}
-                                onChange={(e) => {
-                                  const newEnlaces = [...editData.enlaces];
-                                  newEnlaces[index].tipo = e.target.value;
-                                  setEditData((prev) => ({
-                                    ...prev,
-                                    enlaces: newEnlaces,
-                                  }));
-                                }}
-                                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 text-sm transition-all duration-200 hover:border-gray-300 hover:bg-white dark:hover:bg-gray-900"
-                              >
-                                <option value="otro">Enlace genérico</option>
-                                <option value="website">Sitio Web</option>
-                                <option value="whatsapp">WhatsApp 1</option>
-                                <option value="whatsapp2">WhatsApp 2</option>
-                                <option value="facebook">Facebook</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="youtube">YouTube</option>
-                                <option value="tiktok">TikTok</option>
-                                <option value="twitter">Twitter/X</option>
-                                <option value="telegram">Telegram</option>
-                                <option value="email">Email</option>
-                              </select>
-                            </div>
-
-                            {/* Enlace */}
-                            <div className="col-span-12 sm:col-span-6">
-                              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                                Enlace
-                              </label>
-                              <input
-                                type="text"
-                                value={enlace.url || ""}
-                                onChange={(e) => {
-                                  const newEnlaces = [...editData.enlaces];
-                                  newEnlaces[index].url = e.target.value;
-                                  setEditData((prev) => ({
-                                    ...prev,
-                                    enlaces: newEnlaces,
-                                  }));
-                                }}
-                                placeholder="https://... o +1809..."
-                                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 text-sm transition-all duration-200 hover:border-gray-300 hover:bg-white dark:hover:bg-gray-900"
-                              />
-                            </div>
-
-                            {/* Eliminar */}
-                            <div className="col-span-12 sm:col-span-1 flex items-end">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newEnlaces = editData.enlaces.filter(
-                                    (_, i) => i !== index
-                                  );
-                                  setEditData((prev) => ({
-                                    ...prev,
-                                    enlaces: newEnlaces,
-                                  }));
-                                }}
-                                className="w-full px-2 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
-                                title="Eliminar"
-                              >
-                                <X size={16} className="mx-auto" />
-                              </button>
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-
-                      {(!editData.enlaces || editData.enlaces.length === 0) && (
-                        <p className="text-center text-gray-500 dark:text-gray-400 py-6 text-sm">
-                          No hay enlaces. Haz clic en "Agregar" para comenzar.
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
-
-                  {/* Banner */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="bg-white dark:from-gray-800 dark:to-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"
-                  >
-                    <label className="block text-base font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
-                      <Camera
-                        size={18}
-                        className="text-gray-600 dark:text-orange-400"
-                      />
-                      Banner de la Tienda
+                {/* SECCIÓN 1: Nombre y Descripción en 2 columnas */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="row g-3 mb-4"
+                >
+                  {/* Nombre - Izquierda */}
+                  <div className="col-12 col-lg-6">
+                    <label
+                      className="form-label fw-semibold d-flex align-items-center gap-2 mb-2"
+                      style={{
+                        fontSize: "14px",
+                        color: isDark ? "#cbd5e1" : "#475569",
+                      }}
+                    >
+                      <Store size={16} className="text-primary" />
+                      Nombre de la Tienda
                     </label>
-                    <div className="space-y-3">
-                      {editData.banner && (
-                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center border-2 border-gray-200 dark:border-gray-600">
-                          <img
-                            src={editData.banner}
-                            alt="Preview banner"
-                            className="w-full h-auto object-contain"
-                            style={{
-                              objectFit: "contain",
-                              imageRendering: "auto",
-                              maxHeight: "200px",
-                            }}
-                          />
-                        </div>
-                      )}
-                      <label className="flex items-center justify-center w-full h-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 transition-all duration-200">
-                        <Upload
-                          size={16}
-                          className="mr-2 text-gray-500 dark:text-gray-400"
-                        />
-                        <span className="text-gray-600 dark:text-gray-400 text-sm">
-                          Cambiar Banner
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileChange(e, "banner")}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </motion.div>
+                    <input
+                      type="text"
+                      value={editData.nombre}
+                      onChange={(e) =>
+                        setEditData((prev) => ({
+                          ...prev,
+                          nombre: e.target.value,
+                        }))
+                      }
+                      className="form-control form-control-lg border-2"
+                      placeholder="Ej: Mi Tienda Oficial"
+                      style={{
+                        borderRadius: "12px",
+                        backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                        borderColor: isDark ? "#334155" : "#e2e8f0",
+                        color: isDark ? "#f1f5f9" : "#1e293b",
+                        padding: "12px 16px",
+                      }}
+                    />
+                  </div>
 
-                  {/* Logo */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-white dark:from-gray-800 dark:to-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"
+                  {/* Descripción - Derecha */}
+                  <div className="col-12 col-lg-6">
+                    <label
+                      className="form-label fw-semibold d-flex align-items-center gap-2 mb-2"
+                      style={{
+                        fontSize: "14px",
+                        color: isDark ? "#cbd5e1" : "#475569",
+                      }}
+                    >
+                      <Info size={16} className="text-info" />
+                      Descripción
+                    </label>
+                    <textarea
+                      value={editData.descripcion}
+                      onChange={(e) =>
+                        setEditData((prev) => ({
+                          ...prev,
+                          descripcion: e.target.value,
+                        }))
+                      }
+                      rows={4}
+                      className="form-control border-2"
+                      placeholder="Describe tu tienda, productos y servicios..."
+                      style={{
+                        resize: "none",
+                        borderRadius: "12px",
+                        backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                        borderColor: isDark ? "#334155" : "#e2e8f0",
+                        color: isDark ? "#f1f5f9" : "#1e293b",
+                        padding: "12px 16px",
+                      }}
+                    />
+                  </div>
+                </motion.div>
+
+                {/* SECCIÓN 2: Banner - Grande y Horizontal */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mb-4"
+                >
+                  <label
+                    className="form-label fw-semibold d-flex align-items-center gap-2 mb-3"
+                    style={{
+                      fontSize: "15px",
+                      color: isDark ? "#cbd5e1" : "#475569",
+                    }}
                   >
-                    <label className="block text-base font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
+                    <Camera size={18} className="text-warning" />
+                    Banner de la Tienda
+                  </label>
+                  <div
+                    style={{
+                      backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                      borderRadius: "16px",
+                      border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                      padding: "16px",
+                    }}
+                  >
+                    {editData.banner && (
+                      <div
+                        className="mb-3"
+                        style={{
+                          backgroundColor: isDark ? "#0f172a" : "#f1f5f9",
+                          borderRadius: "12px",
+                          overflow: "hidden",
+                          height: "280px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <img
+                          src={editData.banner}
+                          alt="Preview banner"
+                          className="w-100 h-100"
+                          style={{ objectFit: "contain" }}
+                        />
+                      </div>
+                    )}
+                    <label
+                      className="d-flex align-items-center justify-content-center w-100 py-3 border-2 border-dashed"
+                      style={{
+                        borderRadius: "12px",
+                        borderColor: isDark ? "#475569" : "#cbd5e1",
+                        backgroundColor: isDark ? "#0f172a" : "#f8fafc",
+                        cursor: "pointer",
+                      }}
+                    >
                       <Upload
                         size={18}
-                        className="text-gray-600 dark:text-cyan-400"
+                        className="me-2"
+                        style={{ color: isDark ? "#94a3b8" : "#64748b" }}
                       />
-                      Logo de la Tienda
+                      <span
+                        style={{
+                          color: isDark ? "#cbd5e1" : "#475569",
+                          fontSize: "14px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {editData.banner ? "Cambiar Banner" : "Subir Banner"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, "banner")}
+                        className="d-none"
+                      />
                     </label>
-                    <div className="space-y-3">
+                  </div>
+                </motion.div>
+
+                {/* SECCIÓN 3: Logo */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 }}
+                  className="mb-4"
+                >
+                  <label
+                    className="form-label fw-semibold d-flex align-items-center gap-2 mb-3"
+                    style={{
+                      fontSize: "15px",
+                      color: isDark ? "#cbd5e1" : "#475569",
+                    }}
+                  >
+                    <Upload size={18} className="text-success" />
+                    Logo de la Tienda
+                  </label>
+                  <div
+                    style={{
+                      backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                      borderRadius: "16px",
+                      border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                      padding: "20px",
+                    }}
+                  >
+                    <div className="d-flex align-items-center gap-4">
                       {editData.logo && (
-                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mx-auto border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                        <div
+                          style={{
+                            width: "100px",
+                            height: "100px",
+                            backgroundColor: isDark ? "#0f172a" : "#f1f5f9",
+                            borderRadius: "50%",
+                            border: `3px solid ${
+                              isDark ? "#334155" : "#e2e8f0"
+                            }`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                            flexShrink: 0,
+                          }}
+                        >
                           <img
                             src={editData.logo}
                             alt="Preview logo"
-                            className="w-full h-full object-contain p-2"
                             style={{
-                              imageRendering: "auto",
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "contain",
+                              padding: "8px",
                             }}
                           />
                         </div>
                       )}
-                      <label className="flex items-center justify-center w-full h-14 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all duration-200">
+                      <label
+                        className="d-flex align-items-center justify-content-center flex-grow-1 py-3 border-2 border-dashed"
+                        style={{
+                          borderRadius: "12px",
+                          borderColor: isDark ? "#475569" : "#cbd5e1",
+                          backgroundColor: isDark ? "#0f172a" : "#f8fafc",
+                          cursor: "pointer",
+                          minHeight: "60px",
+                        }}
+                      >
                         <Upload
-                          size={16}
-                          className="mr-2 text-gray-500 dark:text-gray-400"
+                          size={18}
+                          className="me-2"
+                          style={{ color: isDark ? "#94a3b8" : "#64748b" }}
                         />
-                        <span className="text-gray-600 dark:text-gray-400 text-sm">
-                          Cambiar Logo
+                        <span
+                          style={{
+                            color: isDark ? "#cbd5e1" : "#475569",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          {editData.logo ? "Cambiar Logo" : "Subir Logo"}
                         </span>
                         <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => handleFileChange(e, "logo")}
-                          className="hidden"
+                          className="d-none"
                         />
                       </label>
                     </div>
-                  </motion.div>
-                </div>
+                  </div>
+                </motion.div>
+
+                {/* SECCIÓN 4: Enlaces - Al Final */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  style={{
+                    backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                    borderRadius: "16px",
+                    border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                    padding: "24px",
+                  }}
+                >
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h3
+                      className="mb-0 fw-bold d-flex align-items-center gap-2"
+                      style={{
+                        fontSize: "16px",
+                        color: isDark ? "#f1f5f9" : "#1e293b",
+                      }}
+                    >
+                      <Globe size={20} className="text-primary" />
+                      Enlaces y Redes Sociales
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditData((prev) => ({
+                          ...prev,
+                          enlaces: [
+                            ...(prev.enlaces || []),
+                            { titulo: "", tipo: "otro", url: "" },
+                          ],
+                        }));
+                      }}
+                      className="btn btn-primary btn-sm d-flex align-items-center gap-2"
+                      style={{
+                        borderRadius: "10px",
+                        padding: "8px 16px",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      <Plus size={16} />
+                      Agregar
+                    </button>
+                  </div>
+
+                  <div className="d-flex flex-column gap-3">
+                    {(editData.enlaces || []).map((enlace, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        style={{
+                          padding: "16px",
+                          backgroundColor: isDark ? "#0f172a" : "#f8fafc",
+                          borderRadius: "12px",
+                          border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                        }}
+                      >
+                        <div className="row g-2 align-items-end">
+                          <div className="col-12 col-md-4">
+                            <label
+                              className="form-label mb-1"
+                              style={{
+                                fontSize: "12px",
+                                color: isDark ? "#94a3b8" : "#64748b",
+                                fontWeight: "600",
+                              }}
+                            >
+                              Título
+                            </label>
+                            <input
+                              type="text"
+                              value={enlace.titulo || ""}
+                              onChange={(e) => {
+                                const newEnlaces = [...editData.enlaces];
+                                newEnlaces[index].titulo = e.target.value;
+                                setEditData((prev) => ({
+                                  ...prev,
+                                  enlaces: newEnlaces,
+                                }));
+                              }}
+                              placeholder="Ej: TikTok oficial"
+                              className="form-control form-control-sm"
+                              style={{
+                                borderRadius: "8px",
+                                backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                                borderColor: isDark ? "#475569" : "#cbd5e1",
+                                color: isDark ? "#f1f5f9" : "#1e293b",
+                                fontSize: "13px",
+                              }}
+                            />
+                          </div>
+                          <div className="col-12 col-md-3">
+                            <label
+                              className="form-label mb-1"
+                              style={{
+                                fontSize: "12px",
+                                color: isDark ? "#94a3b8" : "#64748b",
+                                fontWeight: "600",
+                              }}
+                            >
+                              Tipo
+                            </label>
+                            <select
+                              value={enlace.tipo || "otro"}
+                              onChange={(e) => {
+                                const newEnlaces = [...editData.enlaces];
+                                newEnlaces[index].tipo = e.target.value;
+                                setEditData((prev) => ({
+                                  ...prev,
+                                  enlaces: newEnlaces,
+                                }));
+                              }}
+                              className="form-select form-select-sm"
+                              style={{
+                                borderRadius: "8px",
+                                backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                                borderColor: isDark ? "#475569" : "#cbd5e1",
+                                color: isDark ? "#f1f5f9" : "#1e293b",
+                                fontSize: "13px",
+                              }}
+                            >
+                              <option value="otro">Genérico</option>
+                              <option value="website">Web</option>
+                              <option value="whatsapp">WhatsApp</option>
+                              <option value="facebook">Facebook</option>
+                              <option value="instagram">Instagram</option>
+                              <option value="youtube">YouTube</option>
+                              <option value="tiktok">TikTok</option>
+                              <option value="twitter">Twitter/X</option>
+                              <option value="telegram">Telegram</option>
+                            </select>
+                          </div>
+                          <div className="col-12 col-md-4">
+                            <label
+                              className="form-label mb-1"
+                              style={{
+                                fontSize: "12px",
+                                color: isDark ? "#94a3b8" : "#64748b",
+                                fontWeight: "600",
+                              }}
+                            >
+                              URL
+                            </label>
+                            <input
+                              type="text"
+                              value={enlace.url || ""}
+                              onChange={(e) => {
+                                const newEnlaces = [...editData.enlaces];
+                                newEnlaces[index].url = e.target.value;
+                                setEditData((prev) => ({
+                                  ...prev,
+                                  enlaces: newEnlaces,
+                                }));
+                              }}
+                              placeholder="https://..."
+                              className="form-control form-control-sm"
+                              style={{
+                                borderRadius: "8px",
+                                backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                                borderColor: isDark ? "#475569" : "#cbd5e1",
+                                color: isDark ? "#f1f5f9" : "#1e293b",
+                                fontSize: "13px",
+                              }}
+                            />
+                          </div>
+                          <div className="col-12 col-md-1 d-flex align-items-end">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newEnlaces = editData.enlaces.filter(
+                                  (_, i) => i !== index
+                                );
+                                setEditData((prev) => ({
+                                  ...prev,
+                                  enlaces: newEnlaces,
+                                }));
+                              }}
+                              className="btn btn-danger btn-sm w-100"
+                              style={{ borderRadius: "8px", padding: "6px" }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                    {(!editData.enlaces || editData.enlaces.length === 0) && (
+                      <p
+                        className="text-center mb-0"
+                        style={{
+                          color: isDark ? "#94a3b8" : "#64748b",
+                          fontSize: "14px",
+                          padding: "24px 0",
+                        }}
+                      >
+                        No hay enlaces. Haz clic en "Agregar" para comenzar.
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
               </div>
             </div>
 
-            {/* Footer profesional */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t-2 border-gray-200 dark:border-gray-700 shadow-2xl">
-              <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Los cambios se guardarán permanentemente
-                </p>
-                <div className="flex items-center gap-3">
+            {/* Footer compacto */}
+            <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+              <div className="max-w-6xl mx-auto px-4 py-3 d-flex justify-content-end">
+                <div className="d-flex align-items-center gap-3">
                   <button
                     onClick={() => setShowEditModal(false)}
                     className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl font-semibold transition-all duration-200 border-2 border-gray-300 dark:border-gray-600 hover:scale-105"
@@ -1891,8 +2081,9 @@ export default function TiendaIndividual() {
           className="lg:hidden fixed inset-0 z-[99999] flex flex-col"
           style={{
             backgroundColor: isDark
-              ? "#111827 !important"
+              ? "rgba(15, 23, 42, 0.95) !important"
               : "#ffffff !important",
+            backdropFilter: isDark ? "blur(10px)" : "none",
             opacity: "1 !important",
             width: "100vw",
             height: "100vh",
@@ -1905,9 +2096,9 @@ export default function TiendaIndividual() {
         >
           {/* Header */}
           <div
-            className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center justify-between"
+            className="flex-shrink-0 bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-600/30 px-3 py-2 flex items-center justify-between"
             style={{
-              backgroundColor: isDark ? "#111827" : "#ffffff",
+              backgroundColor: isDark ? "transparent" : "#ffffff",
               opacity: 1,
             }}
           >
@@ -1916,7 +2107,7 @@ export default function TiendaIndividual() {
             </h2>
             <button
               onClick={() => setShowCategoryModal(false)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
             >
               <X size={20} className="text-gray-500 dark:text-gray-400" />
             </button>
@@ -1926,7 +2117,7 @@ export default function TiendaIndividual() {
           <div
             className="flex-1 overflow-y-auto px-3 py-3"
             style={{
-              backgroundColor: isDark ? "#111827" : "#ffffff",
+              backgroundColor: isDark ? "transparent" : "#ffffff",
               opacity: 1,
             }}
           >
@@ -1941,7 +2132,7 @@ export default function TiendaIndividual() {
                   className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-between ${
                     categoriaSeleccionada === categoria
                       ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
-                      : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700"
+                      : "bg-white dark:bg-transparent text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-white/5 shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-600/30"
                   }`}
                   style={{ opacity: 1 }}
                 >
@@ -1960,9 +2151,9 @@ export default function TiendaIndividual() {
 
           {/* Footer con información */}
           <div
-            className="flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 py-2"
+            className="flex-shrink-0 bg-gray-50 dark:bg-transparent border-t border-gray-200 dark:border-gray-600/30 px-3 py-2"
             style={{
-              backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+              backgroundColor: isDark ? "transparent" : "#f9fafb",
               opacity: 1,
             }}
           >
@@ -1972,6 +2163,115 @@ export default function TiendaIndividual() {
           </div>
         </div>
       )}
+
+      {/* MODAL DE ÉXITO - MODERNO Y SOBRIO */}
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 10000,
+              backdropFilter: "blur(4px)",
+            }}
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-gray-800 rounded-3 shadow-lg"
+              style={{
+                maxWidth: "400px",
+                width: "90%",
+                padding: "32px",
+                backgroundColor: isDark ? "#1e293b" : "#ffffff",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Ícono de éxito */}
+              <div className="d-flex justify-content-center mb-4">
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center"
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    backgroundColor: "#10b981",
+                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                  }}
+                >
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Título */}
+              <h3
+                className="text-center fw-bold mb-2"
+                style={{
+                  fontSize: "22px",
+                  color: isDark ? "#f1f5f9" : "#1e293b",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Guardado exitosamente
+              </h3>
+
+              {/* Mensaje */}
+              <p
+                className="text-center mb-4"
+                style={{
+                  fontSize: "15px",
+                  color: isDark ? "#94a3b8" : "#64748b",
+                  lineHeight: "1.5",
+                }}
+              >
+                Los cambios de tu tienda se han guardado correctamente.
+              </p>
+
+              {/* Botón OK */}
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="btn w-100"
+                style={{
+                  backgroundColor: "#475569",
+                  color: "#ffffff",
+                  padding: "12px",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                  borderRadius: "10px",
+                  border: "none",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#334155";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#475569";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                OK
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

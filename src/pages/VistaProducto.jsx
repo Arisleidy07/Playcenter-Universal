@@ -1624,10 +1624,7 @@ function VistaProducto() {
   return (
     <>
       {/* Sin topbar móvil: solo contenido */}
-      <main
-        className="vp-main min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800 flex flex-col items-stretch overflow-visible"
-        style={{ paddingTop: "180px" }}
-      >
+      <main className="vp-main min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800 flex flex-col items-stretch overflow-visible">
         <section className="w-full xl:grid xl:grid-cols-12 xl:gap-6 flex flex-col gap-8 overflow-visible">
           {/* Columna Izquierda - Galería (6 columnas) CON STICKY COMO AMAZON */}
           {showLeftColumn && (

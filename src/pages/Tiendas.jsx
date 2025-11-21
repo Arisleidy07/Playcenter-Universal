@@ -262,13 +262,16 @@ function TiendaCard({ tienda, index }) {
       <Link
         to={`/tiendas/${tienda.id}`}
         className="block h-full"
+        style={{ textDecoration: "none" }}
         aria-label={`Ver tienda ${tienda.nombre}`}
       >
         <div
-          className="rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-3 hover:scale-[1.02] h-full border"
+          className="rounded-3xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 h-full"
           style={{
             backgroundColor: isDark ? "#1e293b" : "#ffffff",
-            borderColor: isDark ? "#334155" : "#e5e7eb",
+            border: isDark
+              ? "1px solid rgba(59, 130, 246, 0.2)"
+              : "1px solid rgba(229, 231, 235, 0.8)",
           }}
         >
           {/* Banner HORIZONTAL - ULTRA HORIZONTAL con efecto hover */}
@@ -301,10 +304,10 @@ function TiendaCard({ tienda, index }) {
           </div>
 
           {/* Zona inferior: Logo + Nombre + Botón - PERFECTAMENTE BALANCEADO */}
-          <div className="p-4 md:p-5">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="p-5 md:p-6">
+            <div className="flex items-center gap-4 mb-4">
               {/* Logo circular perfectamente proporcional con efecto hover */}
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-white dark:bg-gray-700 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-600 flex-shrink-0 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:border-blue-500 dark:group-hover:border-blue-400">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-white dark:bg-gray-700 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-600 flex-shrink-0 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl">
                 {tienda.logo ? (
                   <img
                     src={tienda.logo}
@@ -319,7 +322,7 @@ function TiendaCard({ tienda, index }) {
                   <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full">
                     <Store
                       size={24}
-                      className="text-gray-400 dark:text-gray-500 transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                      className="text-gray-400 dark:text-gray-500"
                     />
                   </div>
                 )}
@@ -328,15 +331,31 @@ function TiendaCard({ tienda, index }) {
               {/* Nombre de la tienda responsive */}
               <div className="flex-1 min-w-0">
                 <h2
-                  className="text-lg md:text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200"
-                  style={{ textDecoration: "none", overflow: "hidden" }}
+                  className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-white transition-colors duration-200 tracking-tight"
+                  style={{
+                    textDecoration: "none",
+                    borderBottom: "none",
+                    border: "none",
+                    overflow: "hidden",
+                    fontFamily:
+                      "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                    letterSpacing: "-0.02em",
+                    lineHeight: "1.2",
+                  }}
                 >
                   {tienda.nombre}
                 </h2>
                 {tienda.descripcion && (
                   <p
-                    className="text-xs text-gray-500 dark:text-gray-400 mt-1"
-                    style={{ overflow: "hidden" }}
+                    className="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed"
+                    style={{
+                      overflow: "hidden",
+                      textDecoration: "none",
+                      borderBottom: "none",
+                      fontFamily:
+                        "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                      lineHeight: "1.5",
+                    }}
                   >
                     {tienda.descripcion}
                   </p>
@@ -345,16 +364,30 @@ function TiendaCard({ tienda, index }) {
             </div>
 
             {/* Estadísticas y Botón Seguir */}
-            <div className="flex items-center justify-between gap-2 mt-3">
+            <div className="flex items-center justify-between gap-3 mt-4">
               {/* Badges de estadísticas */}
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-semibold">
-                  <Users className="w-3 h-3" />
-                  <span>{seguidores}</span>
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/40 dark:to-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
+                  <Users className="w-4 h-4" />
+                  <span
+                    style={{
+                      fontFamily:
+                        "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                    }}
+                  >
+                    {seguidores}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 px-2 py-1 rounded-full text-xs font-semibold">
-                  <Package className="w-3 h-3" />
-                  <span>{tienda.productos || 0}</span>
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-cyan-100 to-cyan-50 dark:from-cyan-900/40 dark:to-cyan-900/20 text-cyan-700 dark:text-cyan-300 px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
+                  <Package className="w-4 h-4" />
+                  <span
+                    style={{
+                      fontFamily:
+                        "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                    }}
+                  >
+                    {tienda.productos || 0}
+                  </span>
                 </div>
               </div>
 
@@ -363,11 +396,15 @@ function TiendaCard({ tienda, index }) {
                 <button
                   onClick={handleSeguir}
                   disabled={loadingSeguir}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg ${
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${
                     siguiendo
                       ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
                       : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
                   } ${loadingSeguir ? "opacity-50 cursor-not-allowed" : ""}`}
+                  style={{
+                    fontFamily:
+                      "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                  }}
                 >
                   {loadingSeguir ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />

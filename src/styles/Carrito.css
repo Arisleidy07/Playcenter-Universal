@@ -265,6 +265,7 @@
   gap: 8px;
   margin-top: 10px;
 }
+/* Botones cantidad - IGUAL en tema claro y oscuro */
 .vp-qty-btn {
   width: 38px;
   height: 38px;
@@ -279,17 +280,8 @@
   transition: background 0.2s ease;
 }
 
-html.dark-theme .vp-qty-btn {
-  background: #334155;
-  color: #e2e8f0;
-}
-
 .vp-qty-btn:hover:not(:disabled) {
   background: #e5e7eb;
-}
-
-html.dark-theme .vp-qty-btn:hover:not(:disabled) {
-  background: #475569;
 }
 
 .vp-qty-btn:disabled {
@@ -297,22 +289,17 @@ html.dark-theme .vp-qty-btn:hover:not(:disabled) {
   cursor: not-allowed;
 }
 
-html.dark-theme .vp-qty-btn:disabled {
-  opacity: 0.3;
-}
-
+/* Número de cantidad - SIN fondo negro en tema oscuro */
 .vp-qty {
   min-width: 36px;
   text-align: center;
   font-weight: 600;
   font-size: 1rem;
   color: #333;
+  background: transparent;
 }
 
-html.dark-theme .vp-qty {
-  color: #e5e5e5;
-}
-
+/* Botón eliminar - ROJO en ambos temas */
 .vp-remove {
   color: #dc2626;
   font-size: 18px;
@@ -320,35 +307,23 @@ html.dark-theme .vp-qty {
   border: none;
   cursor: pointer;
   margin-left: 4px;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
   transition: all 0.2s ease;
 }
 
 .vp-remove:hover {
   color: #b91c1c;
   background: #fee2e2;
-  border-radius: 0.375rem;
 }
 
-html.dark-theme .vp-remove {
-  color: #ef4444;
-}
-
-html.dark-theme .vp-remove:hover {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.15);
-}
-
-/* Subtotal */
+/* Subtotal - IGUAL en ambos temas */
 .carrito-subtotal {
   font-weight: 700;
   color: #2563eb;
   font-size: 1.1rem;
   white-space: nowrap;
   letter-spacing: -0.5px;
-}
-
-html.dark-theme .carrito-subtotal {
-  color: #3b82f6;
 }
 
 /* Desktop: animaciones y subtotal a la derecha */
@@ -375,11 +350,11 @@ html.dark-theme .carrito-subtotal {
   .carrito-card:hover .carrito-img {
     transform: scale(1.05);
   }
-  
+
   .carrito-info {
     padding-right: 140px;
   }
-  
+
   .carrito-subtotal {
     position: absolute;
     top: 50%;
@@ -505,17 +480,58 @@ html.dark-theme .carrito-subtotal {
   font-size: 0.9rem;
 }
 
-/* Mobile - PROFESIONAL PREMIUM */
+/* Desktop - ORIGINAL */
+@media (min-width: 1024px) {
+  .carrito-card {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .carrito-card:hover {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+  }
+
+  html.dark-theme .carrito-card:hover {
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7), 0 10px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .carrito-img {
+    transition: transform 0.3s ease;
+  }
+
+  .carrito-card:hover .carrito-img {
+    transform: scale(1.05);
+  }
+
+  .carrito-info {
+    padding-right: 140px;
+  }
+
+  .carrito-subtotal {
+    position: absolute;
+    top: 50%;
+    right: 1.2rem;
+    transform: translateY(-50%);
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-size: 1.2rem;
+  }
+}
+
+/* Mobile - USA CLASES DE BOOTSTRAP (minimal CSS override) */
 @media (max-width: 767px) {
   .carrito-page {
     padding: 0 0 8rem;
     background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
   }
-  
+
   html.dark-theme .carrito-page {
     background: linear-gradient(to bottom, #0f172a 0%, #1e293b 100%);
   }
-  
+
   .carrito-title {
     font-size: 1.5rem;
     margin-bottom: 1rem;
@@ -603,10 +619,6 @@ html.dark-theme .carrito-subtotal {
     letter-spacing: -0.5px;
   }
 
-  html.dark-theme .carrito-subtotal {
-    color: #3b82f6;
-  }
-  
   .carrito-stock {
     font-size: 0.8125rem;
     margin-bottom: 0.5rem;
@@ -615,15 +627,15 @@ html.dark-theme .carrito-subtotal {
     font-weight: 400;
     color: #6b7280;
   }
-  
+
   .stock-out {
     color: #9ca3af;
   }
-  
+
   .stock-low {
     color: #f59e0b;
   }
-  
+
   .stock-ok {
     color: #6b7280;
   }
@@ -650,35 +662,23 @@ html.dark-theme .carrito-subtotal {
     justify-content: center;
   }
 
-  html.dark-theme .vp-qty-btn {
-    background: #334155;
-    color: #e2e8f0;
-  }
-
   .vp-qty-btn:hover:not(:disabled) {
     background: #e5e7eb;
-  }
-
-  html.dark-theme .vp-qty-btn:hover:not(:disabled) {
-    background: #475569;
   }
 
   .vp-qty-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
-  
+
   .vp-qty {
     min-width: 34px;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: #333;
+    background: transparent;
   }
 
-  html.dark-theme .vp-qty {
-    color: #f1f5f9;
-  }
-  
   .vp-remove {
     font-size: 18px;
     padding: 0.5rem;
@@ -686,19 +686,10 @@ html.dark-theme .carrito-subtotal {
     border-radius: 0.375rem;
     color: #dc2626;
   }
-  
+
   .vp-remove:hover {
     background: #fee2e2;
     color: #b91c1c;
-  }
-  
-  html.dark-theme .vp-remove {
-    color: #ef4444;
-  }
-  
-  html.dark-theme .vp-remove:hover {
-    background: rgba(239, 68, 68, 0.15);
-    color: #f87171;
   }
 }
 
@@ -739,7 +730,7 @@ html.dark-theme .carrito-subtotal {
     background: #1e293b;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
   }
-  
+
   .carrito-img {
     width: 120px;
     height: 120px;
@@ -776,10 +767,6 @@ html.dark-theme .carrito-subtotal {
     color: #2563eb;
   }
 
-  html.dark-theme .carrito-subtotal {
-    color: #3b82f6;
-  }
-
   .carrito-stock {
     font-size: 0.875rem;
   }
@@ -790,6 +777,7 @@ html.dark-theme .carrito-subtotal {
     gap: 0.75rem;
   }
 
+  /* Botones - IGUAL que tema claro */
   .vp-qty-btn {
     width: 34px;
     height: 34px;
@@ -799,19 +787,28 @@ html.dark-theme .carrito-subtotal {
     color: #1f2937;
   }
 
-  html.dark-theme .vp-qty-btn {
-    background: #334155;
-    color: #e2e8f0;
+  .vp-qty-btn:hover:not(:disabled) {
+    background: #e5e7eb;
   }
 
   .vp-qty {
     min-width: 38px;
     font-size: 1rem;
+    color: #333;
+    background: transparent;
   }
 
   .vp-remove {
     font-size: 19px;
     padding: 0.5625rem;
+    background: transparent;
+    border-radius: 0.375rem;
+    color: #dc2626;
+  }
+
+  .vp-remove:hover {
+    background: #fee2e2;
+    color: #b91c1c;
   }
 }
 
@@ -1002,10 +999,6 @@ html.dark-theme .carrito-img {
 
 html.dark-theme .carrito-nombre {
   color: #f9fafb;
-}
-
-html.dark-theme .carrito-subtotal {
-  color: #60a5fa;
 }
 
 html.dark-theme .carrito-empty-glass {

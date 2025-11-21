@@ -1,6 +1,6 @@
 .categorias-sidebar {
   position: relative;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 160px);
 }
 
 .categorias-scroll {

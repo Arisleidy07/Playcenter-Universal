@@ -111,7 +111,10 @@ export default function Carrito() {
   }));
 
   return (
-    <main className="carrito-page" style={{ paddingTop: "180px" }}>
+    <main
+      className="carrito-page"
+      style={{ paddingTop: "calc(var(--content-offset, 140px) + 40px)" }}
+    >
       {carrito.length === 0 ? (
         <div className="carrito-empty-wrap">
           <div className="carrito-empty-box">
@@ -168,7 +171,6 @@ export default function Carrito() {
                       }
                     };
                     const p = productosLive[item.id] || item;
-                    // Orden de prioridad: imagenPrincipal[0].url -> imagen -> media image -> galeriaImagenes[0] -> imagenes[0] -> variantes (principal/legacy)
                     const fromVariant = () => {
                       const vars = Array.isArray(p.variantes)
                         ? p.variantes

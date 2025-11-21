@@ -73,14 +73,14 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* FONDO NEGRO PURO - ABSOLUTO #000000 */
+/* FONDO DARK MODE - SIN !important PARA NO TAPAR BOTONES */
 html.dark,
 html.dark body,
 html.dark-theme,
 html.dark-theme body {
-  background: #000000 !important;
-  background-color: #000000 !important;
-  color: #f1f5f9 !important;
+  background: #000000;
+  background-color: #000000;
+  color: #f1f5f9;
 }
 
 #root {
@@ -90,8 +90,8 @@ html.dark-theme body {
 
 html.dark #root,
 html.dark-theme #root {
-  background: #000000 !important;
-  background-color: #000000 !important;
+  background: #000000;
+  background-color: #000000;
 }
 
 /* Forzar colores correctos de botones en dark mode */
