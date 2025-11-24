@@ -1256,10 +1256,13 @@ export default function Profile() {
   const handleLogout = async () => {
     try {
       setConfirmLogoutOpen(false);
+      setShowFullLoader(true); // Mostrar loader mientras cierra sesión
       await logout();
-      navigate("/");
+      // Redirigir inmediatamente a inicio con replace para evitar volver atrás
+      navigate("/", { replace: true });
     } catch (err) {
       console.error("logout:", err);
+      setShowFullLoader(false);
       toast("Error cerrando sesión.", "error", 5000);
     }
   };
@@ -1482,7 +1485,7 @@ export default function Profile() {
   return (
     <motion.main
       className="profile-page"
-      style={{ paddingTop: "180px" }}
+      style={{ paddingTop: "var(--content-offset, 140px)" }}
       variants={pageVariant}
       initial="hidden"
       animate="enter"
@@ -1503,7 +1506,7 @@ export default function Profile() {
                 </span>
                 <ChevronDown
                   size={14}
-                  className={`transition-transform ${
+                  className={`transition-transform text-gray-700 dark:text-gray-200 ${
                     dropdownOpen ? "rotate-180" : ""
                   }`}
                 />

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import ReactDOM from "react-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useNavigate } from "react-router-dom";
 import { FaTrashAlt } from "react-icons/fa";
@@ -111,266 +112,336 @@ export default function Carrito() {
   }));
 
   return (
-    <main
-      className="carrito-page"
-      style={{ paddingTop: "calc(var(--content-offset, 140px) + 40px)" }}
-    >
-      {carrito.length === 0 ? (
-        <div className="carrito-empty-wrap">
-          <div className="carrito-empty-box">
-            <img
-              src="/toy/asoma.png"
-              alt="Explora nuestros productos"
-              className="carrito-empty-figure"
-              loading="lazy"
-            />
-            <div className="carrito-empty-glass">
-              <div className="carrito-empty-icon" aria-hidden="true">
-                🛒
+    <>
+      <main
+        className="carrito-page"
+        style={{ paddingTop: "calc(var(--content-offset, 140px) + 40px)" }}
+      >
+        {carrito.length === 0 ? (
+          <div className="carrito-empty-wrap">
+            <div className="carrito-empty-box">
+              <img
+                src="/toy/asoma.png"
+                alt="Explora nuestros productos"
+                className="carrito-empty-figure"
+                loading="lazy"
+              />
+              <div className="carrito-empty-glass">
+                <div className="carrito-empty-icon" aria-hidden="true">
+                  🛒
+                </div>
+                <h2 className="carrito-empty-title">
+                  No hay nada en el carrito
+                </h2>
+                <p className="carrito-empty-sub">Explora nuestros productos</p>
+                <button
+                  type="button"
+                  className="carrito-empty-cta"
+                  onClick={() => navigate("/categorias")}
+                >
+                  Ver productos
+                </button>
               </div>
-              <h2 className="carrito-empty-title">No hay nada en el carrito</h2>
-              <p className="carrito-empty-sub">Explora nuestros productos</p>
-              <button
-                type="button"
-                className="carrito-empty-cta"
-                onClick={() => navigate("/categorias")}
-              >
-                Ver productos
-              </button>
             </div>
           </div>
-        </div>
-      ) : (
-        <>
-          <div className="carrito-grid">
-            {carrito.map((item) => {
-              const liveProd = productosLive[item.id];
-              const maxStockFallback = getStockMaximo(item);
-              const maxStock = getLiveMaxStock(item, liveProd);
-              const restante = Number.isFinite(maxStock)
-                ? Math.max(0, maxStock - (Number(item.cantidad) || 0))
-                : maxStock;
+        ) : (
+          <>
+            <div className="carrito-grid">
+              {carrito.map((item) => {
+                const liveProd = productosLive[item.id];
+                const maxStockFallback = getStockMaximo(item);
+                const maxStock = getLiveMaxStock(item, liveProd);
+                const restante = Number.isFinite(maxStock)
+                  ? Math.max(0, maxStock - (Number(item.cantidad) || 0))
+                  : maxStock;
 
-              const itemKey = `${item.id}__${item.colorSeleccionado ?? ""}`;
-              return (
-                <div
-                  key={itemKey}
-                  className="carrito-card"
-                  onClick={() => navigate(`/producto/${item.id}`)}
-                >
-                  {(() => {
-                    const pickUrl = (u) => {
-                      try {
-                        if (!u) return "";
-                        if (typeof u === "string") return u;
-                        if (typeof u === "object" && u !== null)
-                          return u.url || "";
-                        return String(u || "");
-                      } catch {
-                        return "";
-                      }
-                    };
-                    const p = productosLive[item.id] || item;
-                    const fromVariant = () => {
-                      const vars = Array.isArray(p.variantes)
-                        ? p.variantes
-                        : [];
-                      for (const v of vars) {
-                        const vMain = pickUrl(v?.imagenPrincipal?.[0]);
-                        if (vMain) return vMain;
-                        if (v?.imagen) return v.imagen;
-                        const vMediaArr = Array.isArray(v?.media)
-                          ? v.media
+                const itemKey = `${item.id}__${item.colorSeleccionado ?? ""}`;
+                return (
+                  <div
+                    key={itemKey}
+                    className="carrito-card"
+                    onClick={() => navigate(`/producto/${item.id}`)}
+                  >
+                    {(() => {
+                      const pickUrl = (u) => {
+                        try {
+                          if (!u) return "";
+                          if (typeof u === "string") return u;
+                          if (typeof u === "object" && u !== null)
+                            return u.url || "";
+                          return String(u || "");
+                        } catch {
+                          return "";
+                        }
+                      };
+                      const p = productosLive[item.id] || item;
+                      const fromVariant = () => {
+                        const vars = Array.isArray(p.variantes)
+                          ? p.variantes
                           : [];
-                        const vMediaImg = vMediaArr.find((m) => {
-                          const t = (m?.type || "").toLowerCase();
-                          return (
-                            pickUrl(m) &&
-                            (!t ||
-                              t.includes("image") ||
-                              t === "img" ||
-                              t === "photo")
-                          );
-                        });
-                        if (vMediaImg) return pickUrl(vMediaImg);
-                      }
-                      return "";
-                    };
-                    const mediaArr = Array.isArray(p.media) ? p.media : [];
-                    const mediaImg = mediaArr.find((m) => {
-                      const t = (m?.type || "").toLowerCase();
-                      return (
-                        pickUrl(m) &&
-                        (!t ||
-                          t.includes("image") ||
-                          t === "img" ||
-                          t === "photo")
-                      );
-                    });
-                    const displayImage =
-                      pickUrl(p?.imagenPrincipal?.[0]) ||
-                      p?.imagen ||
-                      (mediaImg ? pickUrl(mediaImg) : "") ||
-                      pickUrl(
-                        Array.isArray(p?.galeriaImagenes) &&
-                          p.galeriaImagenes[0]
-                      ) ||
-                      pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
-                      fromVariant() ||
-                      "";
-                    return (
-                      <img
-                        src={displayImage}
-                        alt={item.nombre}
-                        className="carrito-img"
-                      />
-                    );
-                  })()}
-
-                  <div className="carrito-info">
-                    <h2 className="carrito-nombre">{item.nombre}</h2>
-
-                    <div className="carrito-subtotal">
-                      RD${" "}
-                      {formatPriceRD(
-                        (Number(item.precio) || 0) * item.cantidad
-                      )}
-                    </div>
-
-                    <p
-                      className={`carrito-stock ${
-                        restante === 0
-                          ? "stock-out"
-                          : Number.isFinite(restante) && restante <= 2
-                          ? "stock-low"
-                          : "stock-ok"
-                      }`}
-                    >
-                      {restante === 0
-                        ? "No disponible"
-                        : Number.isFinite(restante) && restante <= 2
-                        ? `Solo quedan ${restante}`
-                        : Number.isFinite(restante)
-                        ? `${restante} disponibles`
-                        : "Disponible"}
-                    </p>
-
-                    <div className="carrito-actions">
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            eliminarUnidadDelCarrito(
-                              item.id,
-                              item.colorSeleccionado ?? null
+                        for (const v of vars) {
+                          const vMain = pickUrl(v?.imagenPrincipal?.[0]);
+                          if (vMain) return vMain;
+                          if (v?.imagen) return v.imagen;
+                          const vMediaArr = Array.isArray(v?.media)
+                            ? v.media
+                            : [];
+                          const vMediaImg = vMediaArr.find((m) => {
+                            const t = (m?.type || "").toLowerCase();
+                            return (
+                              pickUrl(m) &&
+                              (!t ||
+                                t.includes("image") ||
+                                t === "img" ||
+                                t === "photo")
                             );
-                          }}
-                          className="vp-qty-btn"
-                          aria-label="Disminuir cantidad"
-                        >
-                          −
-                        </button>
+                          });
+                          if (vMediaImg) return pickUrl(vMediaImg);
+                        }
+                        return "";
+                      };
+                      const mediaArr = Array.isArray(p.media) ? p.media : [];
+                      const mediaImg = mediaArr.find((m) => {
+                        const t = (m?.type || "").toLowerCase();
+                        return (
+                          pickUrl(m) &&
+                          (!t ||
+                            t.includes("image") ||
+                            t === "img" ||
+                            t === "photo")
+                        );
+                      });
+                      const displayImage =
+                        pickUrl(p?.imagenPrincipal?.[0]) ||
+                        p?.imagen ||
+                        (mediaImg ? pickUrl(mediaImg) : "") ||
+                        pickUrl(
+                          Array.isArray(p?.galeriaImagenes) &&
+                            p.galeriaImagenes[0]
+                        ) ||
+                        pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
+                        fromVariant() ||
+                        "";
+                      return (
+                        <img
+                          src={displayImage}
+                          alt={item.nombre}
+                          className="carrito-img"
+                        />
+                      );
+                    })()}
 
-                        <span className="vp-qty">{item.cantidad}</span>
+                    <div className="carrito-info">
+                      <h2 className="carrito-nombre">{item.nombre}</h2>
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (
-                              !Number.isFinite(maxStock) ||
-                              item.cantidad < maxStock
-                            ) {
-                              // Usar producto LIVE de Firestore para tener datos actualizados
-                              const productoCompleto =
-                                productosLive[item.id] || item;
-                              agregarAlCarrito(
-                                productoCompleto,
-                                item.colorSeleccionado ?? null
-                              );
-                            }
-                          }}
-                          className="vp-qty-btn"
-                          disabled={
-                            Number.isFinite(maxStock) &&
-                            item.cantidad >= maxStock
-                          }
-                          aria-label="Aumentar cantidad"
-                        >
-                          +
-                        </button>
+                      <div className="carrito-subtotal">
+                        RD${" "}
+                        {formatPriceRD(
+                          (Number(item.precio) || 0) * item.cantidad
+                        )}
                       </div>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setProductoAEliminar(item);
-                        }}
-                        className="vp-remove"
-                        title="Eliminar producto"
-                        aria-label="Eliminar del carrito"
+                      <p
+                        className={`carrito-stock ${
+                          restante === 0
+                            ? "stock-out"
+                            : Number.isFinite(restante) && restante <= 2
+                            ? "stock-low"
+                            : "stock-ok"
+                        }`}
                       >
-                        <FaTrashAlt />
-                      </button>
+                        {restante === 0
+                          ? "No disponible"
+                          : Number.isFinite(restante) && restante <= 2
+                          ? `Solo quedan ${restante}`
+                          : Number.isFinite(restante)
+                          ? `${restante} disponibles`
+                          : "Disponible"}
+                      </p>
+
+                      <div className="carrito-actions">
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              eliminarUnidadDelCarrito(
+                                item.id,
+                                item.colorSeleccionado ?? null
+                              );
+                            }}
+                            className="vp-qty-btn"
+                            aria-label="Disminuir cantidad"
+                          >
+                            −
+                          </button>
+
+                          <span className="vp-qty">{item.cantidad}</span>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (
+                                !Number.isFinite(maxStock) ||
+                                item.cantidad < maxStock
+                              ) {
+                                // Usar producto LIVE de Firestore para tener datos actualizados
+                                const productoCompleto =
+                                  productosLive[item.id] || item;
+                                agregarAlCarrito(
+                                  productoCompleto,
+                                  item.colorSeleccionado ?? null
+                                );
+                              }
+                            }}
+                            className="vp-qty-btn"
+                            disabled={
+                              Number.isFinite(maxStock) &&
+                              item.cantidad >= maxStock
+                            }
+                            aria-label="Aumentar cantidad"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setProductoAEliminar(item);
+                          }}
+                          className="vp-remove"
+                          title="Eliminar producto"
+                          aria-label="Eliminar del carrito"
+                        >
+                          <FaTrashAlt />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Pagar carrito completo: SOLO el botón de CardNet (negro) */}
-          <div className="carrito-footer">
-            <div
-              className="carrito-pay-wrap"
-              onClick={() => setCheckoutPayloadCart(cartItemsForPayload, total)}
-            >
-              <BotonCardnet
-                className="carrito-cardnet-btn w-full"
-                total={total * 100}
-              />
+                );
+              })}
             </div>
-          </div>
-        </>
-      )}
 
-      {/* Modal de confirmación */}
-      {productoAEliminar && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>¿Eliminar producto?</h2>
-            <p>
-              ¿Seguro que quieres quitar{" "}
-              <strong>{productoAEliminar.nombre}</strong> del carrito?
-            </p>
-            <div className="modal-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => setProductoAEliminar(null)}
+            {/* Pagar carrito completo: SOLO el botón de CardNet (negro) */}
+            <div className="carrito-footer">
+              <div
+                className="carrito-pay-wrap"
+                onClick={() =>
+                  setCheckoutPayloadCart(cartItemsForPayload, total)
+                }
               >
-                Cancelar
-              </button>
-              <button
-                className="btn-confirm"
-                onClick={() => {
-                  quitarDelCarrito(
-                    productoAEliminar.id,
-                    productoAEliminar.colorSeleccionado ?? null
-                  );
-                  setProductoAEliminar(null);
+                <BotonCardnet
+                  className="carrito-cardnet-btn w-full"
+                  total={total * 100}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </main>
+      {productoAEliminar &&
+        ReactDOM.createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.85)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2147483647,
+            }}
+            onClick={() => setProductoAEliminar(null)}
+          >
+            <div
+              style={{
+                backgroundColor: "white",
+                padding: "2rem",
+                borderRadius: "1rem",
+                maxWidth: "420px",
+                width: "90%",
+                textAlign: "center",
+                boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: 800,
+                  marginBottom: "1rem",
+                  color: "#111827",
                 }}
               >
-                Sí, eliminar
-              </button>
+                ¿Eliminar producto?
+              </h2>
+              <p
+                style={{
+                  fontSize: "1.05rem",
+                  marginBottom: "1.75rem",
+                  color: "#374151",
+                }}
+              >
+                ¿Seguro que quieres quitar{" "}
+                <strong>{productoAEliminar.nombre}</strong> del carrito?
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1rem",
+                  justifyContent: "center",
+                }}
+              >
+                <button
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "0.5rem",
+                    border: "2px solid #d1d5db",
+                    background: "#f9fafb",
+                    color: "#374151",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setProductoAEliminar(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "0.5rem",
+                    border: "2px solid #ef4444",
+                    background: "#ef4444",
+                    color: "white",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    quitarDelCarrito(
+                      productoAEliminar.id,
+                      productoAEliminar.colorSeleccionado ?? null
+                    );
+                    setProductoAEliminar(null);
+                  }}
+                >
+                  Sí, eliminar
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-    </main>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }

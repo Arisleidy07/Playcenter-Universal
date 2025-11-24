@@ -7,7 +7,8 @@ export default function PrivateRoute({ children }) {
   const { usuario } = useAuth();
 
   if (!usuario) {
-    return <Navigate to="/login" replace />;
+    // Redirigir al inicio si no hay usuario logueado
+    return <Navigate to="/" replace />;
   }
 
   return children;

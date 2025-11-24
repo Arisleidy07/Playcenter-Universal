@@ -1,7 +1,11 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
 
@@ -20,5 +24,14 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 const functions = getFunctions(app);
+
+// Configurar persistencia LOCAL para que la sesión se mantenga incluso después de cerrar el navegador
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("✅ Persistencia de sesión configurada (LOCAL)");
+  })
+  .catch((error) => {
+    console.error("❌ Error al configurar persistencia:", error);
+  });
 
 export { db, auth, storage, functions };

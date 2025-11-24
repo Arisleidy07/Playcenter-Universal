@@ -32,14 +32,7 @@ function Contacto() {
         >
           CONTÁCTANOS
         </h1>
-        <h2
-          className={`text-base sm:text-lg lg:text-xl font-semibold ${
-            isDark ? "text-gray-300" : "text-gray-600"
-          }`}
-          style={{ fontFamily: "'Montserrat', sans-serif" }}
-        >
-          PlayCenter Universal
-        </h2>
+
       </div>
 
       {/* Main Content */}

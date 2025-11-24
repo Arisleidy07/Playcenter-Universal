@@ -43,9 +43,12 @@ const Header = () => {
   const manejarLogout = async () => {
     try {
       await logout();
-      navigate("/");
+      // Redirigir inmediatamente a inicio con replace para evitar volver atrás
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Error cerrando sesión", error);
+      // Incluso si hay error, intentar ir al inicio
+      navigate("/", { replace: true });
     }
   };
 
@@ -338,9 +341,9 @@ const Header = () => {
                                 overflow: "hidden",
                               }}
                             >
-                              {usuario.photoURL ? (
+                              {usuarioInfo?.fotoURL || usuario.photoURL ? (
                                 <img
-                                  src={usuario.photoURL}
+                                  src={usuarioInfo?.fotoURL || usuario.photoURL}
                                   alt="Perfil"
                                   className="w-100 h-100"
                                   style={{ objectFit: "cover" }}
@@ -977,9 +980,9 @@ const Header = () => {
                         backgroundColor: isDark ? "#374151" : "#ffffff",
                       }}
                     >
-                      {usuario.photoURL ? (
+                      {usuarioInfo?.fotoURL || usuario.photoURL ? (
                         <img
-                          src={usuario.photoURL}
+                          src={usuarioInfo?.fotoURL || usuario.photoURL}
                           alt="Perfil"
                           className="w-100 h-100"
                           style={{ objectFit: "cover" }}

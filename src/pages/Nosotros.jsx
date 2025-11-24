@@ -33,14 +33,7 @@ function Nosotros() {
         >
           NOSOTROS
         </h1>
-        <h2
-          className={`text-lg sm:text-xl lg:text-2xl font-semibold ${
-            isDark ? "text-gray-300" : "text-gray-600"
-          }`}
-          style={{ fontFamily: "'Montserrat', sans-serif" }}
-        >
-          PlayCenter Universal
-        </h2>
+
       </div>
 
       {/* Main Content */}

@@ -88,12 +88,12 @@ export default function Tiendas() {
     <div
       className="min-h-screen"
       style={{
-        paddingTop: "180px",
+        paddingTop: "calc(var(--content-offset, 140px) + 10px)",
         backgroundColor: isDark ? "#000000" : "#f9fafb",
       }}
     >
       {/* FULL SCREEN - CON PADDING MÍNIMO */}
-      <div className="w-full px-2 py-4 md:px-3">
+      <div className="w-full px-2 py-2 md:px-3">
         {/* Tiendas Grid - FULL SCREEN, SIN MÁRGENES */}
         {tiendas.length === 0 ? (
           <motion.div
@@ -109,7 +109,7 @@ export default function Tiendas() {
           </motion.div>
         ) : (
           <div className="w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {tiendas.map((tienda, index) => (
                 <TiendaCard key={tienda.id} tienda={tienda} index={index} />
               ))}
@@ -274,12 +274,13 @@ function TiendaCard({ tienda, index }) {
               : "1px solid rgba(229, 231, 235, 0.8)",
           }}
         >
-          {/* Banner HORIZONTAL - ULTRA HORIZONTAL con efecto hover */}
+          {/* Banner HORIZONTAL - COMPACTO con efecto hover */}
           <div
             className="relative w-full flex justify-center items-center overflow-hidden"
             style={{
               backgroundColor: "transparent",
-              minHeight: "200px",
+              minHeight: "140px",
+              maxHeight: "140px",
             }}
           >
             {tienda.banner ? (
@@ -303,11 +304,11 @@ function TiendaCard({ tienda, index }) {
             )}
           </div>
 
-          {/* Zona inferior: Logo + Nombre + Botón - PERFECTAMENTE BALANCEADO */}
-          <div className="p-5 md:p-6">
-            <div className="flex items-center gap-4 mb-4">
-              {/* Logo circular perfectamente proporcional con efecto hover */}
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-white dark:bg-gray-700 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-600 flex-shrink-0 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl">
+          {/* Zona inferior: Logo + Nombre + Botón - COMPACTO */}
+          <div className="p-3 md:p-4">
+            <div className="flex items-center gap-3 mb-3">
+              {/* Logo circular más pequeño y compacto */}
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-white dark:bg-gray-700 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-600 flex-shrink-0 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl">
                 {tienda.logo ? (
                   <img
                     src={tienda.logo}
@@ -331,7 +332,7 @@ function TiendaCard({ tienda, index }) {
               {/* Nombre de la tienda responsive */}
               <div className="flex-1 min-w-0">
                 <h2
-                  className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-white transition-colors duration-200 tracking-tight"
+                  className="text-lg md:text-xl font-bold text-gray-900 dark:text-white transition-colors duration-200 tracking-tight line-clamp-1"
                   style={{
                     textDecoration: "none",
                     borderBottom: "none",
@@ -347,14 +348,14 @@ function TiendaCard({ tienda, index }) {
                 </h2>
                 {tienda.descripcion && (
                   <p
-                    className="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed"
+                    className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-snug line-clamp-2"
                     style={{
                       overflow: "hidden",
                       textDecoration: "none",
                       borderBottom: "none",
                       fontFamily:
                         "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-                      lineHeight: "1.5",
+                      lineHeight: "1.4",
                     }}
                   >
                     {tienda.descripcion}
@@ -364,11 +365,11 @@ function TiendaCard({ tienda, index }) {
             </div>
 
             {/* Estadísticas y Botón Seguir */}
-            <div className="flex items-center justify-between gap-3 mt-4">
+            <div className="flex items-center justify-between gap-2 mt-3">
               {/* Badges de estadísticas */}
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/40 dark:to-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
-                  <Users className="w-4 h-4" />
+                <div className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/40 dark:to-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  <Users className="w-3.5 h-3.5" />
                   <span
                     style={{
                       fontFamily:
@@ -378,8 +379,8 @@ function TiendaCard({ tienda, index }) {
                     {seguidores}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-gradient-to-r from-cyan-100 to-cyan-50 dark:from-cyan-900/40 dark:to-cyan-900/20 text-cyan-700 dark:text-cyan-300 px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
-                  <Package className="w-4 h-4" />
+                <div className="flex items-center gap-1 bg-gradient-to-r from-cyan-100 to-cyan-50 dark:from-cyan-900/40 dark:to-cyan-900/20 text-cyan-700 dark:text-cyan-300 px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  <Package className="w-3.5 h-3.5" />
                   <span
                     style={{
                       fontFamily:
@@ -396,7 +397,7 @@ function TiendaCard({ tienda, index }) {
                 <button
                   onClick={handleSeguir}
                   disabled={loadingSeguir}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg ${
                     siguiendo
                       ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
                       : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
@@ -407,15 +408,15 @@ function TiendaCard({ tienda, index }) {
                   }}
                 >
                   {loadingSeguir ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
                   ) : siguiendo ? (
                     <>
-                      <UserCheck size={16} />
+                      <UserCheck size={14} />
                       <span className="hidden sm:inline">Siguiendo</span>
                     </>
                   ) : (
                     <>
-                      <UserPlus size={16} />
+                      <UserPlus size={14} />
                       <span className="hidden sm:inline">Seguir</span>
                     </>
                   )}

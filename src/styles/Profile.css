@@ -2598,15 +2598,21 @@ html.dark-theme .filter-tab.active {
    NUEVO DISEÑO DE PERFIL
    ========================= */
 
-/* Top bar del perfil - NO sticky - RECUADRO PEQUEÑO */
+/* Top bar del perfil - sticky debajo del header */
 .profile-new-topbar {
   background: white;
   border-bottom: 1px solid #e5e7eb;
   padding: 0;
   margin: 0;
-  position: relative;
+  position: sticky;
+  top: var(--content-offset, 140px);
   z-index: 50;
   min-height: 28px;
+}
+
+html.dark-theme .profile-new-topbar {
+  background: #111827;
+  border-bottom: 1px solid #374151;
 }
 
 /* Ocultar scrollbar pero mantener funcionalidad */

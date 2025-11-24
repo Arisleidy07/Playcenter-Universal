@@ -51,8 +51,6 @@ const COLOR_BADGE = "bg-blue-200 text-blue-900";
 const COLOR_BADGE_ADMIN = "bg-green-200 text-green-900";
 const COLOR_BADGE_USER = "bg-blue-200 text-blue-900";
 
-const ADMIN_UID = "ZeiFzBgosCd0apv9cXL6aQZCYyu2";
-
 function getInitials(name = "") {
   if (!name) return "US";
   const parts = name.trim().split(" ");
@@ -146,7 +144,7 @@ function UsuarioFullView({ usuario, onClose }) {
 
   // Ejecutar migración legacy una sola vez al entrar el admin
   useEffect(() => {
-    if (!usuario || usuario.uid !== ADMIN_UID) return;
+    if (!usuario || !usuarioData?.admin) return;
     if (migrationRanRef.current) return;
     migrationRanRef.current = true;
     (async () => {
@@ -216,11 +214,9 @@ function UsuarioFullView({ usuario, onClose }) {
               <p className="admin-user-email">{usuarioData?.email}</p>
               <div className="admin-user-badges">
                 <span
-                  className={
-                    usuario.id === ADMIN_UID ? "badge-admin" : "badge-user"
-                  }
+                  className={usuarioData?.admin ? "badge-admin" : "badge-user"}
                 >
-                  {usuario.id === ADMIN_UID ? "Admin" : "Usuario"}
+                  {usuarioData?.admin ? "Admin" : "Usuario"}
                 </span>
               </div>
             </div>
@@ -595,16 +591,78 @@ export default function Admin() {
   const migrationRanRef = useRef(false);
 
   useEffect(() => {
-    if (!usuario || usuario.uid !== ADMIN_UID) return;
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔐 VERIFICANDO ADMIN PARA CARGAR USUARIOS");
+    console.log("Usuario UID:", usuario?.uid);
+    console.log("Usuario Email:", usuario?.email);
+    console.log("Es Admin:", usuarioInfo?.isAdmin);
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    if (!usuario || !usuarioInfo?.isAdmin) {
+      console.log("❌ No es admin o no hay usuario - NO cargando usuarios");
+      return;
+    }
+
+    console.log("✅ ES ADMIN - Cargando usuarios...");
+
+    // Función para actualizar admin en Firestore si el email coincide
+    const updateAdminStatus = async (userId, email, currentAdminStatus) => {
+      const emailLower = (email || "").toLowerCase().trim();
+      const shouldBeAdmin = emailLower === "arisleidy0712@gmail.com";
+
+      if (shouldBeAdmin && !currentAdminStatus) {
+        console.log(
+          "🔐 Actualizando admin status para:",
+          email,
+          "UID:",
+          userId
+        );
+        try {
+          // Actualizar en ambas colecciones
+          await updateDoc(doc(db, "users", userId), {
+            admin: true,
+            isAdmin: true,
+          });
+          console.log("✅ Admin actualizado en 'users'");
+
+          try {
+            await updateDoc(doc(db, "usuarios", userId), {
+              admin: true,
+              isAdmin: true,
+            });
+            console.log("✅ Admin actualizado en 'usuarios'");
+          } catch (err) {
+            console.log("⚠️ No existe en 'usuarios'");
+          }
+        } catch (err) {
+          console.error("❌ Error actualizando admin:", err);
+        }
+      }
+    };
 
     // Escuchar colección "users"
     const unsubscribeUsers = onSnapshot(
       query(collection(db, "users")),
       (snap) => {
-        const usersData = snap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        console.log("📦 Usuarios de 'users':", snap.size);
+        const usersData = snap.docs.map((doc) => {
+          const data = doc.data();
+          const emailLower = (data.email || "").toLowerCase().trim();
+          const shouldBeAdmin = emailLower === "arisleidy0712@gmail.com";
+
+          // Actualizar en Firestore si es necesario
+          if (shouldBeAdmin && !data.admin) {
+            updateAdminStatus(doc.id, data.email, data.admin);
+          }
+
+          return {
+            id: doc.id,
+            ...data,
+            // Forzar admin si el email coincide (para mostrar correctamente en UI)
+            admin: shouldBeAdmin || data.admin,
+            isAdmin: shouldBeAdmin || data.isAdmin,
+          };
+        });
         setUsuarios((prev) => {
           const merged = [...usersData];
           prev.forEach((existingUser) => {
@@ -613,6 +671,7 @@ export default function Admin() {
               merged[index] = { ...merged[index], ...existingUser };
             }
           });
+          console.log("✅ Usuarios totales después de 'users':", merged.length);
           return merged;
         });
       }
@@ -622,10 +681,25 @@ export default function Admin() {
     const unsubscribeUsuarios = onSnapshot(
       query(collection(db, "usuarios")),
       (snap) => {
-        const usuariosData = snap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        console.log("📦 Usuarios de 'usuarios':", snap.size);
+        const usuariosData = snap.docs.map((doc) => {
+          const data = doc.data();
+          const emailLower = (data.email || "").toLowerCase().trim();
+          const shouldBeAdmin = emailLower === "arisleidy0712@gmail.com";
+
+          // Actualizar en Firestore si es necesario
+          if (shouldBeAdmin && !data.admin) {
+            updateAdminStatus(doc.id, data.email, data.admin);
+          }
+
+          return {
+            id: doc.id,
+            ...data,
+            // Forzar admin si el email coincide
+            admin: shouldBeAdmin || data.admin,
+            isAdmin: shouldBeAdmin || data.isAdmin,
+          };
+        });
         setUsuarios((prev) => {
           const merged = [...prev];
           usuariosData.forEach((userData) => {
@@ -636,6 +710,10 @@ export default function Admin() {
               merged.push(userData);
             }
           });
+          console.log(
+            "✅ Usuarios totales después de 'usuarios':",
+            merged.length
+          );
           return merged;
         });
       }
@@ -645,7 +723,7 @@ export default function Admin() {
       unsubscribeUsers();
       unsubscribeUsuarios();
     };
-  }, [usuario]);
+  }, [usuario, usuarioInfo]);
 
   if (!usuario)
     return (
@@ -654,8 +732,7 @@ export default function Admin() {
       </div>
     );
 
-  const isGlobalAdmin =
-    usuario?.uid === ADMIN_UID || usuarioInfo?.isAdmin === true;
+  const isGlobalAdmin = usuarioInfo?.isAdmin === true;
   const isSeller = Boolean(
     usuarioInfo?.isSeller || usuarioInfo?.empresa || usuarioInfo?.empresaId
   );
@@ -764,15 +841,14 @@ export default function Admin() {
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Rol
                       </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {usuariosFiltrados.map((u) => (
-                      <tr
-                        key={u.id}
-                        className="hover:bg-gray-50 cursor-pointer"
-                        onClick={() => setUsuarioSeleccionado(u)}
-                      >
+                      <tr key={u.id} className="hover:bg-gray-50">
                         <td className="px-4 py-2 text-sm text-gray-900 font-medium">
                           {u.displayName || u.nombre || "Usuario"}
                         </td>
@@ -791,13 +867,125 @@ export default function Admin() {
                         <td className="px-4 py-2 text-sm">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              u.id === ADMIN_UID
+                              u.admin || u.isAdmin
                                 ? "bg-green-100 text-green-800"
                                 : "bg-blue-100 text-blue-800"
                             }`}
                           >
-                            {u.id === ADMIN_UID ? "Admin" : "Usuario"}
+                            {u.admin || u.isAdmin ? "Admin" : "Usuario"}
                           </span>
+                        </td>
+                        <td className="px-4 py-2 text-sm">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setUsuarioSeleccionado(u);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 font-medium"
+                              title="Ver detalles"
+                            >
+                              <FiEye size={18} />
+                            </button>
+                            {(u.email || "").toLowerCase().trim() ===
+                              "arisleidy0712@gmail.com" &&
+                              !(u.admin || u.isAdmin) && (
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    console.log(
+                                      "👑 FORZANDO ADMIN MANUALMENTE"
+                                    );
+                                    console.log("Email:", u.email);
+                                    console.log("UID:", u.id);
+                                    try {
+                                      await updateDoc(doc(db, "users", u.id), {
+                                        admin: true,
+                                        isAdmin: true,
+                                      });
+                                      console.log("✅ Actualizado en 'users'");
+                                      try {
+                                        await updateDoc(
+                                          doc(db, "usuarios", u.id),
+                                          {
+                                            admin: true,
+                                            isAdmin: true,
+                                          }
+                                        );
+                                        console.log(
+                                          "✅ Actualizado en 'usuarios'"
+                                        );
+                                      } catch (err) {
+                                        console.log(
+                                          "⚠️ No existe en 'usuarios'"
+                                        );
+                                      }
+                                      alert(
+                                        "✅ ¡Ahora eres Admin! Refresca la página."
+                                      );
+                                    } catch (error) {
+                                      console.error("❌ Error:", error);
+                                      alert("Error: " + error.message);
+                                    }
+                                  }}
+                                  className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs font-bold"
+                                  title="Convertir en Admin"
+                                >
+                                  👑 ADMIN
+                                </button>
+                              )}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (
+                                  !window.confirm(
+                                    `¿Eliminar usuario ${
+                                      u.email || u.displayName
+                                    }?\n\nUID: ${
+                                      u.id
+                                    }\n\nEsta acción NO se puede deshacer.`
+                                  )
+                                ) {
+                                  return;
+                                }
+                                try {
+                                  console.log("🗑️ Eliminando usuario:", u.id);
+                                  // Eliminar de colección users
+                                  const userDocRef = doc(db, "users", u.id);
+                                  await deleteDoc(userDocRef);
+                                  console.log("✅ Eliminado de 'users'");
+
+                                  // Intentar eliminar de colección usuarios si existe
+                                  try {
+                                    const usuarioDocRef = doc(
+                                      db,
+                                      "usuarios",
+                                      u.id
+                                    );
+                                    await deleteDoc(usuarioDocRef);
+                                    console.log("✅ Eliminado de 'usuarios'");
+                                  } catch (err) {
+                                    console.log("⚠️ No existe en 'usuarios'");
+                                  }
+
+                                  alert("Usuario eliminado exitosamente");
+                                } catch (error) {
+                                  console.error(
+                                    "❌ Error eliminando usuario:",
+                                    error
+                                  );
+                                  alert(
+                                    "Error al eliminar usuario: " +
+                                      error.message
+                                  );
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-800 font-medium"
+                              title="Eliminar usuario"
+                            >
+                              🗑️
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
