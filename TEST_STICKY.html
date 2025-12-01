@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Sticky</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+      }
+
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: #1d4ed8;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+
+      .main {
+        padding-top: 100px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        padding: 20px;
+        align-items: start; /* IMPORTANTE */
+      }
+
+      .left-column {
+        align-self: flex-start; /* IMPORTANTE */
+      }
+
+      .sticky-box {
+        position: sticky !important;
+        top: 120px !important; /* Header (100px) + margen (20px) */
+        background: white;
+        border: 3px solid red;
+        padding: 20px;
+        border-radius: 8px;
+        height: fit-content !important; /* IMPORTANTE */
+      }
+
+      .right-column {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+      }
+
+      .content-block {
+        margin-bottom: 20px;
+        padding: 20px;
+        background: #e5e7eb;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Header Fijo - 100px de alto</h1>
+    </div>
+
+    <div class="main">
+      <div class="container">
+        <!-- COLUMNA IZQUIERDA -->
+        <div class="left-column">
+          <div class="sticky-box">
+            <h2>📸 STICKY IMAGE</h2>
+            <p>Esta caja debe quedarse pegada cuando haces scroll</p>
+            <p style="margin-top: 10px">
+              Top: 120px (header 100px + 20px margen)
+            </p>
+            <div
+              style="
+                width: 100%;
+                height: 300px;
+                background: #ddd;
+                margin-top: 10px;
+                border-radius: 4px;
+              "
+            >
+              IMAGEN AQUÍ
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div class="right-column">
+          <h2>Información del Producto</h2>
+          <div class="content-block">Contenido 1</div>
+          <div class="content-block">Contenido 2</div>
+          <div class="content-block">Contenido 3</div>
+          <div class="content-block">Contenido 4</div>
+          <div class="content-block">Contenido 5</div>
+          <div class="content-block">Contenido 6</div>
+          <div class="content-block">Contenido 7</div>
+          <div class="content-block">Contenido 8</div>
+          <div class="content-block">Contenido 9</div>
+          <div class="content-block">Contenido 10</div>
+          <div class="content-block">Contenido 11</div>
+          <div class="content-block">Contenido 12</div>
+          <div class="content-block">Contenido 13</div>
+          <div class="content-block">Contenido 14</div>
+          <div class="content-block">Contenido 15 - FINAL</div>
+          <p
+            style="
+              padding: 20px;
+              background: #f00;
+              color: white;
+              border-radius: 4px;
+            "
+          >
+            ⚠️ CUANDO LLEGUES AQUÍ, LA IMAGEN DEBE DEJAR DE ESTAR STICKY
+          </p>
+        </div>
+      </div>
+
+      <div
+        style="
+          margin-top: 40px;
+          padding: 20px;
+          background: #333;
+          color: white;
+          text-align: center;
+        "
+      >
+        PRODUCTOS RELACIONADOS (Fuera del container sticky)
+      </div>
+    </div>
+  </body>
+</html>

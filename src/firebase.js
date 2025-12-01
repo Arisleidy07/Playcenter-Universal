@@ -1,6 +1,6 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import {
   getAuth,
   setPersistence,
@@ -8,6 +8,12 @@ import {
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
+import { setLogLevel } from "firebase/firestore";
+
+// Suprimir logs verbosos de Firestore en producción
+if (import.meta.env.PROD) {
+  setLogLevel("error"); // Solo mostrar errores críticos
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyCraPDyyhOJs9IJtVMCe2b1VNFYkbtqWEg",
@@ -20,7 +26,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Forzar long-polling para eliminar errores QUIC completamente
+const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true, // Forzar long-polling siempre
+  experimentalAutoDetectLongPolling: false, // No auto-detectar, usar force
+});
 const auth = getAuth(app);
 const storage = getStorage(app);
 const functions = getFunctions(app);

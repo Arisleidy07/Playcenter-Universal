@@ -404,97 +404,167 @@ function ProductInformationSection({ producto, allVariantes }) {
     detalles.push({ label: "Fecha de publicación", value: fechaFormateada });
   }
 
+  // Estado para secciones colapsables
+  const [openSections, setOpenSections] = React.useState({
+    caracteristicas: true,
+    detalles: true,
+    adicionales: true,
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
   // Si no hay ningún dato, no mostrar la sección
   const hasData =
     caracteristicas.length > 0 || detalles.length > 0 || adicionales.length > 0;
   if (!hasData) return null;
 
   return (
-    <section className="w-full mt-12 mb-8 px-4 sm:px-6">
+    <section className="w-full mt-8 mb-8 px-4 sm:px-6">
       <div className="max-w-[1200px] mx-auto">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-lg shadow-blue-500/30"></div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Información del producto
-          </h2>
-        </div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          Información del producto
+        </h2>
 
-        {/* DOS COLUMNAS en desktop, UNA en móvil/tablet */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
-          {/* COLUMNA IZQUIERDA */}
-          <div className="space-y-5">
-            {/* Características y especificaciones */}
-            {caracteristicas.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500 hover:-translate-y-0.5">
-                <CollapsibleSection title="Características y especificaciones">
-                  <div className="space-y-2.5">
-                    {caracteristicas.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-start py-3 px-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all duration-200 group"
-                      >
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 pr-4 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                          {item.label}
-                        </span>
-                        <span className="text-sm text-gray-900 dark:text-white text-right flex-1 font-medium">
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleSection>
-              </div>
-            )}
+        <div className="space-y-6">
+          {/* Detalles del producto */}
+          {detalles.length > 0 && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <button
+                onClick={() => toggleSection("detalles")}
+                className="w-full flex items-center justify-between py-2 text-left"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Detalles del producto
+                </h3>
+                <svg
+                  className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+                    openSections.detalles ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {openSections.detalles && (
+                <div className="mt-4 space-y-2">
+                  {detalles.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-start gap-4 py-2"
+                    >
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[140px]">
+                        {item.label}
+                      </span>
+                      <span className="text-sm text-gray-900 dark:text-gray-200 text-right flex-1">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-            {/* Detalles adicionales */}
-            {adicionales.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500 hover:-translate-y-0.5">
-                <CollapsibleSection title="Detalles adicionales">
-                  <div className="space-y-2.5">
-                    {adicionales.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-start py-3 px-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all duration-200 group"
-                      >
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 pr-4 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                          {item.label}
-                        </span>
-                        <span className="text-sm text-gray-900 dark:text-white text-right flex-1 font-medium">
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleSection>
-              </div>
-            )}
-          </div>
+          {/* Características y especificaciones */}
+          {caracteristicas.length > 0 && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <button
+                onClick={() => toggleSection("caracteristicas")}
+                className="w-full flex items-center justify-between py-2 text-left"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Características y especificaciones
+                </h3>
+                <svg
+                  className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+                    openSections.caracteristicas ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {openSections.caracteristicas && (
+                <div className="mt-4 space-y-2">
+                  {caracteristicas.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-start gap-4 py-2"
+                    >
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[140px]">
+                        {item.label}
+                      </span>
+                      <span className="text-sm text-gray-900 dark:text-gray-200 text-right flex-1">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* COLUMNA DERECHA */}
-          <div className="space-y-5">
-            {/* Detalles del producto */}
-            {detalles.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500 hover:-translate-y-0.5">
-                <CollapsibleSection title="Detalles del producto">
-                  <div className="space-y-2.5">
-                    {detalles.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-start py-3 px-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/30 dark:hover:from-gray-700/50 dark:hover:to-gray-600/30 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all duration-200 group"
-                      >
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 pr-4 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                          {item.label}
-                        </span>
-                        <span className="text-sm text-gray-900 dark:text-white text-right flex-1 font-medium">
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleSection>
-              </div>
-            )}
-          </div>
+          {/* Detalles adicionales */}
+          {adicionales.length > 0 && (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <button
+                onClick={() => toggleSection("adicionales")}
+                className="w-full flex items-center justify-between py-2 text-left"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Detalles adicionales
+                </h3>
+                <svg
+                  className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+                    openSections.adicionales ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {openSections.adicionales && (
+                <div className="mt-4 space-y-2">
+                  {adicionales.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-start gap-4 py-2"
+                    >
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[140px]">
+                        {item.label}
+                      </span>
+                      <span className="text-sm text-gray-900 dark:text-gray-200 text-right flex-1">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -1624,19 +1694,17 @@ function VistaProducto() {
   return (
     <>
       {/* Sin topbar móvil: solo contenido */}
-      <main className="vp-main min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800 flex flex-col items-stretch overflow-visible">
-        <section className="w-full xl:grid xl:grid-cols-12 xl:gap-6 flex flex-col gap-8 overflow-visible">
+      <main className="min-h-screen bg-white px-4 sm:px-6 pb-16 text-gray-800">
+        <section className="w-full flex flex-col gap-8 xl:grid xl:grid-cols-12 xl:gap-6 xl:items-start">
           {/* Columna Izquierda - Galería (6 columnas) CON STICKY COMO AMAZON */}
           {showLeftColumn && (
-            <motion.div className="relative flex flex-col items-start w-full xl:col-span-6 overflow-visible">
+            <div className="flex flex-col items-start w-full xl:col-span-6 xl:sticky xl:top-4 xl:h-fit">
               {/* Galería estilo eBay - Visible en todos los dispositivos - STICKY en desktop */}
               {desktopMediaItems.length > 0 && (
-                <div
-                  className="amazon-gallery-layout flex"
-                  style={{ zIndex: 10 }}
-                >
-                  {/* Thumbnails verticales (a la IZQUIERDA en desktop) */}
-                  <div className="relative overflow-visible">
+                <div className="amazon-gallery-layout flex">
+                  {/* Wrapper para flechas fijas */}
+                  <div className="relative">
+                    {/* Thumbnails verticales (a la IZQUIERDA en desktop) */}
                     <div
                       className={`amazon-thumbs-sidebar ${
                         desktopMediaItems.length > 4 ? "has-overflow" : ""
@@ -1701,69 +1769,70 @@ function VistaProducto() {
                           )}
                         </button>
                       ))}
-                      {/* Flechas OVERLAY estilo eBay - ENCIMA del contenido */}
-                      {desktopMediaItems.length > 4 && (
-                        <>
-                          {/* Flecha ARRIBA - OVERLAY */}
-                          <button
-                            className="ebay-arrow-overlay ebay-arrow-up"
-                            onClick={() => {
-                              const container = document.querySelector(
-                                ".amazon-thumbs-sidebar"
-                              );
-                              if (container)
-                                container.scrollBy({
-                                  top: -100,
-                                  behavior: "smooth",
-                                });
-                            }}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 15l7-7 7 7"
-                              />
-                            </svg>
-                          </button>
-
-                          {/* Flecha ABAJO - OVERLAY */}
-                          <button
-                            className="ebay-arrow-overlay ebay-arrow-down"
-                            onClick={() => {
-                              const container = document.querySelector(
-                                ".amazon-thumbs-sidebar"
-                              );
-                              if (container)
-                                container.scrollBy({
-                                  top: 100,
-                                  behavior: "smooth",
-                                });
-                            }}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
-                          </button>
-                        </>
-                      )}
                     </div>
+
+                    {/* Flechas OVERLAY - FUERA del scroll, dentro del wrapper */}
+                    {desktopMediaItems.length > 4 && (
+                      <>
+                        {/* Flecha ARRIBA - FIJA */}
+                        <button
+                          className="ebay-arrow-overlay ebay-arrow-up"
+                          onClick={() => {
+                            const container = document.querySelector(
+                              ".amazon-thumbs-sidebar"
+                            );
+                            if (container)
+                              container.scrollBy({
+                                top: -100,
+                                behavior: "smooth",
+                              });
+                          }}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={3}
+                              d="M5 15l7-7 7 7"
+                            />
+                          </svg>
+                        </button>
+
+                        {/* Flecha ABAJO - FIJA */}
+                        <button
+                          className="ebay-arrow-overlay ebay-arrow-down"
+                          onClick={() => {
+                            const container = document.querySelector(
+                              ".amazon-thumbs-sidebar"
+                            );
+                            if (container)
+                              container.scrollBy({
+                                top: 100,
+                                behavior: "smooth",
+                              });
+                          }}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={3}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   {/* Imagen principal */}
@@ -1895,11 +1964,11 @@ function VistaProducto() {
               )}
 
               {/* Enlace removido para vista limpia tipo eBay */}
-            </motion.div>
+            </div>
           )}
 
           {/* Columna Centro - Información del producto (4 columnas) */}
-          <motion.div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4 overflow-visible">
+          <div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4">
             {/* Título, descripción y precio - PRIMERO (orden correcto) */}
             <h1 className="vp-title xl:order-1 order-1">{producto.nombre}</h1>
 
@@ -2016,7 +2085,7 @@ function VistaProducto() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Columna Derecha - Tarjeta de compra (2 columnas) */}
           <aside className="vp-buy-card w-full xl:col-span-2 hidden xl:block">
@@ -2066,7 +2135,7 @@ function VistaProducto() {
                   </div>
                 ) : (
                   <button
-                    className={`w-full px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl ${
+                    className={`w-full px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl whitespace-nowrap ${
                       !disponible
                         ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600"
                         : ""
@@ -2079,7 +2148,7 @@ function VistaProducto() {
                   </button>
                 )}
 
-                {/* “Comprar ahora” */}
+                {/* "Comprar ahora" */}
                 <div
                   onClick={() =>
                     setCheckoutPayload("single", itemsBuyNow, precioProducto)
@@ -2111,11 +2180,11 @@ function VistaProducto() {
           if (!extraImages || extraImages.length === 0) return null;
 
           return (
-            <section className="w-full mt-12 mb-8 px-4 sm:px-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">
+            <section className="w-full mt-8 xl:mt-12 mb-0 xl:mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 xl:mb-6 text-center px-4 xl:px-6">
                 Más información del producto
               </h2>
-              <div className="max-w-[1500px] mx-auto space-y-4">
+              <div className="-mx-4 sm:-mx-6 xl:max-w-[1500px] xl:mx-auto xl:px-6 xl:space-y-4">
                 {extraImages.map((imageUrl, index) => (
                   <div
                     key={`product-info-${index}`}
@@ -2128,10 +2197,8 @@ function VistaProducto() {
                     <img
                       src={imageUrl}
                       alt={`${producto.nombre} - Información ${index + 1}`}
-                      className="w-full h-auto object-contain bg-white dark:bg-gray-800 rounded-lg"
+                      className="w-full h-auto object-cover xl:object-contain bg-white dark:bg-gray-800 xl:rounded-lg"
                       style={{
-                        maxWidth: "1500px",
-                        margin: "0 auto",
                         display: "block",
                       }}
                     />
@@ -2558,54 +2625,17 @@ function VistaProducto() {
                     </div>
                   </div>
 
-                  {/* Indicador móvil/tablet con hint de swipe */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 xl:hidden flex flex-col items-center gap-2">
+                  {/* Contador simple abajo a la derecha */}
+                  <div className="absolute bottom-4 right-4 xl:hidden">
                     <div
-                      className={`px-4 py-2 rounded-full text-sm font-medium shadow-lg ${
+                      className={`text-xs font-medium px-2 py-1 rounded ${
                         isDark
-                          ? "bg-gray-800 text-white"
-                          : "bg-white/95 text-gray-900"
+                          ? "bg-black/50 text-white"
+                          : "bg-black/40 text-white"
                       }`}
                     >
                       {safeMediaIndex + 1} / {currentMediaItems.length}
                     </div>
-                    {currentMediaItems.length > 1 && (
-                      <div
-                        className={`text-xs px-3 py-1 rounded-full flex items-center gap-1 ${
-                          isDark
-                            ? "bg-gray-800/90 text-gray-300"
-                            : "bg-white/90 text-gray-600"
-                        }`}
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 16l-4-4m0 0l4-4m-4 4h18"
-                          />
-                        </svg>
-                        <span>Desliza</span>
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 8l4 4m0 0l-4 4m4-4H3"
-                          />
-                        </svg>
-                      </div>
-                    )}
                   </div>
                 </div>
 

@@ -231,7 +231,7 @@ function ProductosPage() {
       style={{
         position: "relative",
         margin: 0,
-        paddingTop: "calc(var(--content-offset, 140px) + 10px)",
+        paddingTop: "10px",
         transition: "padding-top 0.2s",
         boxSizing: "border-box",
       }}
@@ -249,11 +249,11 @@ function ProductosPage() {
         <main className="flex-1 p-0 xl:p-4 relative pb-32">
           {/* Botones de Categorías y Filtros con animación inteligente */}
           <div
-            className={`flex justify-between items-center px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-700/30 transition-all duration-500 ease-in-out ${
+            className={`flex justify-between items-center px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-600/30 transition-all duration-500 ease-in-out ${
               isScrolled ? "fixed top-0 left-0 right-0 z-50" : "relative"
             }`}
             style={{
-              top: isScrolled ? "var(--content-offset, 100px)" : "auto",
+              top: isScrolled ? "0" : "auto",
               background: isScrolled
                 ? isDarkMode
                   ? "rgba(17, 24, 39, 0.95)"
@@ -305,7 +305,7 @@ function ProductosPage() {
           )}
 
           {/* TÍTULO ARRIBA DE LAS BOLITAS */}
-          <div className="mb-2 mt-4 px-4 xl:px-0">
+          <div className="mb-2 mt-1 px-4 xl:px-0">
             <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
               {categoriaActiva === "Todos"
                 ? "Todos los productos"

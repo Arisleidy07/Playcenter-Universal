@@ -345,15 +345,32 @@ export default function Entrega({
           return;
         }
 
+        const tiendaPayload = {
+          direccion: formatoDireccionCompleta(
+            TIENDA_PLAYCENTER.direccionCompleta
+          ),
+          metodoEntrega: "tienda",
+          telefono: telefono,
+          updatedAt: new Date(),
+        };
+
         if (typeof actualizarUsuarioInfo === "function") {
-          await actualizarUsuarioInfo({
-            direccion: formatoDireccionCompleta(
-              TIENDA_PLAYCENTER.direccionCompleta
-            ),
-            metodoEntrega: "tienda",
-            telefono: telefono,
-          });
+          await actualizarUsuarioInfo({ ...tiendaPayload });
         }
+        try {
+          const currentUid = uid || usuario?.uid;
+          if (currentUid) {
+            await setDoc(doc(db, "users", currentUid), tiendaPayload, {
+              merge: true,
+            });
+            await setDoc(doc(db, "usuarios", currentUid), tiendaPayload, {
+              merge: true,
+            });
+          }
+        } catch (err) {
+          console.warn("No se pudo persistir tiendaPayload en users/usuarios:", err);
+        }
+
         if (onClose) onClose();
         if (typeof actualizarLista === "function") actualizarLista();
         setGuardando(false);

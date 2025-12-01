@@ -31,7 +31,7 @@ const RelatedProductCard = ({ producto }) => {
         flexDirection: "column",
         scrollSnapAlign: "start",
       }}
-      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 hover:shadow-lg transition-shadow cursor-pointer"
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 p-3 hover:shadow-lg transition-shadow cursor-pointer"
     >
       {/* Imagen - SIN FONDO */}
       <div

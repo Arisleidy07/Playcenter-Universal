@@ -5,6 +5,24 @@ import { useAuth } from "./AuthContext";
 
 export const CarritoContext = createContext();
 
+// Helper para limpiar valores undefined antes de guardar en Firestore
+const cleanForFirestore = (obj) => {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => cleanForFirestore(item));
+  }
+  if (obj && typeof obj === "object") {
+    const cleaned = {};
+    Object.keys(obj).forEach((key) => {
+      const value = obj[key];
+      if (value !== undefined) {
+        cleaned[key] = cleanForFirestore(value);
+      }
+    });
+    return cleaned;
+  }
+  return obj;
+};
+
 export const CarritoProvider = ({ children }) => {
   const { usuario } = useAuth();
   const [carrito, setCarrito] = useState(() => {
@@ -49,7 +67,8 @@ export const CarritoProvider = ({ children }) => {
             "carrito",
             "items"
           );
-          setDoc(carritoRef, { items }, { merge: true })
+          const cleanedItems = cleanForFirestore(items);
+          setDoc(carritoRef, { items: cleanedItems }, { merge: true })
             .then(() => {
               console.log("✅ Carrito migrado a Firestore");
               setCarritoMigrado(true);
@@ -102,9 +121,12 @@ export const CarritoProvider = ({ children }) => {
     // Si hay usuario, guardar también en Firestore
     if (usuario?.uid && !cargandoCarrito) {
       const carritoRef = doc(db, "usuarios", usuario.uid, "carrito", "items");
-      setDoc(carritoRef, { items: carrito }, { merge: true }).catch((error) => {
-        console.error("Error al guardar carrito en Firestore:", error);
-      });
+      const cleanedCarrito = cleanForFirestore(carrito);
+      setDoc(carritoRef, { items: cleanedCarrito }, { merge: true }).catch(
+        (error) => {
+          console.error("Error al guardar carrito en Firestore:", error);
+        }
+      );
     }
   }, [carrito, usuario?.uid, cargandoCarrito]);
 
@@ -216,7 +238,8 @@ export const CarritoProvider = ({ children }) => {
         "favoritos",
         "items"
       );
-      setDoc(favoritosRef, { items: favoritos }, { merge: true }).catch(
+      const cleanedFavoritos = cleanForFirestore(favoritos);
+      setDoc(favoritosRef, { items: cleanedFavoritos }, { merge: true }).catch(
         (error) => {
           console.error("Error al guardar favoritos en Firestore:", error);
         }

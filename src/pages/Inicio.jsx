@@ -218,7 +218,6 @@ function Inicio() {
     <div
       className="min-vh-100"
       style={{
-        paddingTop: "var(--content-offset, 120px)",
         backgroundColor: isDark ? "#000000" : "#ffffff",
       }}
     >
@@ -286,7 +285,7 @@ function Inicio() {
           return (
             <motion.div
               key={category.id}
-              className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+              className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-600"
               variants={fadeIn}
               initial="hidden"
               animate="visible"
@@ -820,7 +819,7 @@ function Inicio() {
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-[95%] lg:max-w-[1600px] mx-auto px-2 sm:px-4 mt-8 sm:mt-16">
         {/* Cámaras de Vigilancia */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-600"
           variants={fadeIn}
           initial="hidden"
           animate="visible"
@@ -861,7 +860,7 @@ function Inicio() {
 
         {/* Discos Duros */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-600"
           variants={fadeIn}
           initial="hidden"
           animate="visible"
@@ -902,7 +901,7 @@ function Inicio() {
 
         {/* Memorias USB */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-600"
           variants={fadeIn}
           initial="hidden"
           animate="visible"
@@ -943,7 +942,7 @@ function Inicio() {
 
         {/* Cables */}
         <motion.div
-          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-800"
+          className="bg-white dark:bg-black rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition min-h-[320px] max-h-[400px] flex flex-col justify-between p-4 sm:p-5 border border-gray-200 dark:border-gray-600"
           variants={fadeIn}
           initial="hidden"
           animate="visible"

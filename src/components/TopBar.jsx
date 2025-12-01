@@ -13,136 +13,36 @@ export default function TopBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const topbarRef = useRef(null);
-
-  const [visible, setVisible] = useState(true);
-  const lastScrollY = useRef(
-    typeof window !== "undefined" ? window.scrollY : 0
+  // Mostrar TopBar solo en móvil (<768px)
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : true
   );
-  const ticking = useRef(false);
 
-  // Mostrar TopBar en desktop (xl ≥ 1280px)
-  const [showTopbar, setShowTopbar] = useState(window.innerWidth >= 1280);
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1280);
-
-  // Sin método de entrega aquí: movido al Header
-
-  /* --- Detectar altura del header dinámicamente --- */
+  // Detectar cambios de tamaño para mostrar/ocultar TopBar
   useEffect(() => {
-    const measure = () => {
-      const headerEl = document.querySelector("header");
-      const h = headerEl
-        ? Math.ceil(headerEl.getBoundingClientRect().height)
-        : 0;
-      setHeaderHeight(h);
-      // Exponer altura de TopBar (propia) mediante CSS var para páginas que necesiten offset
-      try {
-        const topbarEl = topbarRef.current;
-        const th = topbarEl
-          ? Math.ceil(topbarEl.getBoundingClientRect().height)
-          : 0;
-        document.documentElement.style.setProperty(
-          "--topbar-height",
-          `${th}px`
-        );
-        // Offset total de contenido: header + topbar
-        const totalOffset = h + th;
-        document.documentElement.style.setProperty(
-          "--content-offset",
-          `${totalOffset}px`
-        );
-        // Content offset calculado
-      } catch {}
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
     };
-
-    measure();
-    const resizeHandler = () => {
-      try {
-        if (typeof window !== "undefined") {
-          const isDesktopNow = window.innerWidth >= 1280;
-          setShowTopbar(isDesktopNow);
-          setIsDesktop(isDesktopNow);
-        }
-      } catch {}
-      measure();
-    };
-    let ro = null;
-
-    try {
-      if (typeof window !== "undefined" && "ResizeObserver" in window) {
-        ro = new ResizeObserver(() => measure());
-        const headerEl = document.querySelector("header");
-        if (headerEl) ro.observe(headerEl);
-        if (topbarRef.current) ro.observe(topbarRef.current);
-      } else {
-        window.addEventListener("resize", resizeHandler);
-      }
-    } catch {
-      window.addEventListener("resize", resizeHandler);
-    }
-
-    return () => {
-      if (ro) {
-        try {
-          ro.disconnect();
-        } catch {}
-      }
-      window.removeEventListener("resize", resizeHandler);
-    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  /* --- Mostrar / ocultar al hacer scroll (solo desktop) --- */
-  useEffect(() => {
-    if (!isDesktop) {
-      setVisible(true);
-      return;
-    }
-
-    const onScroll = () => {
-      if (!ticking.current) {
-        window.requestAnimationFrame(() => {
-          const currentY = window.scrollY;
-          const lastY = lastScrollY.current;
-
-          if (currentY > lastY && currentY > 100) {
-            // Bajando y pasó 100px: ocultar
-            setVisible(false);
-          } else if (currentY < lastY || currentY === 0) {
-            // Subiendo o en top: mostrar
-            setVisible(true);
-          }
-
-          lastScrollY.current = currentY;
-          ticking.current = false;
-        });
-        ticking.current = true;
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [isDesktop]);
-
   const topStyle = {
-    position: "fixed",
-    left: 0,
-    right: 0,
-    top: `${headerHeight}px`,
-    zIndex: 9990,
-    transform: visible ? "translateY(0)" : "translateY(-110%)",
-    transition: "transform 220ms ease, opacity 220ms ease",
-    pointerEvents: visible ? "auto" : "none",
+    // Ya no necesitamos fixed - el contenedor sticky en App.jsx maneja la posición
     display: "flex",
     margin: 0,
     padding: 0,
-    borderTop: "none", // Sin border superior
-    marginTop: 0, // Sin margin superior
+    borderTop: "none",
+    marginTop: 0,
   };
+
+  // Ocultar TopBar en tablet y desktop (>=768px)
+  if (!isMobile) {
+    return null;
+  }
 
   return (
     <div
-      ref={topbarRef}
       style={{
         ...topStyle,
         padding: "0.25rem 0.5rem",

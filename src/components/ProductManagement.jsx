@@ -16,23 +16,22 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { useStore } from "../hooks/useStore";
 import LoadingSpinner from "./LoadingSpinner";
 import { FiEye, FiEyeOff, FiCopy, FiTrash2, FiPackage } from "react-icons/fi";
 import { addPhantomProduct } from "../utils/phantomProductsCleaner";
 
-// UID del administrador global (ver Admin.jsx)
-const ADMIN_UID = "ZeiFzBgosCd0apv9cXL6aQZCYyu2";
-
 const ProductManagement = ({ onAddProduct, onEditProduct }) => {
-  const { usuario } = useAuth();
+  const { usuario, usuarioInfo } = useAuth();
+  const { tienda, tieneTienda } = useStore();
   const { isDark } = useTheme();
-  const isAdmin = usuario?.uid === ADMIN_UID;
+  const isAdmin = usuarioInfo?.isAdmin === true;
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [sortBy, setSortBy] = useState("fechaCreacion");
+  const [sortBy, setSortBy] = useState("nombre");
   const [phantomProductIds, setPhantomProductIds] = useState(() => {
     // Inicializar desde localStorage
     try {
@@ -46,10 +45,10 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
   // Verificar permisos al cargar
   useEffect(() => {
     if (!usuario) {
-      console.warn("! No hay usuario autenticado");
+      // Usuario no autenticado
     }
   }, [usuario]);
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [editingQuantity, setEditingQuantity] = useState(null);
@@ -74,7 +73,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       if (typeof unsub === "function") unsub();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usuario?.uid]);
+  }, [usuario?.uid, usuarioInfo?.isAdmin, usuarioInfo?.storeId]);
 
   // Sincronizar estado de fantasmas con localStorage
   useEffect(() => {
@@ -84,7 +83,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           const newPhantoms = e.newValue ? JSON.parse(e.newValue) : [];
           setPhantomProductIds(newPhantoms);
         } catch (error) {
-          console.error("Error al parsear phantomProducts:", error);
+          // Error silencioso
         }
       }
     };
@@ -102,27 +101,35 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       }));
       setCategories(categoriasData);
     } catch (error) {
-      console.error("Error loading categories:", error);
+      // Error silencioso
     }
   };
 
   const loadProducts = () => {
     try {
       let qRef;
+
+      // CASO 1: Super Admin - Ve TODOS los productos
       if (isAdmin) {
         qRef = query(
           collection(db, "productos"),
           orderBy("fechaCreacion", "desc")
         );
-      } else if (usuario?.uid) {
-        // Vista de empresa: solo sus productos (sin exigir índice compuesto)
+      }
+      // CASO 2: Vendedor con storeId - Solo ve sus productos (filtrado por storeId)
+      else if (usuarioInfo?.storeId) {
         qRef = query(
           collection(db, "productos"),
-          where("ownerUid", "==", usuario.uid)
+          where("storeId", "==", usuarioInfo.storeId),
+          orderBy("fechaCreacion", "desc")
         );
-      } else {
-        // Fallback: solo activos
-        qRef = query(collection(db, "productos"), where("activo", "==", true));
+      }
+      // CASO 3: Vendedor SIN storeId - No muestra nada
+      else {
+        // No cargar productos, mostrar mensaje vacío
+        setProducts([]);
+        setLoading(false);
+        return () => {}; // Retornar función vacía
       }
 
       const unsubscribe = onSnapshot(
@@ -152,14 +159,12 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           });
         },
         (error) => {
-          console.error("Error en listener:", error);
           setLoading(false);
         }
       );
 
       return unsubscribe;
     } catch (error) {
-      console.error("Error loading products:", error);
       setLoading(false);
       return null;
     }
@@ -217,7 +222,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         fechaActualizacion: new Date(),
       });
     } catch (error) {
-      console.error("Error updating product status:", error);
       alert(`Error al actualizar el estado del producto: ${error.message}`);
     }
   };
@@ -229,9 +233,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       const productSnap = await getDoc(productRef);
 
       if (!productSnap.exists()) {
-        console.warn(
-          `! Producto ${product.id} no existe en Firebase - eliminando del estado local`
-        );
         // Eliminar del estado local si no existe en Firebase
         setProducts((prevProducts) =>
           prevProducts.filter((p) => p.id !== product.id)
@@ -334,7 +335,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
       alert(`Producto duplicado exitosamente con ID: ${newProductId}`);
     } catch (error) {
-      console.error("Error duplicating product:", error);
       alert(`Error al duplicar el producto: ${error.message}`);
     }
   };
@@ -365,7 +365,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         fechaActualizacion: new Date(),
       });
     } catch (error) {
-      console.error(`Error updating ${field}:`, error);
       alert(`Error al actualizar ${field}: ${error.message}`);
     }
   };
@@ -430,7 +429,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       // Verificar que se eliminó
       const verificacion = await getDoc(docRef);
       if (verificacion.exists()) {
-        console.error("ERROR: El producto AÚN EXISTE después de deleteDoc");
         alert("Error: No se pudo eliminar de Firebase. Verifica los permisos.");
         return;
       }
@@ -458,7 +456,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     } catch (error) {
-      console.error("Error al eliminar producto:", error.code, error.message);
       alert(`Error: ${error.message}`);
     }
   };
@@ -527,7 +524,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           matchesCompany
         );
       } catch (error) {
-        console.warn("Error filtrando producto:", product?.id, error);
         return false; // Excluir productos corruptos del filtro
       }
     })
@@ -648,10 +644,10 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
               onChange={(e) => setSortBy(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="fechaCreacion">Fecha de creación</option>
-              <option value="fechaActualizacion">Última actualización</option>
               <option value="nombre">Nombre</option>
               <option value="precio">Precio</option>
+              <option value="fechaCreacion">Fecha de creación</option>
+              <option value="fechaActualizacion">Última actualización</option>
             </select>
           </div>
 
@@ -715,11 +711,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                       </div>
                     );
                   } catch (error) {
-                    console.warn(
-                      "Error renderizando imagen del producto:",
-                      product.id,
-                      error
-                    );
+                    // Error silencioso
                     return (
                       <div className="w-full h-full flex items-center justify-center text-red-400 bg-red-50">
                         <span className="text-sm">Error en imagen</span>
@@ -887,16 +879,9 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                   )}
                 </div>
 
-                <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                <p className="text-sm text-gray-500 line-clamp-2 mb-4">
                   {product.descripcion}
                 </p>
-
-                <div className="text-xs text-gray-400 mb-4">
-                  <p>Creado: {formatDate(product.fechaCreacion)}</p>
-                  {product.fechaActualizacion && (
-                    <p>Actualizado: {formatDate(product.fechaActualizacion)}</p>
-                  )}
-                </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 mt-3">
@@ -934,18 +919,24 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       {/* Empty State */}
       {filteredProducts.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-400 text-6xl mb-4 flex justify-center">
+          <div className="text-gray-400 dark:text-gray-600 text-6xl mb-4 flex justify-center">
             <FiPackage />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No se encontraron productos
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            {searchTerm || selectedCategory
+              ? "No se encontraron productos"
+              : isAdmin
+              ? "No hay productos en el sistema"
+              : "No tienes productos todavía"}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
             {searchTerm || selectedCategory
               ? "Intenta ajustar los filtros de búsqueda"
-              : "Comienza agregando tu primer producto"}
+              : isAdmin
+              ? "Los productos aparecerán aquí cuando los vendedores los creen"
+              : "Comienza agregando tu primer producto para vender"}
           </p>
-          {!searchTerm && !selectedCategory && (
+          {!searchTerm && !selectedCategory && !isAdmin && (
             <button
               onClick={onAddProduct}
               className="bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition-colors"

@@ -170,7 +170,7 @@ function PaginaBusqueda() {
       style={{
         position: "relative",
         margin: 0,
-        paddingTop: "180px",
+        paddingTop: "10px",
         transition: "padding-top 0.2s",
         boxSizing: "border-box",
       }}
@@ -187,9 +187,8 @@ function PaginaBusqueda() {
 
         <main className="flex-1 p-0 xl:p-4 relative pb-32">
           <div
-            className="flex justify-between items-center px-3 py-2 xl:hidden bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky transition-colors duration-300"
+            className="flex justify-between items-center px-3 py-2 xl:hidden bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors duration-300"
             style={{
-              top: "var(--content-offset, 100px)",
               zIndex: 40,
               marginTop: 0,
               paddingTop: 0,

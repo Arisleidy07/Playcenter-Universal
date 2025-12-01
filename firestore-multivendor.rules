@@ -1,0 +1,143 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.email == 'arisleidy0712@gmail.com';
+    }
+    
+    function isStoreOwner(storeId) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/stores/$(storeId)).data.ownerUid == request.auth.uid;
+    }
+    
+    // ============================================
+    // COLECCIÓN: stores (Tiendas)
+    // ============================================
+    
+    match /stores/{storeId} {
+      // Lectura: Todos pueden ver tiendas activas
+      allow read: if resource.data.activa == true || isSuperAdmin();
+      
+      // Creación: SOLO el super admin (al aprobar solicitud)
+      allow create: if isSuperAdmin();
+      
+      // Actualización: Super admin O dueño de la tienda
+      allow update: if isSuperAdmin() || isStoreOwner(storeId);
+      
+      // Eliminación: SOLO super admin
+      allow delete: if isSuperAdmin();
+    }
+    
+    // ============================================
+    // COLECCIÓN: solicitudes_vendedor (Solicitudes)
+    // ============================================
+    
+    match /solicitudes_vendedor/{solicitudId} {
+      // Lectura: SOLO super admin
+      allow read: if isSuperAdmin();
+      
+      // Creación: Cualquiera puede enviar solicitud
+      allow create: if true;
+      
+      // Actualización: SOLO super admin (para aprobar/rechazar)
+      allow update: if isSuperAdmin();
+      
+      // Eliminación: SOLO super admin
+      allow delete: if isSuperAdmin();
+    }
+    
+    // ============================================
+    // COLECCIÓN: productos (Productos)
+    // ============================================
+    
+    match /productos/{productId} {
+      // Lectura: Todos pueden ver productos activos
+      allow read: if resource.data.activo == true || 
+                     isSuperAdmin() || 
+                     isStoreOwner(resource.data.storeId);
+      
+      // Creación: Super admin O dueños de tienda
+      allow create: if isSuperAdmin() || 
+                       (isAuthenticated() && 
+                        request.resource.data.storeId != null &&
+                        isStoreOwner(request.resource.data.storeId));
+      
+      // Actualización: Super admin O dueño del producto
+      allow update: if isSuperAdmin() || 
+                       isStoreOwner(resource.data.storeId);
+      
+      // Eliminación: Super admin O dueño del producto
+      allow delete: if isSuperAdmin() || 
+                       isStoreOwner(resource.data.storeId);
+    }
+    
+    // ============================================
+    // COLECCIÓN: orders (Órdenes)
+    // ============================================
+    
+    match /orders/{orderId} {
+      // Lectura: 
+      // - Super admin ve todas
+      // - Usuario ve solo sus órdenes
+      // - Vendedor ve órdenes que contengan sus productos
+      allow read: if isSuperAdmin() ||
+                     (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                     // TODO: Implementar lógica para vendedores
+                     false;
+      
+      // Creación: Usuarios autenticados
+      allow create: if isAuthenticated();
+      
+      // Actualización: Super admin O el usuario que creó la orden
+      allow update: if isSuperAdmin() || 
+                       (isAuthenticated() && resource.data.userId == request.auth.uid);
+      
+      // Eliminación: SOLO super admin
+      allow delete: if isSuperAdmin();
+    }
+    
+    // ============================================
+    // COLECCIÓN: users (Usuarios)
+    // ============================================
+    
+    match /users/{userId} {
+      // Lectura: Super admin O el propio usuario
+      allow read: if isSuperAdmin() || 
+                     (isAuthenticated() && request.auth.uid == userId);
+      
+      // Creación: El propio usuario durante registro
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Actualización: Super admin O el propio usuario
+      allow update: if isSuperAdmin() || 
+                       (isAuthenticated() && request.auth.uid == userId);
+      
+      // Eliminación: SOLO super admin
+      allow delete: if isSuperAdmin();
+    }
+    
+    // ============================================
+    // OTRAS COLECCIONES (categorías, etc.)
+    // ============================================
+    
+    match /categorias/{categoryId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+    
+    // Default: Denegar todo lo demás
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

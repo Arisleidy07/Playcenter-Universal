@@ -27,6 +27,8 @@ import ProductManagement from "../components/ProductManagement";
 import CategoryManagement from "../components/CategoryManagement";
 import AdminDashboard from "../components/AdminDashboard";
 import LoadingSpinner from "../components/LoadingSpinner";
+import SolicitudesVendedor from "../components/SolicitudesVendedor";
+import GestionTiendas from "../components/GestionTiendas";
 import {
   FiBarChart2,
   FiBox,
@@ -38,6 +40,12 @@ import {
   FiUser,
   FiShield,
   FiEye,
+  FiUserPlus,
+  FiShoppingBag,
+  FiHome,
+  FiPackage,
+  FiDollarSign,
+  FiX,
 } from "react-icons/fi";
 import { migrateAllLegacyProductMedia } from "../utils/legacyMediaMigrator";
 
@@ -59,14 +67,34 @@ function getInitials(name = "") {
 
 function extractFirstUrl(text = "") {
   if (!text) return null;
+  if (typeof text !== "string") text = String(text);
+  // 1) Enlaces http(s) directos
   const httpMatch = text.match(/(https?:\/\/[^\s]+)/i);
   if (httpMatch) return httpMatch[1];
+  // 2) Dominios de Google Maps sin esquema (maps.app, goo.gl, google.com/maps)
   const mapsMatch = text.match(
-    /(maps\.app\.[^\s]+|goo\.gl\/[^\s]+|google\.com\/maps[^\s]*)/i
+    /(?:^|\s)(maps\.app\.[^\s]+|goo\.gl\/[^\s]+|(?:www\.)?google\.com\/maps[^\s]*)/i
   );
   if (mapsMatch) {
-    const candidate = mapsMatch[0];
-    return candidate.startsWith("http") ? candidate : `https://${candidate}`;
+    const candidate = mapsMatch[1] || mapsMatch[0];
+    const normalized = candidate.startsWith("http")
+      ? candidate
+      : `https://${candidate}`;
+    return normalized;
+  }
+  // 3) Coordenadas lat,lng (e.g., 19.45,-70.68)
+  const coordMatch = text.match(/(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+  if (coordMatch) {
+    const lat = parseFloat(coordMatch[1]);
+    const lng = parseFloat(coordMatch[2]);
+    if (
+      !isNaN(lat) &&
+      !isNaN(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    ) {
+      return `https://www.google.com/maps?q=${lat},${lng}`;
+    }
   }
   return null;
 }
@@ -89,6 +117,7 @@ function UsuarioFullView({ usuario, onClose }) {
   const [loadingCompras, setLoadingCompras] = useState(true);
   const [usuarioData, setUsuarioData] = useState(usuario);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const migrationRanRef = useRef(false);
 
   // Suscripción en tiempo real al usuario
   useEffect(() => {
@@ -149,25 +178,9 @@ function UsuarioFullView({ usuario, onClose }) {
     migrationRanRef.current = true;
     (async () => {
       try {
-        console.log(
-          "[Migración] Iniciando migración de medios legacy a Firebase Storage..."
-        );
-        await migrateAllLegacyProductMedia((p) => {
-          if (!p) return;
-          if (p.type === "skip")
-            console.log(
-              `[Migración] (${p.index}/${p.total}) Sin cambios:`,
-              p.id
-            );
-          else if (p.type === "migrated")
-            console.log(`[Migración] (${p.index}/${p.total}) Migrado:`, p.id);
-          else if (p.type === "done")
-            console.log(
-              `[Migración] Completada. Migrados: ${p.migratedCount}/${p.total}`
-            );
-        });
+        await migrateAllLegacyProductMedia(() => {});
       } catch (e) {
-        console.error("[Migración] Error ejecutando migración:", e);
+        // Error silencioso
       }
     })();
   }, [usuario]);
@@ -183,7 +196,7 @@ function UsuarioFullView({ usuario, onClose }) {
   const direccionTexto =
     usuarioData?.direccion || usuarioData?.direccionCompleta || "";
   const ubicacionLink =
-    usuarioData?.ubicacion || extractFirstUrl(direccionTexto);
+    extractFirstUrl(usuarioData?.ubicacion) || extractFirstUrl(direccionTexto);
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
@@ -284,13 +297,25 @@ function UsuarioFullView({ usuario, onClose }) {
               </h3>
             </div>
             <p className="text-base text-blue-900 mb-4">
-              {direccionTexto || "No se ha registrado dirección"}
+              {ubicacionLink ? (
+                <a
+                  href={ubicacionLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 underline inline-flex items-center gap-2"
+                  title="Abrir ubicación en Google Maps"
+                >
+                  <FiMapPin /> {direccionTexto || "Abrir en Google Maps"}
+                </a>
+              ) : (
+                direccionTexto || "No se ha registrado dirección"
+              )}
             </p>
             {ubicacionLink && (
               <a
                 href={ubicacionLink}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
               >
                 <FiMapPin /> Ver en Google Maps
@@ -526,36 +551,261 @@ function SellerAdminPanel() {
   const { usuario, usuarioInfo } = useAuth();
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [stats, setStats] = useState({
+    productos: 0,
+    pedidos: 0,
+    ventas: 0,
+  });
+  const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Cargar estadísticas y pedidos de la tienda del vendedor
+  useEffect(() => {
+    if (!usuarioInfo?.storeId) return;
+
+    // Productos de mi tienda
+    const unsubProducts = onSnapshot(
+      query(
+        collection(db, "productos"),
+        where("storeId", "==", usuarioInfo.storeId)
+      ),
+      (snapshot) => {
+        setStats((prev) => ({ ...prev, productos: snapshot.size }));
+      }
+    );
+
+    // Pedidos de mi tienda
+    const unsubOrders = onSnapshot(
+      query(collection(db, "orders")),
+      (snapshot) => {
+        const allOrders = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Filtrar pedidos que contengan productos de mi tienda
+        const myOrders = allOrders.filter((order) =>
+          order.items?.some((item) => item.storeId === usuarioInfo.storeId)
+        );
+
+        setOrders(myOrders);
+        setStats((prev) => ({
+          ...prev,
+          pedidos: myOrders.length,
+          ventas: myOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+        }));
+      }
+    );
+
+    return () => {
+      unsubProducts();
+      unsubOrders();
+    };
+  }, [usuarioInfo?.storeId]);
+
+  const tabs = [
+    { id: "dashboard", label: "Dashboard", icon: FiHome },
+    { id: "products", label: "Productos", icon: FiPackage },
+    { id: "orders", label: "Pedidos", icon: FiShoppingCart },
+  ];
 
   return (
-    <main className="admin-page min-h-screen bg-gray-50 dark:bg-gray-900 px-2 sm:px-6 pb-2 sm:pb-6">
+    <main className="admin-page min-h-screen bg-gray-50 dark:bg-gray-900 px-2 sm:px-6 pt-2 pb-2 sm:pb-6">
       <div className="w-full px-2">
         {/* HEADER */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 text-gray-900 dark:text-white">
+        <div className="text-center mb-3">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 text-gray-900 dark:text-white">
             Panel del Vendedor
           </h1>
-          <p className="text-base sm:text-xl text-gray-700 dark:text-gray-300 font-medium">
-            Gestiona tus productos en tiempo real
+          <p className="text-sm sm:text-base lg:text-lg text-gray-700 dark:text-gray-300 font-medium">
+            {usuarioInfo?.storeName || "Mi Tienda"}
           </p>
-          {usuarioInfo?.empresa && (
-            <div className="mt-3 inline-flex items-center gap-2 bg-blue-100 text-blue-900 px-4 py-2 rounded-full text-sm font-bold">
-              {usuarioInfo.empresa}
-            </div>
-          )}
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
+              <FiPackage /> {stats.productos} {stats.productos === 1 ? "producto" : "productos"}
+            </span>
+            <span className="bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
+              <FiShoppingCart /> {stats.pedidos} {stats.pedidos === 1 ? "pedido" : "pedidos"}
+            </span>
+          </div>
         </div>
 
-        {/* PRODUCT MANAGEMENT ONLY */}
-        <ProductManagement
-          onAddProduct={() => {
-            setEditingProduct(null);
-            setShowProductForm(true);
-          }}
-          onEditProduct={(product) => {
-            setEditingProduct(product);
-            setShowProductForm(true);
-          }}
-        />
+        {/* NAVIGATION TABS */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-1 mb-4 border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap gap-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? "bg-blue-600 dark:bg-blue-500 text-white shadow-md"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="text-lg"><tab.icon /></span>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* TAB CONTENT */}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeTab === "dashboard" && (
+          <div className="space-y-6">
+            {/* Estadísticas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Productos
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {stats.productos}
+                    </p>
+                  </div>
+                  <FiPackage className="w-12 h-12 text-blue-500" />
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Pedidos
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {stats.pedidos}
+                    </p>
+                  </div>
+                  <FiShoppingCart className="w-12 h-12 text-green-500" />
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Ventas
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      ${stats.ventas.toFixed(2)}
+                    </p>
+                  </div>
+                  <FiDollarSign className="w-12 h-12 text-yellow-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Información de la tienda */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                Información de tu Tienda
+              </h3>
+              <div className="space-y-2 text-gray-700 dark:text-gray-300">
+                <p>
+                  <span className="font-semibold">Nombre:</span>{" "}
+                  {usuarioInfo?.storeName || "No configurado"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "products" && (
+          <div>
+            <ProductManagement
+              onAddProduct={() => {
+                setEditingProduct(null);
+                setShowProductForm(true);
+              }}
+              onEditProduct={(product) => {
+                setEditingProduct(product);
+                setShowProductForm(true);
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab === "orders" && (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Pedidos de tu Tienda
+            </h2>
+            {orders.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
+                <p className="text-gray-600 dark:text-gray-400">
+                  No tienes pedidos todavía
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
+                    onClick={() => setSelectedOrder(order)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          Pedido #{order.id.slice(0, 8)}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {order.cliente?.nombre || "Cliente"}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {
+                            order.items?.filter(
+                              (item) => item.storeId === usuarioInfo?.storeId
+                            ).length
+                          }{" "}
+                          productos
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-gray-900 dark:text-white">
+                          $
+                          {order.items
+                            ?.filter(
+                              (item) => item.storeId === usuarioInfo?.storeId
+                            )
+                            .reduce(
+                              (sum, item) => sum + item.precio * item.cantidad,
+                              0
+                            )
+                            .toFixed(2)}
+                        </p>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            order.estado === "entregado"
+                              ? "bg-green-100 text-green-800"
+                              : order.estado === "en camino"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-yellow-100 text-yellow-800"
+                          }`}
+                        >
+                          {order.estado || "Pendiente"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        </motion.div>
 
         {/* PRODUCT FORM MODAL */}
         {showProductForm && (
@@ -570,6 +820,76 @@ function SellerAdminPanel() {
               setEditingProduct(null);
             }}
           />
+        )}
+
+        {/* ORDER DETAIL MODAL */}
+        {selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Detalles del Pedido
+                </h3>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <FiX className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    ID del Pedido
+                  </p>
+                  <p className="font-mono text-gray-900 dark:text-white">
+                    {selectedOrder.id}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Cliente
+                  </p>
+                  <p className="text-gray-900 dark:text-white">
+                    {selectedOrder.cliente?.nombre || "N/A"}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {selectedOrder.cliente?.email || "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    Productos de tu tienda
+                  </p>
+                  <div className="space-y-2">
+                    {selectedOrder.items
+                      ?.filter((item) => item.storeId === usuarioInfo?.storeId)
+                      .map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white">
+                              {item.nombre}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Cantidad: {item.cantidad}
+                            </p>
+                          </div>
+                          <p className="font-bold text-gray-900 dark:text-white">
+                            ${(item.precio * item.cantidad).toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </main>
@@ -591,19 +911,9 @@ export default function Admin() {
   const migrationRanRef = useRef(false);
 
   useEffect(() => {
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("🔐 VERIFICANDO ADMIN PARA CARGAR USUARIOS");
-    console.log("Usuario UID:", usuario?.uid);
-    console.log("Usuario Email:", usuario?.email);
-    console.log("Es Admin:", usuarioInfo?.isAdmin);
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
     if (!usuario || !usuarioInfo?.isAdmin) {
-      console.log("❌ No es admin o no hay usuario - NO cargando usuarios");
       return;
     }
-
-    console.log("✅ ES ADMIN - Cargando usuarios...");
 
     // Función para actualizar admin en Firestore si el email coincide
     const updateAdminStatus = async (userId, email, currentAdminStatus) => {
@@ -611,31 +921,23 @@ export default function Admin() {
       const shouldBeAdmin = emailLower === "arisleidy0712@gmail.com";
 
       if (shouldBeAdmin && !currentAdminStatus) {
-        console.log(
-          "🔐 Actualizando admin status para:",
-          email,
-          "UID:",
-          userId
-        );
         try {
           // Actualizar en ambas colecciones
           await updateDoc(doc(db, "users", userId), {
             admin: true,
             isAdmin: true,
           });
-          console.log("✅ Admin actualizado en 'users'");
 
-          try {
+          try{
             await updateDoc(doc(db, "usuarios", userId), {
               admin: true,
               isAdmin: true,
             });
-            console.log("✅ Admin actualizado en 'usuarios'");
           } catch (err) {
-            console.log("⚠️ No existe en 'usuarios'");
+            // Error silencioso
           }
         } catch (err) {
-          console.error("❌ Error actualizando admin:", err);
+          // Error silencioso
         }
       }
     };
@@ -644,7 +946,6 @@ export default function Admin() {
     const unsubscribeUsers = onSnapshot(
       query(collection(db, "users")),
       (snap) => {
-        console.log("📦 Usuarios de 'users':", snap.size);
         const usersData = snap.docs.map((doc) => {
           const data = doc.data();
           const emailLower = (data.email || "").toLowerCase().trim();
@@ -671,7 +972,6 @@ export default function Admin() {
               merged[index] = { ...merged[index], ...existingUser };
             }
           });
-          console.log("✅ Usuarios totales después de 'users':", merged.length);
           return merged;
         });
       }
@@ -681,7 +981,6 @@ export default function Admin() {
     const unsubscribeUsuarios = onSnapshot(
       query(collection(db, "usuarios")),
       (snap) => {
-        console.log("📦 Usuarios de 'usuarios':", snap.size);
         const usuariosData = snap.docs.map((doc) => {
           const data = doc.data();
           const emailLower = (data.email || "").toLowerCase().trim();
@@ -710,10 +1009,6 @@ export default function Admin() {
               merged.push(userData);
             }
           });
-          console.log(
-            "✅ Usuarios totales después de 'usuarios':",
-            merged.length
-          );
           return merged;
         });
       }
@@ -893,17 +1188,11 @@ export default function Admin() {
                                 <button
                                   onClick={async (e) => {
                                     e.stopPropagation();
-                                    console.log(
-                                      "👑 FORZANDO ADMIN MANUALMENTE"
-                                    );
-                                    console.log("Email:", u.email);
-                                    console.log("UID:", u.id);
                                     try {
                                       await updateDoc(doc(db, "users", u.id), {
                                         admin: true,
                                         isAdmin: true,
                                       });
-                                      console.log("✅ Actualizado en 'users'");
                                       try {
                                         await updateDoc(
                                           doc(db, "usuarios", u.id),
@@ -912,19 +1201,13 @@ export default function Admin() {
                                             isAdmin: true,
                                           }
                                         );
-                                        console.log(
-                                          "✅ Actualizado en 'usuarios'"
-                                        );
                                       } catch (err) {
-                                        console.log(
-                                          "⚠️ No existe en 'usuarios'"
-                                        );
+                                        // Error silencioso
                                       }
                                       alert(
                                         "✅ ¡Ahora eres Admin! Refresca la página."
                                       );
                                     } catch (error) {
-                                      console.error("❌ Error:", error);
                                       alert("Error: " + error.message);
                                     }
                                   }}
@@ -949,11 +1232,9 @@ export default function Admin() {
                                   return;
                                 }
                                 try {
-                                  console.log("🗑️ Eliminando usuario:", u.id);
                                   // Eliminar de colección users
                                   const userDocRef = doc(db, "users", u.id);
                                   await deleteDoc(userDocRef);
-                                  console.log("✅ Eliminado de 'users'");
 
                                   // Intentar eliminar de colección usuarios si existe
                                   try {
@@ -963,17 +1244,12 @@ export default function Admin() {
                                       u.id
                                     );
                                     await deleteDoc(usuarioDocRef);
-                                    console.log("✅ Eliminado de 'usuarios'");
                                   } catch (err) {
-                                    console.log("⚠️ No existe en 'usuarios'");
+                                    // Error silencioso
                                   }
 
                                   alert("Usuario eliminado exitosamente");
                                 } catch (error) {
-                                  console.error(
-                                    "❌ Error eliminando usuario:",
-                                    error
-                                  );
                                   alert(
                                     "Error al eliminar usuario: " +
                                       error.message
@@ -995,23 +1271,43 @@ export default function Admin() {
             )}
           </div>
         );
+      case "orders":
+        return (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Gestión de Pedidos
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Aquí aparecerán los pedidos filtrados por tienda
+            </p>
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <p className="text-gray-500">
+                Funcionalidad de pedidos por tienda - En desarrollo
+              </p>
+            </div>
+          </div>
+        );
+      case "tiendas":
+        return <GestionTiendas />;
+      case "solicitudes":
+        return <SolicitudesVendedor />;
       default:
         return <AdminDashboard />;
     }
   };
 
   return (
-    <main className="admin-page min-h-screen bg-gray-50 dark:bg-gray-900 px-2 sm:px-6 pb-2 sm:pb-6">
+    <main className="admin-page min-h-screen bg-gray-50 dark:bg-gray-900 px-2 sm:px-6 pt-2 pb-2 sm:pb-6">
       <div className="w-full px-2">
         {/* HEADER */}
-        <div className="text-center mb-6">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-gray-900 dark:text-white">
+        <div className="text-center mb-3">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 text-gray-900 dark:text-white">
             Panel Administrativo
           </h1>
           <p className="text-sm sm:text-base lg:text-lg text-gray-700 dark:text-gray-300 font-medium">
             Gestión Completa del Sistema
           </p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
             <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
               <FiUsers /> {usuarios.length}{" "}
               {usuarios.length === 1 ? "usuario" : "usuarios"} registrados
@@ -1023,7 +1319,7 @@ export default function Admin() {
         </div>
 
         {/* NAVIGATION TABS */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-1 mb-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-1 mb-4 border border-gray-200 dark:border-gray-700">
           <div className="flex flex-wrap gap-1">
             {[
               { id: "dashboard", label: "Dashboard", icon: <FiBarChart2 /> },
@@ -1031,6 +1327,21 @@ export default function Admin() {
               { id: "categories", label: "Categorías", icon: <FiTag /> },
               { id: "orders", label: "Pedidos", icon: <FiSearch /> },
               { id: "users", label: "Usuarios", icon: <FiUsers /> },
+              // SOLO mostrar "Tiendas" y "Solicitudes" si eres super admin
+              ...(usuarioInfo?.email === "arisleidy0712@gmail.com"
+                ? [
+                    {
+                      id: "tiendas",
+                      label: "Tiendas",
+                      icon: <FiShoppingBag />,
+                    },
+                    {
+                      id: "solicitudes",
+                      label: "Solicitudes",
+                      icon: <FiUserPlus />,
+                    },
+                  ]
+                : []),
             ].map((tab) => (
               <button
                 key={tab.id}

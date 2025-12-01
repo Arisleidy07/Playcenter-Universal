@@ -113,10 +113,7 @@ export default function Carrito() {
 
   return (
     <>
-      <main
-        className="carrito-page"
-        style={{ paddingTop: "calc(var(--content-offset, 140px) + 40px)" }}
-      >
+      <main className="carrito-page" style={{ paddingTop: "40px" }}>
         {carrito.length === 0 ? (
           <div className="carrito-empty-wrap">
             <div className="carrito-empty-box">

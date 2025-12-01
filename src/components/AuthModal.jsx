@@ -30,6 +30,7 @@ export default function AuthModal() {
     signup,
     usuario,
     loginWithGoogle,
+    loginWithApple,
     resetPassword,
     checkSignInMethods,
   } = useAuth();
@@ -72,16 +73,30 @@ export default function AuthModal() {
   }, []);
 
   useEffect(() => {
-    setModoLocal(modoGlobal);
-    setError("");
-    setEmail("");
-    setPassword("");
-    setName("");
-    setTelefono("");
-    setQuickLoginMode(false);
-    setForgotPasswordMode(false);
-    setResetEmailSent(false);
-    setShowGoogleAccountWarning(false);
+    if (modalAbierto) {
+      setModoLocal(modoGlobal);
+      setError("");
+
+      // 🔥 PRE-LLENAR EMAIL desde localStorage (para cambio de cuenta)
+      const lastEmail = localStorage.getItem("lastLoginEmail");
+      if (lastEmail) {
+        console.log("✅ Pre-llenando email:", lastEmail);
+        setEmail(lastEmail);
+        // NO mostrar quick login cuando cambiamos de cuenta
+        setRememberedEmail("");
+        setRememberedUser(null);
+      } else {
+        setEmail("");
+      }
+
+      setPassword("");
+      setName("");
+      setTelefono("");
+      setQuickLoginMode(false);
+      setForgotPasswordMode(false);
+      setResetEmailSent(false);
+      setShowGoogleAccountWarning(false);
+    }
   }, [modalAbierto, modoGlobal]);
 
   // Función para recuperar contraseña
@@ -133,24 +148,29 @@ export default function AuthModal() {
         return;
       }
 
-      // Si hay email recordado, iniciar automáticamente
-      if (rememberedEmail) {
-        console.log("📧 Email recordado:", rememberedEmail);
+      // Determinar email y método guardado
+      const saved = rememberedUser;
+      let emailToUse = rememberedEmail || saved?.email || "";
+      emailToUse = (emailToUse || "").trim().toLowerCase();
 
-        // Verificar qué métodos de login tiene esta cuenta
-        const methods = await checkSignInMethods(rememberedEmail);
-        console.log("🔍 Métodos disponibles:", methods);
+      // Actualizar estado si faltaba rememberedEmail pero sí había en saved
+      if (!rememberedEmail && emailToUse) {
+        setRememberedEmail(emailToUse);
+      }
 
-        if (methods.includes("google.com")) {
-          // Es cuenta de Google - Abrir popup automáticamente
-          console.log("🚀 Cuenta de Google - Iniciando automáticamente...");
+      if (emailToUse) {
+        console.log("📧 Email recordado:", emailToUse);
+
+        // 1) Si tenemos el método guardado en lastUserData, úsalo directamente
+        const knownMethod = saved?.loginMethod;
+        if (knownMethod === "google") {
+          console.log(
+            "🚀 Método guardado: Google - iniciando automáticamente..."
+          );
           setError("Iniciando sesión con Google...");
-
           try {
             const userCredential = await loginWithGoogle();
             console.log("✅ Login con Google exitoso!");
-
-            // Guardar datos
             if (userCredential?.user?.email) {
               const emailFromGoogle = userCredential.user.email.toLowerCase();
               const userData = {
@@ -161,7 +181,6 @@ export default function AuthModal() {
               localStorage.setItem("lastLoginEmail", emailFromGoogle);
               localStorage.setItem("lastUserData", JSON.stringify(userData));
             }
-
             setModalAbierto(false);
             console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             console.log("✅ QUICK LOGIN COMPLETADO");
@@ -175,17 +194,113 @@ export default function AuthModal() {
               setError("Error al iniciar con Google. Intenta de nuevo.");
             }
           }
+        } else if (knownMethod === "apple") {
+          console.log(
+            "🚀 Método guardado: Apple - iniciando automáticamente..."
+          );
+          setError("Iniciando sesión con Apple...");
+          try {
+            const result = await loginWithApple();
+            if (result?.user?.email) {
+              const emailFromApple = result.user.email.toLowerCase();
+              const userData = {
+                email: emailFromApple,
+                loginMethod: "apple",
+                timestamp: new Date().toISOString(),
+              };
+              localStorage.setItem("lastLoginEmail", emailFromApple);
+              localStorage.setItem("lastUserData", JSON.stringify(userData));
+            }
+            setModalAbierto(false);
+            console.log("✅ Login con Apple exitoso!");
+            return;
+          } catch (appleError) {
+            console.error("❌ Error en login con Apple:", appleError);
+            setError("Error al iniciar con Apple. Intenta de nuevo.");
+          }
+        } else if (knownMethod === "email") {
+          console.log(
+            "🔑 Método guardado: email/password - solicitando contraseña..."
+          );
+          setEmail(emailToUse);
+          setQuickLoginMode(false);
+          setError("Por favor ingresa tu contraseña para continuar.");
+          setTimeout(() => {
+            document.querySelector('input[type="password"]')?.focus();
+          }, 100);
+          setLoading(false);
+          return;
+        }
+
+        // 2) Si no hay método conocido, consultar a Firebase
+        const methods = await checkSignInMethods(emailToUse);
+        console.log("🔍 Métodos disponibles:", methods);
+
+        if (methods.includes("google.com")) {
+          // Es cuenta de Google - Abrir popup automáticamente
+          console.log("🚀 Cuenta de Google - Iniciando automáticamente...");
+          setError("Iniciando sesión con Google...");
+          try {
+            const userCredential = await loginWithGoogle();
+            console.log("✅ Login con Google exitoso!");
+            if (userCredential?.user?.email) {
+              const emailFromGoogle = userCredential.user.email.toLowerCase();
+              const userData = {
+                email: emailFromGoogle,
+                loginMethod: "google",
+                timestamp: new Date().toISOString(),
+              };
+              localStorage.setItem("lastLoginEmail", emailFromGoogle);
+              localStorage.setItem("lastUserData", JSON.stringify(userData));
+            }
+            setModalAbierto(false);
+            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            console.log("✅ QUICK LOGIN COMPLETADO");
+            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            return;
+          } catch (googleError) {
+            console.error("❌ Error en login con Google:", googleError);
+            if (googleError.code === "auth/popup-closed-by-user") {
+              setError("Popup cerrado. Intenta de nuevo.");
+            } else {
+              setError("Error al iniciar con Google. Intenta de nuevo.");
+            }
+          }
+        } else if (methods.includes("apple.com")) {
+          // Cuenta de Apple
+          console.log("🚀 Cuenta de Apple - Iniciando automáticamente...");
+          setError("Iniciando sesión con Apple...");
+          try {
+            const result = await loginWithApple();
+            if (result?.user?.email) {
+              const emailFromApple = result.user.email.toLowerCase();
+              const userData = {
+                email: emailFromApple,
+                loginMethod: "apple",
+                timestamp: new Date().toISOString(),
+              };
+              localStorage.setItem("lastLoginEmail", emailFromApple);
+              localStorage.setItem("lastUserData", JSON.stringify(userData));
+            }
+            setModalAbierto(false);
+            return;
+          } catch (appleError) {
+            console.error("❌ Error en login con Apple:", appleError);
+            setError("Error al iniciar con Apple. Intenta de nuevo.");
+          }
         } else if (methods.includes("password")) {
           // Es cuenta con contraseña - Pedir contraseña
           console.log("🔑 Cuenta con contraseña - Solicitando...");
-          setEmail(rememberedEmail);
+          setEmail(emailToUse);
           setQuickLoginMode(false);
           setError("Por favor ingresa tu contraseña para continuar.");
           setTimeout(() => {
             document.querySelector('input[type="password"]')?.focus();
           }, 100);
         } else {
-          setError("No se pudo verificar el método de inicio de sesión.");
+          setError(
+            "No se pudo verificar el método de inicio de sesión. Selecciona una opción abajo."
+          );
         }
       } else {
         setError("No hay cuenta guardada.");

@@ -20,7 +20,10 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     const { amount, orderId } = data;
 
     if (!amount || amount <= 0) {
-      throw new functions.https.HttpsError("invalid-argument", "Monto inválido");
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Monto inválido"
+      );
     }
 
     // Generar TransactionId único de 6 dígitos
@@ -35,9 +38,10 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     const formattedTax = String(taxAmount);
 
     // URLs según ambiente - usar origin del request (dominio de Vercel)
-    const API_BASE = context.rawRequest?.headers?.origin || 
-                     context.rawRequest?.headers?.referer?.replace(/\/$/, "") ||
-                     "https://playcenter-universal.vercel.app";
+    const API_BASE =
+      context.rawRequest?.headers?.origin ||
+      context.rawRequest?.headers?.referer?.replace(/\/$/, "") ||
+      "https://playcenter-universal.vercel.app";
 
     // Parámetros CORRECTOS según documentación Cardnet
     const requestBody = {
@@ -55,7 +59,7 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
       TransactionId: transactionId,
       Tax: formattedTax,
       MerchantName: "PLAYCENTER UNIVERSAL PRUEBAS DO",
-      Amount: formattedAmount
+      Amount: formattedAmount,
     };
 
     console.log("📤 Enviando solicitud a Cardnet:", requestBody);
@@ -69,12 +73,12 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
       {
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          Accept: "application/json",
         },
         timeout: 15000, // Reducir a 15 segundos
         validateStatus: function (status) {
           return status < 500; // Resolver si no es error de servidor
-        }
+        },
       }
     );
 
@@ -91,15 +95,14 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
       session: response.data.SESSION,
       sessionKey: response.data["session-key"],
       orderId: requestBody.OrdenId,
-      transactionId: requestBody.TransactionId
+      transactionId: requestBody.TransactionId,
     };
-
   } catch (error) {
     console.error("❌ Error creando sesión Cardnet:", {
       message: error.message,
       response: error.response?.data,
       status: error.response?.status,
-      code: error.code
+      code: error.code,
     });
 
     // Manejo específico de errores
@@ -133,7 +136,10 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
     const { session, sessionKey } = data;
 
     if (!session || !sessionKey) {
-      throw new functions.https.HttpsError("invalid-argument", "Sesión o clave inválida");
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Sesión o clave inválida"
+      );
     }
 
     console.log("🔍 Verificando transacción Cardnet:", session);
@@ -143,7 +149,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
       `https://lab.cardnet.com.do/sessions/${session}`,
       {
         params: { sk: sessionKey },
-        timeout: 30000
+        timeout: 30000,
       }
     );
 
@@ -151,18 +157,21 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
 
     return {
       success: true,
-      ...response.data
+      ...response.data,
     };
-
   } catch (error) {
-    console.error("❌ Error verificando transacción:", error.response?.data || error.message);
-    
+    console.error(
+      "❌ Error verificando transacción:",
+      error.response?.data || error.message
+    );
+
     // Si la sesión no se encuentra (404), retornar info útil
     if (error.response?.status === 404) {
       return {
         success: false,
         error: "Session not found",
-        message: "La sesión expiró o no existe. Las sesiones son válidas por 30 minutos."
+        message:
+          "La sesión expiró o no existe. Las sesiones son válidas por 30 minutos.",
       };
     }
 
@@ -230,7 +239,9 @@ exports.onOrderCreated = functions.firestore
                   <h3>Detalles del pedido #${orderId}</h3>
                   <div class="item">
                     <span>Fecha:</span>
-                    <span>${new Date(order.createdAt?.toDate() || Date.now()).toLocaleDateString("es-DO")}</span>
+                    <span>${new Date(
+                      order.createdAt?.toDate() || Date.now()
+                    ).toLocaleDateString("es-DO")}</span>
                   </div>
                   <div class="item">
                     <span>Estado:</span>
@@ -240,19 +251,34 @@ exports.onOrderCreated = functions.firestore
                     <span>Método de pago:</span>
                     <span>${order.paymentMethod || "Por confirmar"}</span>
                   </div>
-                  ${order.items ? order.items.map(item => `
+                  ${
+                    order.items
+                      ? order.items
+                          .map(
+                            (item) => `
                     <div class="item">
                       <span>${item.name} x${item.quantity}</span>
-                      <span>RD$${(item.price * item.quantity).toLocaleString("es-DO", { minimumFractionDigits: 2 })}</span>
+                      <span>RD$${(item.price * item.quantity).toLocaleString(
+                        "es-DO",
+                        { minimumFractionDigits: 2 }
+                      )}</span>
                     </div>
-                  `).join("") : ""}
+                  `
+                          )
+                          .join("")
+                      : ""
+                  }
                   <div class="total">
-                    Total: RD$${(order.total || 0).toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+                    Total: RD$${(order.total || 0).toLocaleString("es-DO", {
+                      minimumFractionDigits: 2,
+                    })}
                   </div>
                 </div>
 
                 <p>Te notificaremos cuando tu pedido sea enviado.</p>
-                <a href="${config.site?.url || "https://pcu.com.do"}/perfil?seccion=pedidos" class="button">Ver mi pedido</a>
+                <a href="${
+                  config.site?.url || "https://pcu.com.do"
+                }/perfil?seccion=pedidos" class="button">Ver mi pedido</a>
               </div>
               <div class="footer">
                 <p>© ${new Date().getFullYear()} Playcenter Universal. Todos los derechos reservados.</p>
@@ -268,12 +294,15 @@ exports.onOrderCreated = functions.firestore
       console.log("✅ Email enviado a:", to);
 
       // Marcar como enviado
-      await snap.ref.update({ emailSent: true, emailSentAt: admin.firestore.FieldValue.serverTimestamp() });
+      await snap.ref.update({
+        emailSent: true,
+        emailSentAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
 
       return true;
     } catch (error) {
       console.error("❌ Error al enviar email:", error);
-      
+
       // Guardar error para reintento manual
       await snap.ref.update({
         emailError: error.message,
@@ -308,18 +337,18 @@ exports.onOrderStatusChanged = functions.firestore
     try {
       // Obtener tokens FCM del usuario
       const tokensSnap = await db.collection(`users/${userId}/fcmTokens`).get();
-      
+
       if (tokensSnap.empty) {
         console.log("Usuario no tiene tokens FCM");
         return null;
       }
 
-      const tokens = tokensSnap.docs.map(doc => doc.id);
+      const tokens = tokensSnap.docs.map((doc) => doc.id);
 
       // Crear mensaje personalizado según el estado
       let title = "Actualización de pedido";
       let body = `Tu pedido #${orderId} ha sido actualizado`;
-      
+
       switch (after.status?.toLowerCase()) {
         case "completado":
           title = "🎉 Pedido completado";
@@ -346,7 +375,9 @@ exports.onOrderStatusChanged = functions.firestore
           body,
           icon: "/logo192.png",
           badge: "/logo192.png",
-          click_action: `${config.site?.url || "https://pcu.com.do"}/perfil?seccion=pedidos`,
+          click_action: `${
+            config.site?.url || "https://pcu.com.do"
+          }/perfil?seccion=pedidos`,
         },
         data: {
           orderId,
@@ -361,20 +392,27 @@ exports.onOrderStatusChanged = functions.firestore
       const tokensToRemove = [];
       response.results.forEach((result, index) => {
         if (result.error) {
-          if (result.error.code === "messaging/registration-token-not-registered" ||
-              result.error.code === "messaging/invalid-registration-token") {
+          if (
+            result.error.code ===
+              "messaging/registration-token-not-registered" ||
+            result.error.code === "messaging/invalid-registration-token"
+          ) {
             tokensToRemove.push(tokens[index]);
           }
         }
       });
 
       // Eliminar tokens inválidos
-      const removePromises = tokensToRemove.map(token =>
+      const removePromises = tokensToRemove.map((token) =>
         db.doc(`users/${userId}/fcmTokens/${token}`).delete()
       );
       await Promise.all(removePromises);
 
-      console.log("✅ Push notification enviada:", response.successCount, "exitosas");
+      console.log(
+        "✅ Push notification enviada:",
+        response.successCount,
+        "exitosas"
+      );
 
       return true;
     } catch (error) {
@@ -413,7 +451,8 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
 
   try {
     // Obtener usuarios con opt-in
-    const usersSnap = await db.collection("users")
+    const usersSnap = await db
+      .collection("users")
       .where("emailOptIn", "==", true)
       .where("email", "!=", null)
       .get();
@@ -424,8 +463,8 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
     }
 
     const emails = usersSnap.docs
-      .map(doc => doc.data().email)
-      .filter(email => email && email.includes("@"));
+      .map((doc) => doc.data().email)
+      .filter((email) => email && email.includes("@"));
 
     console.log(`📧 Enviando campaña a ${emails.length} usuarios`);
 
@@ -435,12 +474,12 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
     // Enviar en batches para no sobrecargar
     for (let i = 0; i < emails.length; i += batchSize) {
       const batch = emails.slice(i, i + batchSize);
-      
+
       // En modo test, solo enviar al primer email
       if (testMode && i > 0) break;
 
       try {
-        const msgs = batch.map(email => ({
+        const msgs = batch.map((email) => ({
           to: email,
           from: config.mail?.from || "no-reply@pcu.com.do",
           subject,
@@ -449,15 +488,17 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
 
         await sgMail.send(msgs);
         totalSent += batch.length;
-        
-        console.log(`✅ Batch ${i / batchSize + 1} enviado: ${batch.length} emails`);
-        
+
+        console.log(
+          `✅ Batch ${i / batchSize + 1} enviado: ${batch.length} emails`
+        );
+
         // Pequeña pausa entre batches
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       } catch (error) {
         console.error(`❌ Error en batch ${i / batchSize + 1}:`, error);
         totalFailed += batch.length;
-        
+
         // Guardar errores en colección para revisar
         await db.collection("emailCampaignErrors").add({
           batch: i / batchSize + 1,
@@ -498,7 +539,8 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
 
   try {
     // Buscar usuario por email
-    const usersSnap = await db.collection("users")
+    const usersSnap = await db
+      .collection("users")
       .where("email", "==", email)
       .limit(1)
       .get();
@@ -518,7 +560,7 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
     }
 
     const userId = usersSnap.docs[0].id;
-    
+
     // Actualizar opt-in
     await db.doc(`users/${userId}`).update({
       emailOptIn: false,
@@ -534,7 +576,9 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
         <p>Has sido removido de nuestra lista de correos promocionales.</p>
         <p>Aún recibirás emails importantes sobre tus pedidos.</p>
         <br>
-        <a href="${config.site?.url || "https://pcu.com.do"}" style="color: #2563eb;">Volver al sitio</a>
+        <a href="${
+          config.site?.url || "https://pcu.com.do"
+        }" style="color: #2563eb;">Volver al sitio</a>
       </body>
       </html>
     `);
@@ -547,7 +591,59 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
 });
 
 // ============================================
-// 5. FUNCIÓN PARA LIMPIAR TOKENS FCM VIEJOS
+// 5. GENERAR CUSTOM TOKEN PARA CAMBIO RÁPIDO DE CUENTA
+// ============================================
+exports.issueSwitchToken = functions.https.onCall(async (data, context) => {
+  try {
+    const { email } = data;
+
+    if (!email) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Email requerido"
+      );
+    }
+
+    console.log("🔄 Solicitando custom token para:", email);
+
+    // Buscar usuario por email
+    const usersSnap = await db
+      .collection("users")
+      .where("email", "==", email.toLowerCase())
+      .limit(1)
+      .get();
+
+    if (usersSnap.empty) {
+      console.log("❌ Usuario no encontrado:", email);
+      throw new functions.https.HttpsError(
+        "not-found",
+        "Usuario no encontrado"
+      );
+    }
+
+    const uid = usersSnap.docs[0].id;
+    console.log("✅ Usuario encontrado:", uid);
+
+    // Generar Custom Token
+    const customToken = await admin.auth().createCustomToken(uid);
+    console.log("✅ Custom token generado exitosamente");
+
+    return {
+      customToken,
+      uid,
+      email: email.toLowerCase(),
+    };
+  } catch (error) {
+    console.error("❌ Error generando custom token:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      error.message || "Error al generar token"
+    );
+  }
+});
+
+// ============================================
+// 6. FUNCIÓN PARA LIMPIAR TOKENS FCM VIEJOS
 // ============================================
 exports.cleanupOldFCMTokens = functions.pubsub
   .schedule("every 24 hours")
@@ -565,9 +661,9 @@ exports.cleanupOldFCMTokens = functions.pubsub
           .where("createdAt", "<", oneMonthAgo)
           .get();
 
-        const deletePromises = tokensSnap.docs.map(doc => doc.ref.delete());
+        const deletePromises = tokensSnap.docs.map((doc) => doc.ref.delete());
         await Promise.all(deletePromises);
-        
+
         totalDeleted += tokensSnap.size;
       }
 

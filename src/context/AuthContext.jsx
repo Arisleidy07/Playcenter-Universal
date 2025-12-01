@@ -32,14 +32,9 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 const ADMIN_EMAILS = ["arisleidy0712@gmail.com"];
 
 function isAdminEmail(email) {
-  if (!email) {
-    console.log("⚠️ isAdminEmail: email vacío");
-    return false;
-  }
+  if (!email) return false;
   const emailLower = email.toLowerCase().trim();
-  const result = ADMIN_EMAILS.includes(emailLower);
-  console.log(`🔍 isAdminEmail("${email}") = ${result}`);
-  return result;
+  return ADMIN_EMAILS.includes(emailLower);
 }
 
 function generarCodigoUnico() {
@@ -145,6 +140,12 @@ export function AuthProvider({ children }) {
             displayName: user.displayName || "",
             email: user.email || "",
             createdAt: new Date(),
+            // Stats de seguimiento (Instagram/Twitter style)
+            stats: {
+              seguidores: 0, // Cuántos me siguen
+              seguidos: 0, // A cuántos sigo
+              publicaciones: 0, // Productos publicados (futuro)
+            },
           };
           try {
             await setDoc(usersRef, payload, { merge: true });
@@ -179,16 +180,13 @@ export function AuthProvider({ children }) {
                 storeImage: data.storeImage || "",
                 storePhone: data.storePhone || "",
                 storeAddress: data.storeAddress || "",
+                // Stats de seguimiento
+                stats: data.stats || {
+                  seguidores: 0,
+                  seguidos: 0,
+                  publicaciones: 0,
+                },
               };
-              console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-              console.log("🔐 USUARIO CARGADO EN AUTHCONTEXT");
-              console.log("📧 Email:", userEmail);
-              console.log("🆔 UID:", user.uid);
-              console.log("👑 isAdmin (merged):", merged.isAdmin);
-              console.log("👑 admin (merged):", merged.admin);
-              console.log("✅ isAdminEmail():", isAdminEmail(userEmail));
-              console.log("📦 data.admin:", data.admin);
-              console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
               setUsuarioInfo(merged);
             } else {
               // doc no existe (caso extremo) => set defaults
@@ -514,87 +512,60 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function loginWithGoogle() {
+  async function loginWithGoogle(loginHint) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
       prompt: "select_account",
+      ...(loginHint ? { login_hint: loginHint } : {}),
     });
 
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.log("🔐 LOGIN CON GOOGLE");
-      console.log("📧 Email:", user.email);
-      console.log("🆔 UID de Google:", user.uid);
+      console.log("🔐 LOGIN CON GOOGLE - Email:", user.email);
 
-      // Buscar si ya existe perfil con este email
-      const existingUser = await findUserByEmail(user.email);
+      // Verificar si el usuario ya existe en Firestore
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
 
-      if (existingUser && existingUser.id !== user.uid) {
-        console.log("✅ PERFIL EXISTENTE - Copiando datos al nuevo UID");
-        console.log("📁 UID anterior:", existingUser.id);
-        console.log("📁 UID nuevo (Google):", user.uid);
-
-        // Copiar perfil al nuevo UID para mantener avatar y datos
-        const newDocRef = doc(db, "users", user.uid);
+      // Si no existe, crear el documento
+      if (!docSnap.exists()) {
         const userEmail = (user.email || "").toLowerCase().trim();
-        await setDoc(
-          newDocRef,
-          {
-            ...existingUser.data,
-            fotoURL: user.photoURL || existingUser.data.fotoURL || "",
-            displayName:
-              user.displayName || existingUser.data.displayName || "",
-            admin: isAdminEmail(userEmail) || existingUser.data.admin === true,
-            linkedAccounts: {
-              originalUID: existingUser.id,
-              googleUID: user.uid,
-              unified: true,
-            },
-          },
-          { merge: true }
-        );
-        console.log("✅ Perfil unificado - Avatar y datos preservados");
-        console.log("🔐 Admin:", isAdminEmail(userEmail));
-      } else if (!existingUser) {
-        console.log("🆕 NUEVO PERFIL - Creando");
-        const docRef = doc(db, "users", user.uid);
         const nuevoCodigo = generarCodigoUnico();
-        const userEmail = (user.email || "").toLowerCase().trim();
-        await setDoc(
-          docRef,
-          {
-            telefono: "",
-            direccion: "",
-            admin: isAdminEmail(userEmail),
-            role: "buyer",
-            isSeller: false,
-            storeName: "",
-            storeDescription: "",
-            storeImage: "",
-            storePhone: "",
-            storeAddress: "",
-            codigo: nuevoCodigo,
-            displayName: user.displayName || "",
-            email: userEmail,
-            fotoURL: user.photoURL || "",
-            createdAt: new Date(),
-            loginMethod: "google",
-          },
-          { merge: true }
-        );
-        console.log("✅ Perfil nuevo creado");
-        console.log("🔐 Admin:", isAdminEmail(userEmail));
+        const payload = {
+          telefono: "",
+          direccion: "",
+          admin: userEmail === "arisleidy0712@gmail.com",
+          role: "buyer",
+          isSeller: false,
+          storeName: "",
+          storeDescription: "",
+          storeImage: "",
+          storePhone: "",
+          storeAddress: "",
+          codigo: nuevoCodigo,
+          displayName: user.displayName || "",
+          email: userEmail,
+          fotoURL: user.photoURL || "",
+          createdAt: new Date(),
+          loginMethod: "google",
+        };
+
+        await setDoc(docRef, payload, { merge: true });
+        console.log("✅ Perfil creado");
       } else {
-        console.log("✅ Mismo UID - Solo actualizar");
+        // Actualizar admin si es necesario
+        const userEmail = (user.email || "").toLowerCase().trim();
+        if (userEmail === "arisleidy0712@gmail.com" && !docSnap.data().admin) {
+          await setDoc(docRef, { admin: true, isAdmin: true }, { merge: true });
+          console.log("✅ Admin actualizado");
+        }
       }
 
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       return result;
     } catch (err) {
-      console.error("Error al iniciar sesión con Google:", err);
+      console.error("❌ Error al iniciar sesión con Google:", err);
       throw err;
     }
   }

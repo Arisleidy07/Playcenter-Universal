@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   FaWhatsapp,
   FaMoneyCheckAlt,
@@ -137,6 +138,22 @@ export default function Estafetas() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  // Variantes de animación
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
   const handleCopy = (numero, index) => {
     navigator.clipboard.writeText(numero);
     setCopiedIndex(index);
@@ -179,18 +196,38 @@ export default function Estafetas() {
   return (
     <div
       className="max-w-[1400px] mx-auto px-4 py-10"
-      style={{ paddingTop: "180px" }}
+      style={{ paddingTop: "30px" }}
     >
-      <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-2 text-gray-800 dark:text-gray-100 tracking-tight">
-        Estafetas de Pago y Métodos de Pago
-      </h1>
-      <p className="text-center text-gray-600 dark:text-gray-300 mb-6">
-        Puedes pagar tu factura en cualquiera de nuestros puntos autorizados o
-        mediante transferencia bancaria.
-      </p>
+      {/* Header con animación */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="text-center mb-8"
+      >
+        <motion.h1
+          variants={fadeInUp}
+          className="text-3xl md:text-4xl font-extrabold text-gray-800 dark:text-gray-100 tracking-tight mb-2"
+        >
+          Estafetas de Pago y Métodos de Pago
+        </motion.h1>
+        <motion.p
+          variants={fadeInUp}
+          className="text-gray-600 dark:text-gray-300"
+        >
+          Puedes pagar tu factura en cualquiera de nuestros puntos autorizados o
+          mediante transferencia bancaria.
+        </motion.p>
+      </motion.div>
 
       {/* Cuentas Bancarias - Diseño Compacto */}
-      <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 border border-blue-200 dark:border-gray-700 rounded-xl p-4 md:p-6 mb-8 md:mb-12 shadow-lg">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 border border-blue-200 dark:border-gray-700 rounded-xl p-4 md:p-6 mb-8 md:mb-12 shadow-lg"
+      >
         <h2 className="text-lg md:text-xl font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-2">
           <FaMoneyCheckAlt className="text-base md:text-lg" />
           Cuentas Bancarias
@@ -239,24 +276,32 @@ export default function Estafetas() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Estafetas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {estafetas.map((punto) => (
-          <div
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={staggerContainer}
+        className="grid grid-cols-1 md:grid-cols-2 gap-10"
+      >
+        {estafetas.map((punto, index) => (
+          <motion.div
             key={punto.id}
+            variants={fadeInUp}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
             className="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition"
           >
             <div
-              className="w-full md:w-1/2 h-64 md:h-auto bg-blue-50 dark:bg-gray-700 flex items-center justify-center p-3 cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors group"
+              className="w-full md:w-1/2 h-64 md:h-auto bg-gradient-to-br from-blue-50 to-slate-50 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center p-3 cursor-pointer transition-colors"
               onClick={() => openImageModal(punto)}
               title="Click para ver imagen completa"
             >
               <img
                 src={punto.imagen}
                 alt={punto.nombre}
-                className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain rounded-xl"
               />
             </div>
             <div className="p-6 flex flex-col justify-between flex-1">
@@ -287,13 +332,19 @@ export default function Estafetas() {
                 Ver Ubicación
               </a>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <p className="text-center text-gray-500 dark:text-gray-400 mt-12 text-lg">
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="text-center text-gray-500 dark:text-gray-400 mt-12 text-lg"
+      >
         ¡Agradecemos su preferencia! Estamos para servirle.
-      </p>
+      </motion.p>
 
       {/* Modal de Vista Completa */}
       {modalOpen && selectedImage && (
@@ -307,6 +358,10 @@ export default function Estafetas() {
               @media (prefers-color-scheme: dark) {
                 .estafeta-modal-bg {
                   background-color: #000000 !important;
+                }
+                .estafeta-modal-header {
+                  background-color: #000000 !important;
+                  border-color: #1f2937 !important;
                 }
                 .estafeta-modal-info {
                   background-color: #000000 !important;
@@ -323,6 +378,10 @@ export default function Estafetas() {
               html.dark .estafeta-modal-bg {
                 background-color: #000000 !important;
               }
+              html.dark .estafeta-modal-header {
+                background-color: #000000 !important;
+                border-color: #1f2937 !important;
+              }
               html.dark .estafeta-modal-info {
                 background-color: #000000 !important;
                 border-color: #1f2937 !important;
@@ -337,40 +396,49 @@ export default function Estafetas() {
             `}
           </style>
 
-          {/* Botón Cerrar - Moderno */}
-          <button
-            onClick={closeModal}
-            className="estafeta-modal-btn absolute top-6 right-6 z-[10000] p-4 rounded-full transition-all duration-300 shadow-2xl hover:scale-110 hover:rotate-90"
-            style={{ backgroundColor: "#f3f4f6", color: "#111827" }}
-            title="Cerrar"
-          >
-            <FaTimes size={22} />
-          </button>
-
-          {/* Imagen Grande con Object Contain */}
+          {/* Header con Título y Botón Cerrar */}
           <div
-            className="flex-1 w-full flex items-center justify-center px-4 py-6 md:px-8 md:py-8"
-            style={{ height: "calc(100vh - 140px)" }}
+            className="estafeta-modal-header flex items-center justify-between px-4 md:px-8 py-4 md:py-6 border-b"
+            style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}
+          >
+            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 dark:text-blue-400 flex-1 pr-4">
+              {selectedImage.nombre}
+            </h3>
+            <button
+              onClick={closeModal}
+              className="estafeta-modal-btn p-3 md:p-4 rounded-full transition-all duration-300 shadow-2xl hover:scale-110 hover:rotate-90 flex-shrink-0"
+              style={{ backgroundColor: "#f3f4f6", color: "#111827" }}
+              title="Cerrar"
+            >
+              <FaTimes size={20} className="md:w-[22px] md:h-[22px]" />
+            </button>
+          </div>
+
+          {/* Imagen con Object Contain */}
+          <div
+            className="flex-1 w-full flex items-center justify-center px-4 py-4 md:px-8 md:py-6"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={selectedImage.imagen}
               alt={selectedImage.nombre}
-              className="w-full h-full object-contain"
-              style={{ maxHeight: "100%", maxWidth: "100%" }}
+              className="max-w-full max-h-full object-contain"
+              style={{
+                maxHeight: "70vh",
+                maxWidth: "90%",
+                width: "auto",
+                height: "auto",
+              }}
             />
           </div>
 
-          {/* Información Moderna */}
+          {/* Descripción */}
           <div
-            className="estafeta-modal-info border-t-2 p-5 md:p-8"
+            className="estafeta-modal-info border-t-2 p-4 md:p-6"
             style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}
           >
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-xl md:text-3xl lg:text-4xl font-bold text-blue-600 dark:text-blue-400 text-center mb-2 md:mb-3">
-                {selectedImage.nombre}
-              </h3>
-              <p className="text-base md:text-xl lg:text-2xl text-gray-700 dark:text-gray-200 text-center font-medium leading-relaxed">
+              <p className="text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-200 text-center font-medium leading-relaxed">
                 {selectedImage.descripcion}
               </p>
             </div>

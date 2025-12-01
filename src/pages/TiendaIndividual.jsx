@@ -94,35 +94,52 @@ export default function TiendaIndividual() {
   const isOwner =
     usuario &&
     tienda &&
-    (usuario.uid === tienda.ownerId ||
+    (usuario.uid === tienda.ownerUid ||
+      usuario.uid === tienda.ownerId ||
       usuario.uid === tienda.owner_id ||
       usuario.uid === tienda.createdBy ||
       usuario.email === "arisleidy0712@gmail.com");
 
   useEffect(() => {
-    // Listener en tiempo real para la tienda
-    const tiendaRef = doc(db, "tiendas", id);
-    const unsubscribeTienda = onSnapshot(
-      tiendaRef,
-      (doc) => {
-        if (doc.exists()) {
-          setTienda({ id: doc.id, ...doc.data() });
+    // Intentar buscar en ambas colecciones
+    const buscarTienda = async () => {
+      // Primero intentar en "tiendas" (principal)
+      const tiendaRefOld = doc(db, "tiendas", id);
+      const unsubscribeOld = onSnapshot(
+        tiendaRefOld,
+        (docSnap) => {
+          if (docSnap.exists()) {
+            setTienda({ id: docSnap.id, ...docSnap.data() });
+            setLoading(false);
+            return;
+          }
+
+          // Si no existe, buscar en "stores" (vendedores)
+          const tiendaRefNew = doc(db, "stores", id);
+          const unsubscribeNew = onSnapshot(
+            tiendaRefNew,
+            (docSnapNew) => {
+              if (docSnapNew.exists()) {
+                setTienda({ id: docSnapNew.id, ...docSnapNew.data() });
+                setLoading(false);
+              } else {
+                // No existe en ninguna colección
+                navigate("/tiendas");
+              }
+            },
+            (error) => {
+              setLoading(false);
+            }
+          );
+        },
+        (error) => {
           setLoading(false);
-        } else {
-          console.error("Tienda no encontrada");
-          navigate("/tiendas");
         }
-      },
-      (error) => {
-        console.error("Error al escuchar tienda:", error);
-        setLoading(false);
-      }
-    );
+      );
+    };
 
+    buscarTienda();
     fetchProductos();
-
-    // Cleanup del listener
-    return () => unsubscribeTienda();
   }, [id, navigate]);
 
   // Cargar datos cuando se abre el modal
@@ -153,7 +170,7 @@ export default function TiendaIndividual() {
         }
       },
       (error) => {
-        console.error("Error escuchando tienda:", error);
+        // Error silencioso
       }
     );
 
@@ -167,7 +184,7 @@ export default function TiendaIndividual() {
           setSiguiendo(doc.exists());
         },
         (error) => {
-          console.error("Error verificando seguidor:", error);
+          // Error silencioso
         }
       );
     }
@@ -567,10 +584,7 @@ export default function TiendaIndividual() {
 
   if (loading) {
     return (
-      <div
-        className="min-vh-100 d-flex align-items-center justify-content-center"
-        style={{ paddingTop: "var(--content-offset, 140px)" }}
-      >
+      <div className="min-vh-100 d-flex align-items-center justify-content-center">
         <div className="text-center">
           <div
             className="spinner-border text-primary mb-4"
@@ -595,7 +609,7 @@ export default function TiendaIndividual() {
     <div
       className="min-vh-100"
       style={{
-        paddingTop: "125px",
+        paddingTop: "20px",
       }}
     >
       {/* BANNER COMPLETO - Full Width ULTRA HORIZONTAL */}

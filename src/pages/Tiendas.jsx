@@ -38,33 +38,45 @@ export default function Tiendas() {
 
   const fetchTiendas = async () => {
     try {
-      console.log(" Buscando tiendas...");
-
-      // Consulta simple sin orderBy problemático
-      const q = query(
+      // Obtener de colección "tiendas" (tienda principal antigua)
+      const qTiendas = query(
         collection(db, "tiendas"),
         where("estado", "==", "activa")
       );
-
-      const snapshot = await getDocs(q);
-      console.log(" Tiendas encontradas:", snapshot.size);
-
-      let tiendasData = snapshot.docs.map((doc) => ({
+      const snapshotTiendas = await getDocs(qTiendas);
+      const tiendasAntiguasData = snapshotTiendas.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        principal: doc.id === "playcenter_universal", // SOLO esta es principal
       }));
 
-      // Ordenar manualmente: principal primero
-      tiendasData.sort((a, b) => {
+      // Obtener de colección "stores" (tiendas de vendedores)
+      const qStores = query(
+        collection(db, "stores"),
+        where("activa", "==", true)
+      );
+      const snapshotStores = await getDocs(qStores);
+      const storesData = snapshotStores.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        principal: false, // Ninguna de stores es principal
+      }));
+
+      // Combinar ambas
+      let todasTiendas = [...tiendasAntiguasData, ...storesData];
+
+      // Ordenar: principal primero, luego por fecha
+      todasTiendas.sort((a, b) => {
         if (a.principal && !b.principal) return -1;
         if (!a.principal && b.principal) return 1;
-        return 0;
+        const dateA = a.createdAt?.toDate?.() || new Date(0);
+        const dateB = b.createdAt?.toDate?.() || new Date(0);
+        return dateB - dateA;
       });
 
-      console.log(" Tiendas procesadas:", tiendasData);
-      setTiendas(tiendasData);
+      setTiendas(todasTiendas);
     } catch (error) {
-      console.error(" Error al cargar tiendas:", error);
+      // Error silencioso
     } finally {
       setLoading(false);
     }
@@ -72,10 +84,7 @@ export default function Tiendas() {
 
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ paddingTop: "var(--content-offset, 140px)" }}
-      >
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600 text-lg">Cargando tiendas...</p>
@@ -88,7 +97,7 @@ export default function Tiendas() {
     <div
       className="min-h-screen"
       style={{
-        paddingTop: "calc(var(--content-offset, 140px) + 10px)",
+        paddingTop: "10px",
         backgroundColor: isDark ? "#000000" : "#f9fafb",
       }}
     >
@@ -133,13 +142,7 @@ function TiendaCard({ tienda, index }) {
   useEffect(() => {
     if (!usuario || !tienda.id) return;
 
-    const seguidorRef = doc(
-      db,
-      "tiendas",
-      tienda.id,
-      "seguidores",
-      usuario.uid
-    );
+    const seguidorRef = doc(db, "stores", tienda.id, "seguidores", usuario.uid);
     const unsubscribe = onSnapshot(
       seguidorRef,
       (doc) => {
@@ -157,7 +160,7 @@ function TiendaCard({ tienda, index }) {
   useEffect(() => {
     if (!tienda.id) return;
 
-    const tiendaRef = doc(db, "tiendas", tienda.id);
+    const tiendaRef = doc(db, "stores", tienda.id);
     const unsubscribe = onSnapshot(
       tiendaRef,
       (doc) => {
@@ -186,15 +189,15 @@ function TiendaCard({ tienda, index }) {
     setLoadingSeguir(true);
 
     try {
-      const tiendaRef = doc(db, "tiendas", tienda.id);
+      const tiendaRef = doc(db, "stores", tienda.id);
       const seguidorRef = doc(
         db,
-        "tiendas",
+        "stores",
         tienda.id,
         "seguidores",
         usuario.uid
       );
-      const usuarioRef = doc(db, "usuarios", usuario.uid);
+      const usuarioRef = doc(db, "users", usuario.uid);
 
       if (siguiendo) {
         // Dejar de seguir

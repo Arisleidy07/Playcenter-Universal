@@ -818,7 +818,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState({ text: "", tipo: "" });
   const [photoUploadModalOpen, setPhotoUploadModalOpen] = useState(false);
-  
+
   // Refs para inputs de archivo
   const fileInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
@@ -1130,7 +1130,7 @@ export default function Profile() {
     return (
       <main
         className="min-h-screen flex items-center justify-center bg-slate-50"
-        style={{ paddingTop: "calc(var(--content-offset, 100px) + 40px)" }}
+        style={{ paddingTop: "40px" }}
       >
         <p className="text-lg animate-pulse">Cargando perfil...</p>
       </main>
@@ -1193,387 +1193,400 @@ export default function Profile() {
         <main className="profile-content">
           <div className="content-card">
             <AnimatePresence mode="wait">
-            {vista === "cuenta" && (
-              <motion.section
-                key="perfil"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <div className="profile-header big">
-                  <div className="avatar-block large">
-                    <img src={avatarSrc} alt="Avatar" className="avatar-img" />
-                  </div>
-                  <div className="profile-meta big">
-                    <h1 className="profile-name">{publicName}</h1>
-                    <p className="profile-email">{form.email}</p>
-                    <p className="muted small">
-                      UID: <span className="mono">{usuario.uid}</span>
-                    </p>
+              {vista === "cuenta" && (
+                <motion.section
+                  key="perfil"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <div className="profile-header big">
+                    <div className="avatar-block large">
+                      <img
+                        src={avatarSrc}
+                        alt="Avatar"
+                        className="avatar-img"
+                      />
+                    </div>
+                    <div className="profile-meta big">
+                      <h1 className="profile-name">{publicName}</h1>
+                      <p className="profile-email">{form.email}</p>
+                      <p className="muted small">
+                        UID: <span className="mono">{usuario.uid}</span>
+                      </p>
 
-                    <div className="profile-actions">
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => setPhotoUploadModalOpen(true)}
-                      >
-                        Cambiar foto
-                      </button>
-                      <button
-                        className="btn btn-ghost"
-                        onClick={() => setConfirmRemoveImageOpen(true)}
-                      >
-                        Quitar
-                      </button>
-                      {localPreview && (
+                      <div className="profile-actions">
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => setPhotoUploadModalOpen(true)}
+                        >
+                          Cambiar foto
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          onClick={() => setConfirmRemoveImageOpen(true)}
+                        >
+                          Quitar
+                        </button>
+                        {localPreview && (
+                          <>
+                            <button
+                              className="btn btn-success"
+                              onClick={uploadLocalImage}
+                              disabled={loading}
+                            >
+                              Guardar foto
+                            </button>
+                            <button
+                              className="btn btn-outline"
+                              onClick={cancelLocalPreview}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Inputs ocultos para diferentes opciones */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFile}
+                        className="hidden"
+                        style={{ display: "none" }}
+                      />
+                      <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleFile}
+                        className="hidden"
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-grid big">
+                    <div className="form-row">
+                      <label>Nombre</label>
+                      <input
+                        name="nombre"
+                        value={form.nombre}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                      />
+                    </div>
+                    <div className="form-row">
+                      <label>Email</label>
+                      <input name="email" value={form.email} disabled />
+                    </div>
+                    <div className="form-row">
+                      <label>Teléfono</label>
+                      <input
+                        name="telefono"
+                        value={form.telefono}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                      />
+                    </div>
+                    <div className="form-row full">
+                      <label>Dirección completa</label>
+                      <textarea
+                        name="direccion"
+                        value={form.direccion}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                        rows={4}
+                      />
+                      <p className="muted hint">
+                        Pulsa "Editar" para modificar.
+                      </p>
+                    </div>
+
+                    <div className="form-actions">
+                      {!editMode ? (
+                        <button
+                          onClick={() => setEditMode(true)}
+                          className="btn btn-primary"
+                        >
+                          Editar perfil
+                        </button>
+                      ) : (
                         <>
                           <button
+                            onClick={saveProfile}
                             className="btn btn-success"
-                            onClick={uploadLocalImage}
                             disabled={loading}
                           >
-                            Guardar foto
+                            Guardar
                           </button>
                           <button
-                            className="btn btn-outline"
-                            onClick={cancelLocalPreview}
+                            onClick={() => {
+                              setEditMode(false);
+                              cancelLocalPreview();
+                            }}
+                            className="btn btn-ghost"
                           >
                             Cancelar
                           </button>
                         </>
                       )}
                     </div>
-                    
-                    {/* Inputs ocultos para diferentes opciones */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFile}
-                      className="hidden"
-                      style={{ display: 'none' }}
-                    />
-                    <input
-                      ref={cameraInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handleFile}
-                      className="hidden"
-                      style={{ display: 'none' }}
-                    />
                   </div>
-                </div>
+                </motion.section>
+              )}
 
-                <div className="form-grid big">
-                  <div className="form-row">
-                    <label>Nombre</label>
-                    <input
-                      name="nombre"
-                      value={form.nombre}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>Email</label>
-                    <input name="email" value={form.email} disabled />
-                  </div>
-                  <div className="form-row">
-                    <label>Teléfono</label>
-                    <input
-                      name="telefono"
-                      value={form.telefono}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div className="form-row full">
-                    <label>Dirección completa</label>
-                    <textarea
-                      name="direccion"
-                      value={form.direccion}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                      rows={4}
-                    />
-                    <p className="muted hint">Pulsa "Editar" para modificar.</p>
-                  </div>
+              {vista === "pedidos" && (
+                <motion.section
+                  key="historial"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <h2 className="section-title large">Mis pedidos</h2>
+                  <HistorialSection historial={historial} />
+                </motion.section>
+              )}
 
-                  <div className="form-actions">
-                    {!editMode ? (
+              {vista === "direcciones" && (
+                <motion.section
+                  key="direcciones"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <div className="direcciones-head">
+                    <h2 className="section-title large">Direcciones</h2>
+                    <div>
                       <button
-                        onClick={() => setEditMode(true)}
                         className="btn btn-primary"
+                        onClick={() => {
+                          setDireccionEditar(null);
+                          setModalEntregaOpen(true);
+                        }}
                       >
-                        Editar perfil
+                        Añadir dirección
                       </button>
-                    ) : (
-                      <>
+                    </div>
+                  </div>
+
+                  <div className="cards-list">
+                    <div className="address-card large">
+                      <div className="address-content">
+                        <div className="address-title">
+                          Recoger en: Playcenter Universal Santiago
+                        </div>
+                        <div className="muted break-words">
+                          {TIENDA_PLAYCENTER.direccionCompleta}
+                        </div>
+                        <a
+                          href={TIENDA_PLAYCENTER.ubicacion}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="link"
+                        >
+                          Ver en Maps
+                        </a>
+                      </div>
+                      <div className="address-actions">
                         <button
-                          onClick={saveProfile}
+                          onClick={() =>
+                            handleSeleccionarDireccion(TIENDA_PLAYCENTER)
+                          }
                           className="btn btn-success"
-                          disabled={loading}
                         >
-                          Guardar
+                          Seleccionar
                         </button>
-                        <button
-                          onClick={() => {
-                            setEditMode(false);
-                            cancelLocalPreview();
-                          }}
-                          className="btn btn-ghost"
-                        >
-                          Cancelar
-                        </button>
-                      </>
+                      </div>
+                    </div>
+
+                    {direcciones.length === 0 ? (
+                      <div className="empty">
+                        No tienes direcciones guardadas.
+                      </div>
+                    ) : (
+                      direcciones.map((d) => (
+                        <div key={d.id} className="address-card large">
+                          <div className="address-content">
+                            <div className="address-title break-words">
+                              {d.direccionCompleta ||
+                                `${d.numeroCalle || ""} ${
+                                  d.numeroCasa ? "Casa " + d.numeroCasa : ""
+                                }, ${d.ciudad || ""}, ${d.provincia || ""}`}
+                            </div>
+                            <div className="muted">
+                              Método: {d.metodoEntrega || "domicilio"}
+                            </div>
+                            {d.referencia && (
+                              <div className="muted">Ref: {d.referencia}</div>
+                            )}
+                            {d.ubicacion && (
+                              <a
+                                href={d.ubicacion}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="link"
+                              >
+                                Ver en Maps
+                              </a>
+                            )}
+                          </div>
+
+                          <div className="address-actions">
+                            <button
+                              onClick={() => {
+                                setDireccionEditar(d);
+                                setModalEntregaOpen(true);
+                              }}
+                              className="address-action-btn edit-btn"
+                              aria-label="Editar dirección"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleSeleccionarDireccion(d)}
+                              className="address-action-btn select-btn"
+                              aria-label="Seleccionar dirección"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => confirmarEliminar(d.id)}
+                              className="address-action-btn delete-btn"
+                              aria-label="Eliminar dirección"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
-                </div>
-              </motion.section>
-            )}
 
-            {vista === "pedidos" && (
-              <motion.section
-                key="historial"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <h2 className="section-title large">Mis pedidos</h2>
-                <HistorialSection historial={historial} />
-              </motion.section>
-            )}
-
-            {vista === "direcciones" && (
-              <motion.section
-                key="direcciones"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <div className="direcciones-head">
-                  <h2 className="section-title large">Direcciones</h2>
-                  <div>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
+                  {modalEntregaOpen && (
+                    <Entrega
+                      abierto={modalEntregaOpen}
+                      onClose={async () => {
+                        setModalEntregaOpen(false);
                         setDireccionEditar(null);
-                        setModalEntregaOpen(true);
+                        await fetchDirecciones();
                       }}
-                    >
-                      Añadir dirección
-                    </button>
-                  </div>
-                </div>
+                      usuarioId={usuario.uid}
+                      direccionEditar={direccionEditar}
+                      actualizarLista={fetchDirecciones}
+                    />
+                  )}
+                </motion.section>
+              )}
 
-                <div className="cards-list">
-                  <div className="address-card large">
-                    <div className="address-content">
-                      <div className="address-title">
-                        Recoger en: Playcenter Universal Santiago
-                      </div>
-                      <div className="muted break-words">
-                        {TIENDA_PLAYCENTER.direccionCompleta}
-                      </div>
-                      <a
-                        href={TIENDA_PLAYCENTER.ubicacion}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="link"
+              {vista === "pagos" && (
+                <motion.section
+                  key="pagos"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <h2 className="section-title large">Métodos de pago</h2>
+
+                  <div className="empty-state-beautiful">
+                    <div className="empty-illustration">
+                      <motion.div
+                        className="empty-box"
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
                       >
-                        Ver en Maps
-                      </a>
+                        <CreditCard size={56} />
+                      </motion.div>
                     </div>
-                    <div className="address-actions">
-                      <button
-                        onClick={() =>
-                          handleSeleccionarDireccion(TIENDA_PLAYCENTER)
-                        }
-                        className="btn btn-success"
-                      >
-                        Seleccionar
+                    <h3>Aún no tienes métodos de pago</h3>
+                    <p>
+                      Cuando agregues una tarjeta o método de pago, aparecerá
+                      aquí.
+                    </p>
+                    <div className="empty-cta">
+                      <button className="btn-beautiful-primary">
+                        Agregar método de pago
                       </button>
                     </div>
                   </div>
+                </motion.section>
+              )}
 
-                  {direcciones.length === 0 ? (
-                    <div className="empty">
-                      No tienes direcciones guardadas.
-                    </div>
-                  ) : (
-                    direcciones.map((d) => (
-                      <div key={d.id} className="address-card large">
-                        <div className="address-content">
-                          <div className="address-title break-words">
-                            {d.direccionCompleta ||
-                              `${d.numeroCalle || ""} ${
-                                d.numeroCasa ? "Casa " + d.numeroCasa : ""
-                              }, ${d.ciudad || ""}, ${d.provincia || ""}`}
-                          </div>
-                          <div className="muted">
-                            Método: {d.metodoEntrega || "domicilio"}
-                          </div>
-                          {d.referencia && (
-                            <div className="muted">Ref: {d.referencia}</div>
-                          )}
-                          {d.ubicacion && (
-                            <a
-                              href={d.ubicacion}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="link"
-                            >
-                              Ver en Maps
-                            </a>
-                          )}
-                        </div>
+              {vista === "configuracion" && (
+                <motion.section
+                  key="configuracion"
+                  variants={itemFade}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                >
+                  <h2 className="section-title large">Configuración</h2>
 
-                        <div className="address-actions">
-                          <button
-                            onClick={() => {
-                              setDireccionEditar(d);
-                              setModalEntregaOpen(true);
-                            }}
-                            className="address-action-btn edit-btn"
-                            aria-label="Editar dirección"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleSeleccionarDireccion(d)}
-                            className="address-action-btn select-btn"
-                            aria-label="Seleccionar dirección"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => confirmarEliminar(d.id)}
-                            className="address-action-btn delete-btn"
-                            aria-label="Eliminar dirección"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                  <div className="cards-list">
+                    <div className="config-card">
+                      <div className="config-card-header">
+                        <Lock size={20} />
+                        <h3>Cambiar contraseña</h3>
                       </div>
-                    ))
-                  )}
-                </div>
-
-                {modalEntregaOpen && (
-                  <Entrega
-                    abierto={modalEntregaOpen}
-                    onClose={async () => {
-                      setModalEntregaOpen(false);
-                      setDireccionEditar(null);
-                      await fetchDirecciones();
-                    }}
-                    usuarioId={usuario.uid}
-                    direccionEditar={direccionEditar}
-                    actualizarLista={fetchDirecciones}
-                  />
-                )}
-              </motion.section>
-            )}
-
-            {vista === "pagos" && (
-              <motion.section
-                key="pagos"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <h2 className="section-title large">Métodos de pago</h2>
-                
-                <div className="empty-state-beautiful">
-                  <div className="empty-illustration">
-                    <motion.div
-                      className="empty-box"
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <CreditCard size={56} />
-                    </motion.div>
-                  </div>
-                  <h3>Aún no tienes métodos de pago</h3>
-                  <p>Cuando agregues una tarjeta o método de pago, aparecerá aquí.</p>
-                  <div className="empty-cta">
-                    <button className="btn-beautiful-primary">
-                      Agregar método de pago
-                    </button>
-                  </div>
-                </div>
-              </motion.section>
-            )}
-
-            {vista === "configuracion" && (
-              <motion.section
-                key="configuracion"
-                variants={itemFade}
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-              >
-                <h2 className="section-title large">Configuración</h2>
-
-                <div className="cards-list">
-                  <div className="config-card">
-                    <div className="config-card-header">
-                      <Lock size={20} />
-                      <h3>Cambiar contraseña</h3>
+                      <p className="config-card-desc">
+                        Actualiza tu contraseña para mantener tu cuenta segura.
+                      </p>
+                      <button className="btn btn-outline">
+                        Cambiar contraseña
+                      </button>
                     </div>
-                    <p className="config-card-desc">
-                      Actualiza tu contraseña para mantener tu cuenta segura.
-                    </p>
-                    <button className="btn btn-outline">
-                      Cambiar contraseña
-                    </button>
-                  </div>
 
-                  <div className="config-card">
-                    <div className="config-card-header">
-                      <Bell size={20} />
-                      <h3>Notificaciones</h3>
+                    <div className="config-card">
+                      <div className="config-card-header">
+                        <Bell size={20} />
+                        <h3>Notificaciones</h3>
+                      </div>
+                      <p className="config-card-desc">
+                        Administra cómo quieres recibir notificaciones.
+                      </p>
+                      <div className="config-toggle">
+                        <label className="toggle-item">
+                          <span>Notificaciones por email</span>
+                          <input type="checkbox" defaultChecked />
+                        </label>
+                        <label className="toggle-item">
+                          <span>Notificaciones de pedidos</span>
+                          <input type="checkbox" defaultChecked />
+                        </label>
+                        <label className="toggle-item">
+                          <span>Ofertas y promociones</span>
+                          <input type="checkbox" />
+                        </label>
+                      </div>
                     </div>
-                    <p className="config-card-desc">
-                      Administra cómo quieres recibir notificaciones.
-                    </p>
-                    <div className="config-toggle">
-                      <label className="toggle-item">
-                        <span>Notificaciones por email</span>
-                        <input type="checkbox" defaultChecked />
-                      </label>
-                      <label className="toggle-item">
-                        <span>Notificaciones de pedidos</span>
-                        <input type="checkbox" defaultChecked />
-                      </label>
-                      <label className="toggle-item">
-                        <span>Ofertas y promociones</span>
-                        <input type="checkbox" />
-                      </label>
+
+                    <div className="config-card">
+                      <div className="config-card-header">
+                        <Globe size={20} />
+                        <h3>Idioma</h3>
+                      </div>
+                      <p className="config-card-desc">
+                        Selecciona tu idioma preferido.
+                      </p>
+                      <select className="config-select">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                      </select>
                     </div>
                   </div>
-
-                  <div className="config-card">
-                    <div className="config-card-header">
-                      <Globe size={20} />
-                      <h3>Idioma</h3>
-                    </div>
-                    <p className="config-card-desc">
-                      Selecciona tu idioma preferido.
-                    </p>
-                    <select className="config-select">
-                      <option value="es">Español</option>
-                      <option value="en">English</option>
-                    </select>
-                  </div>
-                </div>
-              </motion.section>
-            )}
-          </AnimatePresence>
+                </motion.section>
+              )}
+            </AnimatePresence>
           </div>
         </main>
       </div>
@@ -1628,7 +1641,8 @@ export default function Profile() {
                 backgroundColor: "white",
                 padding: "2rem",
                 borderRadius: "16px",
-                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                boxShadow:
+                  "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                 maxWidth: "400px",
                 width: "90%",
               }}
@@ -1689,7 +1703,14 @@ export default function Profile() {
                     e.currentTarget.style.borderColor = "#e5e7eb";
                   }}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                     <circle cx="12" cy="13" r="4"></circle>
                   </svg>
@@ -1723,8 +1744,22 @@ export default function Profile() {
                     e.currentTarget.style.borderColor = "#e5e7eb";
                   }}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                     <polyline points="21 15 16 10 5 21"></polyline>
                   </svg>
@@ -1758,7 +1793,14 @@ export default function Profile() {
                     e.currentTarget.style.borderColor = "#e5e7eb";
                   }}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
                     <polyline points="13 2 13 9 20 9"></polyline>
                   </svg>

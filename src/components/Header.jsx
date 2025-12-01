@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
@@ -10,24 +11,41 @@ import Entrega from "./Entrega";
 import "./Header.css";
 
 const Header = () => {
-  const { usuario, usuarioInfo, logout } = useAuth();
+  const { usuario, usuarioInfo, logout, actualizarUsuarioInfo } = useAuth();
   const { setModalAbierto } = useAuthModal();
   const { isDark, toggleTheme } = useTheme();
   const buscarInputRef = useRef(null);
   const navigate = useNavigate();
-  const lastScrollY = useRef(0);
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1280);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [modalEntrega, setModalEntrega] = useState(false);
+
+  // Bloquear scroll del body cuando el menú está abierto
+  useEffect(() => {
+    if (menuOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [menuOpen]);
+
   const entregaSubtitle = (() => {
     try {
       if (!usuario || !usuarioInfo || !usuarioInfo.metodoEntrega) {
         return "Selecciona método de entrega";
       }
       const metodo = (usuarioInfo.metodoEntrega || "").toLowerCase();
-      if (metodo === "tienda") return "Recoger en tienda";
+      if (metodo === "tienda") return "Playcenter Universal";
       const dir = (usuarioInfo.direccion || "").trim();
       if (!dir) return "Selecciona método de entrega";
       if (/maps\.|google\.com\/maps|Ubicación:/i.test(dir)) {
@@ -61,62 +79,10 @@ const Header = () => {
     }
   }, []);
 
-  // Detectar cambios de tamaño de pantalla
-  useEffect(() => {
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1280);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Scroll hide/show solo en desktop (xl)
-  useEffect(() => {
-    if (!isDesktop) return;
-
-    let ticking = false;
-
-    function handleScroll() {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScroll = window.pageYOffset;
-          const lastScroll = lastScrollY.current;
-
-          if (currentScroll > lastScroll && currentScroll > 100) {
-            // Bajando y pasó 100px: ocultar
-            setHeaderVisible(false);
-          } else if (currentScroll < lastScroll || currentScroll === 0) {
-            // Subiendo o en top: mostrar
-            setHeaderVisible(true);
-          }
-
-          lastScrollY.current = currentScroll;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isDesktop]);
-
   return (
     <>
       {/* ESTRUCTURA DE 2 HEADERS COMO AMAZON */}
-      <motion.div
-        initial={{ y: -200, opacity: 0 }}
-        animate={{
-          y: isDesktop && !headerVisible ? -200 : 0,
-          opacity: isDesktop && !headerVisible ? 0 : 1,
-        }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed-top"
-        style={{
-          zIndex: 9999,
-          pointerEvents: isDesktop && !headerVisible ? "none" : "auto",
-        }}
-      >
+      <div>
         {/* 1. HEADER PRINCIPAL (GRANDE) - ARRIBA DEL TODO */}
         <header
           className="navbar navbar-expand-xl"
@@ -885,7 +851,7 @@ const Header = () => {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Modal de entrega (desde header) */}
       {modalEntrega && usuario && (
@@ -893,396 +859,194 @@ const Header = () => {
           abierto={modalEntrega}
           onClose={() => setModalEntrega(false)}
           usuarioId={usuarioInfo?.uid || usuario?.uid}
+          actualizarUsuarioInfo={actualizarUsuarioInfo}
           direccionEditar={null}
           actualizarLista={() => {}}
         />
       )}
 
-      {/* Menú lateral móvil/tablet */}
-      <AnimatePresence>
-        {menuOpen && (
-          <>
-            {/* Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMenuOpen(false)}
-              className="d-xl-none position-fixed top-0 start-0 w-100 h-100"
-              style={{
-                backgroundColor: isDark ? "#000000" : "#000000",
-                zIndex: 99999,
-              }}
-            />
+      {/* Menú lateral móvil/tablet - Renderizado en body con Portal */}
+      {ReactDOM.createPortal(
+        <AnimatePresence>
+          {menuOpen && (
+            <>
+              {/* Overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMenuOpen(false)}
+                className="d-xl-none position-fixed top-0 start-0 w-100 h-100"
+                style={{
+                  backgroundColor: isDark
+                    ? "rgba(0, 0, 0, 0.7)"
+                    : "rgba(0, 0, 0, 0.7)",
+                  zIndex: 99999998,
+                  backdropFilter: "blur(4px)",
+                }}
+              />
 
-            {/* Menú drawer */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="d-xl-none position-fixed top-0 end-0 h-100 shadow-lg overflow-auto"
-              style={{
-                width: "320px",
-                zIndex: 999999,
-                backgroundColor: isDark ? "#111827" : "#ffffff",
-              }}
-            >
-              {/* Header del menú */}
-              <div className="d-flex align-items-center justify-content-between p-4 border-bottom">
-                <h2
-                  className="h4 fw-bold mb-0"
-                  style={{ color: isDark ? "#f9fafb" : "#111827" }}
-                >
-                  Menú
-                </h2>
-                <button
-                  onClick={() => setMenuOpen(false)}
-                  className="btn p-2 rounded-3"
-                  style={{
-                    backgroundColor: isDark ? "#374151" : "#e5e7eb",
-                    borderColor: isDark ? "#4b5563" : "#d1d5db",
-                    color: isDark ? "#f9fafb" : "#111827",
-                  }}
-                  aria-label="Cerrar menú"
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              {/* Menú drawer */}
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="d-xl-none position-fixed top-0 end-0 h-100 shadow-lg overflow-auto"
+                style={{
+                  width: "min(320px, 85vw)",
+                  maxWidth: "100vw",
+                  zIndex: 99999999,
+                  backgroundColor: isDark ? "#111827" : "#ffffff",
+                  overscrollBehavior: "contain",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {/* Header del menú */}
+                <div className="d-flex align-items-center justify-content-between p-4 border-bottom">
+                  <h2
+                    className="h4 fw-bold mb-0"
                     style={{ color: isDark ? "#f9fafb" : "#111827" }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Perfil o Login */}
-              {usuario ? (
-                <div className="p-4 border-bottom">
-                  <Link
-                    to="/profile"
+                    Menú
+                  </h2>
+                  <button
                     onClick={() => setMenuOpen(false)}
-                    className="d-flex align-items-center gap-3 p-3 text-decoration-none rounded-3 hover-primary"
+                    className="btn p-2 rounded-3"
+                    style={{
+                      backgroundColor: isDark ? "#374151" : "#e5e7eb",
+                      borderColor: isDark ? "#4b5563" : "#d1d5db",
+                      color: isDark ? "#f9fafb" : "#111827",
+                    }}
+                    aria-label="Cerrar menú"
                   >
-                    <div
-                      className="rounded-circle overflow-hidden border border-2 border-primary shadow"
+                    <svg
+                      width="24"
+                      height="24"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Perfil o Login */}
+                {usuario ? (
+                  <div className="p-4 border-bottom">
+                    <Link
+                      to="/profile"
+                      onClick={() => setMenuOpen(false)}
+                      className="d-flex align-items-center gap-3 p-3 text-decoration-none rounded-3 hover-primary"
+                    >
+                      <div
+                        className="rounded-circle overflow-hidden border border-2 border-primary shadow"
+                        style={{
+                          width: "56px",
+                          height: "56px",
+                          minWidth: "56px",
+                          minHeight: "56px",
+                          backgroundColor: isDark ? "#374151" : "#ffffff",
+                        }}
+                      >
+                        {usuarioInfo?.fotoURL || usuario.photoURL ? (
+                          <img
+                            src={usuarioInfo?.fotoURL || usuario.photoURL}
+                            alt="Perfil"
+                            className="w-100 h-100"
+                            style={{ objectFit: "contain" }}
+                          />
+                        ) : (
+                          <div
+                            className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold fs-5"
+                            style={{
+                              backgroundColor: isDark ? "#2563eb" : "#3b82f6",
+                              color: "#ffffff",
+                            }}
+                          >
+                            {usuario.displayName?.charAt(0).toUpperCase() ||
+                              "U"}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-grow-1">
+                        <p
+                          className="fw-semibold mb-1"
+                          style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                        >
+                          {usuario.displayName || "Usuario"}
+                        </p>
+                        <p
+                          className="small mb-0"
+                          style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+                        >
+                          Ver perfil
+                        </p>
+                      </div>
+                      <svg
+                        width="20"
+                        height="20"
+                        className="text-muted"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="p-4 border-bottom">
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setModalAbierto(true);
+                      }}
+                      className="btn w-100 fw-semibold shadow d-flex align-items-center justify-content-center gap-2 py-3"
                       style={{
-                        width: "48px",
-                        height: "48px",
-                        backgroundColor: isDark ? "#374151" : "#ffffff",
+                        backgroundColor: isDark ? "#2563eb" : "#3b82f6",
+                        borderColor: isDark ? "#2563eb" : "#3b82f6",
+                        color: "#ffffff",
                       }}
                     >
-                      {usuarioInfo?.fotoURL || usuario.photoURL ? (
-                        <img
-                          src={usuarioInfo?.fotoURL || usuario.photoURL}
-                          alt="Perfil"
-                          className="w-100 h-100"
-                          style={{ objectFit: "cover" }}
+                      <svg
+                        width="20"
+                        height="20"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
                         />
-                      ) : (
-                        <div
-                          className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold fs-5"
-                          style={{
-                            backgroundColor: isDark ? "#2563eb" : "#3b82f6",
-                            color: "#ffffff",
-                          }}
-                        >
-                          {usuario.displayName?.charAt(0).toUpperCase() || "U"}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-grow-1">
-                      <p
-                        className="fw-semibold mb-1"
-                        style={{ color: isDark ? "#f9fafb" : "#111827" }}
-                      >
-                        {usuario.displayName || "Usuario"}
-                      </p>
-                      <p
-                        className="small mb-0"
-                        style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-                      >
-                        Ver perfil
-                      </p>
-                    </div>
-                    <svg
-                      width="20"
-                      height="20"
-                      className="text-muted"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
-                </div>
-              ) : (
-                <div className="p-4 border-bottom">
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setModalAbierto(true);
-                    }}
-                    className="btn w-100 fw-semibold shadow d-flex align-items-center justify-content-center gap-2 py-3"
-                    style={{
-                      backgroundColor: isDark ? "#2563eb" : "#3b82f6",
-                      borderColor: isDark ? "#2563eb" : "#3b82f6",
-                      color: "#ffffff",
-                    }}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Iniciar sesión
-                  </button>
-                </div>
-              )}
-
-              {/* Links de navegación */}
-              <nav className="p-2">
-                <Link
-                  to="/"
-                  onClick={() => setMenuOpen(false)}
-                  className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
-                  style={{ color: isDark ? "#f9fafb" : "#111827" }}
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
-                  Inicio
-                </Link>
-
-                <Link
-                  to="/categorias"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                    />
-                  </svg>
-                  Categorías
-                </Link>
-
-                <Link
-                  to="/tiendas"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                  Tiendas
-                </Link>
-
-                <Link
-                  to="/vender"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Vender
-                </Link>
-
-                <Link
-                  to="/nosotros"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Nosotros
-                </Link>
-
-                <Link
-                  to="/contacto"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Contáctanos
-                </Link>
-
-                <Link
-                  to="/estafetas"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  Estafetas
-                </Link>
-
-                <Link
-                  to="/carrito"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  Carrito
-                </Link>
-
-                {/* Panel Admin si aplica */}
-                {(usuarioInfo?.isAdmin ||
-                  usuarioInfo?.isSeller ||
-                  usuarioInfo?.empresa ||
-                  usuarioInfo?.empresaId) && (
-                  <Link
-                    to="/admin"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 bg-[#4FC3F7] text-white hover:bg-[#3BB0F3] rounded-lg transition-colors font-semibold mt-2"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    Panel Admin
-                  </Link>
+                      </svg>
+                      Iniciar sesión
+                    </button>
+                  </div>
                 )}
-              </nav>
 
-              {/* Footer del menú con logout si está logueado */}
-              {usuario && (
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
-                  <button
-                    onClick={() => {
-                      manejarLogout();
-                      setMenuOpen(false);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium"
+                {/* Links de navegación */}
+                <nav className="p-2">
+                  <Link
+                    to="/"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
                   >
                     <svg
                       className="w-5 h-5"
@@ -1294,17 +1058,240 @@ const Header = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                       />
                     </svg>
-                    Cerrar sesión
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                    Inicio
+                  </Link>
+
+                  <Link
+                    to="/categorias"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                      />
+                    </svg>
+                    Categorías
+                  </Link>
+
+                  <Link
+                    to="/tiendas"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                    Tiendas
+                  </Link>
+
+                  <Link
+                    to="/vender"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Vender
+                  </Link>
+
+                  <Link
+                    to="/nosotros"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Nosotros
+                  </Link>
+
+                  <Link
+                    to="/contacto"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Contáctanos
+                  </Link>
+
+                  <Link
+                    to="/estafetas"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    Estafetas
+                  </Link>
+
+                  <Link
+                    to="/carrito"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    Carrito
+                  </Link>
+
+                  {/* Panel Admin si aplica */}
+                  {(usuarioInfo?.isAdmin ||
+                    usuarioInfo?.isSeller ||
+                    usuarioInfo?.empresa ||
+                    usuarioInfo?.empresaId) && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium mt-2"
+                      style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      Panel Admin
+                    </Link>
+                  )}
+                </nav>
+
+                {/* Footer del menú con logout si está logueado */}
+                {usuario && (
+                  <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
+                    <button
+                      onClick={() => {
+                        manejarLogout();
+                        setMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 };
