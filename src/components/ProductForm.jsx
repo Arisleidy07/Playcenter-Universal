@@ -264,6 +264,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     }
   }, [product?.id]);
 
+  // Inicializar formulario para productos NUEVOS
+  useEffect(() => {
+    // Si NO hay product (estamos creando uno nuevo), marcar como inicializado
+    if (!product) {
+      setTimeout(() => {
+        formInitializedRef.current = true;
+        isInitialLoadRef.current = false;
+      }, 200);
+    }
+  }, [product]);
+
   // Advertir si hay subidas en progreso al cerrar/recargar
   useEffect(() => {
     const handler = (e) => {
@@ -438,6 +449,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const newId = `prod_${Date.now()}_${Math.random()
         .toString(36)
         .slice(2, 7)}`;
+
+      // Detectar tienda del usuario
+      const tiendaData = detectarTiendaUsuario();
+
       const payload = {
         id: newId,
         nombre: formData?.nombre || "",
@@ -458,10 +473,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         activo: false, // no público hasta que el admin lo active
         ownerUid: usuario?.uid || null,
         ownerName: usuarioInfo?.displayName || usuario?.displayName || "",
-        sellerId: sellerId || usuario?.uid || null,
-        sellerName: sellerId
-          ? usuarioInfo?.storeName || usuarioInfo?.displayName || ""
-          : "",
+        // CRÍTICO: Asignar tienda correctamente
+        storeId: tiendaData?.storeId || null,
+        storeName: tiendaData?.storeName || "",
         fechaCreacion: new Date(),
         fechaActualizacion: new Date(),
       };
@@ -520,11 +534,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       .replace(/[^a-z0-9-]/g, "")
       .slice(0, 80);
   const makeUniqueName = (file) => {
-    // Mantener el nombre ORIGINAL del archivo, solo limpiando caracteres peligrosos
-    // NO cambiar formato, NO agregar timestamp que rompa las descargas
+    // Mantener el nombre EXACTAMENTE como está
     const originalName = file?.name || "file";
-    // Solo limpiar caracteres que pueden causar problemas en URLs, pero mantener extensión
-    return originalName.replace(/[^\w\s.-]/g, "_").replace(/\s+/g, "_");
+    return originalName;
   };
 
   const buildStoragePath = ({ productId, section, file, variantId = null }) => {
@@ -585,10 +597,13 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         id = `prod_${Date.now()}`;
         draft.id = id;
         draft.fechaCreacion = new Date();
-        draft.sellerId = sellerId || usuario?.uid || null;
-        draft.sellerName = sellerId
-          ? usuarioInfo?.storeName || usuarioInfo?.displayName || ""
-          : "";
+        // Detectar tienda del usuario correctamente
+        const tiendaData = detectarTiendaUsuario();
+        draft.storeId = tiendaData?.storeId || null;
+        draft.storeName = tiendaData?.storeName || "";
+        draft.ownerUid = tiendaData?.ownerUid || usuario?.uid || null;
+        draft.ownerName =
+          tiendaData?.ownerName || usuarioInfo?.displayName || "";
         await setDoc(doc(db, "productos", id), draft);
         setCurrentId(id);
       } else {
@@ -2062,20 +2077,52 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         },
       }));
 
-      const savedNew = arr
-        .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
+      // Separar imágenes y videos guardados
+      const savedImages = arr
+        .filter(
+          (f) =>
+            !f?.file &&
+            f?.url &&
+            !f.url.startsWith("blob:") &&
+            f.type === "image"
+        )
         .map((f) => f.url);
-      const savedOld = Array.isArray(
+      const savedVideos = arr
+        .filter(
+          (f) =>
+            !f?.file &&
+            f?.url &&
+            !f.url.startsWith("blob:") &&
+            f.type === "video"
+        )
+        .map((f) => f.url);
+
+      // Detectar eliminaciones de imágenes
+      const oldImages = Array.isArray(
         formData.variantes?.[variantIndex]?.imagenes
       )
         ? formData.variantes[variantIndex].imagenes
         : [];
-      const removed = savedOld.filter((u) => !savedNew.includes(u));
-      for (const r of removed) await deleteFromStorageByUrl(r);
+      const removedImages = oldImages.filter((u) => !savedImages.includes(u));
+      for (const r of removedImages) await deleteFromStorageByUrl(r);
 
-      // persist order
-      if (JSON.stringify(savedNew) !== JSON.stringify(savedOld)) {
-        handleVariantChange(variantIndex, "imagenes", savedNew);
+      // Detectar eliminaciones de videos
+      const oldVideos = Array.isArray(
+        formData.variantes?.[variantIndex]?.videoUrls
+      )
+        ? formData.variantes[variantIndex].videoUrls
+        : [];
+      const removedVideos = oldVideos.filter((u) => !savedVideos.includes(u));
+      for (const r of removedVideos) await deleteFromStorageByUrl(r);
+
+      // Persistir orden de imágenes
+      if (JSON.stringify(savedImages) !== JSON.stringify(oldImages)) {
+        handleVariantChange(variantIndex, "imagenes", savedImages);
+      }
+
+      // Persistir orden de videos
+      if (JSON.stringify(savedVideos) !== JSON.stringify(oldVideos)) {
+        handleVariantChange(variantIndex, "videoUrls", savedVideos);
       }
 
       // uploads
@@ -2083,6 +2130,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       if (!targetId) targetId = await ensureCurrentId();
       if (!targetId) return; // sin ID: no subir aún
       const variantId = getOrCreateVariantId(variantIndex);
+
+      // Subir IMÁGENES
       for (const item of arr) {
         if (item?.file && item.file.type?.startsWith?.("image/")) {
           const queueId = `${Date.now()}_${item.file.name}_${Math.random()
@@ -2110,6 +2159,48 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
               variantes[variantIndex] = {
                 ...(variantes[variantIndex] || {}),
                 imagenes: [...curr, remoteUrl],
+              };
+              const next = { ...prev, variantes };
+              const id = currentId || product?.id;
+              if (id)
+                updateDoc(doc(db, "productos", id), {
+                  variantes,
+                  fechaActualizacion: new Date(),
+                }).catch(() => {});
+              return next;
+            });
+          } catch (e) {}
+        }
+      }
+
+      // Subir VIDEOS
+      for (const item of arr) {
+        if (item?.file && item.file.type?.startsWith?.("video/")) {
+          const queueId = `${Date.now()}_${item.file.name}_${Math.random()
+            .toString(36)
+            .slice(2, 7)}`;
+          const destPath = buildStoragePath({
+            productId: targetId,
+            section: "gallery",
+            file: item.file,
+            variantId,
+          });
+          try {
+            const remoteUrl = await uploadWithRetry(
+              uploadVideo,
+              item.file,
+              destPath,
+              queueId
+            );
+            // append to videoUrls
+            setFormData((prev) => {
+              const variantes = [...(prev.variantes || [])];
+              const curr = Array.isArray(variantes[variantIndex]?.videoUrls)
+                ? variantes[variantIndex].videoUrls
+                : [];
+              variantes[variantIndex] = {
+                ...(variantes[variantIndex] || {}),
+                videoUrls: [...curr, remoteUrl],
               };
               const next = { ...prev, variantes };
               const id = currentId || product?.id;
@@ -3528,10 +3619,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                           />
                         </div>
 
-                        {/* Columna 2: Galería de Imágenes de Variante */}
+                        {/* Columna 2: Galería de Imágenes y Videos de Variante */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                            🎬 Galería de Imágenes
+                            🎬 Galería de Medios (Imágenes y Videos)
                           </label>
                           <UniversalFileUploader
                             files={[
@@ -3546,6 +3637,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                     isUploaded: true,
                                   }))
                                 : []),
+                              ...(Array.isArray(variant.videoUrls)
+                                ? variant.videoUrls.map((u, i) => ({
+                                    id: `saved-var${index}-vid-${i}`,
+                                    url:
+                                      typeof u === "string" ? u : u?.url || u,
+                                    type: "video",
+                                    name: `var${index}-video-${i + 1}`,
+                                    size: 0,
+                                    isUploaded: true,
+                                  }))
+                                : []),
                               ...(
                                 tempPreviews.variantes?.[index]?.imagenes || []
                               ).map((u, i) => ({
@@ -3556,14 +3658,24 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                 size: 0,
                                 isUploaded: false,
                               })),
+                              ...(
+                                tempPreviews.variantes?.[index]?.videos || []
+                              ).map((u, i) => ({
+                                id: `temp-var${index}-video-${i}`,
+                                url: u,
+                                type: "video",
+                                name: `var${index}-video-${i + 1}`,
+                                size: 0,
+                                isUploaded: false,
+                              })),
                             ]}
                             onFilesChange={(files) =>
                               handleVariantGalleryUFU(files, index)
                             }
-                            acceptedTypes="image/*"
+                            acceptedTypes="image/*,video/*"
                             multiple={true}
                             label="Galería"
-                            placeholder="Arrastra o selecciona imágenes"
+                            placeholder="Arrastra imágenes y videos"
                             allowReorder={true}
                             allowSetMain={true}
                           />

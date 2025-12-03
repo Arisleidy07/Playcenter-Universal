@@ -26,7 +26,7 @@ export async function changePassword(user, currentPassword, newPassword) {
     
     return { success: true, message: "Contraseña actualizada correctamente" };
   } catch (error) {
-    console.error("Error al cambiar contraseña:", error);
+    // console.error("Error al cambiar contraseña:", error);
     
     // Mensajes de error específicos
     let errorMessage = "Error al cambiar la contraseña";
@@ -64,7 +64,7 @@ export async function sendPasswordReset(email) {
       message: "Te hemos enviado un correo con instrucciones para restablecer tu contraseña",
     };
   } catch (error) {
-    console.error("Error al enviar email de recuperación:", error);
+    // console.error("Error al enviar email de recuperación:", error);
     
     let errorMessage = "Error al enviar el correo";
     

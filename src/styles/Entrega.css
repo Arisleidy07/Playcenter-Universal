@@ -272,13 +272,16 @@ html.dark-theme .method-desc {
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  margin-bottom: 24px;
-  transition: all 0.2s ease;
+  margin-bottom: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  will-change: height, opacity, transform;
 }
 
 .location-btn:hover:not(:disabled) {
   box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .location-btn:disabled {
@@ -290,6 +293,65 @@ html.dark-theme .method-desc {
   background: linear-gradient(135deg, #6b7280, #9ca3af);
 }
 
+/* Tienda Phone Form */
+.tienda-phone-form {
+  margin-bottom: 24px;
+  overflow: hidden;
+  will-change: height, opacity;
+}
+
+.tienda-phone-form .form-group {
+  margin-bottom: 0;
+}
+
+.tienda-phone-form .form-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.dark .tienda-phone-form .form-note,
+html.dark-theme .tienda-phone-form .form-note {
+  color: #9ca3af;
+}
+
+.phone-error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  color: #dc2626;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+html.dark .phone-error-message,
+html.dark-theme .phone-error-message {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
 /* Coordinates Display */
 .coords-display {
   background: linear-gradient(135deg, #ecfdf5, #d1fae5);
@@ -297,6 +359,8 @@ html.dark-theme .method-desc {
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
+  overflow: hidden;
+  will-change: height, opacity;
 }
 
 .coords-header {
@@ -355,9 +419,16 @@ html.dark-theme .method-desc {
   font-family: monospace;
 }
 
+/* Form Container */
+.entrega-form {
+  position: relative;
+}
+
 /* Form Styles */
 .address-form {
   margin-bottom: 24px;
+  overflow: hidden;
+  will-change: height, opacity;
 }
 
 .form-section {

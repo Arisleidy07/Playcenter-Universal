@@ -121,7 +121,7 @@ export default function SolicitarVender() {
       // 3. Mostrar mensaje de éxito
       setEnviado(true);
     } catch (error) {
-      console.error("Error al enviar solicitud:", error);
+      // console.error("Error al enviar solicitud:", error);
       alert("Hubo un error al enviar tu solicitud. Intenta de nuevo.");
     } finally {
       setLoading(false);

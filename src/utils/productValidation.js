@@ -399,7 +399,7 @@ export const validateProduct = (formData) => {
     try {
       errors = errors.concat(validateField(field, formData[field], formData));
     } catch (error) {
-      console.error(`Error validating field ${field}:`, error);
+      // console.error(`Error validating field ${field}:`, error);
     }
   });
   
@@ -408,7 +408,7 @@ export const validateProduct = (formData) => {
     try {
       errors = errors.concat(validateField('cantidad', formData.cantidad, formData));
     } catch (error) {
-      console.error('Error validating cantidad:', error);
+      // console.error('Error validating cantidad:', error);
     }
   }
   
@@ -416,7 +416,7 @@ export const validateProduct = (formData) => {
   try {
     errors = errors.concat(validateMediaArrays(formData));
   } catch (error) {
-    console.error('Error validating media:', error);
+    // console.error('Error validating media:', error);
   }
   
   // Validate variants
@@ -424,7 +424,7 @@ export const validateProduct = (formData) => {
     try {
       errors = errors.concat(validateVariants(formData.variantes));
     } catch (error) {
-      console.error('Error validating variants:', error);
+      // console.error('Error validating variants:', error);
     }
   }
   

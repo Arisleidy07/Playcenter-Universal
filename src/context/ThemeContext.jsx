@@ -37,7 +37,7 @@ export const ThemeProvider = ({ children }) => {
     try {
       localStorage.setItem('pcu-theme', theme);
     } catch (error) {
-      console.error('Error guardando tema:', error);
+      // console.error('Error guardando tema:', error);
     }
   }, [theme]);
 

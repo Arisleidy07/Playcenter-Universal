@@ -44,32 +44,32 @@ function Inicio() {
         source.src = videoSrc;
       }
       videoRef.current.load();
-      videoRef.current
-        .play()
-        .catch((err) => console.log("Video autoplay:", err));
+      videoRef.current.play().catch((err) => {
+        // Error silencioso en autoplay de video
+      });
     }
   }, [theme]);
 
-  // Logging para debug - mostrar categorías disponibles
-  React.useEffect(() => {
-    if (categories.length > 0) {
-      console.log("🎯 CATEGORÍAS DISPONIBLES EN INICIO:");
-      console.log("════════════════════════════════════════════════════════");
-      console.table(
-        categories.map((c) => ({
-          "📌 Nombre": c.nombre,
-          "🔗 Ruta": c.ruta,
-          "🆔 ID": c.id,
-          "📦 Productos": (productsByCategory[c.id] || []).length,
-        }))
-      );
-      console.log("════════════════════════════════════════════════════════");
-      console.log(
-        "💡 COPIA las rutas exactas de arriba para usarlas en getProductsByRoute()"
-      );
-      console.log("════════════════════════════════════════════════════════");
-    }
-  }, [categories, productsByCategory]);
+  // Logging para debug - mostrar categorías disponibles (DESACTIVADO)
+  // React.useEffect(() => {
+  //   if (categories.length > 0) {
+  //     console.log("🎯 CATEGORÍAS DISPONIBLES EN INICIO:");
+  //     console.log("════════════════════════════════════════════════════════");
+  //     console.table(
+  //       categories.map((c) => ({
+  //         "📌 Nombre": c.nombre,
+  //         "🔗 Ruta": c.ruta,
+  //         "🆔 ID": c.id,
+  //         "📦 Productos": (productsByCategory[c.id] || []).length,
+  //       }))
+  //     );
+  //     console.log("════════════════════════════════════════════════════════");
+  //     console.log(
+  //       "💡 COPIA las rutas exactas de arriba para usarlas en getProductsByRoute()"
+  //     );
+  //     console.log("════════════════════════════════════════════════════════");
+  //   }
+  // }, [categories, productsByCategory]);
 
   if (loading) {
     return null; // sin animación ni texto durante la carga
@@ -204,10 +204,10 @@ function Inicio() {
   const getProductsByRoute = (ruta) => {
     const cat = getCategoryByRoute(ruta);
     if (!cat) {
-      console.warn(`❌ Categoría no encontrada para ruta: "${ruta}"`);
-      console.log(
-        "💡 Sugerencia: Verifica las categorías disponibles en la tabla arriba"
-      );
+      // console.warn(`❌ Categoría no encontrada para ruta: "${ruta}"`);
+      // console.log(
+      //   "💡 Sugerencia: Verifica las categorías disponibles en la tabla arriba"
+      // );
       return [];
     }
     const productos = productsByCategory[cat.id] || [];

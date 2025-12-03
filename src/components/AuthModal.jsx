@@ -65,9 +65,9 @@ export default function AuthModal() {
       try {
         const userData = JSON.parse(lastUserData);
         setRememberedUser(userData);
-        console.log("✅ Usuario guardado encontrado:", userData.email);
+        // console.log("✅ Usuario guardado encontrado:", userData.email);
       } catch (e) {
-        console.error("Error al parsear userData:", e);
+        // console.error("Error al parsear userData:", e);
       }
     }
   }, []);
@@ -80,7 +80,7 @@ export default function AuthModal() {
       // 🔥 PRE-LLENAR EMAIL desde localStorage (para cambio de cuenta)
       const lastEmail = localStorage.getItem("lastLoginEmail");
       if (lastEmail) {
-        console.log("✅ Pre-llenando email:", lastEmail);
+        // console.log("✅ Pre-llenando email:", lastEmail);
         setEmail(lastEmail);
         // NO mostrar quick login cuando cambiamos de cuenta
         setRememberedEmail("");
@@ -113,9 +113,9 @@ export default function AuthModal() {
       await resetPassword(email.trim().toLowerCase());
       setResetEmailSent(true);
       setError("");
-      console.log("✅ Email de recuperación enviado");
+      // console.log("✅ Email de recuperación enviado");
     } catch (e) {
-      console.error("❌ Error al enviar email:", e);
+      // console.error("❌ Error al enviar email:", e);
       if (e.code === "auth/user-not-found") {
         setError("No existe una cuenta con este correo electrónico.");
       } else if (e.code === "auth/invalid-email") {
@@ -137,13 +137,13 @@ export default function AuthModal() {
     setQuickLoginMode(true);
 
     try {
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.log("🚀 QUICK LOGIN - UN SOLO CLICK");
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      // console.log("🚀 QUICK LOGIN - UN SOLO CLICK");
+      // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
       // Si ya hay un usuario conectado en Firebase, simplemente cerrar el modal
       if (usuario) {
-        console.log("✅ Usuario ya conectado:", usuario.email);
+        // console.log("✅ Usuario ya conectado:", usuario.email);
         setModalAbierto(false);
         return;
       }
@@ -159,18 +159,15 @@ export default function AuthModal() {
       }
 
       if (emailToUse) {
-        console.log("📧 Email recordado:", emailToUse);
+        // console.log("📧 Email recordado:", emailToUse);
 
         // 1) Si tenemos el método guardado en lastUserData, úsalo directamente
         const knownMethod = saved?.loginMethod;
         if (knownMethod === "google") {
-          console.log(
-            "🚀 Método guardado: Google - iniciando automáticamente..."
-          );
           setError("Iniciando sesión con Google...");
           try {
             const userCredential = await loginWithGoogle();
-            console.log("✅ Login con Google exitoso!");
+            // console.log("✅ Login con Google exitoso!");
             if (userCredential?.user?.email) {
               const emailFromGoogle = userCredential.user.email.toLowerCase();
               const userData = {
@@ -182,12 +179,12 @@ export default function AuthModal() {
               localStorage.setItem("lastUserData", JSON.stringify(userData));
             }
             setModalAbierto(false);
-            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            console.log("✅ QUICK LOGIN COMPLETADO");
-            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            // console.log("✅ QUICK LOGIN COMPLETADO");
+            // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return;
           } catch (googleError) {
-            console.error("❌ Error en login con Google:", googleError);
+            // console.error("❌ Error en login con Google:", googleError);
             if (googleError.code === "auth/popup-closed-by-user") {
               setError("Popup cerrado. Intenta de nuevo.");
             } else {
@@ -195,9 +192,7 @@ export default function AuthModal() {
             }
           }
         } else if (knownMethod === "apple") {
-          console.log(
-            "🚀 Método guardado: Apple - iniciando automáticamente..."
-          );
+          
           setError("Iniciando sesión con Apple...");
           try {
             const result = await loginWithApple();
@@ -212,16 +207,14 @@ export default function AuthModal() {
               localStorage.setItem("lastUserData", JSON.stringify(userData));
             }
             setModalAbierto(false);
-            console.log("✅ Login con Apple exitoso!");
+            // console.log("✅ Login con Apple exitoso!");
             return;
           } catch (appleError) {
-            console.error("❌ Error en login con Apple:", appleError);
+            // console.error("❌ Error en login con Apple:", appleError);
             setError("Error al iniciar con Apple. Intenta de nuevo.");
           }
         } else if (knownMethod === "email") {
-          console.log(
-            "🔑 Método guardado: email/password - solicitando contraseña..."
-          );
+          
           setEmail(emailToUse);
           setQuickLoginMode(false);
           setError("Por favor ingresa tu contraseña para continuar.");
@@ -234,15 +227,15 @@ export default function AuthModal() {
 
         // 2) Si no hay método conocido, consultar a Firebase
         const methods = await checkSignInMethods(emailToUse);
-        console.log("🔍 Métodos disponibles:", methods);
+        // console.log("🔍 Métodos disponibles:", methods);
 
         if (methods.includes("google.com")) {
           // Es cuenta de Google - Abrir popup automáticamente
-          console.log("🚀 Cuenta de Google - Iniciando automáticamente...");
+          // console.log("🚀 Cuenta de Google - Iniciando automáticamente...");
           setError("Iniciando sesión con Google...");
           try {
             const userCredential = await loginWithGoogle();
-            console.log("✅ Login con Google exitoso!");
+            // console.log("✅ Login con Google exitoso!");
             if (userCredential?.user?.email) {
               const emailFromGoogle = userCredential.user.email.toLowerCase();
               const userData = {
@@ -254,12 +247,12 @@ export default function AuthModal() {
               localStorage.setItem("lastUserData", JSON.stringify(userData));
             }
             setModalAbierto(false);
-            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            console.log("✅ QUICK LOGIN COMPLETADO");
-            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            // console.log("✅ QUICK LOGIN COMPLETADO");
+            // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return;
           } catch (googleError) {
-            console.error("❌ Error en login con Google:", googleError);
+            // console.error("❌ Error en login con Google:", googleError);
             if (googleError.code === "auth/popup-closed-by-user") {
               setError("Popup cerrado. Intenta de nuevo.");
             } else {
@@ -268,7 +261,7 @@ export default function AuthModal() {
           }
         } else if (methods.includes("apple.com")) {
           // Cuenta de Apple
-          console.log("🚀 Cuenta de Apple - Iniciando automáticamente...");
+          // console.log("🚀 Cuenta de Apple - Iniciando automáticamente...");
           setError("Iniciando sesión con Apple...");
           try {
             const result = await loginWithApple();
@@ -285,12 +278,12 @@ export default function AuthModal() {
             setModalAbierto(false);
             return;
           } catch (appleError) {
-            console.error("❌ Error en login con Apple:", appleError);
+            // console.error("❌ Error en login con Apple:", appleError);
             setError("Error al iniciar con Apple. Intenta de nuevo.");
           }
         } else if (methods.includes("password")) {
           // Es cuenta con contraseña - Pedir contraseña
-          console.log("🔑 Cuenta con contraseña - Solicitando...");
+          // console.log("🔑 Cuenta con contraseña - Solicitando...");
           setEmail(emailToUse);
           setQuickLoginMode(false);
           setError("Por favor ingresa tu contraseña para continuar.");
@@ -308,7 +301,7 @@ export default function AuthModal() {
 
       setQuickLoginMode(false);
     } catch (e) {
-      console.error("❌ Error en quick login:", e);
+      // console.error("❌ Error en quick login:", e);
       setError("Error al iniciar sesión. Intenta de nuevo.");
       setQuickLoginMode(false);
     } finally {
@@ -347,22 +340,18 @@ export default function AuthModal() {
 
     try {
       if (modo === "login") {
-        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        console.log("🔐 INTENTO DE LOGIN INTELIGENTE");
-        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        console.log("📧 Email ingresado:", email);
-        console.log("📧 Email procesado:", emailLimpio);
-        console.log(
-          "🔑 Longitud de contraseña:",
-          passwordFinal.length,
-          "caracteres"
-        );
-        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        // console.log("🔐 INTENTO DE LOGIN INTELIGENTE");
+        // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        // console.log("📧 Email ingresado:", email);
+        // console.log("📧 Email procesado:", emailLimpio);
+        
+        // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
         // PASO 1: Intentar login con email/password
         try {
           await login(emailLimpio, passwordFinal);
-          console.log("✅ Login exitoso con email/password");
+          // console.log("✅ Login exitoso con email/password");
 
           // Guardar datos completos del usuario para quick login
           const userData = {
@@ -372,16 +361,14 @@ export default function AuthModal() {
           };
           localStorage.setItem("lastLoginEmail", emailLimpio);
           localStorage.setItem("lastUserData", JSON.stringify(userData));
-          console.log("💾 Usuario guardado para quick login");
+          // console.log("💾 Usuario guardado para quick login");
         } catch (loginError) {
           // PASO 2: Si falla con invalid-credential, probablemente es cuenta de Google
-          console.log("⚠️ Login con password falló");
-          console.log("⚠️ Error code:", loginError.code);
+          // console.log("⚠️ Login con password falló");
+          // console.log("⚠️ Error code:", loginError.code);
 
           if (loginError.code === "auth/invalid-credential") {
-            console.log(
-              "🚀 Error de credenciales inválidas - Asumiendo cuenta de Google"
-            );
+            
 
             // Mostrar banner sugiriendo login con Google
             setShowGoogleAccountWarning(true);
@@ -400,7 +387,7 @@ export default function AuthModal() {
             return; // No continuar con el error
           } else {
             // Otro tipo de error, lanzar para manejarlo en catch externo
-            console.log("❌ Error diferente, lanzando:", loginError.code);
+            // console.log("❌ Error diferente, lanzando:", loginError.code);
             throw loginError;
           }
         }
@@ -451,13 +438,13 @@ export default function AuthModal() {
         };
         localStorage.setItem("lastLoginEmail", emailLimpio);
         localStorage.setItem("lastUserData", JSON.stringify(userData));
-        console.log("💾 Usuario registrado y guardado para quick login");
+        // console.log("💾 Usuario registrado y guardado para quick login");
       }
       setModalAbierto(false);
     } catch (e) {
-      console.error("❌ Error en login/signup:", e);
-      console.error("❌ Error code:", e.code);
-      console.error("❌ Error message:", e.message);
+      // console.error("❌ Error en login/signup:", e);
+      // console.error("❌ Error code:", e.code);
+      // console.error("❌ Error message:", e.message);
 
       // Mensajes de error user-friendly
       if (
@@ -465,7 +452,7 @@ export default function AuthModal() {
         e.code === "auth/wrong-password"
       ) {
         // Si es error de credenciales, asumir que es cuenta de Google
-        console.log("✅✅✅ BANNER DE GOOGLE ACTIVADO (catch externo)");
+        // console.log("✅✅✅ BANNER DE GOOGLE ACTIVADO (catch externo)");
         setShowGoogleAccountWarning(true);
         setError(""); // Limpiar error
         setLoading(false);
@@ -474,13 +461,13 @@ export default function AuthModal() {
         setTimeout(() => {
           const googleBtn = document.querySelector(".google-login-btn");
           if (googleBtn) {
-            console.log("🎯 Animando botón de Google");
+            // console.log("🎯 Animando botón de Google");
             googleBtn.style.animation = "pulse 1.5s ease-in-out 3";
             googleBtn.style.border = "3px solid #4285f4";
           }
         }, 500);
       } else if (e.code === "auth/user-not-found") {
-        console.log("⚠️ Usuario no encontrado");
+        // console.log("⚠️ Usuario no encontrado");
         setError(
           "No existe una cuenta con este correo. " +
             "Por favor crea una cuenta nueva o verifica el correo electrónico."
@@ -534,11 +521,11 @@ export default function AuthModal() {
         };
         localStorage.setItem("lastLoginEmail", emailLimpio);
         localStorage.setItem("lastUserData", JSON.stringify(userData));
-        console.log("💾 Usuario Google guardado para quick login");
+        // console.log("💾 Usuario Google guardado para quick login");
       }
       setModalAbierto(false);
     } catch (e) {
-      console.error("Error Google login:", e);
+      // console.error("Error Google login:", e);
 
       if (e.code === "auth/popup-closed-by-user") {
         setError("Inicio de sesión cancelado.");

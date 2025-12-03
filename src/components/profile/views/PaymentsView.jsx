@@ -26,7 +26,7 @@ export default function PaymentsView() {
       setSavedNotice("Preferencia guardada");
       setTimeout(() => setSavedNotice(""), 2000);
     } catch (e) {
-      console.error("save preferenciaPagoEnTienda:", e);
+      // console.error("save preferenciaPagoEnTienda:", e);
     } finally {
       setSaving(false);
     }

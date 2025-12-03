@@ -119,7 +119,7 @@ export default function PaymentPending() {
         try {
           await addDoc(collection(db, "orders"), orderData);
         } catch (err) {
-          console.error("❌ Error guardando orden:", err);
+          // console.error("❌ Error guardando orden:", err);
         }
 
         try { sessionStorage.removeItem("checkoutPayload"); } catch {}
@@ -136,7 +136,7 @@ export default function PaymentPending() {
           }
         }, 900);
       } catch (err) {
-        console.error("❌ Error verificando pago:", err);
+        // console.error("❌ Error verificando pago:", err);
         navigate("/payment/cancel");
       }
     };

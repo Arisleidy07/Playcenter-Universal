@@ -92,7 +92,7 @@ export const repairProduct = (product) => {
  */
 export const verifyAndRepairProduct = async (productId) => {
   try {
-    console.log(`🔍 Verificando producto: ${productId}`);
+    // console.log(`🔍 Verificando producto: ${productId}`);
     
     const productRef = doc(db, 'productos', productId);
     const productSnap = await getDoc(productRef);
@@ -105,7 +105,7 @@ export const verifyAndRepairProduct = async (productId) => {
     const validation = validateProductStructure(product);
     
     if (!validation.isValid) {
-      console.log(`⚠️ Producto corrupto encontrado:`, validation.errors);
+      // console.log(`⚠️ Producto corrupto encontrado:`, validation.errors);
       
       // Reparar producto
       const repairedProduct = repairProduct(product);
@@ -113,15 +113,15 @@ export const verifyAndRepairProduct = async (productId) => {
       // Actualizar en base de datos
       await updateDoc(productRef, repairedProduct);
       
-      console.log(`✅ Producto reparado exitosamente`);
+      // console.log(`✅ Producto reparado exitosamente`);
       return { success: true, repaired: true, product: repairedProduct };
     }
     
-    console.log(`✅ Producto válido`);
+    // console.log(`✅ Producto válido`);
     return { success: true, repaired: false, product };
     
   } catch (error) {
-    console.error(`❌ Error verificando producto ${productId}:`, error);
+    // console.error(`❌ Error verificando producto ${productId}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -178,15 +178,15 @@ export const repairCorruptedProducts = async (products) => {
  */
 export const deleteCorruptedProduct = async (productId) => {
   try {
-    console.log(`🗑️ Eliminando producto corrupto: ${productId}`);
+    // console.log(`🗑️ Eliminando producto corrupto: ${productId}`);
     
     await deleteDoc(doc(db, 'productos', productId));
     
-    console.log(`✅ Producto corrupto eliminado`);
+    // console.log(`✅ Producto corrupto eliminado`);
     return { success: true };
     
   } catch (error) {
-    console.error(`❌ Error eliminando producto corrupto:`, error);
+    // console.error(`❌ Error eliminando producto corrupto:`, error);
     return { success: false, error: error.message };
   }
 };

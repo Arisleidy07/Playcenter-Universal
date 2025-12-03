@@ -651,176 +651,13 @@ function VistaProducto() {
   // Helper functions for media processing - available throughout component
   const getGalleryVideos = () => {
     if (!producto) return [];
-
-    const allVariantes = Array.isArray(producto?.variantes)
-      ? producto.variantes
-      : [];
-    const variantesConColor = allVariantes.filter(
-      (v) => v && typeof v.color === "string" && v.color.trim()
-    );
-    const varianteActivaParaMedios =
-      variantesConColor[varianteSeleccionada] || null;
-
-    if (VP_DEBUG)
-      console.log(
-        "🎥 getGalleryVideos - Variante:",
-        varianteActivaParaMedios?.color || "producto base"
-      );
-
-    let sourceData = [];
-
-    // ⚠️ REGLA: Si hay variante, SOLO usar SUS videos
-    if (varianteActivaParaMedios) {
-      if (varianteActivaParaMedios.videoUrls?.length > 0) {
-        sourceData = varianteActivaParaMedios.videoUrls;
-        if (VP_DEBUG)
-          console.log(
-            `  ✅ ${sourceData.length} videos de variante "${varianteActivaParaMedios.color}"`
-          );
-      } else {
-        // Variante sin videos -> usar producto base como fallback
-        if (VP_DEBUG)
-          console.log(
-            `  ⚠️ Variante "${varianteActivaParaMedios.color}" sin videos, usando producto base`
-          );
-        sourceData = producto?.videoUrls || [];
-      }
-    } else {
-      // Sin variante -> videos del producto base
-      sourceData = producto?.videoUrls || [];
-      if (VP_DEBUG)
-        console.log(`  ✅ ${sourceData.length} videos del producto base`);
-    }
-
-    const final = Array.isArray(sourceData)
-      ? sourceData.filter((u) => u && typeof u === "string" && u.trim())
-      : [];
-
-    if (VP_DEBUG) console.log(`  📋 FINAL: ${final.length} videos únicos`);
-    return final;
-  };
-
-  const buildImageList = (prod, variante) => {
-    if (VP_DEBUG)
-      console.log(
-        "🖼️ buildImageList - Variante:",
-        variante?.color || "producto base"
-      );
-
-    const pickUrl = (u) => {
-      try {
-        return typeof u === "string" ? u : u?.url || u?.src || "";
-      } catch {
-        return "";
-      }
-    };
-
-    let mainImage = "";
-    let galleryImages = [];
-
-    // ⚠️ REGLA AMAZON: SIEMPRE mostrar imagen principal PRIMERO + galería
-    if (variante) {
-      // Variante seleccionada: usar SUS imágenes
-      mainImage = pickUrl(
-        variante.imagen || variante.imagenPrincipal?.[0]?.url
-      );
-      galleryImages = Array.isArray(variante.imagenes)
-        ? variante.imagenes.map(pickUrl).filter(Boolean)
-        : [];
-
-      if (VP_DEBUG) console.log(`  🎯 Variante "${variante.color}":`);
-      if (VP_DEBUG)
-        console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
-      if (VP_DEBUG)
-        console.log(`    - Galería: ${galleryImages.length} imágenes`);
-
-      // Fallback: si variante no tiene imágenes, usar producto base
-      if (!mainImage && galleryImages.length === 0) {
-        if (VP_DEBUG)
-          console.log(`  ⚠️ Variante sin imágenes, usando producto base`);
-        mainImage = pickUrl(prod?.imagen || prod?.imagenPrincipal?.[0]?.url);
-        galleryImages = Array.isArray(prod?.imagenes)
-          ? prod.imagenes.map(pickUrl).filter(Boolean)
-          : [];
-      }
-    } else {
-      // Sin variante: usar producto base
-      mainImage = pickUrl(prod?.imagen || prod?.imagenPrincipal?.[0]?.url);
-      galleryImages = Array.isArray(prod?.imagenes)
-        ? prod.imagenes.map(pickUrl).filter(Boolean)
-        : [];
-
-      if (VP_DEBUG) console.log(`  📦 Producto base:`);
-      if (VP_DEBUG)
-        console.log(`    - Imagen principal: ${mainImage ? "✅" : "❌"}`);
-      if (VP_DEBUG)
-        console.log(`    - Galería: ${galleryImages.length} imágenes`);
-    }
-
-    // 👉 AMAZON: Imagen principal PRIMERO, luego galería
-    const result = [];
-    if (mainImage) result.push(mainImage);
-    result.push(...galleryImages);
-
-    // ✅ FILTRAR AGRESIVAMENTE: Sin valores vacíos, null, undefined, o strings vacíos
-    const cleaned = result.filter((url) => {
-      if (!url) return false;
-      if (typeof url !== "string") return false;
-      if (url.trim() === "") return false;
-      return true;
-    });
-
-    // Eliminar duplicados (Set mantiene orden de inserción)
-    const final = [...new Set(cleaned)];
-    if (VP_DEBUG)
-      console.log(
-        `  📋 FINAL: ${final.length} imágenes únicas [Principal + Galería]`
-      );
-    return final;
-  };
-
-  // Calculate essential variables needed by useEffect hooks and throughout component
-  // This must be done before useEffect hooks that depend on these variables
-  let desktopMediaItems = [];
-  let displayDesktopIndex = 0;
-  let safeDesktopIndex = 0;
-  let allVariantes = [];
-  let variantesConColor = [];
-  let varianteActivaParaMedios = null;
-  let imagenes = [];
-
-  if (producto) {
-    // Build media items for desktop gallery
-    allVariantes = Array.isArray(producto?.variantes) ? producto.variantes : [];
-    variantesConColor = allVariantes.filter(
-      (v) => v && typeof v.color === "string" && v.color.trim()
-    );
-    // Si varianteSeleccionada es -1 o null, usar null (producto principal)
-    // Si es 0+, usar la variante correspondiente
-    varianteActivaParaMedios =
-      varianteSeleccionada === -1 || varianteSeleccionada === null
-        ? null // Producto principal
-        : variantesConColor[varianteSeleccionada] || null;
-    imagenes = buildImageList(producto, varianteActivaParaMedios);
-    const imageItemsMedia = imagenes.map((url) => ({ type: "image", url }));
-    const galleryVideosList = getGalleryVideos();
-    const videoItemsMedia = (galleryVideosList || []).map((url) => ({
-      type: "video",
-      url,
-    }));
-    desktopMediaItems = [...imageItemsMedia, ...videoItemsMedia];
-
-    // Calculate safe desktop index
-    safeDesktopIndex = Math.max(
-      0,
-      Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1))
-    );
-    // Display index (hover has priority over selection on desktop)
-    displayDesktopIndex =
-      hoverThumbIndex !== null ? hoverThumbIndex : safeDesktopIndex;
-  }
-
-  // ALL useEffect hooks MUST be called consistently - BEFORE any early returns
+    // Return videos from the gallery if they exist
+    const videos =
+      producto?.galeriaImagenes
+        ?.filter((item) => item?.type === "video")
+        ?.map((item) => item?.url) || [];
+    return videos.filter(Boolean);
+  }; // ALL useEffect hooks MUST be called consistently - BEFORE any early returns
   // Reset variant and gallery state when product id changes to avoid mixing between products
   useEffect(() => {
     setVarianteSeleccionada(-1); // seleccionar PRODUCTO PRINCIPAL por defecto
@@ -912,6 +749,19 @@ function VistaProducto() {
   // Cargar nombre REAL de la tienda desde Firestore
   useEffect(() => {
     const cargarNombreTienda = async () => {
+      // PRIORIDAD 1: Usar storeName si existe (productos nuevos)
+      if (producto?.storeName) {
+        setTiendaNombreReal(producto.storeName);
+        return;
+      }
+
+      // PRIORIDAD 2: Usar tienda_nombre si existe (productos legacy)
+      if (producto?.tienda_nombre) {
+        setTiendaNombreReal(producto.tienda_nombre);
+        return;
+      }
+
+      // PRIORIDAD 3: Consultar base de datos si solo tenemos tienda_id (legacy)
       if (producto?.tienda_id) {
         try {
           const tiendaRef = doc(db, "tiendas", producto.tienda_id);
@@ -920,15 +770,19 @@ function VistaProducto() {
             setTiendaNombreReal(tiendaSnap.data().nombre);
           }
         } catch (error) {
-          console.error("Error cargando nombre de tienda:", error);
-          setTiendaNombreReal(producto.tienda_nombre);
+          setTiendaNombreReal(null);
         }
       } else {
         setTiendaNombreReal(null);
       }
     };
     cargarNombreTienda();
-  }, [producto?.tienda_id, producto?.tienda_nombre]);
+  }, [
+    producto?.storeId,
+    producto?.storeName,
+    producto?.tienda_id,
+    producto?.tienda_nombre,
+  ]);
 
   // Ajustar altura de miniaturas para que coincida con imagen principal
   useEffect(() => {
@@ -1036,8 +890,30 @@ function VistaProducto() {
 
   // AMAZON: Obtener imágenes de galería (Principal + Galería)
   const getGalleryImages = () => {
-    // Usar buildImageList para consistencia
-    return buildImageList(producto, varianteActiva);
+    const images = [];
+
+    // Add main image first
+    const mainImg = getMainImage();
+    if (mainImg) images.push(mainImg);
+
+    // Add gallery images
+    if (varianteActiva) {
+      // From variant
+      const variantImages =
+        varianteActiva?.imagenes || varianteActiva?.galeriaImagenes || [];
+      images.push(
+        ...(Array.isArray(variantImages) ? variantImages.filter(Boolean) : [])
+      );
+    } else {
+      // From product
+      const productImages =
+        producto?.imagenes || producto?.galeriaImagenes || [];
+      images.push(
+        ...(Array.isArray(productImages) ? productImages.filter(Boolean) : [])
+      );
+    }
+
+    return [...new Set(images)]; // Remove duplicates
   };
 
   const getMainVideo = () => {
@@ -1055,6 +931,31 @@ function VistaProducto() {
   // getGalleryVideos function moved earlier to avoid duplicate declaration
 
   // All useEffect hooks have been moved above to maintain consistent hook order
+
+  // ========== COMPUTED VALUES FOR MEDIA ==========
+  // Build the gallery images array
+  const imagenes = getGalleryImages();
+
+  // Get videos from gallery
+  const galleryVideosList = getGalleryVideos();
+
+  // Build desktop media items (images + videos)
+  const imageItemsMedia = imagenes.map((url) => ({ type: "image", url }));
+  const videoItemsMedia = (galleryVideosList || []).map((url) => ({
+    type: "video",
+    url,
+  }));
+  const desktopMediaItems = [...imageItemsMedia, ...videoItemsMedia];
+
+  // Calculate safe desktop index
+  const safeDesktopIndex = Math.max(
+    0,
+    Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1))
+  );
+
+  // Display index (hover has priority over selection on desktop)
+  const displayDesktopIndex =
+    hoverThumbIndex !== null ? hoverThumbIndex : safeDesktopIndex;
 
   // Enhanced handlers for new components
   const handleAddToCart = (product, variant = null, quantity = 1) => {
@@ -1078,7 +979,6 @@ function VistaProducto() {
   const handleToggleFavorite = (product) => {
     setIsFavorite(!isFavorite);
     // Here you would typically save to localStorage or backend
-    console.log("Toggled favorite for:", product.nombre);
   };
 
   // handleShare already exists below, using that one
@@ -1255,7 +1155,7 @@ function VistaProducto() {
 
   // Dedupe por URL normalizada
   const seenGallery = new Set();
-  const imageItemsMedia = mediaItems.filter((m) => {
+  const dedupedMediaItems = mediaItems.filter((m) => {
     const key = (m.url || "").split("?")[0].split("#")[0].trim().toLowerCase();
     if (!key || seenGallery.has(key)) return false;
     seenGallery.add(key);
@@ -1660,7 +1560,7 @@ function VistaProducto() {
         alert("Enlace copiado al portapapeles");
       }
     } catch (error) {
-      console.log("Error al compartir:", error);
+      // Error silencioso
     }
   };
 
@@ -1973,9 +1873,9 @@ function VistaProducto() {
             <h1 className="vp-title xl:order-1 order-1">{producto.nombre}</h1>
 
             {/* Enlace Visitar Tienda */}
-            {producto.tienda_id && tiendaNombreReal ? (
+            {(producto.storeId || producto.tienda_id) && tiendaNombreReal ? (
               <Link
-                to={`/tiendas/${producto.tienda_id}`}
+                to={`/tiendas/${producto.storeId || producto.tienda_id}`}
                 className="text-blue-600 hover:text-blue-800 underline hover:underline transition-colors xl:order-2 order-2 w-fit block mb-4 font-semibold"
                 aria-label={`Visitar tienda de ${tiendaNombreReal}`}
               >
@@ -2232,11 +2132,7 @@ function VistaProducto() {
               ? galleryVideos.map((url) => ({ type: "video", url }))
               : galleryImages.map((url) => ({ type: "image", url }));
 
-          console.log(
-            `🖼️ Modal - Variante: ${
-              varianteActivaParaMedios?.color || "base"
-            }, Medios: ${currentMediaItems.length}`
-          );
+          // Medios cargados
 
           // Asegurar que el índice esté dentro del rango
           const safeMediaIndex = Math.min(
@@ -2560,10 +2456,7 @@ function VistaProducto() {
                                 maxHeight: "min(90vh, 100%)",
                               }}
                               onError={(e) => {
-                                console.error(
-                                  "Error loading video:",
-                                  current.url
-                                );
+                                // Error cargando video
                               }}
                             />
                           );

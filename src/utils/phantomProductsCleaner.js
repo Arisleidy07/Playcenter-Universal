@@ -18,7 +18,7 @@ export const getPhantomProducts = () => {
     const phantoms = localStorage.getItem(PHANTOM_PRODUCTS_KEY);
     return phantoms ? JSON.parse(phantoms) : [];
   } catch (error) {
-    console.error('Error al leer productos fantasma:', error);
+    // console.error('Error al leer productos fantasma:', error);
     return [];
   }
 };
@@ -40,12 +40,12 @@ export const addPhantomProduct = (productId) => {
         url: window.location.href
       }));
       
-      console.log(`✅ Producto ${productId} agregado a fantasmas. Total: ${phantoms.length}`);
+      // console.log(`✅ Producto ${productId} agregado a fantasmas. Total: ${phantoms.length}`);
       return true;
     }
     return false;
   } catch (error) {
-    console.error('Error al agregar producto fantasma:', error);
+    // console.error('Error al agregar producto fantasma:', error);
     return false;
   }
 };
@@ -68,12 +68,12 @@ export const removePhantomProduct = (productId) => {
         url: window.location.href
       }));
       
-      console.log(`✅ Producto ${productId} removido de fantasmas. Total: ${filtered.length}`);
+      // console.log(`✅ Producto ${productId} removido de fantasmas. Total: ${filtered.length}`);
       return true;
     }
     return false;
   } catch (error) {
-    console.error('Error al remover producto fantasma:', error);
+    // console.error('Error al remover producto fantasma:', error);
     return false;
   }
 };
@@ -95,10 +95,10 @@ export const clearAllPhantomProducts = () => {
       url: window.location.href
     }));
     
-    console.log(`✅ ${count} productos fantasma limpiados`);
+    // console.log(`✅ ${count} productos fantasma limpiados`);
     return count;
   } catch (error) {
-    console.error('Error al limpiar productos fantasma:', error);
+    // console.error('Error al limpiar productos fantasma:', error);
     return 0;
   }
 };
@@ -113,14 +113,14 @@ export const verifyProductExists = async (productId) => {
     const docSnap = await getDoc(docRef);
     
     if (!docSnap.exists()) {
-      console.log(`🚨 Producto ${productId} no existe en Firebase - marcando como fantasma`);
+      // console.log(`🚨 Producto ${productId} no existe en Firebase - marcando como fantasma`);
       addPhantomProduct(productId);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error(`Error verificando producto ${productId}:`, error);
+    // console.error(`Error verificando producto ${productId}:`, error);
     return false;
   }
 };
@@ -132,7 +132,7 @@ export const verifyProductExists = async (productId) => {
 export const cleanupPhantomProducts = async () => {
   try {
     const phantoms = getPhantomProducts();
-    console.log(`🧹 Limpiando ${phantoms.length} productos fantasma...`);
+    // console.log(`🧹 Limpiando ${phantoms.length} productos fantasma...`);
     
     const stillPhantoms = [];
     const recovered = [];
@@ -141,7 +141,7 @@ export const cleanupPhantomProducts = async () => {
       const exists = await verifyProductExists(productId);
       if (exists) {
         recovered.push(productId);
-        console.log(`✅ Producto ${productId} recuperado (ya no es fantasma)`);
+        // console.log(`✅ Producto ${productId} recuperado (ya no es fantasma)`);
       } else {
         stillPhantoms.push(productId);
       }
@@ -157,7 +157,7 @@ export const cleanupPhantomProducts = async () => {
       url: window.location.href
     }));
     
-    console.log(`🎉 Limpieza completada: ${recovered.length} recuperados, ${stillPhantoms.length} siguen siendo fantasmas`);
+    // console.log(`🎉 Limpieza completada: ${recovered.length} recuperados, ${stillPhantoms.length} siguen siendo fantasmas`);
     
     return {
       total: phantoms.length,
@@ -165,7 +165,7 @@ export const cleanupPhantomProducts = async () => {
       stillPhantoms: stillPhantoms.length
     };
   } catch (error) {
-    console.error('Error durante limpieza de fantasmas:', error);
+    // console.error('Error durante limpieza de fantasmas:', error);
     return null;
   }
 };
@@ -188,7 +188,7 @@ export const getPhantomCategories = () => {
     const phantoms = localStorage.getItem(PHANTOM_CATEGORIES_KEY);
     return phantoms ? JSON.parse(phantoms) : [];
   } catch (error) {
-    console.error('Error al leer categorías fantasma:', error);
+    // console.error('Error al leer categorías fantasma:', error);
     return [];
   }
 };
@@ -210,12 +210,12 @@ export const addPhantomCategory = (categoryId) => {
         url: window.location.href
       }));
       
-      console.log(`✅ Categoría ${categoryId} agregada a fantasmas. Total: ${phantoms.length}`);
+      // console.log(`✅ Categoría ${categoryId} agregada a fantasmas. Total: ${phantoms.length}`);
       return true;
     }
     return false;
   } catch (error) {
-    console.error('Error al agregar categoría fantasma:', error);
+    // console.error('Error al agregar categoría fantasma:', error);
     return false;
   }
 };
@@ -238,12 +238,12 @@ export const removePhantomCategory = (categoryId) => {
         url: window.location.href
       }));
       
-      console.log(`✅ Categoría ${categoryId} removida de fantasmas. Total: ${filtered.length}`);
+      // console.log(`✅ Categoría ${categoryId} removida de fantasmas. Total: ${filtered.length}`);
       return true;
     }
     return false;
   } catch (error) {
-    console.error('Error al remover categoría fantasma:', error);
+    // console.error('Error al remover categoría fantasma:', error);
     return false;
   }
 };
@@ -265,10 +265,10 @@ export const clearAllPhantomCategories = () => {
       url: window.location.href
     }));
     
-    console.log(`✅ ${count} categorías fantasma limpiadas`);
+    // console.log(`✅ ${count} categorías fantasma limpiadas`);
     return count;
   } catch (error) {
-    console.error('Error al limpiar categorías fantasma:', error);
+    // console.error('Error al limpiar categorías fantasma:', error);
     return 0;
   }
 };
@@ -283,14 +283,14 @@ export const verifyCategoryExists = async (categoryId) => {
     const docSnap = await getDoc(docRef);
     
     if (!docSnap.exists()) {
-      console.log(`🚨 Categoría ${categoryId} no existe en Firebase - marcando como fantasma`);
+      // console.log(`🚨 Categoría ${categoryId} no existe en Firebase - marcando como fantasma`);
       addPhantomCategory(categoryId);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error(`Error verificando categoría ${categoryId}:`, error);
+    // console.error(`Error verificando categoría ${categoryId}:`, error);
     return false;
   }
 };
@@ -301,7 +301,7 @@ export const verifyCategoryExists = async (categoryId) => {
 export const cleanupPhantomCategories = async () => {
   try {
     const phantoms = getPhantomCategories();
-    console.log(`🧹 Limpiando ${phantoms.length} categorías fantasma...`);
+    // console.log(`🧹 Limpiando ${phantoms.length} categorías fantasma...`);
     
     const stillPhantoms = [];
     const recovered = [];
@@ -310,7 +310,7 @@ export const cleanupPhantomCategories = async () => {
       const exists = await verifyCategoryExists(categoryId);
       if (exists) {
         recovered.push(categoryId);
-        console.log(`✅ Categoría ${categoryId} recuperada (ya no es fantasma)`);
+        // console.log(`✅ Categoría ${categoryId} recuperada (ya no es fantasma)`);
       } else {
         stillPhantoms.push(categoryId);
       }
@@ -326,7 +326,7 @@ export const cleanupPhantomCategories = async () => {
       url: window.location.href
     }));
     
-    console.log(`🎉 Limpieza completada: ${recovered.length} recuperadas, ${stillPhantoms.length} siguen siendo fantasmas`);
+    // console.log(`🎉 Limpieza completada: ${recovered.length} recuperadas, ${stillPhantoms.length} siguen siendo fantasmas`);
     
     return {
       total: phantoms.length,
@@ -334,7 +334,7 @@ export const cleanupPhantomCategories = async () => {
       stillPhantoms: stillPhantoms.length
     };
   } catch (error) {
-    console.error('Error durante limpieza de categorías fantasma:', error);
+    // console.error('Error durante limpieza de categorías fantasma:', error);
     return null;
   }
 };

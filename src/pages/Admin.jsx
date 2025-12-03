@@ -338,12 +338,13 @@ function UsuarioFullView({ usuario, onClose }) {
             </div>
 
             {loadingCompras ? (
-              <div className="flex items-center justify-center py-12">
-                <LoadingSpinner
-                  size="medium"
-                  color="blue"
-                  text="Cargando compras..."
-                />
+              <div className="flex items-center justify-center py-12 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl">
+                <div className="text-center">
+                  <LoadingSpinner size="large" color="blue" variant="dots" />
+                  <p className="text-gray-700 dark:text-gray-300 text-base font-semibold mt-4">
+                    Cargando compras...
+                  </p>
+                </div>
               </div>
             ) : compras.length === 0 ? (
               <div className="text-center py-12 bg-blue-50 rounded-xl">
@@ -499,8 +500,13 @@ function OrdersList() {
   }, []);
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="medium" color="blue" text="Cargando órdenes..." />
+      <div className="flex items-center justify-center py-12 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl">
+        <div className="text-center">
+          <LoadingSpinner size="large" color="blue" variant="pulse" />
+          <p className="text-gray-700 dark:text-gray-300 text-base font-semibold mt-4">
+            Cargando órdenes...
+          </p>
+        </div>
       </div>
     );
   }
@@ -623,10 +629,12 @@ function SellerAdminPanel() {
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
             <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
-              <FiPackage /> {stats.productos} {stats.productos === 1 ? "producto" : "productos"}
+              <FiPackage /> {stats.productos}{" "}
+              {stats.productos === 1 ? "producto" : "productos"}
             </span>
             <span className="bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
-              <FiShoppingCart /> {stats.pedidos} {stats.pedidos === 1 ? "pedido" : "pedidos"}
+              <FiShoppingCart /> {stats.pedidos}{" "}
+              {stats.pedidos === 1 ? "pedido" : "pedidos"}
             </span>
           </div>
         </div>
@@ -645,7 +653,9 @@ function SellerAdminPanel() {
                 }`}
               >
                 <span className="inline-flex items-center gap-2">
-                  <span className="text-lg"><tab.icon /></span>
+                  <span className="text-lg">
+                    <tab.icon />
+                  </span>
                   <span className="hidden sm:inline">{tab.label}</span>
                 </span>
               </button>
@@ -661,150 +671,151 @@ function SellerAdminPanel() {
           transition={{ duration: 0.3 }}
         >
           {activeTab === "dashboard" && (
-          <div className="space-y-6">
-            {/* Estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Productos
-                    </p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {stats.productos}
-                    </p>
+            <div className="space-y-6">
+              {/* Estadísticas */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Productos
+                      </p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                        {stats.productos}
+                      </p>
+                    </div>
+                    <FiPackage className="w-12 h-12 text-blue-500" />
                   </div>
-                  <FiPackage className="w-12 h-12 text-blue-500" />
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Pedidos
+                      </p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                        {stats.pedidos}
+                      </p>
+                    </div>
+                    <FiShoppingCart className="w-12 h-12 text-green-500" />
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Ventas
+                      </p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                        ${stats.ventas.toFixed(2)}
+                      </p>
+                    </div>
+                    <FiDollarSign className="w-12 h-12 text-yellow-500" />
+                  </div>
                 </div>
               </div>
 
+              {/* Información de la tienda */}
               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Pedidos
-                    </p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {stats.pedidos}
-                    </p>
-                  </div>
-                  <FiShoppingCart className="w-12 h-12 text-green-500" />
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Ventas
-                    </p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                      ${stats.ventas.toFixed(2)}
-                    </p>
-                  </div>
-                  <FiDollarSign className="w-12 h-12 text-yellow-500" />
+                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                  Información de tu Tienda
+                </h3>
+                <div className="space-y-2 text-gray-700 dark:text-gray-300">
+                  <p>
+                    <span className="font-semibold">Nombre:</span>{" "}
+                    {usuarioInfo?.storeName || "No configurado"}
+                  </p>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Información de la tienda */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                Información de tu Tienda
-              </h3>
-              <div className="space-y-2 text-gray-700 dark:text-gray-300">
-                <p>
-                  <span className="font-semibold">Nombre:</span>{" "}
-                  {usuarioInfo?.storeName || "No configurado"}
-                </p>
-              </div>
+          {activeTab === "products" && (
+            <div>
+              <ProductManagement
+                onAddProduct={() => {
+                  setEditingProduct(null);
+                  setShowProductForm(true);
+                }}
+                onEditProduct={(product) => {
+                  setEditingProduct(product);
+                  setShowProductForm(true);
+                }}
+              />
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === "products" && (
-          <div>
-            <ProductManagement
-              onAddProduct={() => {
-                setEditingProduct(null);
-                setShowProductForm(true);
-              }}
-              onEditProduct={(product) => {
-                setEditingProduct(product);
-                setShowProductForm(true);
-              }}
-            />
-          </div>
-        )}
-
-        {activeTab === "orders" && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Pedidos de tu Tienda
-            </h2>
-            {orders.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 p-8 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
-                <p className="text-gray-600 dark:text-gray-400">
-                  No tienes pedidos todavía
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {orders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                    onClick={() => setSelectedOrder(order)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          Pedido #{order.id.slice(0, 8)}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {order.cliente?.nombre || "Cliente"}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {
-                            order.items?.filter(
-                              (item) => item.storeId === usuarioInfo?.storeId
-                            ).length
-                          }{" "}
-                          productos
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900 dark:text-white">
-                          $
-                          {order.items
-                            ?.filter(
-                              (item) => item.storeId === usuarioInfo?.storeId
-                            )
-                            .reduce(
-                              (sum, item) => sum + item.precio * item.cantidad,
-                              0
-                            )
-                            .toFixed(2)}
-                        </p>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            order.estado === "entregado"
-                              ? "bg-green-100 text-green-800"
-                              : order.estado === "en camino"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {order.estado || "Pendiente"}
-                        </span>
+          {activeTab === "orders" && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Pedidos de tu Tienda
+              </h2>
+              {orders.length === 0 ? (
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No tienes pedidos todavía
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
+                      onClick={() => setSelectedOrder(order)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            Pedido #{order.id.slice(0, 8)}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {order.cliente?.nombre || "Cliente"}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {
+                              order.items?.filter(
+                                (item) => item.storeId === usuarioInfo?.storeId
+                              ).length
+                            }{" "}
+                            productos
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-gray-900 dark:text-white">
+                            $
+                            {order.items
+                              ?.filter(
+                                (item) => item.storeId === usuarioInfo?.storeId
+                              )
+                              .reduce(
+                                (sum, item) =>
+                                  sum + item.precio * item.cantidad,
+                                0
+                              )
+                              .toFixed(2)}
+                          </p>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              order.estado === "entregado"
+                                ? "bg-green-100 text-green-800"
+                                : order.estado === "en camino"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {order.estado || "Pendiente"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </motion.div>
 
         {/* PRODUCT FORM MODAL */}
@@ -928,7 +939,7 @@ export default function Admin() {
             isAdmin: true,
           });
 
-          try{
+          try {
             await updateDoc(doc(db, "usuarios", userId), {
               admin: true,
               isAdmin: true,

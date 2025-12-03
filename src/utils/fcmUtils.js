@@ -37,7 +37,7 @@ export async function requestNotificationPermission(userId) {
     
     return { success: true, token };
   } catch (error) {
-    console.error("Error al solicitar permisos de notificación:", error);
+    // console.error("Error al solicitar permisos de notificación:", error);
     throw error;
   }
 }
@@ -59,7 +59,7 @@ export async function saveTokenToFirestore(userId, token) {
     
     return { success: true };
   } catch (error) {
-    console.error("Error al guardar token:", error);
+    // console.error("Error al guardar token:", error);
     throw error;
   }
 }
@@ -76,7 +76,7 @@ export async function removeTokenFromFirestore(userId, token) {
     
     return { success: true };
   } catch (error) {
-    console.error("Error al eliminar token:", error);
+    // console.error("Error al eliminar token:", error);
     throw error;
   }
 }
@@ -90,7 +90,7 @@ export function setupForegroundMessageListener(onMessageReceived) {
     const messaging = getMessaging();
     
     return onMessage(messaging, (payload) => {
-      console.log("Mensaje recibido en primer plano:", payload);
+      // console.log("Mensaje recibido en primer plano:", payload);
       
       if (onMessageReceived) {
         onMessageReceived(payload);
@@ -112,7 +112,7 @@ export function setupForegroundMessageListener(onMessageReceived) {
       }
     });
   } catch (error) {
-    console.error("Error al configurar listener de mensajes:", error);
+    // console.error("Error al configurar listener de mensajes:", error);
     return null;
   }
 }
@@ -146,7 +146,7 @@ export function getNotificationPermissionStatus() {
  */
 export function testNotification(title = "Prueba", body = "Esta es una notificación de prueba") {
   if (!areNotificationsEnabled()) {
-    console.warn("Las notificaciones no están habilitadas");
+    // console.warn("Las notificaciones no están habilitadas");
     return;
   }
   

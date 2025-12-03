@@ -64,7 +64,7 @@ const Header = () => {
       // Redirigir inmediatamente a inicio con replace para evitar volver atrás
       navigate("/", { replace: true });
     } catch (error) {
-      console.error("Error cerrando sesión", error);
+      // console.error("Error cerrando sesión", error);
       // Incluso si hay error, intentar ir al inicio
       navigate("/", { replace: true });
     }

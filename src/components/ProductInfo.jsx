@@ -104,7 +104,7 @@ const ProductInfo = ({
         alert('Enlace copiado al portapapeles');
       }
     } catch (error) {
-      console.log('Error al compartir:', error);
+      // console.log('Error al compartir:', error);
     }
   };
 

@@ -55,7 +55,7 @@ export function useStore() {
         setLoadingTienda(false);
       },
       (error) => {
-        console.error("Error al cargar tienda:", error);
+        // console.error("Error al cargar tienda:", error);
         setTienda(null);
         setLoadingTienda(false);
       }
@@ -67,7 +67,7 @@ export function useStore() {
   // Función para cambiar entre modo personal y modo tienda
   const cambiarModo = (nuevoModo) => {
     if (nuevoModo === "tienda" && !tienda) {
-      console.warn("No se puede cambiar a modo tienda sin tener una tienda");
+      // console.warn("No se puede cambiar a modo tienda sin tener una tienda");
       return false;
     }
     setModoActual(nuevoModo);
@@ -119,7 +119,7 @@ export function useStoreProducts(storeId) {
         setLoading(false);
       },
       (error) => {
-        console.error("Error al cargar productos de la tienda:", error);
+        // console.error("Error al cargar productos de la tienda:", error);
         setProductos([]);
         setLoading(false);
       }
@@ -166,7 +166,7 @@ export function useStoreOrders(storeId) {
         setLoading(false);
       },
       (error) => {
-        console.error("Error al cargar órdenes de la tienda:", error);
+        // console.error("Error al cargar órdenes de la tienda:", error);
         setOrdenes([]);
         setLoading(false);
       }

@@ -36,7 +36,7 @@ export default function FollowSystemExample() {
 
       setUsuarios(users);
     } catch (error) {
-      console.error("Error cargando usuarios:", error);
+      // console.error("Error cargando usuarios:", error);
     } finally {
       setLoading(false);
     }

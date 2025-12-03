@@ -31,7 +31,7 @@ export const uploadFileUniversal = async (file, productId, fileType = 'media') =
     }
 
     // Subir archivo a Cloudinary
-    console.log(`🚀 Subiendo ${file.type} (${(file.size / 1024 / 1024).toFixed(2)}MB) a Cloudinary ${folder}/`);
+    // console.log(`🚀 Subiendo ${file.type} (${(file.size / 1024 / 1024).toFixed(2)}MB) a Cloudinary ${folder}/`);
     
     const cloudinaryFolder = `products/${productId}/${folder}`;
     const downloadURL = await uploadToCloudinary(file, cloudinaryFolder);
@@ -40,7 +40,7 @@ export const uploadFileUniversal = async (file, productId, fileType = 'media') =
       throw new Error('No se pudo obtener la URL de descarga');
     }
 
-    console.log(`✅ Archivo subido exitosamente a Cloudinary: ${downloadURL}`);
+    // console.log(`✅ Archivo subido exitosamente a Cloudinary: ${downloadURL}`);
     return {
       url: downloadURL,
       type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'document',
@@ -49,7 +49,7 @@ export const uploadFileUniversal = async (file, productId, fileType = 'media') =
       path: cloudinaryFolder
     };
   } catch (error) {
-    console.error('❌ Error en uploadFileUniversal:', error);
+    // console.error('❌ Error en uploadFileUniversal:', error);
     throw error;
   }
 };
@@ -84,7 +84,7 @@ export const uploadMultipleFiles = async (files, productId, onProgress = null) =
         });
       }
     } catch (error) {
-      console.error(`Error subiendo ${files[i].name}:`, error);
+      // console.error(`Error subiendo ${files[i].name}:`, error);
       errors.push({
         file: files[i].name,
         error: error.message
@@ -157,7 +157,7 @@ export const processUploaderFiles = async (uploaderFiles, productId, onProgress 
 
     // Reportar errores
     if (errors.length > 0) {
-      console.warn('Errores en subida:', errors);
+      // console.warn('Errores en subida:', errors);
       const errorMessage = errors.map(e => `${e.file}: ${e.error}`).join('\n');
       throw new Error(`Errores en algunos archivos:\n${errorMessage}`);
     }

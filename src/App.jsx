@@ -123,9 +123,9 @@ function App() {
 
     // Auto-arreglar contadores de seguidores (solo una vez)
     setTimeout(() => {
-      autoFixFollowers().catch((err) =>
-        console.error("Error en auto-fix:", err)
-      );
+      autoFixFollowers().catch((err) => {
+        // console.error("Error en auto-fix:", err)
+      });
     }, 2000);
   }, []);
 

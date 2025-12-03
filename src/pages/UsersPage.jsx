@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import UserCard from "../components/UserCard";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { motion } from "framer-motion";
 import { Users, Store, Search, TrendingUp, Filter } from "lucide-react";
 
@@ -57,7 +58,7 @@ export default function UsersPage() {
         setLoading(false);
       },
       (error) => {
-        console.error("Error cargando usuarios:", error);
+        // console.error("Error cargando usuarios:", error);
         setLoading(false);
       }
     );
@@ -84,9 +85,12 @@ export default function UsersPage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">
+          <LoadingSpinner size="xlarge" color="blue" variant="dots" />
+          <p className="text-gray-700 dark:text-gray-300 text-xl font-semibold mt-6 animate-pulse">
             Cargando usuarios...
+          </p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+            Descubriendo la comunidad
           </p>
         </div>
       </div>

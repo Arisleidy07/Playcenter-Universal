@@ -45,7 +45,7 @@ export const CarritoProvider = ({ children }) => {
       setCarrito([]);
       setFavoritos([]);
       setCarritoMigrado(false);
-      console.log("🗑️ Carrito limpiado al cerrar sesión");
+      // console.log("🗑️ Carrito limpiado al cerrar sesión");
     }
   }, [usuario]);
 
@@ -70,15 +70,15 @@ export const CarritoProvider = ({ children }) => {
           const cleanedItems = cleanForFirestore(items);
           setDoc(carritoRef, { items: cleanedItems }, { merge: true })
             .then(() => {
-              console.log("✅ Carrito migrado a Firestore");
+              // console.log("✅ Carrito migrado a Firestore");
               setCarritoMigrado(true);
             })
             .catch((error) => {
-              console.error("❌ Error al migrar carrito:", error);
+              // console.error("❌ Error al migrar carrito:", error);
             });
         }
       } catch (error) {
-        console.error("Error al parsear carrito local:", error);
+        // console.error("Error al parsear carrito local:", error);
       }
     }
   }, [usuario?.uid, carritoMigrado]);
@@ -106,7 +106,7 @@ export const CarritoProvider = ({ children }) => {
         setCargandoCarrito(false);
       },
       (error) => {
-        console.error("Error al escuchar carrito:", error);
+        // console.error("Error al escuchar carrito:", error);
         setCargandoCarrito(false);
       }
     );
@@ -124,7 +124,7 @@ export const CarritoProvider = ({ children }) => {
       const cleanedCarrito = cleanForFirestore(carrito);
       setDoc(carritoRef, { items: cleanedCarrito }, { merge: true }).catch(
         (error) => {
-          console.error("Error al guardar carrito en Firestore:", error);
+          // console.error("Error al guardar carrito en Firestore:", error);
         }
       );
     }
@@ -218,7 +218,7 @@ export const CarritoProvider = ({ children }) => {
         }
       },
       (error) => {
-        console.error("Error al escuchar favoritos:", error);
+        // console.error("Error al escuchar favoritos:", error);
       }
     );
 
@@ -241,7 +241,7 @@ export const CarritoProvider = ({ children }) => {
       const cleanedFavoritos = cleanForFirestore(favoritos);
       setDoc(favoritosRef, { items: cleanedFavoritos }, { merge: true }).catch(
         (error) => {
-          console.error("Error al guardar favoritos en Firestore:", error);
+          // console.error("Error al guardar favoritos en Firestore:", error);
         }
       );
     }

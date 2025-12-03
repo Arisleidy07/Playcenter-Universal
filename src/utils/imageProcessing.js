@@ -303,7 +303,7 @@ export const generateImageSizes = async (file, options = {}) => {
             webpResults[sizeName] = webpBlob;
           }
         } catch (error) {
-          console.warn(`Failed to generate WebP for ${sizeName}:`, error);
+          // console.warn(`Failed to generate WebP for ${sizeName}:`, error);
         }
       }
       

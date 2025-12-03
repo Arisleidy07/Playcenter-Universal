@@ -135,9 +135,7 @@ const FilePreview = ({
   }, [type]);
 
   return (
-    <div
-      className={`ufu-preview-item ${isMain ? "ufu-main-item" : ""}`}
-    >
+    <div className={`ufu-preview-item ${isMain ? "ufu-main-item" : ""}`}>
       <div className="ufu-preview-media">
         {type === "image" ? (
           <img
@@ -600,11 +598,15 @@ const UniversalFileUploader = React.memo(
             fileExtension
           );
 
+          // Decodificar el nombre del archivo desde la URL para mostrar caracteres especiales correctamente
+          const encodedName = file.split("/").pop().split("?")[0];
+          const decodedName = decodeURIComponent(encodedName);
+
           return {
             id: `existing-${index}-${file}`,
             url: file,
             type: isVideo ? "video" : "image",
-            name: file.split("/").pop().split("?")[0],
+            name: decodedName,
             size: 0,
             isMain: index === 0,
             isUploaded: true,
@@ -668,7 +670,7 @@ const UniversalFileUploader = React.memo(
 
         // Manejar archivos rechazados
         if (fileRejections.length > 0) {
-          console.error("Archivos rechazados:", fileRejections);
+          // console.error("Archivos rechazados:", fileRejections);
           // Mostrar mensajes visibles para el usuario
           setRejected(
             fileRejections.map(({ file, errors }) => ({
@@ -692,9 +694,9 @@ const UniversalFileUploader = React.memo(
 
             // Mostrar advertencia si se alcanzó el límite
             if (maxFiles && combinedFiles.length > maxFiles) {
-              console.warn(
-                `Límite de ${maxFiles} archivos alcanzado. Solo se mantuvieron los primeros ${maxFiles}.`
-              );
+              // console.warn(
+              //   `Límite de ${maxFiles} archivos alcanzado. Solo se mantuvieron los primeros ${maxFiles}.`
+              // );
               setRejected((prev) => [
                 ...prev,
                 {
@@ -818,7 +820,7 @@ const UniversalFileUploader = React.memo(
         if (typeof onFilesChange === "function") {
           onFilesChange(files);
         } else {
-          console.warn("⚠️ onFilesChange no es una función");
+          // console.warn("⚠️ onFilesChange no es una función");
         }
       }
     }, [files]);

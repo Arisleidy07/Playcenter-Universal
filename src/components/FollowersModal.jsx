@@ -15,7 +15,7 @@ export default function FollowersModal({ isOpen, onClose, userId, type = "seguid
 
     const fetchUsers = async () => {
       setLoading(true);
-      console.log("Cargando modal:", type, userId);
+      // console.log("Cargando modal:", type, userId);
       try {
         let usersList = [];
         const collectionName = type === "seguidores" ? "followers" : "following";
@@ -38,10 +38,10 @@ export default function FollowersModal({ isOpen, onClose, userId, type = "seguid
         });
 
         usersList = (await Promise.all(promises)).filter(Boolean);
-        console.log(`Encontrados ${usersList.length} usuarios (${type})`);
+        // console.log(`Encontrados ${usersList.length} usuarios (${type})`);
         setUsers(usersList);
       } catch (error) {
-        console.error("Error:", error);
+        // console.error("Error:", error);
       } finally {
         setLoading(false);
       }

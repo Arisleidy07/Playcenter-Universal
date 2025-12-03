@@ -62,6 +62,8 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
   const [dateFrom, setDateFrom] = useState(""); // yyyy-mm-dd
   const [dateTo, setDateTo] = useState(""); // yyyy-mm-dd
   const [companyFilter, setCompanyFilter] = useState(""); // solo admin
+  const [storeFilter, setStoreFilter] = useState(""); // Filtro por tienda (solo admin)
+  const [availableStores, setAvailableStores] = useState([]); // Lista de tiendas
 
   useEffect(() => {
     loadCategories();
@@ -181,6 +183,20 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [isAdmin, products]);
 
+  // Opciones de tiendas (solo admin): extraer tiendas únicas de los productos
+  const storeOptions = useMemo(() => {
+    if (!isAdmin) return [];
+    const storesMap = new Map();
+    products.forEach((p) => {
+      if (p.storeId && p.storeName) {
+        storesMap.set(p.storeId, p.storeName);
+      }
+    });
+    return Array.from(storesMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [isAdmin, products]);
+
   const getTotalStock = (p) => {
     try {
       if (typeof p?.cantidad === "number") return Number(p.cantidad) || 0;
@@ -204,9 +220,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       const productSnap = await getDoc(productRef);
 
       if (!productSnap.exists()) {
-        console.warn(
-          `! Producto ${productId} no existe en Firebase - eliminando del estado local`
-        );
         // Eliminar del estado local si no existe en Firebase
         setProducts((prevProducts) =>
           prevProducts.filter((p) => p.id !== productId)
@@ -347,9 +360,6 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       const productSnap = await getDoc(productRef);
 
       if (!productSnap.exists()) {
-        console.warn(
-          `! Producto ${productId} no existe en Firebase - eliminando del estado local`
-        );
         // Eliminar del estado local si no existe en Firebase
         setProducts((prevProducts) =>
           prevProducts.filter((p) => p.id !== productId)
@@ -514,6 +524,9 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           !companyFilter ||
           (product.ownerName || product.empresa || "") === companyFilter;
 
+        const matchesStore =
+          !isAdmin || !storeFilter || product.storeId === storeFilter;
+
         return (
           matchesSearch &&
           matchesCategory &&
@@ -521,7 +534,8 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           matchesStock &&
           matchesPrice &&
           matchesDate &&
-          matchesCompany
+          matchesCompany &&
+          matchesStore
         );
       } catch (error) {
         return false; // Excluir productos corruptos del filtro
@@ -569,12 +583,13 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner
-          size="large"
-          color="blue"
-          text="Cargando productos..."
-        />
+      <div className="flex justify-center items-center h-64 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-lg">
+        <div className="text-center">
+          <LoadingSpinner size="xlarge" color="blue" variant="bars" />
+          <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold mt-4 animate-pulse">
+            Cargando productos...
+          </p>
+        </div>
       </div>
     );
   }
@@ -587,7 +602,18 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           <h2 className="text-2xl font-bold text-blue-900">
             Gestión de Productos
           </h2>
-          <p className="text-gray-600">{products.length} productos en total</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-gray-600">
+              {filteredProducts.length} de {products.length} productos
+            </p>
+            {isAdmin && storeFilter && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                🏪{" "}
+                {storeOptions.find((s) => s.id === storeFilter)?.name ||
+                  "Tienda seleccionada"}
+              </span>
+            )}
+          </div>
         </div>
         <button
           onClick={onAddProduct}
@@ -634,6 +660,38 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
               ))}
             </select>
           </div>
+
+          {/* Filtro por Tienda - Solo para Admin */}
+          {isAdmin && storeOptions.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🏪 Filtrar por Tienda
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={storeFilter}
+                  onChange={(e) => setStoreFilter(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gradient-to-r from-blue-50 to-purple-50"
+                >
+                  <option value="">📦 Todas las tiendas</option>
+                  {storeOptions.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.name}
+                    </option>
+                  ))}
+                </select>
+                {storeFilter && (
+                  <button
+                    onClick={() => setStoreFilter("")}
+                    className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    title="Limpiar filtro de tienda"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

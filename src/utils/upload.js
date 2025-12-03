@@ -30,7 +30,7 @@ export const uploadFile = async (file, productId) => {
       name: file.name,
     };
   } catch (error) {
-    console.error(`Error subiendo archivo ${file.name}:`, error);
+    // console.error(`Error subiendo archivo ${file.name}:`, error);
     throw new Error(`No se pudo subir el archivo ${file.name}.`);
   }
 };

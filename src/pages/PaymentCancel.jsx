@@ -96,7 +96,7 @@ export default function PaymentCancel() {
           setSaved(true);
         }
       } catch (err) {
-        console.error("Error guardando orden cancelada:", err);
+        // console.error("Error guardando orden cancelada:", err);
       }
     };
 

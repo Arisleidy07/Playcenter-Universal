@@ -11,6 +11,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+import LoadingSpinner from "../components/LoadingSpinner";
 import FollowButton from "../components/ui/FollowButton";
 import FollowersModal from "../components/FollowersModal";
 import { motion } from "framer-motion";
@@ -77,12 +79,12 @@ export default function UserProfile() {
             publicaciones: data.stats?.publicaciones || 0,
           });
         } else {
-          console.error("Usuario no encontrado");
+          // console.error("Usuario no encontrado");
         }
         setLoading(false);
       },
       (error) => {
-        console.error("Error al cargar usuario:", error);
+        // console.error("Error al cargar usuario:", error);
         setLoading(false);
       }
     );
@@ -110,7 +112,7 @@ export default function UserProfile() {
         }));
         setProductos(prods);
       } catch (error) {
-        console.error("Error cargando productos:", error);
+        // console.error("Error cargando productos:", error);
       }
     };
 
@@ -134,10 +136,15 @@ export default function UserProfile() {
   // ═══════════════════════════════════════════════════════════
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Cargando perfil...</p>
+          <LoadingSpinner size="xlarge" color="blue" variant="pulse" />
+          <p className="text-gray-700 dark:text-gray-300 text-xl font-semibold mt-6 animate-pulse">
+            Cargando perfil...
+          </p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+            Obteniendo información
+          </p>
         </div>
       </div>
     );

@@ -20,7 +20,7 @@ export const uploadImageFast = async (file, productId) => {
     const url = await uploadToCloudinary(file, folder);
     return url;
   } catch (error) {
-    console.error(`Error subiendo imagen ${file.name}:`, error);
+    // console.error(`Error subiendo imagen ${file.name}:`, error);
     throw new Error(`No se pudo subir la imagen ${file.name}.`);
   }
 };
@@ -44,7 +44,7 @@ export const uploadVideoFast = async (file, productId) => {
     const url = await uploadToCloudinary(file, folder);
     return url;
   } catch (error) {
-    console.error(`Error subiendo video ${file.name}:`, error);
+    // console.error(`Error subiendo video ${file.name}:`, error);
     throw new Error(`No se pudo subir el video ${file.name}.`);
   }
 };
@@ -84,7 +84,7 @@ export const uploadFileFast = async (file, productId, fileType = null) => {
       name: file.name,
     };
   } catch (error) {
-    console.error(`Error subiendo archivo ${file.name}:`, error);
+    // console.error(`Error subiendo archivo ${file.name}:`, error);
     throw new Error(`No se pudo subir el archivo ${file.name}.`);
   }
 };

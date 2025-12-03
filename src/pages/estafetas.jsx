@@ -22,7 +22,7 @@ const estafetas = [
   },
   {
     id: 1,
-    nombre: "Estafeta Villa-Olímpica",
+    nombre: "Estafeta Marilópez",
     descripcion: "Minimarket Los Hermanos",
     direccion:
       "Calle Penetración Nº 1, Suburbanización Mare López, La villa-Olímpica, Próximo a la calle 1",
@@ -53,13 +53,12 @@ const estafetas = [
   },
   {
     id: 4,
-    nombre: "Estafeta La Lotería",
-    descripcion: "Colmado Espinal",
-    direccion: "La Lotería, calle Salcedo, Nº 10",
-    telefono: "829-288-9168",
-    ubicacionLink:
-      "https://www.google.com/maps/place/19.439565,-70.690574/data=!4m6!3m5!1s0!7e2!8m2!3d19.439564999999998!4d-70.690574",
-    imagen: "/estafetas/colmado-espinal.png",
+    nombre: "Estafeta Korea",
+    descripcion: "Bodega Vasquez",
+    direccion: "Calle 6 esquina 2",
+    telefono: "",
+    ubicacionLink: "https://maps.google.com/?q=19.429781,-70.693405",
+    imagen: "/estafetas/estafeta korea.jpeg",
   },
   {
     id: 5,

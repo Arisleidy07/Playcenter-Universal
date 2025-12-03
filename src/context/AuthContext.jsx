@@ -52,7 +52,7 @@ function generarCodigoUnico() {
 async function findUserByEmail(email) {
   try {
     const emailLower = email.toLowerCase().trim();
-    console.log("🔍 Buscando usuario con email:", emailLower);
+    // console.log("🔍 Buscando usuario con email:", emailLower);
 
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("email", "==", emailLower));
@@ -60,14 +60,14 @@ async function findUserByEmail(email) {
 
     if (!querySnapshot.empty) {
       const userDoc = querySnapshot.docs[0];
-      console.log("✅ Usuario encontrado con ID:", userDoc.id);
+      // console.log("✅ Usuario encontrado con ID:", userDoc.id);
       return { id: userDoc.id, data: userDoc.data() };
     }
 
-    console.log("⚠️ No se encontró usuario con ese email");
+    // console.log("⚠️ No se encontró usuario con ese email");
     return null;
   } catch (error) {
-    console.error("❌ Error buscando usuario:", error);
+    // console.error("❌ Error buscando usuario:", error);
     return null;
   }
 }
@@ -150,10 +150,10 @@ export function AuthProvider({ children }) {
           try {
             await setDoc(usersRef, payload, { merge: true });
           } catch (err) {
-            console.warn(
-              "No fue posible crear users/{uid} automáticamente:",
-              err
-            );
+            // console.warn(
+            //   "No fue posible crear users/{uid} automáticamente:",
+            //   err
+            // );
           }
           listenRef = usersRef;
         }
@@ -207,12 +207,12 @@ export function AuthProvider({ children }) {
             setLoading(false);
           },
           (err) => {
-            console.error("onSnapshot usuario error:", err);
+            // console.error("onSnapshot usuario error:", err);
             setLoading(false);
           }
         );
       } catch (err) {
-        console.error("Error inicializando listener de usuario:", err);
+        // console.error("Error inicializando listener de usuario:", err);
         // fallback: leer doc una vez y setear usuarioInfo
         try {
           const docRef = doc(db, "users", user.uid);
@@ -230,7 +230,7 @@ export function AuthProvider({ children }) {
           };
           setUsuarioInfo(merged);
         } catch (e) {
-          console.error("Fallback read error:", e);
+          // console.error("Fallback read error:", e);
           const userEmail = user.email || "";
           setUsuarioInfo({
             uid: user.uid,
@@ -300,7 +300,7 @@ export function AuthProvider({ children }) {
       merge: true,
     });
 
-    console.log("🔐 Nuevo usuario registrado - Admin:", isAdmin);
+    // console.log("🔐 Nuevo usuario registrado - Admin:", isAdmin);
 
     setUsuario(auth.currentUser);
     setUsuarioInfo({
@@ -343,9 +343,9 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("lastLoginEmail");
       localStorage.removeItem("lastUserData");
 
-      console.log("✅ Sesión cerrada y datos limpiados completamente");
+      // console.log("✅ Sesión cerrada y datos limpiados completamente");
     } catch (error) {
-      console.error("Error durante logout:", error);
+      // console.error("Error durante logout:", error);
       // Aunque falle, limpiar estados locales y localStorage
       setUsuario(null);
       setUsuarioInfo(null);
@@ -360,29 +360,29 @@ export function AuthProvider({ children }) {
   async function resetPassword(email) {
     try {
       await sendPasswordResetEmail(auth, email);
-      console.log("✅ Email de recuperación enviado a:", email);
+      // console.log("✅ Email de recuperación enviado a:", email);
       return { success: true };
     } catch (error) {
-      console.error("❌ Error al enviar email de recuperación:", error);
+      // console.error("❌ Error al enviar email de recuperación:", error);
       throw error;
     }
   }
 
   async function checkSignInMethods(email) {
     try {
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.log("🔍 VERIFICANDO MÉTODOS PARA:", email);
+      // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      // console.log("🔍 VERIFICANDO MÉTODOS PARA:", email);
       const methods = await fetchSignInMethodsForEmail(auth, email);
-      console.log("✅ MÉTODOS ENCONTRADOS:", methods);
-      console.log("📊 Cantidad de métodos:", methods.length);
-      console.log("🔍 ¿Incluye google.com?", methods.includes("google.com"));
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      // console.log("✅ MÉTODOS ENCONTRADOS:", methods);
+      // console.log("📊 Cantidad de métodos:", methods.length);
+      // console.log("🔍 ¿Incluye google.com?", methods.includes("google.com"));
+      // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       return methods;
     } catch (error) {
-      console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.error("❌ ERROR al verificar métodos para:", email);
-      console.error("❌ Error:", error);
-      console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      // console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      // console.error("❌ ERROR al verificar métodos para:", email);
+      // console.error("❌ Error:", error);
+      // console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       return [];
     }
   }
@@ -392,10 +392,10 @@ export function AuthProvider({ children }) {
     try {
       const credential = EmailAuthProvider.credential(usuario.email, password);
       await linkWithCredential(usuario, credential);
-      console.log("✅ Contraseña vinculada exitosamente");
+      // console.log("✅ Contraseña vinculada exitosamente");
       return { success: true };
     } catch (error) {
-      console.error("❌ Error al vincular contraseña:", error);
+      // console.error("❌ Error al vincular contraseña:", error);
       throw error;
     }
   }
@@ -428,13 +428,13 @@ export function AuthProvider({ children }) {
           await updateProfile(usuario, { displayName: data.displayName });
           setUsuario(auth.currentUser);
         } catch (err) {
-          console.warn("Error actualizando displayName en auth:", err);
+          // console.warn("Error actualizando displayName en auth:", err);
         }
       }
 
       return merged;
     } catch (err) {
-      console.error("actualizarUsuarioInfo error:", err);
+      // console.error("actualizarUsuarioInfo error:", err);
       throw err;
     }
   }
@@ -455,7 +455,7 @@ export function AuthProvider({ children }) {
       );
       setUsuarioInfo((prev) => ({ ...prev, fotoURL: photoURL }));
     } catch (err) {
-      console.warn("No se pudo persistir fotoURL en users/{uid}:", err);
+      // console.warn("No se pudo persistir fotoURL en users/{uid}:", err);
     }
     return photoURL;
   }
@@ -486,7 +486,7 @@ export function AuthProvider({ children }) {
 
       return true;
     } catch (err) {
-      console.error("Error al convertirse en vendedor:", err);
+      // console.error("Error al convertirse en vendedor:", err);
       throw err;
     }
   }
@@ -507,7 +507,7 @@ export function AuthProvider({ children }) {
 
       return true;
     } catch (err) {
-      console.error("Error al actualizar tienda:", err);
+      // console.error("Error al actualizar tienda:", err);
       throw err;
     }
   }
@@ -523,7 +523,7 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      console.log("🔐 LOGIN CON GOOGLE - Email:", user.email);
+      // console.log("🔐 LOGIN CON GOOGLE - Email:", user.email);
 
       // Verificar si el usuario ya existe en Firestore
       const docRef = doc(db, "users", user.uid);
@@ -553,19 +553,19 @@ export function AuthProvider({ children }) {
         };
 
         await setDoc(docRef, payload, { merge: true });
-        console.log("✅ Perfil creado");
+        // console.log("✅ Perfil creado");
       } else {
         // Actualizar admin si es necesario
         const userEmail = (user.email || "").toLowerCase().trim();
         if (userEmail === "arisleidy0712@gmail.com" && !docSnap.data().admin) {
           await setDoc(docRef, { admin: true, isAdmin: true }, { merge: true });
-          console.log("✅ Admin actualizado");
+          // console.log("✅ Admin actualizado");
         }
       }
 
       return result;
     } catch (err) {
-      console.error("❌ Error al iniciar sesión con Google:", err);
+      // console.error("❌ Error al iniciar sesión con Google:", err);
       throw err;
     }
   }
@@ -610,7 +610,7 @@ export function AuthProvider({ children }) {
 
       return result;
     } catch (err) {
-      console.error("Error al iniciar sesión con Apple:", err);
+      // console.error("Error al iniciar sesión con Apple:", err);
       throw err;
     }
   }

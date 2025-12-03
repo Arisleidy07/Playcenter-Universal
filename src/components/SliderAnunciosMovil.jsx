@@ -32,12 +32,6 @@ const anuncios = [
     isExternal: false,
   },
   {
-    id: 6,
-    img: "/ads/movil/ofertas.png",
-    link: "/Productos/ofertas-especiales",
-    isExternal: false,
-  },
-  {
     id: 7,
     img: "/ads/movil/productosads.png",
     link: "/Productos",

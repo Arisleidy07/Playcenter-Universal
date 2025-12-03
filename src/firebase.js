@@ -38,10 +38,10 @@ const functions = getFunctions(app);
 // Configurar persistencia LOCAL para que la sesión se mantenga incluso después de cerrar el navegador
 setPersistence(auth, browserLocalPersistence)
   .then(() => {
-    console.log("✅ Persistencia de sesión configurada (LOCAL)");
+    // console.log("✅ Persistencia de sesión configurada (LOCAL)");
   })
   .catch((error) => {
-    console.error("❌ Error al configurar persistencia:", error);
+    // console.error("❌ Error al configurar persistencia:", error);
   });
 
 export { db, auth, storage, functions };

@@ -139,7 +139,7 @@ export const performAutomatedVerification = async (productData) => {
     }
 
   } catch (error) {
-    console.error('Error in automated verification:', error);
+    // console.error('Error in automated verification:', error);
     verificationResults.issues.push({
       type: 'system_error',
       message: 'Error en la verificación automática',
@@ -305,7 +305,7 @@ export const transitionProductStatus = async (productId, newStatus, reason = '',
     
     return { success: true, status: newStatus };
   } catch (error) {
-    console.error('Error transitioning product status:', error);
+    // console.error('Error transitioning product status:', error);
     return { success: false, error: error.message };
   }
 };
@@ -358,7 +358,7 @@ export const submitForPublication = async (productId, productData, userId) => {
       };
     }
   } catch (error) {
-    console.error('Error submitting product for publication:', error);
+    // console.error('Error submitting product for publication:', error);
     return {
       success: false,
       error: 'Error al enviar el producto para publicación'

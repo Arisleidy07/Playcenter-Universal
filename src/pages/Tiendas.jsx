@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import LoadingSpinner from "../components/LoadingSpinner";
 import {
   Store,
   Star,
@@ -84,10 +85,15 @@ export default function Tiendas() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Cargando tiendas...</p>
+          <LoadingSpinner size="xlarge" color="blue" variant="pulse" />
+          <p className="text-gray-700 dark:text-gray-300 text-xl font-semibold mt-6 animate-pulse">
+            Cargando tiendas...
+          </p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+            Un momento por favor
+          </p>
         </div>
       </div>
     );
@@ -149,7 +155,7 @@ function TiendaCard({ tienda, index }) {
         setSiguiendo(doc.exists());
       },
       (error) => {
-        console.error("Error verificando seguidor:", error);
+        // console.error("Error verificando seguidor:", error);
       }
     );
 
@@ -170,7 +176,7 @@ function TiendaCard({ tienda, index }) {
         }
       },
       (error) => {
-        console.error("Error escuchando seguidores:", error);
+        // console.error("Error escuchando seguidores:", error);
       }
     );
 
@@ -248,7 +254,7 @@ function TiendaCard({ tienda, index }) {
         setSeguidores((prev) => prev + 1);
       }
     } catch (error) {
-      console.error("Error al seguir/dejar de seguir:", error);
+      // console.error("Error al seguir/dejar de seguir:", error);
       alert("Error al procesar la acción. Intenta de nuevo.");
     } finally {
       setLoadingSeguir(false);

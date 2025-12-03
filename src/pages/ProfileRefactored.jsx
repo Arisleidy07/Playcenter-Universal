@@ -83,7 +83,7 @@ export default function Profile() {
         const snapOrders = await getDocs(qOrders);
         setHistorial(snapOrders.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch (e) {
-        console.error("ProfileRefactored fetchData:", e);
+        // console.error("ProfileRefactored fetchData:", e);
       } finally {
         setLoadingOrders(false);
       }
@@ -100,7 +100,7 @@ export default function Profile() {
           snapAddress.docs.map((d) => ({ id: d.id, ...d.data() }))
         );
       } catch (e) {
-        console.error("ProfileRefactored loadAddresses:", e);
+        // console.error("ProfileRefactored loadAddresses:", e);
       } finally {
         setLoadingAddresses(false);
       }
@@ -126,7 +126,7 @@ export default function Profile() {
           }
         });
       } catch (e) {
-        console.error("listenStoreDoc:", e);
+        // console.error("listenStoreDoc:", e);
       }
     };
 
@@ -170,7 +170,7 @@ export default function Profile() {
           return;
         }
       } catch (e) {
-        console.error("fetchStore:", e);
+        // console.error("fetchStore:", e);
       }
     };
 
@@ -364,7 +364,7 @@ export default function Profile() {
                           }))
                         );
                       } catch (e) {
-                        console.error("delete address:", e);
+                        // console.error("delete address:", e);
                       }
                     }}
                     onSetDefault={async (addr) => {
@@ -389,7 +389,7 @@ export default function Profile() {
                           { merge: true }
                         );
                       } catch (e) {
-                        console.error("set default address:", e);
+                        // console.error("set default address:", e);
                       }
                     }}
                   />
@@ -440,7 +440,7 @@ export default function Profile() {
             });
             setEditModalOpen(false);
           } catch (e) {
-            console.error("save profile:", e);
+            // console.error("save profile:", e);
           } finally {
             setSavingProfile(false);
           }

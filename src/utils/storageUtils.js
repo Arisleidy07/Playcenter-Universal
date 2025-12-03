@@ -64,7 +64,7 @@ export async function uploadProfilePicture(file, userId, onProgress) {
           }
         },
         (error) => {
-          console.error("Error al subir imagen:", error);
+          // console.error("Error al subir imagen:", error);
           
           let errorMessage = "Error al subir la imagen";
           switch (error.code) {
@@ -127,7 +127,7 @@ export async function deleteProfilePicture(photoPath) {
     
     return { success: true };
   } catch (error) {
-    console.error("Error al eliminar imagen:", error);
+    // console.error("Error al eliminar imagen:", error);
     // No lanzar error si el archivo no existe
     if (error.code === "storage/object-not-found") {
       return { success: true, message: "El archivo ya no existe" };

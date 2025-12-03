@@ -10,7 +10,7 @@ export const validateImageUrl = async (url) => {
     const response = await fetch(url, { method: 'HEAD' });
     return response.ok;
   } catch (error) {
-    console.warn('URL de imagen inválida:', url, error);
+    // console.warn('URL de imagen inválida:', url, error);
     return false;
   }
 };

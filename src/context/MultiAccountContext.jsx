@@ -60,7 +60,7 @@ export function MultiAccountProvider({ children }) {
         return newList;
       });
     } catch (e) {
-      console.warn("removeAccount error:", e);
+      // console.warn("removeAccount error:", e);
     }
   };
   const clearTarget = () => setTargetAccount(null);
@@ -73,32 +73,32 @@ export function MultiAccountProvider({ children }) {
       // 🚀 MOSTRAR LOADER FULLSCREEN
       setIsSwitching(true);
 
-      console.log("🔄 Cambio INSTANTÁNEO a:", account.email);
+      // console.log("🔄 Cambio INSTANTÁNEO a:", account.email);
 
       // 1. Solicitar Custom Token del backend
       const issueToken = httpsCallable(functions, "issueSwitchToken");
-      console.log("📞 Llamando a Cloud Function...");
+      // console.log("📞 Llamando a Cloud Function...");
 
       const response = await issueToken({ email: account.email });
       const { customToken } = response.data;
 
       if (!customToken) {
-        console.error("❌ No se recibió custom token");
+        // console.error("❌ No se recibió custom token");
         setIsSwitching(false);
         return;
       }
 
-      console.log("✅ Custom token recibido");
+      // console.log("✅ Custom token recibido");
 
       // 2. Cerrar sesión actual
       try {
         await auth.signOut();
-        console.log("🚪 Sesión cerrada");
+        // console.log("🚪 Sesión cerrada");
       } catch (_) {}
 
       // 3. CAMBIO INSTANTÁNEO con Custom Token
       await signInWithCustomToken(auth, customToken);
-      console.log("🎉 ¡Cambio completado instantáneamente!");
+      // console.log("🎉 ¡Cambio completado instantáneamente!");
 
       // Pequeño delay para que se vea el loader
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -106,7 +106,7 @@ export function MultiAccountProvider({ children }) {
       // 🎉 OCULTAR LOADER
       setIsSwitching(false);
     } catch (e) {
-      console.error("❌ Error en switchAccount:", e);
+      // console.error("❌ Error en switchAccount:", e);
       setIsSwitching(false);
       alert("Error al cambiar de cuenta. Por favor intenta de nuevo.");
     }

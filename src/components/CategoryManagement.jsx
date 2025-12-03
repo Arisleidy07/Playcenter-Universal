@@ -72,7 +72,7 @@ const CategoryManagement = () => {
           const newPhantoms = e.newValue ? JSON.parse(e.newValue) : [];
           setPhantomCategoryIds(newPhantoms);
         } catch (error) {
-          console.error("Error al parsear phantomCategories:", error);
+          // console.error("Error al parsear phantomCategories:", error);
         }
       }
     };
@@ -120,7 +120,7 @@ const CategoryManagement = () => {
 
       return unsubscribe;
     } catch (error) {
-      console.error("Error loading categories:", error);
+      // console.error("Error loading categories:", error);
       setLoading(false);
     }
   };
@@ -156,7 +156,7 @@ const CategoryManagement = () => {
       const url = await getDownloadURL(imageRef);
       setFormData((prev) => ({ ...prev, imagen: url }));
     } catch (error) {
-      console.error("Error uploading image:", error);
+      // console.error("Error uploading image:", error);
       alert("Error al subir la imagen");
     } finally {
       setUploadingImage(false);
@@ -192,7 +192,7 @@ const CategoryManagement = () => {
       setShowForm(false);
       resetForm();
     } catch (error) {
-      console.error("Error saving category:", error);
+      // console.error("Error saving category:", error);
       alert("Error al guardar la categoría");
     } finally {
       setLoading(false);
@@ -206,7 +206,7 @@ const CategoryManagement = () => {
         fechaActualizacion: new Date(),
       });
     } catch (error) {
-      console.error("Error updating category status:", error);
+      // console.error("Error updating category status:", error);
       alert("Error al actualizar el estado de la categoría");
     }
   };
@@ -258,7 +258,7 @@ const CategoryManagement = () => {
 
       const verificacion = await getDoc(docRef);
       if (verificacion.exists()) {
-        console.error("❌ ERROR: La categoría AÚN EXISTE después de deleteDoc");
+        // console.error("❌ ERROR: La categoría AÚN EXISTE después de deleteDoc");
         alert(
           "❌ Error: No se pudo eliminar de Firebase.\n\nPosibles causas:\n1. Reglas de seguridad bloquean la eliminación\n2. No tienes permisos\n3. Problemas de red"
         );
@@ -272,12 +272,8 @@ const CategoryManagement = () => {
 
       alert(`✅ "${categoryName}" eliminada exitosamente de Firebase`);
     } catch (error) {
-      console.error(
-        "❌ [CategoryManagement] Error al eliminar categoría:",
-        error
-      );
-      console.error("📝 [CategoryManagement] Código de error:", error.code);
-      console.error("📝 [CategoryManagement] Mensaje:", error.message);
+      // Error al eliminar categoría
+      // console.error("📝 [CategoryManagement] Mensaje:", error.message);
 
       if (error.code === "permission-denied") {
         alert(
@@ -310,7 +306,7 @@ const CategoryManagement = () => {
 
       await Promise.all(updates);
     } catch (error) {
-      console.error("Error reordering categories:", error);
+      // console.error("Error reordering categories:", error);
       alert("Error al reordenar las categorías");
     }
   };
@@ -323,12 +319,13 @@ const CategoryManagement = () => {
 
   if (loading && categories.length === 0) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner
-          size="large"
-          color="blue"
-          text="Cargando categorías..."
-        />
+      <div className="flex justify-center items-center h-64 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-lg">
+        <div className="text-center">
+          <LoadingSpinner size="xlarge" color="blue" variant="pulse" />
+          <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold mt-4 animate-pulse">
+            Cargando categorías...
+          </p>
+        </div>
       </div>
     );
   }

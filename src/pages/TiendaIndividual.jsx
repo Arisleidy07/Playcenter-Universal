@@ -44,6 +44,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Cropper from "react-easy-crop";
 import TarjetaProducto from "../components/TarjetaProducto";
 import "../styles/CropModal.css";
+import "../styles/LoadingSpinner.css";
 
 export default function TiendaIndividual() {
   const { id } = useParams();
@@ -52,6 +53,7 @@ export default function TiendaIndividual() {
   const { isDark } = useTheme();
   const { setModalAbierto } = useAuthModal();
   const [tienda, setTienda] = useState(null);
+  const [tiendaCollection, setTiendaCollection] = useState(null); // 'tiendas' o 'stores'
   const [productos, setProductos] = useState([]);
   const [productosPorCategoria, setProductosPorCategoria] = useState({});
   const [categorias, setCategorias] = useState([]);
@@ -110,6 +112,7 @@ export default function TiendaIndividual() {
         (docSnap) => {
           if (docSnap.exists()) {
             setTienda({ id: docSnap.id, ...docSnap.data() });
+            setTiendaCollection("tiendas"); // Guardar colección
             setLoading(false);
             return;
           }
@@ -121,6 +124,7 @@ export default function TiendaIndividual() {
             (docSnapNew) => {
               if (docSnapNew.exists()) {
                 setTienda({ id: docSnapNew.id, ...docSnapNew.data() });
+                setTiendaCollection("stores"); // Guardar colección
                 setLoading(false);
               } else {
                 // No existe en ninguna colección
@@ -157,10 +161,10 @@ export default function TiendaIndividual() {
 
   // Cargar seguidores EN TIEMPO REAL y verificar si usuario sigue la tienda
   useEffect(() => {
-    if (!id) return;
+    if (!id || !tiendaCollection) return;
 
     // Listener en tiempo real para el contador de seguidores
-    const tiendaRef = doc(db, "tiendas", id);
+    const tiendaRef = doc(db, tiendaCollection, id);
     const unsubscribeTienda = onSnapshot(
       tiendaRef,
       (doc) => {
@@ -177,7 +181,13 @@ export default function TiendaIndividual() {
     // Verificar si el usuario actual sigue esta tienda EN TIEMPO REAL
     let unsubscribeSeguidor = null;
     if (usuario) {
-      const seguidorRef = doc(db, "tiendas", id, "seguidores", usuario.uid);
+      const seguidorRef = doc(
+        db,
+        tiendaCollection,
+        id,
+        "seguidores",
+        usuario.uid
+      );
       unsubscribeSeguidor = onSnapshot(
         seguidorRef,
         (doc) => {
@@ -194,7 +204,7 @@ export default function TiendaIndividual() {
       unsubscribeTienda();
       if (unsubscribeSeguidor) unsubscribeSeguidor();
     };
-  }, [id, usuario]);
+  }, [id, usuario, tiendaCollection]);
 
   const fetchProductos = async () => {
     try {
@@ -229,7 +239,7 @@ export default function TiendaIndividual() {
       setProductosPorCategoria(porCategoria);
       setCategorias(["todas", ...Array.from(categoriasUnicas)]);
     } catch (error) {
-      console.error("Error al cargar productos:", error);
+      // console.error("Error al cargar productos:", error);
     } finally {
       setLoadingProductos(false);
     }
@@ -239,6 +249,12 @@ export default function TiendaIndividual() {
   const handleFileChange = async (e, type) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
+      // Verificar que tengamos la colección correcta
+      if (!tiendaCollection) {
+        mostrarNotificacion("Error: No se pudo determinar la tienda", "error");
+        return;
+      }
+
       // SUBIR DIRECTAMENTE sin modal de crop
       setUploading(true);
       try {
@@ -246,52 +262,74 @@ export default function TiendaIndividual() {
         const imagePath = `tiendas/${id}/${type}-${Date.now()}`;
         const imageUrl = await uploadFile(file, imagePath);
 
-        // Actualizar directamente en Firestore (tiempo real)
-        const tiendaRef = doc(db, "tiendas", id);
+        // Actualizar en la colección correcta
+        const tiendaRef = doc(db, tiendaCollection, id);
         await updateDoc(tiendaRef, {
           [type]: imageUrl,
         });
 
-        // Mostrar notificación de éxito tipo toast moderna
-        const notification = document.createElement("div");
-        notification.className =
-          "fixed top-24 right-4 bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl z-[10000] flex items-center gap-3 font-semibold";
-        notification.style.opacity = "0";
-        notification.style.transform = "translateY(-20px)";
-        notification.style.transition = "all 0.3s ease-out";
-        notification.innerHTML = `
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          <span>${
-            type === "banner" ? "Banner" : "Logo"
-          } actualizado correctamente</span>
-        `;
-        document.body.appendChild(notification);
-
-        // Fade in
-        setTimeout(() => {
-          notification.style.opacity = "1";
-          notification.style.transform = "translateY(0)";
-        }, 10);
-
-        // Fade out
-        setTimeout(() => {
-          notification.style.opacity = "0";
-          notification.style.transform = "translateY(-20px)";
-          setTimeout(() => {
-            if (notification.parentNode) {
-              document.body.removeChild(notification);
-            }
-          }, 300);
-        }, 3000);
+        // Mostrar notificación de éxito
+        mostrarNotificacion(
+          `${type === "banner" ? "Banner" : "Logo"} actualizado correctamente`,
+          "success"
+        );
       } catch (error) {
-        console.error(`Error al actualizar ${type}:`, error);
-        alert(`Error al actualizar ${type}`);
+        // Mostrar error en la página, no en consola
+        let mensajeError = `No se pudo actualizar el ${
+          type === "banner" ? "banner" : "logo"
+        }`;
+
+        if (error.code === "not-found") {
+          mensajeError = "La tienda no existe. Por favor recarga la página.";
+        } else if (error.code === "permission-denied") {
+          mensajeError = "No tienes permiso para editar esta tienda.";
+        } else if (error.message) {
+          mensajeError += ": " + error.message;
+        }
+
+        mostrarNotificacion(mensajeError, "error");
       } finally {
         setUploading(false);
       }
     }
+  };
+
+  // Función helper para mostrar notificaciones
+  const mostrarNotificacion = (mensaje, tipo = "success") => {
+    const notification = document.createElement("div");
+    const bgColor = tipo === "success" ? "bg-green-600" : "bg-red-600";
+    const iconSuccess =
+      '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
+    const iconError =
+      '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
+    const icon = tipo === "success" ? iconSuccess : iconError;
+
+    notification.className = `fixed top-24 right-4 ${bgColor} text-white px-6 py-3 rounded-full shadow-2xl z-[10000] flex items-center gap-3 font-semibold max-w-md`;
+    notification.style.opacity = "0";
+    notification.style.transform = "translateY(-20px)";
+    notification.style.transition = "all 0.3s ease-out";
+    notification.innerHTML = icon + "<span>" + mensaje + "</span>";
+    document.body.appendChild(notification);
+
+    // Fade in
+    setTimeout(() => {
+      notification.style.opacity = "1";
+      notification.style.transform = "translateY(0)";
+    }, 10);
+
+    // Fade out
+    setTimeout(
+      () => {
+        notification.style.opacity = "0";
+        notification.style.transform = "translateY(-20px)";
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      },
+      tipo === "error" ? 5000 : 3000
+    );
   };
 
   // Callback cuando el crop se completa
@@ -319,7 +357,7 @@ export default function TiendaIndividual() {
       setCropType(null);
       setCroppedAreaPixels(null);
     } catch (error) {
-      console.error("Error al recortar imagen:", error);
+      // console.error("Error al recortar imagen:", error);
       alert("Error al procesar la imagen");
     }
   };
@@ -386,7 +424,7 @@ export default function TiendaIndividual() {
 
   // Función para actualizar banner o logo directamente (tiempo real)
   const updateStoreImage = async (imageBlob, type) => {
-    if (!isOwner) return;
+    if (!isOwner || !tiendaCollection) return;
 
     setUploading(true);
     try {
@@ -394,8 +432,8 @@ export default function TiendaIndividual() {
       const imagePath = `tiendas/${id}/${type}-${Date.now()}`;
       const imageUrl = await uploadFile(imageBlob, imagePath);
 
-      // Actualizar directamente en Firestore (tiempo real)
-      const tiendaRef = doc(db, "tiendas", id);
+      // Actualizar en la colección correcta
+      const tiendaRef = doc(db, tiendaCollection, id);
       await updateDoc(tiendaRef, {
         [type]: imageUrl,
       });
@@ -435,7 +473,7 @@ export default function TiendaIndividual() {
         }, 300);
       }, 3000);
     } catch (error) {
-      console.error(`Error al actualizar ${type}:`, error);
+      // console.error(`Error al actualizar ${type}:`, error);
       alert(`Error al actualizar ${type}`);
     } finally {
       setUploading(false);
@@ -471,8 +509,12 @@ export default function TiendaIndividual() {
         updates.logo = logoUrl;
       }
 
-      // Actualizar en Firestore
-      const tiendaRef = doc(db, "tiendas", id);
+      // Actualizar en Firestore usando la colección correcta
+      if (!tiendaCollection) {
+        mostrarNotificacion("Error: No se pudo determinar la tienda", "error");
+        return;
+      }
+      const tiendaRef = doc(db, tiendaCollection, id);
       await updateDoc(tiendaRef, updates);
 
       // Actualizar estado local
@@ -506,9 +548,21 @@ export default function TiendaIndividual() {
 
     setLoadingSeguir(true);
 
+    if (!tiendaCollection) {
+      mostrarNotificacion("Error: No se pudo cargar la tienda", "error");
+      setLoadingSeguir(false);
+      return;
+    }
+
     try {
-      const tiendaRef = doc(db, "tiendas", id);
-      const seguidorRef = doc(db, "tiendas", id, "seguidores", usuario.uid);
+      const tiendaRef = doc(db, tiendaCollection, id);
+      const seguidorRef = doc(
+        db,
+        tiendaCollection,
+        id,
+        "seguidores",
+        usuario.uid
+      );
       const usuarioRef = doc(db, "usuarios", usuario.uid);
 
       if (siguiendo) {
@@ -562,7 +616,7 @@ export default function TiendaIndividual() {
         setSeguidores((prev) => prev + 1);
       }
     } catch (error) {
-      console.error("Error al seguir/dejar de seguir:", error);
+      // console.error("Error al seguir/dejar de seguir:", error);
       alert("Error al procesar la acción. Intenta de nuevo.");
     } finally {
       setLoadingSeguir(false);
@@ -585,15 +639,9 @@ export default function TiendaIndividual() {
   if (loading) {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center">
-        <div className="text-center">
-          <div
-            className="spinner-border text-primary mb-4"
-            role="status"
-            style={{ width: "4rem", height: "4rem" }}
-          >
-            <span className="visually-hidden">Cargando...</span>
-          </div>
-          <p className="text-muted fs-5">Cargando tienda...</p>
+        <div className="loading-state">
+          <div className="loading-spinner" />
+          <span>Cargando tienda...</span>
         </div>
       </div>
     );
@@ -979,21 +1027,12 @@ export default function TiendaIndividual() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-5"
+              className="d-flex justify-content-center align-items-center py-5"
             >
-              <div className="d-inline-block position-relative">
-                <div
-                  className="spinner-border text-primary"
-                  role="status"
-                  style={{ width: "5rem", height: "5rem" }}
-                >
-                  <span className="visually-hidden">Cargando...</span>
-                </div>
+              <div className="loading-state">
+                <div className="loading-spinner" />
+                <span>Cargando productos...</span>
               </div>
-              <p className="text-dark fs-4 fw-semibold mt-4">
-                Cargando productos...
-              </p>
-              <p className="text-muted small mt-2">Un momento por favor</p>
             </motion.div>
           ) : productosFiltrados.length === 0 ? (
             <motion.div

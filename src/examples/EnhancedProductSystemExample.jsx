@@ -187,20 +187,20 @@ const EnhancedProductSystemExample = () => {
 
   // Example handlers
   const handleProductUpdate = (productId, updates) => {
-    console.log('Product updated:', productId, updates);
+    // console.log('Product updated:', productId, updates);
   };
 
   const handleProductCreate = (productData) => {
-    console.log('Product created:', productData);
+    // console.log('Product created:', productData);
   };
 
   const handleProductDelete = (productId) => {
-    console.log('Product deleted:', productId);
+    // console.log('Product deleted:', productId);
   };
 
   const handleValidateProduct = async (productData) => {
     const validation = await validateProduct(productData);
-    console.log('Validation result:', validation);
+    // console.log('Validation result:', validation);
     return validation;
   };
 
@@ -210,7 +210,7 @@ const EnhancedProductSystemExample = () => {
       productData,
       'user_123' // Current user ID
     );
-    console.log('Publish result:', result);
+    // console.log('Publish result:', result);
     return result;
   };
 

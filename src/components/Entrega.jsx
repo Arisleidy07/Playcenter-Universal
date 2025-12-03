@@ -211,7 +211,7 @@ export default function Entrega({
       const dirs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setDirecciones(dirs);
     } catch (err) {
-      console.error("fetchDirecciones error:", err);
+      // console.error("fetchDirecciones error:", err);
       setDirecciones([]);
     } finally {
       setLoadingDirecciones(false);
@@ -261,20 +261,20 @@ export default function Entrega({
   // Handle Escape key to close modal and prevent body scroll
   useEffect(() => {
     if (!abierto) return;
-    
+
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && onClose) {
+      if (e.key === "Escape" && onClose) {
         onClose();
       }
     };
-    
+
     // Prevent body scroll when modal is open
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleEscape);
-    
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleEscape);
+
     return () => {
-      document.body.style.overflow = 'unset';
-      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = "unset";
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [abierto, onClose]);
 
@@ -328,7 +328,7 @@ export default function Entrega({
 
   const handleGuardarDireccion = async () => {
     const currentUid = uid || usuario?.uid;
-    console.log("Auth check:", { uid, usuario: usuario?.uid, currentUid });
+    // console.log("Auth check:", { uid, usuario: usuario?.uid, currentUid });
 
     if (!currentUid) {
       alert("Error de autenticación. Recarga la página e intenta de nuevo.");
@@ -368,7 +368,7 @@ export default function Entrega({
             });
           }
         } catch (err) {
-          console.warn("No se pudo persistir tiendaPayload en users/usuarios:", err);
+          // console.warn("No se pudo persistir tiendaPayload en users/usuarios:", err);
         }
 
         if (onClose) onClose();
@@ -443,21 +443,21 @@ export default function Entrega({
         telefono: telefono,
         updatedAt: new Date(),
       };
-      
+
       // Save to user profile collections
       try {
         await setDoc(doc(db, "users", currentUid), savePayload, {
           merge: true,
         });
       } catch (err) {
-        console.warn("No se pudo escribir users/{uid}:", err);
+        // console.warn("No se pudo escribir users/{uid}:", err);
       }
       try {
         await setDoc(doc(db, "usuarios", currentUid), savePayload, {
           merge: true,
         });
       } catch (err) {
-        console.warn("No se pudo escribir usuarios/{uid}:", err);
+        // console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
       // Also update user context if available
@@ -476,7 +476,7 @@ export default function Entrega({
       // Reload page immediately - animation covers the reload
       window.location.reload();
     } catch (err) {
-      console.error("handleGuardarDireccion error:", err);
+      // console.error("handleGuardarDireccion error:", err);
       alert(`Error guardando dirección: ${err?.message || err}`);
     } finally {
       setGuardando(false);
@@ -510,12 +510,12 @@ export default function Entrega({
       try {
         await setDoc(doc(db, "users", currentUid), payload, { merge: true });
       } catch (err) {
-        console.warn("No se pudo escribir users/{uid}:", err);
+        // console.warn("No se pudo escribir users/{uid}:", err);
       }
       try {
         await setDoc(doc(db, "usuarios", currentUid), payload, { merge: true });
       } catch (err) {
-        console.warn("No se pudo escribir usuarios/{uid}:", err);
+        // console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
       try {
@@ -532,7 +532,7 @@ export default function Entrega({
           }
         }
       } catch (err) {
-        console.warn("No se pudo releer documento de usuario:", err);
+        // console.warn("No se pudo releer documento de usuario:", err);
       }
 
       await fetchDirecciones();
@@ -543,7 +543,7 @@ export default function Entrega({
       // Reload page immediately - animation covers the reload
       window.location.reload();
     } catch (err) {
-      console.error("handleSeleccionarDireccion error:", err);
+      // console.error("handleSeleccionarDireccion error:", err);
       setShowVanAnimation(false);
       alert(`Error seleccionando dirección: ${err?.message || err}`);
     }
@@ -556,7 +556,7 @@ export default function Entrega({
       if (typeof actualizarLista === "function") actualizarLista();
       alert("Dirección eliminada correctamente.");
     } catch (err) {
-      console.error("eliminarDireccion:", err);
+      // console.error("eliminarDireccion:", err);
       alert(`Error eliminando dirección: ${err?.message || err}`);
     }
   };
@@ -625,7 +625,7 @@ export default function Entrega({
         setGeoLoading(false);
       },
       (err) => {
-        console.error("Error geolocalización:", err);
+        // console.error("Error geolocalización:", err);
         let mensaje = "No se pudo obtener la ubicación.";
 
         switch (err.code) {
@@ -682,7 +682,7 @@ export default function Entrega({
         exit={{ opacity: 0 }}
         onClick={onClose}
       />
-      
+
       {/* Fullscreen Modal */}
       <motion.div
         className="entrega-slider"
@@ -780,60 +780,73 @@ export default function Entrega({
             </motion.button>
           </div>
 
-          {metodoEntrega === "domicilio" && (
-            <motion.button
-              type="button"
-              onClick={agregarUbicacionActual}
-              className={`location-btn ${geoLoading ? "loading" : ""}`}
-              disabled={geoLoading}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <LocateFixed
-                className={`w-5 h-5 ${geoLoading ? "animate-pulse" : ""}`}
-              />
-              <span>
-                {geoLoading
-                  ? "Obteniendo ubicación..."
-                  : "Usar mi ubicación actual"}
-              </span>
-            </motion.button>
-          )}
-
-          {metodoEntrega === "tienda" && (
-            <motion.div
-              className="tienda-phone-form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="form-group">
-                <label className="form-label">Teléfono de contacto *</label>
-                <input
-                  type="tel"
-                  placeholder="Ej: 809-555-1234"
-                  value={telefono}
-                  onChange={(e) => {
-                    setTelefono(e.target.value);
-                    if (phoneError) setPhoneError("");
-                  }}
-                  className="form-input"
-                  required
+          <AnimatePresence mode="wait">
+            {metodoEntrega === "domicilio" && (
+              <motion.button
+                key="location-btn"
+                type="button"
+                onClick={agregarUbicacionActual}
+                className={`location-btn ${geoLoading ? "loading" : ""}`}
+                disabled={geoLoading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, height: 0, y: 10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{
+                  duration: 0.3,
+                  ease: [0.4, 0, 0.2, 1],
+                }}
+              >
+                <LocateFixed
+                  className={`w-5 h-5 ${geoLoading ? "animate-pulse" : ""}`}
                 />
-                {phoneError && (
-                  <div className="phone-error-message">
-                    <span>⚠️ {phoneError}</span>
-                  </div>
-                )}
-                <p className="form-note">
-                  📞 Te contactaremos cuando tu pedido esté listo para recoger
-                </p>
-              </div>
-            </motion.div>
-          )}
+                <span>
+                  {geoLoading
+                    ? "Obteniendo ubicación..."
+                    : "Usar mi ubicación actual"}
+                </span>
+              </motion.button>
+            )}
+
+            {metodoEntrega === "tienda" && (
+              <motion.div
+                key="tienda-form"
+                className="tienda-phone-form"
+                initial={{ opacity: 0, height: 0, y: 20 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -20 }}
+                transition={{
+                  duration: 0.4,
+                  ease: [0.4, 0, 0.2, 1],
+                  height: { duration: 0.4 },
+                }}
+              >
+                <div className="form-group">
+                  <label className="form-label">Teléfono de contacto *</label>
+                  <input
+                    type="tel"
+                    placeholder="Ej: 809-555-1234"
+                    value={telefono}
+                    onChange={(e) => {
+                      setTelefono(e.target.value);
+                      if (phoneError) setPhoneError("");
+                    }}
+                    className="form-input"
+                    required
+                  />
+                  {phoneError && (
+                    <div className="phone-error-message">
+                      <span>⚠️ {phoneError}</span>
+                    </div>
+                  )}
+                  <p className="form-note">
+                    📞 Te contactaremos cuando tu pedido esté listo para recoger
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="entrega-form">
             <AnimatePresence>
@@ -875,10 +888,14 @@ export default function Entrega({
                 <motion.div
                   key="domicilio-form"
                   className="address-form"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, height: 0, y: 20 }}
+                  animate={{ opacity: 1, height: "auto", y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -20 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.4, 0, 0.2, 1],
+                    height: { duration: 0.4 },
+                  }}
                 >
                   <div className="form-section">
                     <label className="form-label">Provincia *</label>
@@ -1414,16 +1431,16 @@ h78.747C231.693,100.736,232.77,106.162,232.77,111.694z"
       {showVanAnimation && (
         <div className="truck-loader-overlay">
           <div className="spinner">
-            <div></div>   
-            <div></div>    
-            <div></div>    
-            <div></div>    
-            <div></div>    
-            <div></div>    
-            <div></div>    
-            <div></div>    
-            <div></div>    
-            <div></div>    
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
           </div>
           <div className="truck-loader-text">Procesando entrega...</div>
         </div>

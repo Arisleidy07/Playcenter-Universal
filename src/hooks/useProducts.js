@@ -75,7 +75,7 @@ export const useProducts = (includeInactive = false) => {
             setLoading(false);
           },
           (err) => {
-            console.error("Error fetching products:", err);
+            // console.error("Error fetching products:", err);
             setError(err.message);
             setLoading(false);
           }
@@ -83,7 +83,7 @@ export const useProducts = (includeInactive = false) => {
 
         return unsubscribe;
       } catch (err) {
-        console.error("Error setting up products listener:", err);
+        // console.error("Error setting up products listener:", err);
         setError(err.message);
         setLoading(false);
       }
@@ -177,7 +177,7 @@ export const useProductsByCategory = (categoryId) => {
             setLoading(false);
           },
           (err) => {
-            console.error("Error fetching products by category:", err);
+            // console.error("Error fetching products by category:", err);
             setError(err.message);
             setLoading(false);
           }
@@ -185,7 +185,7 @@ export const useProductsByCategory = (categoryId) => {
 
         return unsubscribe;
       } catch (err) {
-        console.error("Error setting up products by category listener:", err);
+        // console.error("Error setting up products by category listener:", err);
         setError(err.message);
         setLoading(false);
       }
@@ -347,7 +347,7 @@ export const useCategories = () => {
             setLoading(false);
           },
           (err) => {
-            console.error("Error fetching categories:", err);
+            // console.error("Error fetching categories:", err);
             setError(err.message);
             setLoading(false);
           }
@@ -355,7 +355,7 @@ export const useCategories = () => {
 
         return unsubscribe;
       } catch (err) {
-        console.error("Error setting up categories listener:", err);
+        // console.error("Error setting up categories listener:", err);
         setError(err.message);
         setLoading(false);
       }
@@ -394,7 +394,7 @@ export const useProductsByCategories = () => {
         setProductsByCategory(grouped);
         setLoading(false);
       } catch (e) {
-        console.error("Error grouping products by categories:", e);
+        // console.error("Error grouping products by categories:", e);
         setError(e.message || "Error agrupando productos");
         setLoading(false);
       }
@@ -416,7 +416,7 @@ export const useProductsByCategories = () => {
           regroup();
         },
         (err) => {
-          console.error("Error fetching categories (rt):", err);
+          // console.error("Error fetching categories (rt):", err);
           setError(err.message);
           setLoading(false);
         }
@@ -449,13 +449,13 @@ export const useProductsByCategories = () => {
           regroup();
         },
         (err) => {
-          console.error("Error fetching products (rt):", err);
+          // console.error("Error fetching products (rt):", err);
           setError(err.message);
           setLoading(false);
         }
       );
     } catch (err) {
-      console.error("Error setting up realtime listeners:", err);
+      // console.error("Error setting up realtime listeners:", err);
       setError(err.message);
       setLoading(false);
     }
@@ -522,7 +522,7 @@ export const useProductSearch = (searchTerm, categoryFilter = "") => {
 
         setResults(filtered);
       } catch (err) {
-        console.error("Error searching products:", err);
+        // console.error("Error searching products:", err);
         setError(err.message);
       } finally {
         setLoading(false);

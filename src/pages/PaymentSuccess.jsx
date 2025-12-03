@@ -44,12 +44,12 @@ export default function PaymentSuccess() {
         const sessionKey = sessionStorage.getItem('cardnetSessionKey');
         
         if (!sessionKey) {
-          console.error('❌ No se encontró sessionKey');
+          // console.error('❌ No se encontró sessionKey');
           setStatus({ error: 'Sesión inválida' });
           return;
         }
 
-        console.log('🔍 Verificando transacción con Cardnet...');
+        // console.log('🔍 Verificando transacción con Cardnet...');
 
         // Llamar a Firebase Function para verificar
         const verifyTransaction = httpsCallable(functions, 'verifyCardnetTransaction');
@@ -58,7 +58,7 @@ export default function PaymentSuccess() {
         const data = result.data;
         setStatus(data);
         
-        console.log('✅ Resultado de verificación:', data);
+        // console.log('✅ Resultado de verificación:', data);
 
         // Si el pago fue exitoso Y no hemos creado la orden, crearla ahora
         if (data.ResponseCode === "00" && !orderCreated) {
@@ -103,11 +103,11 @@ export default function PaymentSuccess() {
               sessionStorage.removeItem('cardnetOrderId');
               sessionStorage.removeItem('cardnetTransactionId');
               
-              console.log("✅ Orden creada exitosamente - Email se enviará automáticamente");
+              // console.log("✅ Orden creada exitosamente - Email se enviará automáticamente");
             }
           }
       } catch (err) {
-        console.error("Error cargando datos:", err);
+        // console.error("Error cargando datos:", err);
       }
     };
 

@@ -875,7 +875,7 @@ export default function Profile() {
       const snap = await getDocs(q);
       setHistorial(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
-      console.error("fetchHistorial:", err);
+      // console.error("fetchHistorial:", err);
     }
   };
 
@@ -888,7 +888,7 @@ export default function Profile() {
       const snap = await getDocs(q);
       setDirecciones(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
-      console.error("fetchDirecciones:", err);
+      // console.error("fetchDirecciones:", err);
     }
   };
 
@@ -917,7 +917,7 @@ export default function Profile() {
       await logout();
       navigate("/");
     } catch (err) {
-      console.error("logout:", err);
+      // console.error("logout:", err);
       toast("Error cerrando sesión.", "error", 5000);
     }
   };
@@ -950,7 +950,7 @@ export default function Profile() {
       cancelLocalPreview();
       toast("Foto actualizada.", "success");
     } catch (err) {
-      console.error("uploadLocalImage:", err);
+      // console.error("uploadLocalImage:", err);
       toast("Error subiendo imagen.", "error", 5000);
     } finally {
       setLoading(false);
@@ -976,7 +976,7 @@ export default function Profile() {
       try {
         await setDoc(doc(db, "users", usuario.uid), payload, { merge: true });
       } catch (err) {
-        console.warn("No se pudo escribir users/{uid}:", err);
+        // console.warn("No se pudo escribir users/{uid}:", err);
       }
 
       try {
@@ -984,7 +984,7 @@ export default function Profile() {
           merge: true,
         });
       } catch (err) {
-        console.warn("No se pudo escribir usuarios/{uid}:", err);
+        // console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
       const cambios = {};
@@ -995,7 +995,7 @@ export default function Profile() {
       setEditMode(false);
       toast("Perfil guardado.", "success");
     } catch (err) {
-      console.error("Error guardando perfil:", err);
+      // console.error("Error guardando perfil:", err);
       toast("Error guardando perfil.", "error");
     } finally {
       setLoading(false);
@@ -1011,7 +1011,7 @@ export default function Profile() {
       cancelLocalPreview();
       toast("Imagen de perfil removida.", "success");
     } catch (err) {
-      console.error("confirmRemoveImage:", err);
+      // console.error("confirmRemoveImage:", err);
       toast("Error removiendo imagen.", "error");
     } finally {
       setLoading(false);
@@ -1040,14 +1040,14 @@ export default function Profile() {
       try {
         await setDoc(doc(db, "users", usuario.uid), payload, { merge: true });
       } catch (err) {
-        console.warn("No se pudo escribir users/{uid}:", err);
+        // console.warn("No se pudo escribir users/{uid}:", err);
       }
       try {
         await setDoc(doc(db, "usuarios", usuario.uid), payload, {
           merge: true,
         });
       } catch (err) {
-        console.warn("No se pudo escribir usuarios/{uid}:", err);
+        // console.warn("No se pudo escribir usuarios/{uid}:", err);
       }
 
       try {
@@ -1062,7 +1062,7 @@ export default function Profile() {
           });
         }
       } catch (err) {
-        console.warn("No se pudo releer documento de usuario:", err);
+        // console.warn("No se pudo releer documento de usuario:", err);
       }
 
       if (modalEntregaOpen) setModalEntregaOpen(false);
@@ -1073,7 +1073,7 @@ export default function Profile() {
 
       window.location.reload();
     } catch (err) {
-      console.error("handleSeleccionarDireccion error:", err);
+      // console.error("handleSeleccionarDireccion error:", err);
       setShowFullLoader(false);
       toast("Error seleccionando dirección.", "error", 5000);
     }
@@ -1103,7 +1103,7 @@ export default function Profile() {
       await fetchDirecciones();
       toast("Dirección eliminada correctamente.", "success");
     } catch (err) {
-      console.error("eliminarDireccion:", err);
+      // console.error("eliminarDireccion:", err);
       toast("Error eliminando dirección.", "error");
     }
   };

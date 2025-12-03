@@ -15,7 +15,7 @@ export async function autoFixFollowers() {
   }
 
   isFixing = true;
-  console.log("🔧 Verificando contadores...");
+  // console.log("🔧 Verificando contadores...");
 
   try {
     const usersSnap = await getDocs(collection(db, "users"));
@@ -59,12 +59,12 @@ export async function autoFixFollowers() {
     }
 
     if (arreglados > 0) {
-      console.log(`✅ Contadores corregidos: ${arreglados} usuarios`);
+      // console.log(`✅ Contadores corregidos: ${arreglados} usuarios`);
     } else {
-      console.log(`✓ Todos los contadores están correctos`);
+      // console.log(`✓ Todos los contadores están correctos`);
     }
   } catch (error) {
-    console.error("Error en auto-fix:", error);
+    // console.error("Error en auto-fix:", error);
   } finally {
     isFixing = false;
   }
