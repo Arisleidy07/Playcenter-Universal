@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Camera, X } from "lucide-react";
 
 export default function EditProfileModal({
   open,
@@ -11,14 +12,53 @@ export default function EditProfileModal({
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [direccion, setDireccion] = useState("");
+  const [newPhoto, setNewPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (open) {
       setNombre(initialInfo?.displayName || "");
       setTelefono(initialInfo?.telefono || "");
       setDireccion(initialInfo?.direccion || "");
+      setPhotoPreview(initialInfo?.fotoURL || null);
+      setNewPhoto(null);
+      setRemovePhoto(false);
     }
   }, [open, initialInfo]);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setNewPhoto(file);
+      setRemovePhoto(false);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setNewPhoto(null);
+    setPhotoPreview(null);
+    setRemovePhoto(true);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleSave = () => {
+    onSave({
+      displayName: nombre,
+      telefono,
+      direccion,
+      newPhoto,
+      removePhoto,
+    });
+  };
 
   return (
     <AnimatePresence>
@@ -59,6 +99,51 @@ export default function EditProfileModal({
                 ✕
               </button>
             </div>
+
+            {/* Profile Photo Section */}
+            <div
+              className="flex flex-col items-center mb-6"
+              style={{ position: "relative", zIndex: 1 }}
+            >
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                  {photoPreview ? (
+                    <img
+                      src={photoPreview}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{nombre?.charAt(0)?.toUpperCase() || "U"}</span>
+                  )}
+                </div>
+                {photoPreview && (
+                  <button
+                    onClick={handleRemovePhoto}
+                    className="absolute -top-1 -right-1 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                    style={{ position: "absolute", zIndex: 2 }}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-3 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2 text-sm font-medium"
+                style={{ position: "relative", zIndex: 1 }}
+              >
+                <Camera size={16} />
+                {photoPreview ? "Cambiar foto" : "Subir foto"}
+              </button>
+            </div>
+
             <div
               className="space-y-4"
               style={{ position: "relative", zIndex: 1 }}
@@ -116,9 +201,7 @@ export default function EditProfileModal({
                 disabled={saving}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
                 style={{ position: "relative", zIndex: 1 }}
-                onClick={() =>
-                  onSave({ displayName: nombre, telefono, direccion })
-                }
+                onClick={handleSave}
               >
                 {saving ? "Guardando..." : "Guardar cambios"}
               </button>
@@ -148,6 +231,44 @@ export default function EditProfileModal({
                   ✕
                 </button>
               </div>
+
+              {/* Profile Photo Section */}
+              <div
+                className="flex flex-col items-center mb-6"
+                style={{ position: "relative", zIndex: 1 }}
+              >
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                    {photoPreview ? (
+                      <img
+                        src={photoPreview}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{nombre?.charAt(0)?.toUpperCase() || "U"}</span>
+                    )}
+                  </div>
+                  {photoPreview && (
+                    <button
+                      onClick={handleRemovePhoto}
+                      className="absolute -top-1 -right-1 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                      style={{ position: "absolute", zIndex: 2 }}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-3 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2 text-sm font-medium"
+                  style={{ position: "relative", zIndex: 1 }}
+                >
+                  <Camera size={16} />
+                  {photoPreview ? "Cambiar foto" : "Subir foto"}
+                </button>
+              </div>
+
               <div
                 className="space-y-4"
                 style={{ position: "relative", zIndex: 1 }}
@@ -205,9 +326,7 @@ export default function EditProfileModal({
                   disabled={saving}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
                   style={{ position: "relative", zIndex: 1 }}
-                  onClick={() =>
-                    onSave({ displayName: nombre, telefono, direccion })
-                  }
+                  onClick={handleSave}
                 >
                   {saving ? "Guardando..." : "Guardar cambios"}
                 </button>

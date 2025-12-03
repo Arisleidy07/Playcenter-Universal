@@ -10,7 +10,13 @@ import {
   setDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
+import { db, storage } from "../firebase";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuthModal } from "../context/AuthModalContext";
@@ -420,16 +426,47 @@ export default function Profile() {
         onSave={async (data) => {
           try {
             setSavingProfile(true);
+
+            let photoURL = usuarioInfo?.fotoURL;
+
+            // Handle photo upload
+            if (data.newPhoto) {
+              const storageRef = ref(
+                storage,
+                `usuarios/${usuario.uid}/profile.jpg`
+              );
+              await uploadBytes(storageRef, data.newPhoto);
+              photoURL = await getDownloadURL(storageRef);
+            }
+
+            // Handle photo removal
+            if (data.removePhoto) {
+              photoURL = null;
+              // Try to delete from storage (ignore errors if doesn't exist)
+              try {
+                const storageRef = ref(
+                  storage,
+                  `usuarios/${usuario.uid}/profile.jpg`
+                );
+                await deleteObject(storageRef);
+              } catch (err) {
+                // Photo might not exist, that's okay
+              }
+            }
+
             await actualizarUsuarioInfo({
               displayName: data.displayName,
               telefono: data.telefono,
               direccion: data.direccion,
+              ...(photoURL !== usuarioInfo?.fotoURL && { fotoURL: photoURL }),
             });
+
             // Persist also to users and usuarios for parity with legacy logic
             const payload = {
               displayName: data.displayName,
               telefono: data.telefono,
               direccion: data.direccion,
+              ...(photoURL !== usuarioInfo?.fotoURL && { fotoURL: photoURL }),
               updatedAt: new Date(),
             };
             await setDoc(doc(db, "users", usuario.uid), payload, {
@@ -440,7 +477,8 @@ export default function Profile() {
             });
             setEditModalOpen(false);
           } catch (e) {
-            // console.error("save profile:", e);
+            console.error("save profile:", e);
+            alert("Error al guardar: " + e.message);
           } finally {
             setSavingProfile(false);
           }
