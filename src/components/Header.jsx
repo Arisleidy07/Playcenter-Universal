@@ -181,28 +181,35 @@ const Header = () => {
                       />
                     </Link>
 
-                    {/* Método de entrega al lado del logo */}
-                    {usuario && (
-                      <button
-                        onClick={() => setModalEntrega(true)}
-                        className="btn btn-sm delivery-btn d-flex align-items-center gap-1"
-                        style={{
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        <FaMapMarkerAlt size={10} className="delivery-icon" />
-                        <div style={{ textAlign: "left", lineHeight: "1.1" }}>
-                          <div style={{ fontSize: "9px", opacity: 0.7 }}>
-                            Enviar a
-                          </div>
-                          <div style={{ fontSize: "10px", fontWeight: "600" }}>
-                            {entregaSubtitle.length > 15
-                              ? entregaSubtitle.substring(0, 15) + "..."
-                              : entregaSubtitle}
-                          </div>
+                    {/* Método de entrega al lado del logo - SIEMPRE VISIBLE */}
+                    <button
+                      onClick={() => {
+                        if (!usuario) {
+                          alert(
+                            "Debes iniciar sesión para seleccionar un método de entrega"
+                          );
+                          setModalAbierto(true);
+                        } else {
+                          setModalEntrega(true);
+                        }
+                      }}
+                      className="btn btn-sm delivery-btn d-flex align-items-center gap-1"
+                      style={{
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <FaMapMarkerAlt size={10} className="delivery-icon" />
+                      <div style={{ textAlign: "left", lineHeight: "1.1" }}>
+                        <div style={{ fontSize: "9px", opacity: 0.7 }}>
+                          Enviar a
                         </div>
-                      </button>
-                    )}
+                        <div style={{ fontSize: "10px", fontWeight: "600" }}>
+                          {entregaSubtitle.length > 15
+                            ? entregaSubtitle.substring(0, 15) + "..."
+                            : entregaSubtitle}
+                        </div>
+                      </div>
+                    </button>
                   </div>
 
                   {/* Buscador central - GIGANTE */}
@@ -854,7 +861,7 @@ const Header = () => {
       </div>
 
       {/* Modal de entrega (desde header) */}
-      {modalEntrega && usuario && (
+      {modalEntrega && (
         <Entrega
           abierto={modalEntrega}
           onClose={() => setModalEntrega(false)}
@@ -1223,6 +1230,105 @@ const Header = () => {
                     </svg>
                     Carrito
                   </Link>
+
+                  {/* Método de entrega - Estilizado justo debajo del carrito */}
+                  <div className="px-2 py-2">
+                    <button
+                      onClick={() => {
+                        if (!usuario) {
+                          setMenuOpen(false);
+                          alert(
+                            "Debes iniciar sesión para seleccionar un método de entrega"
+                          );
+                          setModalAbierto(true);
+                        } else {
+                          setMenuOpen(false);
+                          setModalEntrega(true);
+                        }
+                      }}
+                      className="w-100 d-flex align-items-center gap-3 px-3 py-3 rounded-3 border-0 text-start"
+                      style={{
+                        background: isDark
+                          ? "linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.15))"
+                          : "linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(37, 99, 235, 0.08))",
+                        border: isDark
+                          ? "1px solid rgba(59, 130, 246, 0.3)"
+                          : "1px solid rgba(59, 130, 246, 0.2)",
+                        transition: "all 0.2s ease",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = isDark
+                          ? "linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.25))"
+                          : "linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.12))";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow = isDark
+                          ? "0 4px 12px rgba(59, 130, 246, 0.3)"
+                          : "0 4px 12px rgba(59, 130, 246, 0.2)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = isDark
+                          ? "linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.15))"
+                          : "linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(37, 99, 235, 0.08))";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    >
+                      <div
+                        className="d-flex align-items-center justify-content-center rounded-circle"
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          minWidth: "40px",
+                          background: isDark
+                            ? "linear-gradient(135deg, #3b82f6, #2563eb)"
+                            : "linear-gradient(135deg, #60a5fa, #3b82f6)",
+                          boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
+                        }}
+                      >
+                        <FaMapMarkerAlt size={18} color="#ffffff" />
+                      </div>
+                      <div className="d-flex flex-column flex-grow-1">
+                        <span
+                          className="fw-bold"
+                          style={{
+                            color: isDark ? "#f9fafb" : "#111827",
+                            fontSize: "14px",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Método de entrega
+                        </span>
+                        <span
+                          className="small"
+                          style={{
+                            color: isDark ? "#9ca3af" : "#6b7280",
+                            fontSize: "12px",
+                            lineHeight: "1.3",
+                          }}
+                        >
+                          {entregaSubtitle.length > 35
+                            ? entregaSubtitle.substring(0, 35) + "..."
+                            : entregaSubtitle}
+                        </span>
+                      </div>
+                      <svg
+                        width="20"
+                        height="20"
+                        fill="none"
+                        stroke={isDark ? "#60a5fa" : "#3b82f6"}
+                        viewBox="0 0 24 24"
+                        style={{ minWidth: "20px" }}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
 
                   {/* Panel Admin si aplica */}
                   {(usuarioInfo?.isAdmin ||

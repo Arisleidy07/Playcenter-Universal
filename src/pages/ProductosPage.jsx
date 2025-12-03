@@ -249,7 +249,7 @@ function ProductosPage() {
         <main className="flex-1 p-0 xl:p-4 relative pb-32">
           {/* Botones de Categorías y Filtros con animación inteligente */}
           <div
-            className={`flex justify-between items-center px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-600/30 transition-all duration-500 ease-in-out ${
+            className={`flex justify-between items-center gap-2 px-2 sm:px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-600/30 transition-all duration-500 ease-in-out ${
               isScrolled ? "fixed top-0 left-0 right-0 z-50" : "relative"
             }`}
             style={{
@@ -271,12 +271,12 @@ function ProductosPage() {
           >
             <button
               onClick={() => setMostrarCategorias(true)}
-              className={`flex items-center gap-2.5 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+              className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
                 isScrolled ? "scale-95" : "scale-100"
               }`}
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4 sm:w-5 sm:h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -288,7 +288,7 @@ function ProductosPage() {
                   d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
-              <span>Categorías</span>
+              <span className="whitespace-nowrap">Categorías</span>
             </button>
             <BotonFiltro
               onClick={() => setFiltrosVisible(true)}
@@ -300,13 +300,13 @@ function ProductosPage() {
           {isScrolled && (
             <div
               className="xl:hidden"
-              style={{ height: "68px" }} // Altura más precisa para la barra de botones
+              style={{ height: "56px" }} // Altura ajustada para botones más pequeños
             />
           )}
 
           {/* TÍTULO ARRIBA DE LAS BOLITAS */}
-          <div className="mb-2 mt-1 px-4 xl:px-0">
-            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
+          <div className="mb-2 mt-1 px-2 sm:px-4 xl:px-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
               {categoriaActiva === "Todos"
                 ? "Todos los productos"
                 : categoriaActiva}
@@ -321,7 +321,7 @@ function ProductosPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3 sm:gap-4 px-4 xl:px-0 mb-2 justify-start">
+          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4 px-2 sm:px-4 xl:px-0 mb-2 justify-start">
             {logosEmpresa.map((empresa) => {
               const isActive = brandFilter.norm === empresa.norm;
               return (
@@ -333,9 +333,9 @@ function ProductosPage() {
                       display: empresa.nombre,
                     })
                   }
-                  className={`group relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white dark:bg-gray-800 border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
+                  className={`group relative w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-white dark:bg-gray-800 border-2 sm:border-4 flex items-center justify-center shadow-xl hover:scale-110 transition-all duration-300 ${
                     isActive
-                      ? "border-blue-700 ring-4 ring-offset-2 ring-blue-500 animate-spin-slow"
+                      ? "border-blue-700 ring-2 sm:ring-4 ring-offset-1 sm:ring-offset-2 ring-blue-500 animate-spin-slow"
                       : "border-gray-300 hover:border-blue-400"
                   }`}
                   title={empresa.nombre}
@@ -343,7 +343,7 @@ function ProductosPage() {
                   <img
                     src={empresa.imagen}
                     alt={empresa.nombre}
-                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain z-10"
+                    className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain z-10"
                   />
                   {isActive && (
                     <span className="absolute inset-0 rounded-full border-4 border-blue-500 animate-pulse z-0"></span>
@@ -354,7 +354,7 @@ function ProductosPage() {
 
             <button
               onClick={() => setBrandFilter({ norm: "", display: "" })}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 flex items-center justify-center text-lg sm:text-xl font-bold bg-gradient-to-br from-red-100 to-red-300 text-red-700 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
+              className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-2 sm:border-4 flex items-center justify-center text-base sm:text-lg md:text-xl font-bold bg-gradient-to-br from-red-100 to-red-300 text-red-700 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
               title="Quitar filtro"
             >
               ❌
@@ -366,7 +366,7 @@ function ProductosPage() {
               No hay productos que coincidan con tus filtros.
             </p>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 px-4 xl:px-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 px-2 sm:px-4 xl:px-0">
               {productosFiltrados.map((producto) => (
                 <TarjetaProducto key={producto.id} producto={producto} />
               ))}
