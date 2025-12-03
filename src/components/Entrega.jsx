@@ -1181,10 +1181,17 @@ export default function Entrega({
         </div>
       </motion.div>
 
-      {/* Van Animation - Profile.jsx Style */}
+      {/* Modern Loading Animation with Dark Mode Support */}
       <AnimatePresence>
         {showVanAnimation && (
-          <div className="loaderOverlay" role="status" aria-live="polite">
+          <motion.div
+            className="loaderOverlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            role="status"
+            aria-live="polite"
+          >
             <div className="loaderInner">
               <div className="loader">
                 <div className="truckWrapper">
@@ -1311,9 +1318,16 @@ h78.747C231.693,100.736,232.77,106.162,232.77,111.694z"
                   </svg>
                 </div>
               </div>
-              <div className="loaderText">¡Dirección seleccionada!</div>
+              <motion.div
+                className="loaderText"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                ¡Dirección seleccionada!
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -1426,25 +1440,6 @@ h78.747C231.693,100.736,232.77,106.162,232.77,111.694z"
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Spinner Loading Animation */}
-      {showVanAnimation && (
-        <div className="truck-loader-overlay">
-          <div className="spinner">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>
-          <div className="truck-loader-text">Procesando entrega...</div>
-        </div>
-      )}
 
       <ProvinciaPicker
         abierto={pickerAbierto}
