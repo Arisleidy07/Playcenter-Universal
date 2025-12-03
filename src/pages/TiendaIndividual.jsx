@@ -1041,21 +1041,21 @@ export default function TiendaIndividual() {
               className="text-center py-5"
             >
               <div
-                className="bg-light rounded-4 p-5 mx-auto border border-2 border-dashed border-secondary"
+                className="bg-light dark:bg-gray-800 rounded-4 p-5 mx-auto border border-2 border-dashed border-secondary dark:border-gray-600"
                 style={{ maxWidth: "48rem" }}
               >
                 <div
-                  className="bg-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4 shadow"
+                  className="bg-white dark:bg-gray-700 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4 shadow dark:shadow-gray-900"
                   style={{ width: "6rem", height: "6rem" }}
                 >
-                  <Store size={48} className="text-muted" />
+                  <Store size={48} className="text-muted dark:text-gray-400" />
                 </div>
-                <h3 className="h2 fw-bold text-dark mb-3">
+                <h3 className="h2 fw-bold text-dark dark:text-white mb-3">
                   {busqueda || categoriaSeleccionada !== "todas"
                     ? "🔍 No hay coincidencias"
                     : "📦 Sin productos disponibles"}
                 </h3>
-                <p className="text-muted fs-5 mb-4">
+                <p className="text-muted dark:text-gray-400 fs-5 mb-4">
                   {busqueda || categoriaSeleccionada !== "todas"
                     ? "Intenta ajustar tus filtros de búsqueda o explora otras categorías"
                     : "Esta tienda aún no tiene productos disponibles. ¡Vuelve pronto!"}

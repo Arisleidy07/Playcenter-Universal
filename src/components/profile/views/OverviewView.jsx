@@ -17,15 +17,17 @@ export default function OverviewView({
       <div className="flex gap-6 items-start pb-6 border-b border-gray-200 dark:border-gray-700">
         {/* Avatar */}
         <div className="flex-shrink-0">
-          <img
-            src={
-              user?.photoURL ||
-              info?.avatar ||
-              "https://via.placeholder.com/150"
-            }
-            alt={name}
-            className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover"
-          />
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg">
+            {info?.fotoURL || user?.photoURL ? (
+              <img
+                src={info?.fotoURL || user?.photoURL}
+                alt={name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span>{name?.charAt(0)?.toUpperCase() || "U"}</span>
+            )}
+          </div>
         </div>
 
         {/* Nombre y estadísticas */}

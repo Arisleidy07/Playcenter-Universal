@@ -54,6 +54,7 @@ export default function Profile() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [direccionEditar, setDireccionEditar] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Estados para modales de seguidores/seguidos
   const [followersModalOpen, setFollowersModalOpen] = useState(false);
@@ -263,6 +264,7 @@ export default function Profile() {
             >
               <div className="flex-shrink-0">
                 <ProfileHeader
+                  key={refreshKey}
                   user={usuario}
                   userInfo={usuarioInfo}
                   simple={true}
@@ -289,6 +291,7 @@ export default function Profile() {
             {/* Header + Mobile Nav (solo móvil) */}
             <div className="xl:hidden mb-6 overflow-visible">
               <ProfileHeader
+                key={refreshKey}
                 user={usuario}
                 userInfo={usuarioInfo}
                 onLogout={() => setShowLogoutConfirm(true)}
@@ -316,6 +319,7 @@ export default function Profile() {
               >
                 {activeView === "perfil" && (
                   <OverviewView
+                    key={refreshKey}
                     user={usuario}
                     info={usuarioInfo}
                     stats={stats}
@@ -458,7 +462,7 @@ export default function Profile() {
               displayName: data.displayName,
               telefono: data.telefono,
               direccion: data.direccion,
-              ...(photoURL !== usuarioInfo?.fotoURL && { fotoURL: photoURL }),
+              fotoURL: photoURL,
             });
 
             // Persist also to users and usuarios for parity with legacy logic
@@ -466,7 +470,7 @@ export default function Profile() {
               displayName: data.displayName,
               telefono: data.telefono,
               direccion: data.direccion,
-              ...(photoURL !== usuarioInfo?.fotoURL && { fotoURL: photoURL }),
+              fotoURL: photoURL,
               updatedAt: new Date(),
             };
             await setDoc(doc(db, "users", usuario.uid), payload, {
@@ -475,6 +479,9 @@ export default function Profile() {
             await setDoc(doc(db, "usuarios", usuario.uid), payload, {
               merge: true,
             });
+
+            // Force component refresh to show new photo immediately
+            setRefreshKey((prev) => prev + 1);
             setEditModalOpen(false);
           } catch (e) {
             console.error("save profile:", e);
