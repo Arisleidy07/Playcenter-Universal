@@ -648,6 +648,14 @@ function VistaProducto() {
 
   const { product: producto, loading, error } = useProduct(id);
 
+  // Derived values - available throughout component
+  const allVariantes = Array.isArray(producto?.variantes)
+    ? producto.variantes
+    : [];
+  const variantesConColor = allVariantes.filter(
+    (v) => v && typeof v.color === "string" && v.color.trim()
+  );
+
   // Helper functions for media processing - available throughout component
   const getGalleryVideos = () => {
     if (!producto) return [];
@@ -696,17 +704,6 @@ function VistaProducto() {
     }
   }, [desktopMediaIndex]);
 
-  // Si el elemento mostrado pasa a ser un video, desactivar zoom de inmediato
-  useEffect(() => {
-    const curr =
-      (Array.isArray(desktopMediaItems) &&
-        desktopMediaItems[displayDesktopIndex]) ||
-      null;
-    if (!curr || curr.type !== "image") {
-      setIsZooming(false);
-    }
-  }, [displayDesktopIndex]);
-
   // Handle scroll for mobile actions visibility
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -728,12 +725,6 @@ function VistaProducto() {
   // Update cart quantity when carrito changes
   useEffect(() => {
     if (producto) {
-      const allVariantes = Array.isArray(producto?.variantes)
-        ? producto.variantes
-        : [];
-      const variantesConColor = allVariantes.filter(
-        (v) => v && typeof v.color === "string" && v.color.trim()
-      );
       const varianteActivaUI = variantesConColor[varianteSeleccionada] || null;
 
       const currentInCart = carrito.find(
@@ -744,7 +735,7 @@ function VistaProducto() {
       );
       setCartQuantity(currentInCart?.cantidad || 0);
     }
-  }, [carrito, producto, varianteSeleccionada]);
+  }, [carrito, producto, varianteSeleccionada, variantesConColor]);
 
   // Cargar nombre REAL de la tienda desde Firestore
   useEffect(() => {
@@ -1012,7 +1003,6 @@ function VistaProducto() {
       return false;
     }
   };
-  // varianteActivaParaMedios already calculated earlier - using global definition
 
   // Normalizar color: tratar "" y null como lo mismo para evitar duplicados
   const normalizeColor = (c) => {
@@ -1125,8 +1115,6 @@ function VistaProducto() {
   const cerrarImagenModal = () => {
     setImagenModalAbierta(false);
   };
-
-  // buildImageList function moved earlier to avoid duplicate declaration
 
   // imagenes already calculated earlier - using global definition
   // Estados derivados para layout compacto cuando no hay medios ni variantes
@@ -2121,10 +2109,7 @@ function VistaProducto() {
         (() => {
           // ⚠️ AMAZON: SOLO mostrar medios de la variante activa
           const galleryVideos = getGalleryVideos();
-          const galleryImages = buildImageList(
-            producto,
-            varianteActivaParaMedios
-          );
+          const galleryImages = getGalleryImages();
           const hasVideos = galleryVideos.length > 0;
 
           const currentMediaItems =

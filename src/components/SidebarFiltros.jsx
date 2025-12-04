@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Slider from "@mui/material/Slider";
-import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import WaveBackground from "./WaveBackground"; // Fondo animado
 import "../index.css";
@@ -58,11 +57,24 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
     setProductosFiltrados(filtrados);
   }, [filtros, productosOriginales]);
 
-  const handlePrecioChange = (event, newValue) => {
-    setFiltros((prev) => ({
-      ...prev,
-      precio: { min: newValue[0], max: newValue[1] },
-    }));
+  const handleMinPrecioChange = (e) => {
+    const value = e.target.value.replace(/,/g, "");
+    if (value === "" || /^\d+$/.test(value)) {
+      setFiltros((prev) => ({
+        ...prev,
+        precio: { ...prev.precio, min: value === "" ? 0 : Number(value) },
+      }));
+    }
+  };
+
+  const handleMaxPrecioChange = (e) => {
+    const value = e.target.value.replace(/,/g, "");
+    if (value === "" || /^\d+$/.test(value)) {
+      setFiltros((prev) => ({
+        ...prev,
+        precio: { ...prev.precio, max: value === "" ? 1000000 : Number(value) },
+      }));
+    }
   };
 
   const onReset = () => {
@@ -163,12 +175,50 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         </div>
 
         <div className="mb-6">
-          <Typography
-            gutterBottom
-            className="text-sm font-semibold text-blue-700 dark:text-blue-300"
-          >
-            Precio (RD$)
-          </Typography>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+            Rango de precio
+          </h3>
+
+          {/* Inputs numéricos */}
+          <div className="space-y-2 mb-4">
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs font-medium">
+                RD$
+              </span>
+              <input
+                type="text"
+                value={
+                  filtros.precio.min === 0
+                    ? ""
+                    : filtros.precio.min.toLocaleString("es-DO")
+                }
+                onChange={handleMinPrecioChange}
+                placeholder="Mín"
+                className="w-full pl-8 pr-2 py-2 text-xs font-medium border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-500 focus:ring-0 dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-colors hover:border-gray-300 dark:hover:border-gray-600"
+              />
+            </div>
+            <div className="text-center text-gray-400 dark:text-gray-500 text-xs font-medium">
+              —
+            </div>
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs font-medium">
+                RD$
+              </span>
+              <input
+                type="text"
+                value={
+                  filtros.precio.max >= 1000000
+                    ? ""
+                    : filtros.precio.max.toLocaleString("es-DO")
+                }
+                onChange={handleMaxPrecioChange}
+                placeholder="Máx"
+                className="w-full pl-8 pr-2 py-2 text-xs font-medium border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-500 focus:ring-0 dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-colors hover:border-gray-300 dark:hover:border-gray-600"
+              />
+            </div>
+          </div>
+
+          {/* Slider arrastrando */}
           <Box
             sx={{
               px: 1,
@@ -199,11 +249,17 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
             <Slider
               value={[
                 typeof filtros.precio.min === "number" ? filtros.precio.min : 0,
-                typeof filtros.precio.max === "number"
+                typeof filtros.precio.max === "number" &&
+                filtros.precio.max < 1000000
                   ? filtros.precio.max
                   : 1000000,
               ]}
-              onChange={handlePrecioChange}
+              onChange={(e, newValue) => {
+                setFiltros((prev) => ({
+                  ...prev,
+                  precio: { min: newValue[0], max: newValue[1] },
+                }));
+              }}
               valueLabelDisplay="auto"
               min={0}
               max={1000000}
@@ -211,7 +267,12 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
           </Box>
           <div className="flex justify-between text-sm mt-2 text-gray-700 dark:text-gray-300">
             <span>RD${filtros.precio.min.toLocaleString("es-DO")}</span>
-            <span>RD${filtros.precio.max.toLocaleString("es-DO")}</span>
+            <span>
+              RD$
+              {filtros.precio.max >= 1000000
+                ? "1M+"
+                : filtros.precio.max.toLocaleString("es-DO")}
+            </span>
           </div>
         </div>
 

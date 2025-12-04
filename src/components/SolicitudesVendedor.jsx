@@ -109,10 +109,10 @@ export default function SolicitudesVendedor() {
         fechaRevision: new Date(),
         storeId: storeRef.id,
       });
-      // console.log("✅ Solicitud marcada como aprobada");
+      console.log("✅ Solicitud marcada como aprobada");
 
       // 4. OPCIONAL: Enviar notificación por email
-      // console.log("📧 Paso 4/4: Encolando email...");
+      console.log("📧 Paso 4/4: Encolando email...");
       // Esto se puede implementar con Firebase Functions + SendGrid/Mailgun
       // Por ahora guardamos la notificación en Firestore para procesarla después
       try {
@@ -145,13 +145,9 @@ export default function SolicitudesVendedor() {
           status: "pending",
           createdAt: new Date(),
         });
-        // console.log("✅ Email encolado para:", solicitud.email);
       } catch (emailError) {
-        // console.warn("⚠️ No se pudo encolar el email:", emailError);
         // No fallar si el email no se pudo enviar
       }
-
-      // console.log("🎉 APROBACIÓN COMPLETADA CON ÉXITO");
 
       // Mensaje detallado
       const mensaje = solicitud.userId
@@ -160,11 +156,7 @@ export default function SolicitudesVendedor() {
 
       alert(mensaje);
     } catch (error) {
-      // console.error("❌ ERROR al aprobar solicitud:", error);
-      // console.error("Detalles:", error.message);
-      alert(
-        `❌ Error al aprobar la solicitud:\n\n${error.message}\n\nRevisa la consola para más detalles.`
-      );
+      alert(`❌ Error al aprobar la solicitud:\n\n${error.message}`);
     } finally {
       setProcesando(null);
     }
@@ -185,7 +177,7 @@ export default function SolicitudesVendedor() {
 
       alert(`❌ Solicitud rechazada.`);
     } catch (error) {
-      // console.error("Error al rechazar solicitud:", error);
+      console.error("Error al rechazar solicitud:", error);
       alert("Hubo un error al rechazar la solicitud.");
     } finally {
       setProcesando(null);

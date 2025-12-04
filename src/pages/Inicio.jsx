@@ -789,8 +789,8 @@ function Inicio() {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[1600px] mx-auto px-4 mt-16">
         {[
           {
-            to: "/Productos/consolas",
-            src: "/ads/nintendoswtitchads.png",
+            to: "/Productos/hogar-inteligente",
+            src: "/ads/smart.png",
             alt: "Consolas",
           },
           {
