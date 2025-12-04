@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Store,
   Package,
@@ -7,6 +7,8 @@ import {
   CheckCircle2,
   Shield,
   Globe,
+  X,
+  ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
@@ -23,6 +25,9 @@ export default function Vender() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentCtaVideoIndex, setCurrentCtaVideoIndex] = useState(0);
   const [verificando, setVerificando] = useState(false);
+  const [tieneTienda, setTieneTienda] = useState(false);
+  const [nombreTienda, setNombreTienda] = useState("");
+  const [mostrarModalTienda, setMostrarModalTienda] = useState(false);
   const images = ["/vender/2.png", "/vender/3.png", "/vender/4.png"];
   const videos = [
     "/vender/1-.mp4",
@@ -68,10 +73,61 @@ export default function Vender() {
     return () => clearInterval(interval);
   }, [ctaVideos.length]);
 
+  // Verificar si el usuario ya tiene una tienda
+  useEffect(() => {
+    const verificarTienda = async () => {
+      if (!usuario) {
+        setTieneTienda(false);
+        setVerificando(false);
+        return;
+      }
+
+      try {
+        setVerificando(true);
+
+        // Buscar en la colección "stores" con el campo "ownerUid"
+        const storesRef = collection(db, "stores");
+        const q = query(storesRef, where("ownerUid", "==", usuario.uid));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // El usuario ya tiene tienda
+          const tiendaData = querySnapshot.docs[0].data();
+          setTieneTienda(true);
+          setNombreTienda(tiendaData.nombre || tiendaData.name || "Mi Tienda");
+          console.log(
+            "✅ Usuario tiene tienda:",
+            tiendaData.nombre || tiendaData.name
+          );
+        } else {
+          setTieneTienda(false);
+          console.log("❌ Usuario NO tiene tienda");
+        }
+      } catch (error) {
+        console.error("Error verificando tienda:", error);
+        setTieneTienda(false);
+      } finally {
+        setVerificando(false);
+      }
+    };
+
+    verificarTienda();
+  }, [usuario]);
+
   const handleComenzar = () => {
-    // NUEVO FLUJO: Siempre ir a formulario de solicitud
-    // Ya NO se verifica si está logueado ni si tiene tienda
+    // Si el usuario ya tiene tienda, mostrar modal
+    if (tieneTienda) {
+      setMostrarModalTienda(true);
+      return;
+    }
+
+    // Si no tiene tienda, ir a solicitar
     navigate("/solicitar-vender");
+  };
+
+  const handleVisitarTienda = () => {
+    setMostrarModalTienda(false);
+    navigate("/admin"); // O la ruta de su tienda
   };
 
   const fadeInUp = {
@@ -617,6 +673,111 @@ export default function Vender() {
           </div>
         </div>
       </section>
+
+      {/* Modal: Ya tienes tienda */}
+      <AnimatePresence>
+        {mostrarModalTienda && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+            onClick={() => setMostrarModalTienda(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`relative max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl ${
+                darkMode ? "bg-slate-800" : "bg-white"
+              }`}
+            >
+              {/* Botón cerrar */}
+              <button
+                onClick={() => setMostrarModalTienda(false)}
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
+                  darkMode
+                    ? "hover:bg-slate-700 text-gray-300"
+                    : "hover:bg-gray-100 text-gray-600"
+                }`}
+              >
+                <X size={20} />
+              </button>
+
+              {/* Icono */}
+              <div className="flex justify-center mb-6">
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    darkMode ? "bg-yellow-400/20" : "bg-blue-100"
+                  }`}
+                >
+                  <Store
+                    className={`w-8 h-8 ${
+                      darkMode ? "text-yellow-400" : "text-blue-600"
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Título */}
+              <h2
+                className={`text-2xl sm:text-3xl font-bold text-center mb-4 ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                ¡Ya tienes una tienda!
+              </h2>
+
+              {/* Mensaje */}
+              <p
+                className={`text-center mb-6 text-base sm:text-lg ${
+                  darkMode ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
+                Ya cuentas con tu tienda{" "}
+                <span
+                  className={`font-bold ${
+                    darkMode ? "text-yellow-400" : "text-blue-600"
+                  }`}
+                >
+                  "{nombreTienda}"
+                </span>
+                . No puedes crear otra tienda con esta cuenta.
+              </p>
+
+              {/* Botones */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleVisitarTienda}
+                  className={`w-full py-3 px-6 rounded-lg font-bold text-white transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center gap-2 ${
+                    darkMode
+                      ? "bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                >
+                  <Store size={20} />
+                  <span>Visitar mi tienda</span>
+                  <ExternalLink size={16} />
+                </button>
+
+                <button
+                  onClick={() => setMostrarModalTienda(false)}
+                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 border-2 ${
+                    darkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

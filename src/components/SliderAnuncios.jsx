@@ -12,14 +12,14 @@ const anuncios = [
   {
     id: 6,
     img: "/ads/2.png",
-    link: "https://playcenterwisp.com",
+    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
     isExternal: true,
   },
   {
     id: 2,
     img: "/ads/3.png",
-    link: "https://maps.app.goo.gl/ZSXza3ESVeLEPPx78",
-    isExternal: true,
+    link: "/Productos",
+    isExternal: false,
   },
   {
     id: 3,
@@ -27,7 +27,7 @@ const anuncios = [
     link: "/Productos/videojuegos",
     isExternal: false,
   },
-  { id: 5, img: "/ads/5.png", link: "/Productos", isExternal: false },
+  { id: 5, img: "/ads/5.png", link: "https://playcenterwisp.com", isExternal: true },
 ];
 
 function SliderAnuncios() {

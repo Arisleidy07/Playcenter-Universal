@@ -1,25 +1,49 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Store, Settings, ExternalLink, Plus } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "../../../firebase";
+import { useNavigate } from "react-router-dom";
 
 export default function StoreView({ stats, user, userInfo, store, storeId }) {
   const { convertirseEnVendedor } = useAuth();
+  const navigate = useNavigate();
   const hasProducts = (stats?.publicaciones || 0) > 0;
+  const [localStoreId, setLocalStoreId] = useState(storeId);
+  const [localStore, setLocalStore] = useState(store);
+  const [creatingStore, setCreatingStore] = useState(false);
   const storeName =
+    localStore?.nombre ||
+    localStore?.name ||
     store?.nombre ||
     store?.name ||
     userInfo?.storeName ||
     userInfo?.tiendaNombre ||
+    userInfo?.displayName ||
     "Mi Tienda";
   const avatar =
+    localStore?.logo ||
+    localStore?.logoUrl ||
     store?.logo ||
     store?.logoUrl ||
     store?.image ||
     store?.foto ||
     userInfo?.storeImage ||
     userInfo?.tiendaLogoURL ||
+    userInfo?.photoURL ||
+    userInfo?.fotoURL ||
     "";
   const banner =
+    localStore?.banner ||
+    localStore?.bannerUrl ||
     store?.banner ||
     store?.bannerUrl ||
     store?.cover ||
@@ -28,10 +52,14 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
     userInfo?.tiendaBannerURL ||
     "";
   const storeDescription =
+    localStore?.descripcion ||
+    localStore?.description ||
     store?.descripcion ||
     store?.description ||
     userInfo?.storeDescription ||
-    "";
+    `Tienda de ${userInfo?.displayName || "productos"}. ${
+      stats?.publicaciones || 0
+    } productos disponibles.`;
 
   const isAdmin =
     userInfo?.role === "admin" ||
@@ -39,6 +67,88 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
     userInfo?.isAdmin === true;
   const isSeller = userInfo?.role === "seller" || userInfo?.isSeller === true;
   const canManage = isAdmin || isSeller;
+
+  // Buscar o crear tienda automáticamente
+  useEffect(() => {
+    if (!user || !canManage) return;
+
+    const findOrCreateStore = async () => {
+      try {
+        // Si ya tenemos storeId, verificar que existe
+        if (storeId || localStoreId) {
+          const id = storeId || localStoreId;
+          const storeDoc = await getDoc(doc(db, "tiendas", id));
+          if (storeDoc.exists()) {
+            setLocalStoreId(id);
+            setLocalStore({ id, ...storeDoc.data() });
+            return;
+          }
+        }
+
+        // Buscar tienda por diferentes campos
+        const searchFields = ["ownerId", "owner_id", "propietarioId", "userId"];
+
+        for (const field of searchFields) {
+          const q = query(
+            collection(db, "tiendas"),
+            where(field, "==", user.uid)
+          );
+          const snap = await getDocs(q);
+
+          if (!snap.empty) {
+            const foundStore = snap.docs[0];
+            setLocalStoreId(foundStore.id);
+            setLocalStore({ id: foundStore.id, ...foundStore.data() });
+            return;
+          }
+        }
+
+        // Si es admin, usar tienda principal
+        if (isAdmin) {
+          const mainStoreDoc = await getDoc(
+            doc(db, "tiendas", "playcenter_universal")
+          );
+          if (mainStoreDoc.exists()) {
+            setLocalStoreId("playcenter_universal");
+            setLocalStore({
+              id: "playcenter_universal",
+              ...mainStoreDoc.data(),
+            });
+            return;
+          }
+        }
+
+        // Si no existe, crear tienda nueva
+        if (!localStoreId && canManage) {
+          setCreatingStore(true);
+          const newStoreId = `tienda_${user.uid}`;
+          const newStoreData = {
+            nombre: userInfo?.storeName || userInfo?.displayName || "Mi Tienda",
+            descripcion: `Tienda de ${userInfo?.displayName || "productos"}`,
+            ownerId: user.uid,
+            userId: user.uid,
+            owner_id: user.uid,
+            propietarioId: user.uid,
+            logo: userInfo?.photoURL || userInfo?.fotoURL || "",
+            banner: "",
+            activo: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          await setDoc(doc(db, "tiendas", newStoreId), newStoreData);
+          setLocalStoreId(newStoreId);
+          setLocalStore({ id: newStoreId, ...newStoreData });
+          setCreatingStore(false);
+        }
+      } catch (error) {
+        console.error("Error finding/creating store:", error);
+        setCreatingStore(false);
+      }
+    };
+
+    findOrCreateStore();
+  }, [user, userInfo, storeId, localStoreId, canManage, isAdmin]);
 
   if (!canManage) {
     return (
@@ -146,20 +256,28 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
 
             {/* Acciones */}
             <div className="flex gap-3 w-full md:w-auto mt-4 md:mt-0">
-              <a
-                href={storeId ? `/tiendas/${storeId}` : "/tiendas"}
-                className="flex-1 md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
+              <button
+                onClick={() => {
+                  const targetStoreId = localStoreId || storeId;
+                  if (targetStoreId) {
+                    navigate(`/tiendas/${targetStoreId}`);
+                  } else {
+                    navigate("/tiendas");
+                  }
+                }}
+                disabled={creatingStore}
+                className="flex-1 md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ExternalLink size={18} />
-                <span>Ver Tienda</span>
-              </a>
-              <a
-                href="/admin"
+                <span>{creatingStore ? "Creando..." : "Ver Mi Tienda"}</span>
+              </button>
+              <button
+                onClick={() => navigate("/admin")}
                 className="flex-1 md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
               >
                 <Settings size={18} />
                 <span>Gestionar</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>
