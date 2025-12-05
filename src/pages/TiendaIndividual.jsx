@@ -208,17 +208,46 @@ export default function TiendaIndividual() {
 
   const fetchProductos = async () => {
     try {
-      const q = query(
+      // Buscar productos por storeId (campo correcto que usa ProductForm)
+      const qStoreId = query(
         collection(db, "productos"),
-        where("tienda_id", "==", id),
+        where("storeId", "==", id),
         where("activo", "==", true)
       );
 
-      const snapshot = await getDocs(q);
-      const productosData = snapshot.docs.map((doc) => ({
+      const snapshotStoreId = await getDocs(qStoreId);
+      let productosData = snapshotStoreId.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+
+      // Si no hay productos con storeId, buscar por ownerUid (para tiendas nuevas)
+      if (productosData.length === 0 && tienda?.ownerId) {
+        const qOwner = query(
+          collection(db, "productos"),
+          where("ownerUid", "==", tienda.ownerId),
+          where("activo", "==", true)
+        );
+        const snapshotOwner = await getDocs(qOwner);
+        productosData = snapshotOwner.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      }
+
+      // Fallback: buscar por campo legacy tienda_id
+      if (productosData.length === 0) {
+        const qLegacy = query(
+          collection(db, "productos"),
+          where("tienda_id", "==", id),
+          where("activo", "==", true)
+        );
+        const snapshotLegacy = await getDocs(qLegacy);
+        productosData = snapshotLegacy.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      }
 
       setProductos(productosData);
 

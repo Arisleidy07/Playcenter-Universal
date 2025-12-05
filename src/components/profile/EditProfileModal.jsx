@@ -106,7 +106,7 @@ export default function EditProfileModal({
               style={{ position: "relative", zIndex: 1 }}
             >
               <div className="relative">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-700 dark:text-white text-2xl font-bold shadow-lg">
                   {photoPreview ? (
                     <img
                       src={photoPreview}
@@ -238,7 +238,7 @@ export default function EditProfileModal({
                 style={{ position: "relative", zIndex: 1 }}
               >
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-700 dark:text-white text-2xl font-bold shadow-lg">
                     {photoPreview ? (
                       <img
                         src={photoPreview}

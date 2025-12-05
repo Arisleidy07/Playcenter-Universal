@@ -13,13 +13,20 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  doc,
+} from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function Vender() {
   const navigate = useNavigate();
   const { isDark: darkMode } = useTheme();
-  const { usuario } = useAuth();
+  const { usuario, usuarioInfo } = useAuth();
   const [scrollY, setScrollY] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
@@ -27,6 +34,7 @@ export default function Vender() {
   const [verificando, setVerificando] = useState(false);
   const [tieneTienda, setTieneTienda] = useState(false);
   const [nombreTienda, setNombreTienda] = useState("");
+  const [storeId, setStoreId] = useState("");
   const [mostrarModalTienda, setMostrarModalTienda] = useState(false);
   const images = ["/vender/2.png", "/vender/3.png", "/vender/4.png"];
   const videos = [
@@ -84,27 +92,88 @@ export default function Vender() {
 
       try {
         setVerificando(true);
+        console.log("🔍 Verificando si usuario tiene tienda:", usuario.uid);
+        console.log(
+          "👤 Info usuario:",
+          usuarioInfo?.role,
+          usuarioInfo?.isAdmin
+        );
 
-        // Buscar en la colección "stores" con el campo "ownerUid"
+        // PRIMERO: Si es ADMIN, verificar tienda Playcenter Universal
+        const isAdmin =
+          usuarioInfo?.role === "admin" ||
+          usuarioInfo?.isAdmin === true ||
+          usuarioInfo?.admin === true;
+
+        if (isAdmin) {
+          console.log(
+            "👑 Usuario es ADMIN, verificando playcenter_universal..."
+          );
+          const mainStoreDoc = await getDoc(
+            doc(db, "tiendas", "playcenter_universal")
+          );
+
+          if (mainStoreDoc.exists()) {
+            const storeData = mainStoreDoc.data();
+            setTieneTienda(true);
+            setNombreTienda(
+              storeData.nombre || storeData.name || "Playcenter Universal"
+            );
+            setStoreId("playcenter_universal");
+            console.log("✅ Admin tiene tienda: playcenter_universal");
+            setVerificando(false);
+            return;
+          } else {
+            console.log("⚠️ Tienda playcenter_universal no encontrada");
+          }
+        }
+
+        // SEGUNDO: Buscar en la colección "tiendas" (nueva colección principal)
+        const searchFields = ["ownerId", "owner_id", "propietarioId", "userId"];
+
+        for (const field of searchFields) {
+          const q = query(
+            collection(db, "tiendas"),
+            where(field, "==", usuario.uid)
+          );
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const tiendaData = querySnapshot.docs[0].data();
+            const tiendaId = querySnapshot.docs[0].id;
+            setTieneTienda(true);
+            setNombreTienda(
+              tiendaData.nombre || tiendaData.name || "Mi Tienda"
+            );
+            setStoreId(tiendaId);
+            console.log("✅ Usuario tiene tienda en 'tiendas':", tiendaId);
+            setVerificando(false);
+            return;
+          }
+        }
+
+        // SEGUNDO: Buscar en la colección "stores" (legacy)
         const storesRef = collection(db, "stores");
-        const q = query(storesRef, where("ownerUid", "==", usuario.uid));
-        const querySnapshot = await getDocs(q);
+        const qStores = query(storesRef, where("ownerUid", "==", usuario.uid));
+        const storesSnapshot = await getDocs(qStores);
 
-        if (!querySnapshot.empty) {
-          // El usuario ya tiene tienda
-          const tiendaData = querySnapshot.docs[0].data();
+        if (!storesSnapshot.empty) {
+          const tiendaData = storesSnapshot.docs[0].data();
+          const tiendaId = storesSnapshot.docs[0].id;
           setTieneTienda(true);
           setNombreTienda(tiendaData.nombre || tiendaData.name || "Mi Tienda");
-          console.log(
-            "✅ Usuario tiene tienda:",
-            tiendaData.nombre || tiendaData.name
-          );
-        } else {
-          setTieneTienda(false);
-          console.log("❌ Usuario NO tiene tienda");
+          setStoreId(tiendaId);
+          console.log("✅ Usuario tiene tienda en 'stores':", tiendaId);
+          setVerificando(false);
+          return;
         }
+
+        // No tiene tienda en ninguna colección
+        setTieneTienda(false);
+        setStoreId("");
+        console.log("❌ Usuario NO tiene tienda");
       } catch (error) {
-        console.error("Error verificando tienda:", error);
+        console.error("❌ Error verificando tienda:", error);
         setTieneTienda(false);
       } finally {
         setVerificando(false);
@@ -112,7 +181,7 @@ export default function Vender() {
     };
 
     verificarTienda();
-  }, [usuario]);
+  }, [usuario, usuarioInfo]);
 
   const handleComenzar = () => {
     // Si el usuario ya tiene tienda, mostrar modal
@@ -127,7 +196,12 @@ export default function Vender() {
 
   const handleVisitarTienda = () => {
     setMostrarModalTienda(false);
-    navigate("/admin"); // O la ruta de su tienda
+    // Navegar a la tienda individual del usuario
+    if (storeId) {
+      navigate(`/tiendas/${storeId}`);
+    } else {
+      navigate("/admin");
+    }
   };
 
   const fadeInUp = {
@@ -759,8 +833,22 @@ export default function Vender() {
                   }`}
                 >
                   <Store size={20} />
-                  <span>Visitar mi tienda</span>
+                  <span>Ver mi tienda</span>
                   <ExternalLink size={16} />
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMostrarModalTienda(false);
+                    navigate("/admin");
+                  }}
+                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 border-2 ${
+                    darkMode
+                      ? "border-yellow-400/40 text-yellow-400 hover:bg-yellow-400/10"
+                      : "border-blue-600/40 text-blue-700 hover:bg-blue-600/10"
+                  }`}
+                >
+                  Ir al panel de administración
                 </button>
 
                 <button

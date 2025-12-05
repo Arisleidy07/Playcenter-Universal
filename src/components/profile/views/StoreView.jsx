@@ -4,6 +4,7 @@ import { useAuth } from "../../../context/AuthContext";
 import {
   doc,
   setDoc,
+  updateDoc,
   getDoc,
   collection,
   query,
@@ -20,6 +21,18 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
   const [localStoreId, setLocalStoreId] = useState(storeId);
   const [localStore, setLocalStore] = useState(store);
   const [creatingStore, setCreatingStore] = useState(false);
+
+  // Debug: Mostrar información recibida
+  console.log("📋 StoreView renderizado con:", {
+    hasUser: !!user,
+    userId: user?.uid,
+    userRole: userInfo?.role,
+    isAdmin: userInfo?.isAdmin || userInfo?.admin,
+    isSeller: userInfo?.isSeller,
+    storeIdProp: storeId,
+    storeIdInUserInfo: userInfo?.storeId,
+    hasStore: !!store,
+  });
   const storeName =
     localStore?.nombre ||
     localStore?.name ||
@@ -68,15 +81,86 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
   const isSeller = userInfo?.role === "seller" || userInfo?.isSeller === true;
   const canManage = isAdmin || isSeller;
 
-  // Buscar o crear tienda automáticamente
+  // Buscar tienda automáticamente (incluso si no tiene permisos aún)
   useEffect(() => {
-    if (!user || !canManage) return;
+    if (!user) return;
 
     const findOrCreateStore = async () => {
       try {
-        // Si ya tenemos storeId, verificar que existe
-        if (storeId || localStoreId) {
-          const id = storeId || localStoreId;
+        console.log("🔍 Buscando tienda para usuario:", {
+          uid: user.uid,
+          isAdmin,
+          isSeller,
+          storeId: userInfo?.storeId,
+          email: userInfo?.email,
+        });
+
+        // PRIMERO: Si es admin, usar tienda principal Playcenter Universal
+        if (isAdmin) {
+          console.log("👑 Usuario es ADMIN, buscando playcenter_universal...");
+          const mainStoreDoc = await getDoc(
+            doc(db, "tiendas", "playcenter_universal")
+          );
+          if (mainStoreDoc.exists()) {
+            console.log("✅ Tienda playcenter_universal encontrada!");
+            setLocalStoreId("playcenter_universal");
+            setLocalStore({
+              id: "playcenter_universal",
+              ...mainStoreDoc.data(),
+            });
+
+            // Actualizar perfil del admin con storeId si no lo tiene
+            if (userInfo?.storeId !== "playcenter_universal") {
+              console.log("🔄 Actualizando perfil admin con storeId...");
+              const userRef = doc(db, "users", user.uid);
+              await updateDoc(userRef, {
+                storeId: "playcenter_universal",
+                storeName: "Playcenter Universal",
+              }).catch(() => {
+                console.log("No se pudo actualizar perfil admin");
+              });
+
+              // Actualizar productos del admin con el storeId correcto
+              try {
+                const productosQuery = query(
+                  collection(db, "productos"),
+                  where("ownerUid", "==", user.uid)
+                );
+                const productosSnap = await getDocs(productosQuery);
+
+                const updatePromises = productosSnap.docs.map(
+                  async (productDoc) => {
+                    const productData = productDoc.data();
+                    if (productData.storeId !== "playcenter_universal") {
+                      return updateDoc(doc(db, "productos", productDoc.id), {
+                        storeId: "playcenter_universal",
+                        storeName: "Playcenter Universal",
+                      });
+                    }
+                  }
+                );
+
+                await Promise.all(updatePromises.filter(Boolean));
+                console.log(
+                  `✅ Actualizados ${productosSnap.docs.length} productos del admin con storeId`
+                );
+              } catch (error) {
+                console.log(
+                  "❌ No se pudieron actualizar productos admin:",
+                  error
+                );
+              }
+            } else {
+              console.log("✅ Perfil admin ya tiene storeId correcto");
+            }
+            console.log("🎉 Tienda conectada correctamente!");
+            return;
+          }
+        }
+
+        // SEGUNDO: Si ya tenemos storeId en el perfil, verificar que existe
+        if (storeId || localStoreId || userInfo?.storeId) {
+          const id = storeId || localStoreId || userInfo?.storeId;
           const storeDoc = await getDoc(doc(db, "tiendas", id));
           if (storeDoc.exists()) {
             setLocalStoreId(id);
@@ -85,7 +169,7 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
           }
         }
 
-        // Buscar tienda por diferentes campos
+        // TERCERO: Buscar tienda por diferentes campos
         const searchFields = ["ownerId", "owner_id", "propietarioId", "userId"];
 
         for (const field of searchFields) {
@@ -99,27 +183,32 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
             const foundStore = snap.docs[0];
             setLocalStoreId(foundStore.id);
             setLocalStore({ id: foundStore.id, ...foundStore.data() });
+
+            // Actualizar perfil con el storeId encontrado
+            if (userInfo?.storeId !== foundStore.id) {
+              const userRef = doc(db, "users", user.uid);
+              await updateDoc(userRef, {
+                storeId: foundStore.id,
+                storeName: foundStore.data().nombre || "Mi Tienda",
+              }).catch(() => {});
+            }
             return;
           }
         }
 
-        // Si es admin, usar tienda principal
-        if (isAdmin) {
-          const mainStoreDoc = await getDoc(
-            doc(db, "tiendas", "playcenter_universal")
-          );
-          if (mainStoreDoc.exists()) {
-            setLocalStoreId("playcenter_universal");
-            setLocalStore({
-              id: "playcenter_universal",
-              ...mainStoreDoc.data(),
-            });
+        // Si no existe tienda, mostrar que no se encontró
+        if (!localStoreId) {
+          console.log("⚠️ No se encontró tienda existente");
+          console.log("   canManage:", canManage);
+          console.log("   isAdmin:", isAdmin);
+          console.log("   isSeller:", isSeller);
+
+          if (!canManage) {
+            console.log("❌ Usuario no tiene permisos para crear tienda");
             return;
           }
-        }
 
-        // Si no existe, crear tienda nueva
-        if (!localStoreId && canManage) {
+          console.log("✅ Usuario tiene permisos, creando tienda nueva...");
           setCreatingStore(true);
           const newStoreId = `tienda_${user.uid}`;
           const newStoreData = {
@@ -137,12 +226,61 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
           };
 
           await setDoc(doc(db, "tiendas", newStoreId), newStoreData);
+
+          // Actualizar el perfil del usuario con el storeId
+          const userRef = doc(db, "users", user.uid);
+          await updateDoc(userRef, {
+            storeId: newStoreId,
+            storeName: newStoreData.nombre,
+            isSeller: true,
+            role: userInfo?.role === "admin" ? "admin" : "seller",
+          }).catch(() => {
+            // Si falla la actualización del perfil, seguir adelante
+            console.log("No se pudo actualizar perfil, pero tienda creada");
+          });
+
+          // Actualizar productos existentes del usuario con el storeId
+          try {
+            const productosQuery = query(
+              collection(db, "productos"),
+              where("ownerUid", "==", user.uid)
+            );
+            const productosSnap = await getDocs(productosQuery);
+
+            const updatePromises = productosSnap.docs.map(
+              async (productDoc) => {
+                // Solo actualizar si no tiene storeId o si es diferente
+                const productData = productDoc.data();
+                if (
+                  !productData.storeId ||
+                  productData.storeId !== newStoreId
+                ) {
+                  return updateDoc(doc(db, "productos", productDoc.id), {
+                    storeId: newStoreId,
+                    storeName: newStoreData.nombre,
+                  });
+                }
+              }
+            );
+
+            await Promise.all(updatePromises.filter(Boolean));
+            console.log(
+              `Actualizados ${productosSnap.docs.length} productos con storeId`
+            );
+          } catch (error) {
+            console.log(
+              "No se pudieron actualizar productos existentes:",
+              error
+            );
+          }
+
           setLocalStoreId(newStoreId);
           setLocalStore({ id: newStoreId, ...newStoreData });
           setCreatingStore(false);
+          console.log("✅ Tienda nueva creada exitosamente:", newStoreId);
         }
       } catch (error) {
-        console.error("Error finding/creating store:", error);
+        console.error("❌ Error finding/creating store:", error);
         setCreatingStore(false);
       }
     };
@@ -150,7 +288,8 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
     findOrCreateStore();
   }, [user, userInfo, storeId, localStoreId, canManage, isAdmin]);
 
-  if (!canManage) {
+  // Si NO tiene permisos Y NO se encontró tienda, mostrar botón de comenzar
+  if (!canManage && !localStoreId) {
     return (
       <div className="w-full max-w-3xl mx-auto">
         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm p-8 text-center">
@@ -177,6 +316,23 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
             <Plus size={18} />
             Empezar a vender
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Si tiene tienda pero no tiene permisos actualizados, mostrar mensaje de carga
+  if (!canManage && localStoreId) {
+    return (
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm p-8 text-center">
+          <div className="animate-spin mx-auto mb-4 w-12 h-12 rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            Cargando tu tienda...
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            Verificando permisos
+          </p>
         </div>
       </div>
     );

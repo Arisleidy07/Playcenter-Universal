@@ -38,7 +38,7 @@ export default function ProfileHeader({
             }`}
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex-shrink-0">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-700 flex-shrink-0">
                 {currentAvatar ? (
                   <img
                     src={currentAvatar}
@@ -98,7 +98,7 @@ export default function ProfileHeader({
                 : "hover:bg-gray-50 dark:hover:bg-slate-700/30 border-transparent"
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-blue-600 p-[2px] flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 p-[2px] flex-shrink-0">
               <img
                 src={currentAvatar || "https://via.placeholder.com/150"}
                 alt="Avatar"
