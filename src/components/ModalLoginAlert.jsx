@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { motion } from "framer-motion";
+import { FaUser } from "react-icons/fa";
 
 export default function ModalLoginAlert({ isOpen, onClose, onIniciarSesion }) {
   if (!isOpen) return null;
@@ -8,63 +9,85 @@ export default function ModalLoginAlert({ isOpen, onClose, onIniciarSesion }) {
   return ReactDOM.createPortal(
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-[11000] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[11000] flex items-center justify-center p-4"
       style={{ top: 0, left: 0 }}
     >
       <motion.div
         onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.3 }}
-        className="relative bg-[#0f172a] text-white rounded-xl shadow-2xl w-full max-w-md p-6 border border-[#3b82f6]/40 z-[11001]"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm mx-auto z-[11001]"
+        style={{
+          border: "1px solid rgba(229, 231, 235, 0.2)",
+          overflow: "hidden",
+        }}
       >
+        {/* Botón cerrar - moderno */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold"
+          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-all duration-200 z-10"
           aria-label="Cerrar modal"
         >
-          &times;
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
 
-        <h2 className="text-2xl font-bold mb-4 text-center flex items-center justify-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-7 w-7 text-[#3b82f6]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5.121 17.804A11.955 11.955 0 0112 15c2.32 0 4.47.66 6.264 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          Inicia sesión
-        </h2>
+        {/* Contenido */}
+        <div className="px-6 py-8 text-center">
+          {/* Ícono */}
+          <div className="mb-5 flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center">
+              <FaUser className="text-blue-500 text-2xl" />
+            </div>
+          </div>
 
-        <p className="mb-6 text-center text-gray-300">
-          Necesitas iniciar sesión para acceder a esta función
-        </p>
+          {/* Título */}
+          <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
+            Inicia sesión
+          </h2>
 
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={() => {
-              onClose();
-              onIniciarSesion();
-            }}
-            className="w-full max-w-[120px] px-5 py-2 bg-[#3b82f6] hover:bg-[#2563eb] rounded-lg font-semibold shadow-lg transition transform hover:scale-105"
-          >
-            Iniciar sesión
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full max-w-[120px] px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold shadow-lg transition transform hover:scale-105"
-          >
-            Cancelar
-          </button>
+          {/* Descripción */}
+          <p className="text-base text-gray-600 dark:text-gray-300 mb-8 px-2">
+            Necesitas iniciar sesión para acceder a esta función
+          </p>
+
+          {/* Botones */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <motion.button
+              onClick={() => {
+                onClose();
+                onIniciarSesion();
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 transition-all duration-200"
+              style={{ minHeight: "48px" }}
+            >
+              Iniciar sesión
+            </motion.button>
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 px-6 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl font-semibold transition-all duration-200"
+              style={{ minHeight: "48px" }}
+            >
+              Cancelar
+            </motion.button>
+          </div>
         </div>
       </motion.div>
     </div>,

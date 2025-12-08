@@ -1,9 +1,17 @@
 import React, { useState } from "react";
-import { FaShoppingCart, FaBolt, FaHeart, FaShare, FaTruck, FaShieldAlt } from "react-icons/fa";
+import {
+  FaShoppingCart,
+  FaBolt,
+  FaHeart,
+  FaShare,
+  FaTruck,
+  FaShieldAlt,
+} from "react-icons/fa";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import useDeviceDetection from "../hooks/useDeviceDetection";
+import { notify } from "../utils/notificationBus";
 
 // Función para formatear precio estilo Amazon
 function formatPriceRD(value) {
@@ -19,19 +27,19 @@ function getPriceParts(num) {
   return { wholeFormatted: formatPriceRD(whole), fraction };
 }
 
-const ProductInfo = ({ 
-  producto, 
-  selectedVariant = null, 
-  onVariantChange, 
-  quantity = 1, 
+const ProductInfo = ({
+  producto,
+  selectedVariant = null,
+  onVariantChange,
+  quantity = 1,
   onQuantityChange,
-  className = "" 
+  className = "",
 }) => {
   const { isDesktop, isTablet, isMobile } = useDeviceDetection();
   const { usuario } = useAuth();
   const { abrirModal } = useAuthModal();
   const { agregarAlCarrito } = useCarrito();
-  
+
   const [isFavorite, setIsFavorite] = useState(false);
 
   // Obtener precio actual
@@ -64,7 +72,7 @@ const ProductInfo = ({
     const productToAdd = {
       ...producto,
       variante: selectedVariant,
-      precio: currentPrice
+      precio: currentPrice,
     };
 
     agregarAlCarrito(productToAdd, quantity);
@@ -76,7 +84,7 @@ const ProductInfo = ({
       abrirModal();
       return;
     }
-    
+
     handleAddToCart();
     // Aquí podrías redirigir al checkout
     // navigate('/checkout');
@@ -94,14 +102,14 @@ const ProductInfo = ({
       const shareData = {
         title: producto.nombre,
         text: `Mira este producto: ${producto.nombre}`,
-        url: window.location.href
+        url: window.location.href,
       };
 
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert('Enlace copiado al portapapeles');
+        notify("Enlace copiado al portapapeles", "success", "Compartir");
       }
     } catch (error) {
       // console.log('Error al compartir:', error);
@@ -120,7 +128,7 @@ const ProductInfo = ({
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span>SKU: {producto.id}</span>
             <span>|</span>
-            <span>Marca: {producto.empresa || 'PlayCenter'}</span>
+            <span>Marca: {producto.empresa || "PlayCenter"}</span>
           </div>
         </div>
 
@@ -135,16 +143,23 @@ const ProductInfo = ({
               <span className="text-lg text-gray-600">.{fraction}</span>
             )}
           </div>
-          {producto.precioOriginal && producto.precioOriginal > currentPrice && (
-            <div className="flex items-center gap-2">
-              <span className="text-lg text-gray-500 line-through">
-                RD$ {formatPriceRD(producto.precioOriginal)}
-              </span>
-              <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-medium">
-                -{Math.round(((producto.precioOriginal - currentPrice) / producto.precioOriginal) * 100)}%
-              </span>
-            </div>
-          )}
+          {producto.precioOriginal &&
+            producto.precioOriginal > currentPrice && (
+              <div className="flex items-center gap-2">
+                <span className="text-lg text-gray-500 line-through">
+                  RD$ {formatPriceRD(producto.precioOriginal)}
+                </span>
+                <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-medium">
+                  -
+                  {Math.round(
+                    ((producto.precioOriginal - currentPrice) /
+                      producto.precioOriginal) *
+                      100
+                  )}
+                  %
+                </span>
+              </div>
+            )}
         </div>
 
         {/* Variantes */}
@@ -155,11 +170,13 @@ const ProductInfo = ({
               {producto.variantes.map((variante, index) => (
                 <button
                   key={index}
-                  onClick={() => onVariantChange && onVariantChange(variante, index)}
+                  onClick={() =>
+                    onVariantChange && onVariantChange(variante, index)
+                  }
                   className={`p-3 border-2 rounded-lg text-left transition-all ${
                     selectedVariant === variante
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-400'
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-400"
                   }`}
                 >
                   <div className="font-medium">
@@ -170,13 +187,16 @@ const ProductInfo = ({
                       RD$ {formatPriceRD(variante.precio)}
                     </div>
                   )}
-                  <div className={`text-xs ${
-                    (variante.cantidad || 0) > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {(variante.cantidad || 0) > 0 
-                      ? `${variante.cantidad} disponibles` 
-                      : 'Agotado'
-                    }
+                  <div
+                    className={`text-xs ${
+                      (variante.cantidad || 0) > 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {(variante.cantidad || 0) > 0
+                      ? `${variante.cantidad} disponibles`
+                      : "Agotado"}
                   </div>
                 </button>
               ))}
@@ -190,7 +210,10 @@ const ProductInfo = ({
           <div className="flex items-center gap-3">
             <div className="flex items-center border border-gray-300 rounded-lg">
               <button
-                onClick={() => onQuantityChange && onQuantityChange(Math.max(1, quantity - 1))}
+                onClick={() =>
+                  onQuantityChange &&
+                  onQuantityChange(Math.max(1, quantity - 1))
+                }
                 disabled={quantity <= 1}
                 className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -200,7 +223,10 @@ const ProductInfo = ({
                 {quantity}
               </span>
               <button
-                onClick={() => onQuantityChange && onQuantityChange(Math.min(currentStock, quantity + 1))}
+                onClick={() =>
+                  onQuantityChange &&
+                  onQuantityChange(Math.min(currentStock, quantity + 1))
+                }
                 disabled={quantity >= currentStock}
                 className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -223,7 +249,7 @@ const ProductInfo = ({
             <FaShoppingCart className="w-4 h-4" />
             Agregar al carrito
           </button>
-          
+
           <button
             onClick={handleBuyNow}
             disabled={currentStock === 0}
@@ -238,14 +264,16 @@ const ProductInfo = ({
               onClick={handleToggleFavorite}
               className={`flex-1 border-2 py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 ${
                 isFavorite
-                  ? 'border-red-500 text-red-500 bg-red-50'
-                  : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                  ? "border-red-500 text-red-500 bg-red-50"
+                  : "border-gray-300 text-gray-700 hover:border-gray-400"
               }`}
             >
-              <FaHeart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-              {isFavorite ? 'Favorito' : 'Agregar a favoritos'}
+              <FaHeart
+                className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`}
+              />
+              {isFavorite ? "Favorito" : "Agregar a favoritos"}
             </button>
-            
+
             <button
               onClick={handleShare}
               className="flex-1 border-2 border-gray-300 text-gray-700 hover:border-gray-400 py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -264,14 +292,20 @@ const ProductInfo = ({
               <FaTruck className="w-5 h-5 text-green-600" />
               <div>
                 <div className="font-medium text-green-800">Envío gratis</div>
-                <div className="text-sm text-green-600">En compras mayores a RD$ 2,000</div>
+                <div className="text-sm text-green-600">
+                  En compras mayores a RD$ 2,000
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
               <FaShieldAlt className="w-5 h-5 text-blue-600" />
               <div>
-                <div className="font-medium text-blue-800">Garantía incluida</div>
-                <div className="text-sm text-blue-600">30 días de garantía del vendedor</div>
+                <div className="font-medium text-blue-800">
+                  Garantía incluida
+                </div>
+                <div className="text-sm text-blue-600">
+                  30 días de garantía del vendedor
+                </div>
               </div>
             </div>
           </div>
@@ -310,23 +344,28 @@ const ProductInfo = ({
                 {producto.variantes.map((variante, index) => (
                   <button
                     key={index}
-                    onClick={() => onVariantChange && onVariantChange(variante, index)}
+                    onClick={() =>
+                      onVariantChange && onVariantChange(variante, index)
+                    }
                     className={`w-full p-2 border-2 rounded-lg text-left transition-all ${
                       selectedVariant === variante
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-400'
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-400"
                     }`}
                   >
                     <div className="font-medium text-sm">
                       {variante.color || variante.tamaño || variante.modelo}
                     </div>
-                    <div className={`text-xs ${
-                      (variante.cantidad || 0) > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {(variante.cantidad || 0) > 0 
-                        ? `${variante.cantidad} disponibles` 
-                        : 'Agotado'
-                      }
+                    <div
+                      className={`text-xs ${
+                        (variante.cantidad || 0) > 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {(variante.cantidad || 0) > 0
+                        ? `${variante.cantidad} disponibles`
+                        : "Agotado"}
                     </div>
                   </button>
                 ))}
@@ -339,7 +378,10 @@ const ProductInfo = ({
             <h3 className="font-medium text-gray-900 mb-2">Cantidad:</h3>
             <div className="flex items-center border border-gray-300 rounded-lg">
               <button
-                onClick={() => onQuantityChange && onQuantityChange(Math.max(1, quantity - 1))}
+                onClick={() =>
+                  onQuantityChange &&
+                  onQuantityChange(Math.max(1, quantity - 1))
+                }
                 disabled={quantity <= 1}
                 className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
               >
@@ -349,7 +391,10 @@ const ProductInfo = ({
                 {quantity}
               </span>
               <button
-                onClick={() => onQuantityChange && onQuantityChange(Math.min(currentStock, quantity + 1))}
+                onClick={() =>
+                  onQuantityChange &&
+                  onQuantityChange(Math.min(currentStock, quantity + 1))
+                }
                 disabled={quantity >= currentStock}
                 className="px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
               >
@@ -369,7 +414,7 @@ const ProductInfo = ({
             <FaShoppingCart className="w-4 h-4" />
             Agregar
           </button>
-          
+
           <button
             onClick={handleBuyNow}
             disabled={currentStock === 0}
@@ -387,9 +432,7 @@ const ProductInfo = ({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Título */}
-      <h1 className="text-lg font-bold text-gray-900">
-        {producto.nombre}
-      </h1>
+      <h1 className="text-lg font-bold text-gray-900">{producto.nombre}</h1>
 
       {/* Precio */}
       <div className="flex items-baseline gap-2">
@@ -410,23 +453,28 @@ const ProductInfo = ({
             {producto.variantes.map((variante, index) => (
               <button
                 key={index}
-                onClick={() => onVariantChange && onVariantChange(variante, index)}
+                onClick={() =>
+                  onVariantChange && onVariantChange(variante, index)
+                }
                 className={`w-full p-3 border-2 rounded-lg text-left transition-all ${
                   selectedVariant === variante
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-400'
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-400"
                 }`}
               >
                 <div className="font-medium">
                   {variante.color || variante.tamaño || variante.modelo}
                 </div>
-                <div className={`text-sm ${
-                  (variante.cantidad || 0) > 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {(variante.cantidad || 0) > 0 
-                    ? `${variante.cantidad} disponibles` 
-                    : 'Agotado'
-                  }
+                <div
+                  className={`text-sm ${
+                    (variante.cantidad || 0) > 0
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {(variante.cantidad || 0) > 0
+                    ? `${variante.cantidad} disponibles`
+                    : "Agotado"}
                 </div>
               </button>
             ))}
@@ -439,7 +487,9 @@ const ProductInfo = ({
         <h3 className="font-medium text-gray-900 mb-2">Cantidad:</h3>
         <div className="flex items-center border border-gray-300 rounded-lg">
           <button
-            onClick={() => onQuantityChange && onQuantityChange(Math.max(1, quantity - 1))}
+            onClick={() =>
+              onQuantityChange && onQuantityChange(Math.max(1, quantity - 1))
+            }
             disabled={quantity <= 1}
             className="px-4 py-3 hover:bg-gray-100 disabled:opacity-50"
           >
@@ -449,7 +499,10 @@ const ProductInfo = ({
             {quantity}
           </span>
           <button
-            onClick={() => onQuantityChange && onQuantityChange(Math.min(currentStock, quantity + 1))}
+            onClick={() =>
+              onQuantityChange &&
+              onQuantityChange(Math.min(currentStock, quantity + 1))
+            }
             disabled={quantity >= currentStock}
             className="px-4 py-3 hover:bg-gray-100 disabled:opacity-50"
           >
@@ -468,7 +521,7 @@ const ProductInfo = ({
           <FaShoppingCart className="w-5 h-5" />
           Agregar al carrito
         </button>
-        
+
         <button
           onClick={handleBuyNow}
           disabled={currentStock === 0}

@@ -50,28 +50,29 @@ export default function AccountMenuWrapper({
             />
           </motion.div>
 
-          {/* Mobile bottom sheet */}
+          {/* Mobile dropdown - Responsive positioning */}
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 26, stiffness: 320 }}
-            className="md:hidden fixed bottom-0 left-0 right-0 z-[99999] rounded-t-2xl overflow-hidden shadow-2xl"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.18 }}
+            className="md:hidden fixed z-[99999] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-600 overflow-hidden"
+            style={{
+              width: "calc(100vw - 32px)",
+              maxWidth: "320px",
+              top: "80px", // Más cerca del header
+              left: "16px",
+              right: "16px",
+              transform: "none", // Sin centrado para evitar overflow
+            }}
           >
-            <div className="bg-white dark:bg-[#1E293B]">
-              <div className="w-full flex justify-center pt-3 pb-2">
-                <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full" />
-              </div>
-              <div className="px-2 pb-3">
-                <AccountMenu
-                  currentUser={currentUser}
-                  onAddAccount={onAddAccount}
-                  onLogout={onLogout}
-                  onClose={onClose}
-                  onSwitchAccount={handleSwitchAccount}
-                />
-              </div>
-            </div>
+            <AccountMenu
+              currentUser={currentUser}
+              onAddAccount={onAddAccount}
+              onLogout={onLogout}
+              onClose={onClose}
+              onSwitchAccount={handleSwitchAccount}
+            />
           </motion.div>
         </>
       )}

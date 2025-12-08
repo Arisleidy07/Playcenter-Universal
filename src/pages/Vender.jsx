@@ -92,12 +92,6 @@ export default function Vender() {
 
       try {
         setVerificando(true);
-        console.log("🔍 Verificando si usuario tiene tienda:", usuario.uid);
-        console.log(
-          "👤 Info usuario:",
-          usuarioInfo?.role,
-          usuarioInfo?.isAdmin
-        );
 
         // PRIMERO: Si es ADMIN, verificar tienda Playcenter Universal
         const isAdmin =
@@ -106,9 +100,6 @@ export default function Vender() {
           usuarioInfo?.admin === true;
 
         if (isAdmin) {
-          console.log(
-            "👑 Usuario es ADMIN, verificando playcenter_universal..."
-          );
           const mainStoreDoc = await getDoc(
             doc(db, "tiendas", "playcenter_universal")
           );
@@ -120,11 +111,9 @@ export default function Vender() {
               storeData.nombre || storeData.name || "Playcenter Universal"
             );
             setStoreId("playcenter_universal");
-            console.log("✅ Admin tiene tienda: playcenter_universal");
             setVerificando(false);
             return;
           } else {
-            console.log("⚠️ Tienda playcenter_universal no encontrada");
           }
         }
 
@@ -146,7 +135,6 @@ export default function Vender() {
               tiendaData.nombre || tiendaData.name || "Mi Tienda"
             );
             setStoreId(tiendaId);
-            console.log("✅ Usuario tiene tienda en 'tiendas':", tiendaId);
             setVerificando(false);
             return;
           }
@@ -163,7 +151,6 @@ export default function Vender() {
           setTieneTienda(true);
           setNombreTienda(tiendaData.nombre || tiendaData.name || "Mi Tienda");
           setStoreId(tiendaId);
-          console.log("✅ Usuario tiene tienda en 'stores':", tiendaId);
           setVerificando(false);
           return;
         }
@@ -171,9 +158,7 @@ export default function Vender() {
         // No tiene tienda en ninguna colección
         setTieneTienda(false);
         setStoreId("");
-        console.log("❌ Usuario NO tiene tienda");
       } catch (error) {
-        console.error("❌ Error verificando tienda:", error);
         setTieneTienda(false);
       } finally {
         setVerificando(false);

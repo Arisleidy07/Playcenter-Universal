@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
+import ToastNotification from "../components/ToastNotification";
 import {
   Store,
   Star,
@@ -32,6 +33,18 @@ export default function Tiendas() {
   const [tiendas, setTiendas] = useState([]);
   const [loading, setLoading] = useState(true);
   const { isDark } = useTheme();
+
+  // Sistema de notificaciones
+  const [notifications, setNotifications] = useState([]);
+
+  const showNotification = (message, type = "info", title = null) => {
+    const id = Date.now() + Math.random();
+    setNotifications((prev) => [...prev, { id, message, type, title }]);
+  };
+
+  const removeNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   useEffect(() => {
     fetchTiendas();
@@ -126,18 +139,29 @@ export default function Tiendas() {
           <div className="w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {tiendas.map((tienda, index) => (
-                <TiendaCard key={tienda.id} tienda={tienda} index={index} />
+                <TiendaCard
+                  key={tienda.id}
+                  tienda={tienda}
+                  index={index}
+                  showNotification={showNotification}
+                />
               ))}
             </div>
           </div>
         )}
+
+        {/* Sistema de notificaciones */}
+        <ToastNotification
+          notifications={notifications}
+          onRemove={removeNotification}
+        />
       </div>
     </div>
   );
 }
 
 // Componente TiendaCard - Diseño limpio y profesional
-function TiendaCard({ tienda, index }) {
+function TiendaCard({ tienda, index, showNotification }) {
   const { usuario } = useAuth();
   const { isDark } = useTheme();
   const [siguiendo, setSiguiendo] = useState(false);
@@ -188,7 +212,11 @@ function TiendaCard({ tienda, index }) {
     e.stopPropagation();
 
     if (!usuario) {
-      alert("Debes iniciar sesión para seguir tiendas");
+      showNotification(
+        "Debes iniciar sesión para seguir tiendas",
+        "warning",
+        "Iniciar sesión"
+      );
       return;
     }
 
@@ -254,8 +282,11 @@ function TiendaCard({ tienda, index }) {
         setSeguidores((prev) => prev + 1);
       }
     } catch (error) {
-      // console.error("Error al seguir/dejar de seguir:", error);
-      alert("Error al procesar la acción. Intenta de nuevo.");
+      showNotification(
+        "Error al procesar la acción. Intenta de nuevo.",
+        "error",
+        "Error"
+      );
     } finally {
       setLoadingSeguir(false);
     }
@@ -401,24 +432,31 @@ function TiendaCard({ tienda, index }) {
                 </div>
               </div>
 
-              {/* Botón Seguir */}
-              {usuario && (
-                <button
-                  onClick={handleSeguir}
-                  disabled={loadingSeguir}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg ${
-                    siguiendo
-                      ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                      : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
-                  } ${loadingSeguir ? "opacity-50 cursor-not-allowed" : ""}`}
-                  style={{
-                    fontFamily:
-                      "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-                  }}
-                >
-                  {loadingSeguir ? (
-                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
-                  ) : siguiendo ? (
+              {/* Botón Seguir - Visible para TODOS */}
+              <button
+                onClick={
+                  usuario
+                    ? handleSeguir
+                    : () => {
+                        // Redirigir a login o mostrar modal de login
+                        window.location.href = "/login";
+                      }
+                }
+                disabled={loadingSeguir}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg ${
+                  siguiendo
+                    ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                } ${loadingSeguir ? "opacity-50 cursor-not-allowed" : ""}`}
+                style={{
+                  fontFamily:
+                    "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                }}
+              >
+                {loadingSeguir ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+                ) : usuario ? (
+                  siguiendo ? (
                     <>
                       <UserCheck size={14} />
                       <span className="hidden sm:inline">Siguiendo</span>
@@ -428,9 +466,14 @@ function TiendaCard({ tienda, index }) {
                       <UserPlus size={14} />
                       <span className="hidden sm:inline">Seguir</span>
                     </>
-                  )}
-                </button>
-              )}
+                  )
+                ) : (
+                  <>
+                    <UserPlus size={14} />
+                    <span className="hidden sm:inline">Seguir</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

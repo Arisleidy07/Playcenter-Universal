@@ -43,6 +43,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Cropper from "react-easy-crop";
 import TarjetaProducto from "../components/TarjetaProducto";
+import { notify } from "../utils/notificationBus";
 import "../styles/CropModal.css";
 import "../styles/LoadingSpinner.css";
 
@@ -103,48 +104,63 @@ export default function TiendaIndividual() {
       usuario.email === "arisleidy0712@gmail.com");
 
   useEffect(() => {
-    // Intentar buscar en ambas colecciones
-    const buscarTienda = async () => {
-      // Primero intentar en "tiendas" (principal)
-      const tiendaRefOld = doc(db, "tiendas", id);
-      const unsubscribeOld = onSnapshot(
-        tiendaRefOld,
-        (docSnap) => {
-          if (docSnap.exists()) {
-            setTienda({ id: docSnap.id, ...docSnap.data() });
-            setTiendaCollection("tiendas"); // Guardar colección
-            setLoading(false);
-            return;
-          }
+    let unsubscribe = null;
 
-          // Si no existe, buscar en "stores" (vendedores)
-          const tiendaRefNew = doc(db, "stores", id);
-          const unsubscribeNew = onSnapshot(
-            tiendaRefNew,
-            (docSnapNew) => {
-              if (docSnapNew.exists()) {
-                setTienda({ id: docSnapNew.id, ...docSnapNew.data() });
-                setTiendaCollection("stores"); // Guardar colección
-                setLoading(false);
-              } else {
-                // No existe en ninguna colección
-                navigate("/tiendas");
-              }
-            },
-            (error) => {
-              setLoading(false);
-            }
-          );
-        },
-        (error) => {
+    const buscarTienda = async () => {
+      try {
+        // PRIMERO: Intentar en "tiendas" (colección principal)
+        const tiendaDoc = await getDoc(doc(db, "tiendas", id));
+
+        if (tiendaDoc.exists()) {
+          setTienda({ id: tiendaDoc.id, ...tiendaDoc.data() });
+          setTiendaCollection("tiendas");
           setLoading(false);
+
+          // Escuchar cambios en tiempo real
+          unsubscribe = onSnapshot(doc(db, "tiendas", id), (docSnap) => {
+            if (docSnap.exists()) {
+              setTienda({ id: docSnap.id, ...docSnap.data() });
+            }
+          });
+          return;
         }
-      );
+
+        // SEGUNDO: Intentar en "stores" (colección legacy)
+        const storeDoc = await getDoc(doc(db, "stores", id));
+
+        if (storeDoc.exists()) {
+          setTienda({ id: storeDoc.id, ...storeDoc.data() });
+          setTiendaCollection("stores");
+          setLoading(false);
+
+          // Escuchar cambios en tiempo real
+          unsubscribe = onSnapshot(doc(db, "stores", id), (docSnap) => {
+            if (docSnap.exists()) {
+              setTienda({ id: docSnap.id, ...docSnap.data() });
+            }
+          });
+          return;
+        }
+
+        // No existe en ninguna colección
+        setLoading(false);
+      } catch (error) {
+        notify(
+          "Error al cargar la tienda. Por favor intenta de nuevo.",
+          "error",
+          "Error de carga"
+        );
+        setLoading(false);
+      }
     };
 
     buscarTienda();
     fetchProductos();
-  }, [id, navigate]);
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [id]);
 
   // Cargar datos cuando se abre el modal
   useEffect(() => {
@@ -268,7 +284,7 @@ export default function TiendaIndividual() {
       setProductosPorCategoria(porCategoria);
       setCategorias(["todas", ...Array.from(categoriasUnicas)]);
     } catch (error) {
-      // console.error("Error al cargar productos:", error);
+      notify("Error al cargar productos de la tienda", "error", "Error");
     } finally {
       setLoadingProductos(false);
     }
@@ -280,7 +296,7 @@ export default function TiendaIndividual() {
     if (file && file.type.startsWith("image/")) {
       // Verificar que tengamos la colección correcta
       if (!tiendaCollection) {
-        mostrarNotificacion("Error: No se pudo determinar la tienda", "error");
+        notify("Error: No se pudo determinar la tienda", "error", "Error");
         return;
       }
 
@@ -298,9 +314,10 @@ export default function TiendaIndividual() {
         });
 
         // Mostrar notificación de éxito
-        mostrarNotificacion(
+        notify(
           `${type === "banner" ? "Banner" : "Logo"} actualizado correctamente`,
-          "success"
+          "success",
+          "Actualizado"
         );
       } catch (error) {
         // Mostrar error en la página, no en consola
@@ -316,50 +333,14 @@ export default function TiendaIndividual() {
           mensajeError += ": " + error.message;
         }
 
-        mostrarNotificacion(mensajeError, "error");
+        notify(mensajeError, "error", "Error");
       } finally {
         setUploading(false);
       }
     }
   };
 
-  // Función helper para mostrar notificaciones
-  const mostrarNotificacion = (mensaje, tipo = "success") => {
-    const notification = document.createElement("div");
-    const bgColor = tipo === "success" ? "bg-green-600" : "bg-red-600";
-    const iconSuccess =
-      '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
-    const iconError =
-      '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
-    const icon = tipo === "success" ? iconSuccess : iconError;
-
-    notification.className = `fixed top-24 right-4 ${bgColor} text-white px-6 py-3 rounded-full shadow-2xl z-[10000] flex items-center gap-3 font-semibold max-w-md`;
-    notification.style.opacity = "0";
-    notification.style.transform = "translateY(-20px)";
-    notification.style.transition = "all 0.3s ease-out";
-    notification.innerHTML = icon + "<span>" + mensaje + "</span>";
-    document.body.appendChild(notification);
-
-    // Fade in
-    setTimeout(() => {
-      notification.style.opacity = "1";
-      notification.style.transform = "translateY(0)";
-    }, 10);
-
-    // Fade out
-    setTimeout(
-      () => {
-        notification.style.opacity = "0";
-        notification.style.transform = "translateY(-20px)";
-        setTimeout(() => {
-          if (notification.parentNode) {
-            document.body.removeChild(notification);
-          }
-        }, 300);
-      },
-      tipo === "error" ? 5000 : 3000
-    );
-  };
+  // Usar notify global en lugar de mostrarNotificación local
 
   // Callback cuando el crop se completa
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
@@ -386,8 +367,7 @@ export default function TiendaIndividual() {
       setCropType(null);
       setCroppedAreaPixels(null);
     } catch (error) {
-      // console.error("Error al recortar imagen:", error);
-      alert("Error al procesar la imagen");
+      notify("Error al procesar la imagen", "error", "Error");
     }
   };
 
@@ -502,8 +482,7 @@ export default function TiendaIndividual() {
         }, 300);
       }, 3000);
     } catch (error) {
-      // console.error(`Error al actualizar ${type}:`, error);
-      alert(`Error al actualizar ${type}`);
+      notify(`Error al actualizar ${type}`, "error", "Error");
     } finally {
       setUploading(false);
     }
@@ -557,7 +536,11 @@ export default function TiendaIndividual() {
       // Mostrar modal de éxito
       setShowSuccessModal(true);
     } catch (error) {
-      alert("Error al actualizar la tienda. Por favor intenta de nuevo.");
+      notify(
+        "Error al actualizar la tienda. Por favor intenta de nuevo.",
+        "error",
+        "Error"
+      );
     } finally {
       setUploading(false);
     }
@@ -571,14 +554,14 @@ export default function TiendaIndividual() {
     }
 
     if (isOwner) {
-      alert("No puedes seguir tu propia tienda");
+      notify("No puedes seguir tu propia tienda", "warning", "Advertencia");
       return;
     }
 
     setLoadingSeguir(true);
 
     if (!tiendaCollection) {
-      mostrarNotificacion("Error: No se pudo cargar la tienda", "error");
+      notify("Error: No se pudo cargar la tienda", "error", "Error");
       setLoadingSeguir(false);
       return;
     }
@@ -645,8 +628,11 @@ export default function TiendaIndividual() {
         setSeguidores((prev) => prev + 1);
       }
     } catch (error) {
-      // console.error("Error al seguir/dejar de seguir:", error);
-      alert("Error al procesar la acción. Intenta de nuevo.");
+      notify(
+        "Error al procesar la acción. Intenta de nuevo.",
+        "error",
+        "Error"
+      );
     } finally {
       setLoadingSeguir(false);
     }
@@ -676,8 +662,24 @@ export default function TiendaIndividual() {
     );
   }
 
-  if (!tienda) {
-    return null;
+  if (!loading && !tienda) {
+    return (
+      <div className="min-vh-100 d-flex align-items-center justify-content-center">
+        <div className="text-center">
+          <Store size={64} className="mx-auto mb-3 text-muted" />
+          <h2>Tienda no encontrada</h2>
+          <p className="text-muted">
+            La tienda que buscas no existe o ha sido eliminada.
+          </p>
+          <button
+            onClick={() => navigate("/tiendas")}
+            className="btn btn-primary mt-3"
+          >
+            Ver todas las tiendas
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // isOwner ya está definido arriba
@@ -2143,7 +2145,11 @@ export default function TiendaIndividual() {
                       });
                     } else {
                       navigator.clipboard.writeText(url);
-                      alert("Enlace copiado al portapapeles");
+                      notify(
+                        "Enlace copiado al portapapeles",
+                        "success",
+                        "¡Copiado!"
+                      );
                     }
                   }}
                   className="w-full px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 shadow-sm"

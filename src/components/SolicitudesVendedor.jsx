@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { notify } from "../utils/notificationBus";
 import {
   CheckCircle,
   XCircle,
@@ -154,9 +155,13 @@ export default function SolicitudesVendedor() {
         ? `✅ Tienda "${solicitud.tiendaNombre}" aprobada exitosamente!\n\n🎉 El vendedor ahora puede:\n✅ Ver su tienda en /tiendas\n✅ Acceder a su panel en /admin\n✅ Subir productos\n\n📧 Se envió email a: ${solicitud.email}`
         : `✅ Tienda "${solicitud.tiendaNombre}" CREADA!\n\n⚠️ NOTA: El solicitante NO estaba logueado.\n\n✅ La tienda es visible en /tiendas\n❌ Pero debes vincular manualmente al usuario\n\n📧 Email encolado para: ${solicitud.email}`;
 
-      alert(mensaje);
+      notify(mensaje, "success", "Solicitud aprobada");
     } catch (error) {
-      alert(`❌ Error al aprobar la solicitud:\n\n${error.message}`);
+      notify(
+        `Error al aprobar la solicitud: ${error.message}`,
+        "error",
+        "Error"
+      );
     } finally {
       setProcesando(null);
     }
@@ -175,10 +180,9 @@ export default function SolicitudesVendedor() {
         notasAdmin: motivoRechazo || "Rechazada sin motivo especificado",
       });
 
-      alert(`❌ Solicitud rechazada.`);
+      notify(`Solicitud rechazada.`, "info", "Solicitud procesada");
     } catch (error) {
-      console.error("Error al rechazar solicitud:", error);
-      alert("Hubo un error al rechazar la solicitud.");
+      notify("Hubo un error al rechazar la solicitud.", "error", "Error");
     } finally {
       setProcesando(null);
     }

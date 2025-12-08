@@ -17,6 +17,7 @@ import {
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import { useStore } from "../hooks/useStore";
+import { notify } from "../utils/notificationBus";
 import LoadingSpinner from "./LoadingSpinner";
 import { FiEye, FiEyeOff, FiCopy, FiTrash2, FiPackage } from "react-icons/fi";
 import { addPhantomProduct } from "../utils/phantomProductsCleaner";
@@ -224,8 +225,10 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         setProducts((prevProducts) =>
           prevProducts.filter((p) => p.id !== productId)
         );
-        alert(
-          "Este producto no existe en la base de datos y ha sido eliminado de la lista."
+        notify(
+          "Este producto no existe en la base de datos y ha sido eliminado de la lista.",
+          "info",
+          "Producto eliminado"
         );
         return;
       }
@@ -235,7 +238,11 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         fechaActualizacion: new Date(),
       });
     } catch (error) {
-      alert(`Error al actualizar el estado del producto: ${error.message}`);
+      notify(
+        `Error al actualizar el estado del producto: ${error.message}`,
+        "error",
+        "Error"
+      );
     }
   };
 
@@ -250,8 +257,10 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         setProducts((prevProducts) =>
           prevProducts.filter((p) => p.id !== product.id)
         );
-        alert(
-          "Este producto no existe en la base de datos y ha sido eliminado de la lista. No se puede duplicar."
+        notify(
+          "Este producto no existe en la base de datos y ha sido eliminado de la lista. No se puede duplicar.",
+          "warning",
+          "Producto no encontrado"
         );
         return;
       }
@@ -346,9 +355,17 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       // Pequeño delay para asegurar que Firebase procese el documento
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      alert(`Producto duplicado exitosamente con ID: ${newProductId}`);
+      notify(
+        `Producto duplicado exitosamente con ID: ${newProductId}`,
+        "success",
+        "Producto duplicado"
+      );
     } catch (error) {
-      alert(`Error al duplicar el producto: ${error.message}`);
+      notify(
+        `Error al duplicar el producto: ${error.message}`,
+        "error",
+        "Error"
+      );
     }
   };
 
@@ -364,8 +381,10 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         setProducts((prevProducts) =>
           prevProducts.filter((p) => p.id !== productId)
         );
-        alert(
-          "Este producto no existe en la base de datos y ha sido eliminado de la lista."
+        notify(
+          "Este producto no existe en la base de datos y ha sido eliminado de la lista.",
+          "info",
+          "Producto eliminado"
         );
         return;
       }
@@ -375,7 +394,11 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         fechaActualizacion: new Date(),
       });
     } catch (error) {
-      alert(`Error al actualizar ${field}: ${error.message}`);
+      notify(
+        `Error al actualizar ${field}: ${error.message}`,
+        "error",
+        "Error"
+      );
     }
   };
 
@@ -439,7 +462,11 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       // Verificar que se eliminó
       const verificacion = await getDoc(docRef);
       if (verificacion.exists()) {
-        alert("Error: No se pudo eliminar de Firebase. Verifica los permisos.");
+        notify(
+          "Error: No se pudo eliminar de Firebase. Verifica los permisos.",
+          "error",
+          "Error al eliminar"
+        );
         return;
       }
 
@@ -466,7 +493,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     } catch (error) {
-      alert(`Error: ${error.message}`);
+      notify(`Error: ${error.message}`, "error", "Error");
     }
   };
 

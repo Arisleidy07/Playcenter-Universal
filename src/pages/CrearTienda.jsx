@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -15,6 +15,7 @@ import {
 import { collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase";
+import ToastNotification from "../components/ToastNotification";
 
 export default function SolicitarVender() {
   const navigate = useNavigate();
@@ -37,13 +38,29 @@ export default function SolicitarVender() {
     nombreContacto: "",
   });
 
+  // Sistema de notificaciones
+  const [notifications, setNotifications] = useState([]);
+
+  const showNotification = (message, type = "info", title = null) => {
+    const id = Date.now() + Math.random();
+    setNotifications((prev) => [...prev, { id, message, type, title }]);
+  };
+
+  const removeNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const handleImageChange = (e, tipo) => {
     const file = e.target.files[0];
     if (!file) return;
 
     // Validar tamaño (máx 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert("La imagen no debe superar 5MB");
+      showNotification(
+        "La imagen no debe superar 5MB. Por favor elige una imagen más pequeña.",
+        "warning",
+        "Imagen muy grande"
+      );
       return;
     }
 
@@ -72,12 +89,20 @@ export default function SolicitarVender() {
     e.preventDefault();
 
     if (!formData.nombre.trim()) {
-      alert("El nombre de la tienda es obligatorio");
+      showNotification(
+        "Por favor ingresa el nombre de tu tienda",
+        "warning",
+        "Campo requerido"
+      );
       return;
     }
 
     if (!formData.email.trim()) {
-      alert("El email es obligatorio para enviarte la respuesta");
+      showNotification(
+        "El email es obligatorio para enviarte la respuesta",
+        "warning",
+        "Campo requerido"
+      );
       return;
     }
 
@@ -119,10 +144,18 @@ export default function SolicitarVender() {
       await addDoc(collection(db, "solicitudes_vendedor"), solicitudData);
 
       // 3. Mostrar mensaje de éxito
-      setEnviado(true);
+      showNotification(
+        "¡Solicitud enviada exitosamente!",
+        "success",
+        "¡Éxito!"
+      );
+      setTimeout(() => setEnviado(true), 500);
     } catch (error) {
-      // console.error("Error al enviar solicitud:", error);
-      alert("Hubo un error al enviar tu solicitud. Intenta de nuevo.");
+      showNotification(
+        "Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.",
+        "error",
+        "Error al enviar"
+      );
     } finally {
       setLoading(false);
     }
@@ -134,7 +167,11 @@ export default function SolicitarVender() {
 
   const pasoSiguiente = () => {
     if (paso === 1 && !formData.nombre.trim()) {
-      alert("Por favor ingresa el nombre de tu tienda");
+      showNotification(
+        "Por favor ingresa el nombre de tu tienda para continuar",
+        "warning",
+        "Campo requerido"
+      );
       return;
     }
     if (paso < 3) setPaso(paso + 1);
@@ -475,13 +512,13 @@ export default function SolicitarVender() {
               </motion.div>
             )}
 
-            {/* Botones de Navegación */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t">
+            {/* Botones de Navegación - RESPONSIVE MEJORADO */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 mt-8 pt-6 border-t">
               {paso > 1 ? (
                 <button
                   type="button"
                   onClick={pasoAnterior}
-                  className="flex items-center gap-2 px-6 py-3 text-gray-600 hover:text-gray-900 font-semibold"
+                  className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 text-gray-600 hover:text-gray-900 font-semibold order-2 sm:order-1"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Anterior
@@ -490,7 +527,7 @@ export default function SolicitarVender() {
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="flex items-center gap-2 px-6 py-3 text-gray-600 hover:text-gray-900 font-semibold"
+                  className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 text-gray-600 hover:text-gray-900 font-semibold order-2 sm:order-1"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Cancelar
@@ -501,7 +538,7 @@ export default function SolicitarVender() {
                 <button
                   type="button"
                   onClick={pasoSiguiente}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  className="px-4 sm:px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors order-1 sm:order-2"
                 >
                   Siguiente
                 </button>
@@ -509,7 +546,7 @@ export default function SolicitarVender() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 sm:px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 order-1 sm:order-2"
                 >
                   {loading ? (
                     <>
@@ -527,6 +564,12 @@ export default function SolicitarVender() {
             </div>
           </form>
         </motion.div>
+
+        {/* Sistema de notificaciones */}
+        <ToastNotification
+          notifications={notifications}
+          onRemove={removeNotification}
+        />
       </div>
     </div>
   );

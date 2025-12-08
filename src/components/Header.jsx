@@ -911,19 +911,28 @@ const Header = () => {
               >
                 {/* Header del menú */}
                 <div className="d-flex align-items-center justify-content-between p-4 border-bottom">
-                  <h2
-                    className="h4 fw-bold mb-0"
-                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
-                  >
+                  <h2 className="h4 fw-bold mb-0" style={{ color: "#2563eb" }}>
                     Menú
                   </h2>
                   <button
                     onClick={() => setMenuOpen(false)}
-                    className="btn p-2 rounded-3"
+                    className="btn"
                     style={{
-                      backgroundColor: isDark ? "#374151" : "#e5e7eb",
-                      borderColor: isDark ? "#4b5563" : "#d1d5db",
-                      color: isDark ? "#f9fafb" : "#111827",
+                      backgroundColor: "#2563eb",
+                      border: "none",
+                      color: "#ffffff",
+                      width: "40px",
+                      height: "40px",
+                      minWidth: "40px",
+                      minHeight: "40px",
+                      maxWidth: "40px",
+                      maxHeight: "40px",
+                      borderRadius: "10px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0",
+                      flexShrink: 0,
                     }}
                     aria-label="Cerrar menú"
                   >
@@ -931,14 +940,13 @@ const Header = () => {
                       width="24"
                       height="24"
                       fill="none"
-                      stroke="currentColor"
+                      stroke="#ffffff"
                       viewBox="0 0 24 24"
-                      style={{ color: isDark ? "#f9fafb" : "#111827" }}
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
+                        strokeWidth={2.5}
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
@@ -1021,11 +1029,17 @@ const Header = () => {
                         setMenuOpen(false);
                         setModalAbierto(true);
                       }}
-                      className="btn w-100 fw-semibold shadow d-flex align-items-center justify-content-center gap-2 py-3"
+                      className="btn w-100 fw-semibold d-flex align-items-center justify-content-center gap-2"
                       style={{
-                        backgroundColor: isDark ? "#2563eb" : "#3b82f6",
-                        borderColor: isDark ? "#2563eb" : "#3b82f6",
+                        backgroundColor: "#2563eb",
+                        border: "none",
                         color: "#ffffff",
+                        borderRadius: "10px",
+                        padding: "14px 24px",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)",
+                        minHeight: "50px",
                       }}
                     >
                       <svg

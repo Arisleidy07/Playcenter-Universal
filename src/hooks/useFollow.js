@@ -10,6 +10,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
+import { notify } from "../utils/notificationBus";
 
 /**
  * Hook personalizado para manejar seguimiento de usuarios/tiendas
@@ -70,7 +71,11 @@ export function useFollow(targetUserId) {
   // ═══════════════════════════════════════════════════════════
   const toggleFollow = async () => {
     if (!usuario) {
-      alert("Debes iniciar sesión para seguir cuentas.");
+      notify(
+        "Debes iniciar sesión para seguir cuentas.",
+        "warning",
+        "Inicia sesión"
+      );
       return;
     }
 
@@ -166,11 +171,17 @@ export function useFollow(targetUserId) {
 
       // Mensaje de error al usuario
       if (error.code === "permission-denied") {
-        alert("No tienes permisos para realizar esta acción.");
-      } else if (error.code === "not-found") {
-        alert("El usuario no existe.");
+        notify(
+          "No tienes permisos para realizar esta acción.",
+          "error",
+          "Permiso denegado"
+        );
       } else {
-        alert("Error al actualizar. Intenta de nuevo.");
+        notify(
+          "Error al seguir/dejar de seguir. Intenta de nuevo.",
+          "error",
+          "Error"
+        );
       }
     }
   };

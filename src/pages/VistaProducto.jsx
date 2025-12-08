@@ -14,6 +14,7 @@ import { db } from "../firebase";
 
 // Components necesarios
 import VisualVariantSelector from "../components/VisualVariantSelector";
+import ToastNotification from "../components/ToastNotification";
 const VP_DEBUG = false;
 import ProductosRelacionados from "../components/ProductosRelacionados";
 
@@ -647,6 +648,18 @@ function VistaProducto() {
   const [zoomBgSize, setZoomBgSize] = useState({ w: 200, h: 200 }); // % tamaño fondo
 
   const { product: producto, loading, error } = useProduct(id);
+
+  // Sistema de notificaciones
+  const [notifications, setNotifications] = useState([]);
+
+  const showNotification = (message, type = "info", title = null) => {
+    const id = Date.now() + Math.random();
+    setNotifications((prev) => [...prev, { id, message, type, title }]);
+  };
+
+  const removeNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   // Derived values - available throughout component
   const allVariantes = Array.isArray(producto?.variantes)
@@ -1545,7 +1558,11 @@ function VistaProducto() {
       } else {
         // Fallback: copiar al portapapeles
         await navigator.clipboard.writeText(shareUrl);
-        alert("Enlace copiado al portapapeles");
+        showNotification(
+          "Enlace copiado al portapapeles",
+          "success",
+          "¡Copiado!"
+        );
       }
     } catch (error) {
       // Error silencioso
@@ -1566,7 +1583,7 @@ function VistaProducto() {
         await navigator.share(data);
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        alert("Enlace copiado");
+        showNotification("Enlace copiado", "success", "¡Listo!");
       }
     } catch {}
   };
@@ -2900,6 +2917,12 @@ function VistaProducto() {
             </div>
           );
         })()}
+
+      {/* Sistema de notificaciones */}
+      <ToastNotification
+        notifications={notifications}
+        onRemove={removeNotification}
+      />
     </>
   );
 }

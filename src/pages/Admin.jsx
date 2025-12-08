@@ -20,6 +20,7 @@ import {
 } from "firebase/storage";
 import { db, storage } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { notify } from "../utils/notificationBus";
 import "../styles/Admin.css";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductForm from "../components/ProductForm";
@@ -1215,11 +1216,17 @@ export default function Admin() {
                                       } catch (err) {
                                         // Error silencioso
                                       }
-                                      alert(
-                                        "✅ ¡Ahora eres Admin! Refresca la página."
+                                      notify(
+                                        "✅ ¡Ahora eres Admin! Refresca la página.",
+                                        "success",
+                                        "Admin asignado"
                                       );
                                     } catch (error) {
-                                      alert("Error: " + error.message);
+                                      notify(
+                                        "Error: " + error.message,
+                                        "error",
+                                        "Error"
+                                      );
                                     }
                                   }}
                                   className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs font-bold"
@@ -1259,11 +1266,17 @@ export default function Admin() {
                                     // Error silencioso
                                   }
 
-                                  alert("Usuario eliminado exitosamente");
+                                  notify(
+                                    "Usuario eliminado exitosamente",
+                                    "success",
+                                    "Eliminado"
+                                  );
                                 } catch (error) {
-                                  alert(
+                                  notify(
                                     "Error al eliminar usuario: " +
-                                      error.message
+                                      error.message,
+                                    "error",
+                                    "Error"
                                   );
                                 }
                               }}

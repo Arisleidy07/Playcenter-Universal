@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { notify } from "../utils/notificationBus";
 import {
   Store,
   Trash2,
@@ -80,7 +81,11 @@ export default function GestionTiendas() {
 
   const eliminarTienda = async (tienda) => {
     if (tienda.id === "playcenter_universal") {
-      alert("No puedes eliminar la tienda principal de Playcenter Universal");
+      notify(
+        "No puedes eliminar la tienda principal de Playcenter Universal",
+        "error",
+        "Acción no permitida"
+      );
       return;
     }
 
@@ -111,7 +116,11 @@ export default function GestionTiendas() {
         }
       }
 
-      alert(`Tienda "${tienda.nombre}" eliminada correctamente`);
+      notify(
+        `Tienda "${tienda.nombre}" eliminada correctamente`,
+        "success",
+        "Tienda eliminada"
+      );
 
       // Recargar lista
       const cargarTodasTiendas = async () => {
@@ -145,7 +154,11 @@ export default function GestionTiendas() {
       };
       cargarTodasTiendas();
     } catch (error) {
-      alert("Error al eliminar la tienda. Intenta de nuevo.");
+      notify(
+        "Error al eliminar la tienda. Intenta de nuevo.",
+        "error",
+        "Error"
+      );
     } finally {
       setEliminando(null);
     }
@@ -167,19 +180,23 @@ export default function GestionTiendas() {
         });
       }
 
-      alert(
+      notify(
         `Tienda "${tienda.nombre}" ${
           tienda.activa ? "desactivada" : "activada"
-        }`
+        }`,
+        "success",
+        "Estado actualizado"
       );
     } catch (error) {
-      alert("Error al cambiar el estado de la tienda.");
+      notify("Error al cambiar el estado de la tienda.", "error", "Error");
     }
   };
 
   const crearNuevaTienda = async () => {
-    alert(
-      "Para crear una nueva tienda de vendedor:\n\n1. El usuario debe ir a /solicitar-vender\n2. Llenar el formulario de solicitud\n3. Tú aprobarás la solicitud desde la pestaña 'Solicitudes'\n4. La tienda se creará automáticamente\n\nEste panel es solo para VER y GESTIONAR las tiendas existentes."
+    notify(
+      "Para crear una nueva tienda de vendedor: 1) El usuario debe ir a /solicitar-vender 2) Llenar el formulario de solicitud 3) Tú aprobarás la solicitud desde la pestaña 'Solicitudes' 4) La tienda se creará automáticamente. Este panel es solo para VER y GESTIONAR las tiendas existentes.",
+      "info",
+      "Crear tienda"
     );
   };
 

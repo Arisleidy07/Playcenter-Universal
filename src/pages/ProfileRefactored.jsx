@@ -5,6 +5,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   onSnapshot,
   doc,
   setDoc,
@@ -17,6 +18,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { db, storage } from "../firebase";
+import { notify } from "../utils/notificationBus";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuthModal } from "../context/AuthModalContext";
@@ -124,24 +126,45 @@ export default function Profile() {
     if (!usuario) return;
     let unsub = null;
 
-    const listenStoreDoc = (id) => {
+    const listenStoreDoc = (collectionName, id) => {
       try {
-        unsub = onSnapshot(doc(db, "tiendas", id), (snap) => {
+        if (unsub) unsub();
+        unsub = onSnapshot(doc(db, collectionName, id), (snap) => {
           if (snap.exists()) {
+            const storeData = { id: snap.id, ...snap.data() };
             setStoreId(snap.id);
-            setStore({ id: snap.id, ...snap.data() });
+            setStore(storeData);
           }
         });
       } catch (e) {
-        // console.error("listenStoreDoc:", e);
+        // Error silencioso
       }
     };
 
     const fetchStore = async () => {
       try {
         if (usuarioInfo?.storeId) {
-          listenStoreDoc(usuarioInfo.storeId);
-          return;
+          // Intentar en 'tiendas' primero
+          try {
+            const s1 = await getDoc(doc(db, "tiendas", usuarioInfo.storeId));
+            if (s1.exists()) {
+              setStoreId(s1.id);
+              setStore({ id: s1.id, ...s1.data() });
+              listenStoreDoc("tiendas", usuarioInfo.storeId);
+              return;
+            }
+          } catch (_) {}
+
+          // Luego intentar en 'stores' (vendedores)
+          try {
+            const s2 = await getDoc(doc(db, "stores", usuarioInfo.storeId));
+            if (s2.exists()) {
+              setStoreId(s2.id);
+              setStore({ id: s2.id, ...s2.data() });
+              listenStoreDoc("stores", usuarioInfo.storeId);
+              return;
+            }
+          } catch (_) {}
         }
 
         const tryField = async (field) => {
@@ -152,9 +175,10 @@ export default function Profile() {
           const snap = await getDocs(q);
           if (!snap.empty) {
             const d = snap.docs[0];
+            const storeData = { id: d.id, ...d.data() };
             setStoreId(d.id);
-            setStore({ id: d.id, ...d.data() });
-            listenStoreDoc(d.id);
+            setStore(storeData);
+            listenStoreDoc("tiendas", d.id);
             return true;
           }
           return false;
@@ -165,6 +189,67 @@ export default function Profile() {
         if (await tryField("propietarioId")) return;
         if (await tryField("propietario_id")) return;
         if (await tryField("createdBy")) return;
+        if (await tryField("userId")) return;
+
+        // Buscar también en colección "stores" (vendedores/new)
+        const tryStores = async () => {
+          const fields = [
+            "ownerUid",
+            "ownerId",
+            "owner_id",
+            "userId",
+            "createdBy",
+          ];
+          for (const f of fields) {
+            const qStores = query(
+              collection(db, "stores"),
+              where(f, "==", usuario.uid)
+            );
+            const snapStores = await getDocs(qStores);
+            if (!snapStores.empty) {
+              const d = snapStores.docs[0];
+              const storeData = { id: d.id, ...d.data() };
+              setStoreId(d.id);
+              setStore(storeData);
+              listenStoreDoc("stores", d.id);
+              try {
+                await setDoc(
+                  doc(db, "users", usuario.uid),
+                  {
+                    storeId: d.id,
+                    storeName: storeData.nombre || storeData.name || "",
+                    role: "seller",
+                    isSeller: true,
+                  },
+                  { merge: true }
+                );
+              } catch (_) {}
+              return true;
+            }
+          }
+          // Fallback: buscar por correo del propietario
+          if (usuario.email) {
+            try {
+              const email = (usuario.email || "").toLowerCase().trim();
+              const qEmail = query(
+                collection(db, "stores"),
+                where("ownerEmail", "==", email)
+              );
+              const snapEmail = await getDocs(qEmail);
+              if (!snapEmail.empty) {
+                const d = snapEmail.docs[0];
+                const storeData = { id: d.id, ...d.data() };
+                setStoreId(d.id);
+                setStore(storeData);
+                listenStoreDoc("stores", d.id);
+                return true;
+              }
+            } catch (_) {}
+          }
+          return false;
+        };
+
+        if (await tryStores()) return;
 
         // Fallback para administradores: tienda principal Playcenter Universal
         const isAdminUser =
@@ -173,7 +258,7 @@ export default function Profile() {
           usuarioInfo?.admin === true;
         if (isAdminUser) {
           setStoreId("playcenter_universal");
-          listenStoreDoc("playcenter_universal");
+          listenStoreDoc("tiendas", "playcenter_universal");
           return;
         }
       } catch (e) {
@@ -484,8 +569,7 @@ export default function Profile() {
             setRefreshKey((prev) => prev + 1);
             setEditModalOpen(false);
           } catch (e) {
-            console.error("save profile:", e);
-            alert("Error al guardar: " + e.message);
+            notify("Error al guardar: " + e.message, "error", "Error");
           } finally {
             setSavingProfile(false);
           }

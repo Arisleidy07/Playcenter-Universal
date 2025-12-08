@@ -1,15 +1,20 @@
 /* ✨ AUTH MODAL - ULTRA MODERN STYLES ✨ */
 
-/* Custom Input Focus Effect */
-.modern-input {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+/* Custom Input Focus Effect - Modal Auth específico */
+#auth-modal .form-control,
+#auth-modal input.form-control {
+  transition: all 0.2s ease !important;
+  border-width: 1.5px !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  font-size: 15px !important;
 }
 
-.modern-input:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.15) !important;
-  outline: none;
+#auth-modal .form-control:focus,
+#auth-modal input.form-control:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  transform: none !important;
 }
 
 /* Custom Scrollbar */
@@ -55,13 +60,17 @@
   }
 }
 
-/* Estilos para botón de Google cuando se sugiere */
+/* Estilos para botón de Google - AZUL SÓLIDO */
 .google-login-btn {
-  transition: all 0.3s ease !important;
+  transition: all 0.2s ease !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: none !important;
 }
 
 .google-login-btn:hover {
-  box-shadow: 0 8px 25px rgba(66, 133, 244, 0.3) !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5) !important;
 }
 
 .animated-gradient-bg {
@@ -156,47 +165,113 @@
   width: 100%;
 }
 
-/* Responsive Adjustments */
+/* 📱 MÓVIL - ESTILOS ULTRA-ESPECÍFICOS CON MÁXIMA PRIORIDAD */
 @media (max-width: 576px) {
-  /* Móvil - Diseño compacto horizontal */
-  .auth-modal-logo {
+  /* Header - Asegurar que esté bien alineado */
+  #auth-modal .d-flex.align-items-center.justify-content-between {
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+  }
+
+  /* Botón X - Tamaño fijo en móvil */
+  #auth-modal .btn-close-modal {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    font-size: 20px !important;
+  }
+
+  /* Logo */
+  #auth-modal .auth-modal-logo {
     height: 36px !important;
     max-width: 115px !important;
   }
 
-  .auth-modal-title {
+  #auth-modal .auth-modal-title {
     font-size: 1.5rem !important;
   }
 
-  .auth-modal-subtitle {
+  #auth-modal .auth-modal-subtitle {
     font-size: 14px !important;
   }
 
-  .modern-input {
-    font-size: 16px !important; /* 16px previene zoom en iOS */
-    padding: 12px 14px !important;
+  /* INPUTS - Forzar estilos en móvil */
+  #auth-modal input[type="text"],
+  #auth-modal input[type="email"],
+  #auth-modal input[type="password"],
+  #auth-modal input[type="tel"],
+  #auth-modal .form-control,
+  #auth-modal input.form-control {
+    font-size: 16px !important; /* 16px evita zoom en iOS */
+    padding: 14px 16px !important;
     border-radius: 10px !important;
+    border-width: 1.5px !important;
+    border-style: solid !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
   }
 
-  .form-label {
-    font-size: 13px !important;
-    margin-bottom: 6px !important;
+  /* LABELS - Forzar en móvil */
+  #auth-modal .form-label,
+  #auth-modal label.form-label {
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
     font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
 
-  /* Reducir espaciado vertical para simetría */
-  .mb-3 {
-    margin-bottom: 0.875rem !important;
+  /* BOTONES - Forzar en móvil - TODOS AZULES */
+  #auth-modal .btn:not(.btn-close-modal),
+  #auth-modal button.btn:not(.btn-close-modal) {
+    font-size: 16px !important;
+    padding: 15px 20px !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    width: 100% !important;
+    min-height: 50px !important;
   }
 
-  .mb-4 {
-    margin-bottom: 1.125rem !important;
+  /* Botón principal y Google - AZUL SÓLIDO */
+  #auth-modal button[type="submit"],
+  #auth-modal .google-login-btn {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 15px 20px !important;
+    font-size: 16px !important;
   }
 
-  /* Padding simétrico en móvil */
-  .px-4 {
-    padding-left: 1.25rem !important;
-    padding-right: 1.25rem !important;
+  /* Botón X en móvil - AZUL */
+  #auth-modal .btn-close-modal {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+  }
+
+  /* Espaciado optimizado */
+  #auth-modal .mb-3 {
+    margin-bottom: 0.75rem !important;
+  }
+
+  #auth-modal .mb-4 {
+    margin-bottom: 1rem !important;
+  }
+
+  /* Padding del contenedor */
+  #auth-modal .px-4 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Ícono de ojo en password */
+  #auth-modal .position-relative button[type="button"] {
+    width: 20px !important;
+    height: 20px !important;
   }
 }
 
@@ -207,8 +282,31 @@
     max-width: 135px !important;
   }
 
-  .modern-input {
+  #auth-modal .form-control,
+  #auth-modal input.form-control {
+    font-size: 15px !important;
     padding: 12px 16px !important;
+    border-radius: 10px !important;
+    border-width: 1.5px !important;
+  }
+
+  #auth-modal .form-label {
+    font-size: 14px !important;
+  }
+
+  /* BOTONES AZULES en tablet también */
+  #auth-modal button[type="submit"],
+  #auth-modal .google-login-btn {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    min-height: 50px !important;
+  }
+
+  #auth-modal .btn-close-modal {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
   }
 }
 
@@ -227,12 +325,34 @@
     font-size: 15px !important;
   }
 
-  .modern-input {
-    padding: 13px 16px !important;
+  #auth-modal .form-control,
+  #auth-modal input.form-control {
+    font-size: 15px !important;
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
+    border-width: 1.5px !important;
+  }
+
+  #auth-modal .form-label {
+    font-size: 14px !important;
+  }
+
+  /* BOTONES AZULES en desktop también */
+  #auth-modal button[type="submit"],
+  #auth-modal .google-login-btn {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+  }
+
+  #auth-modal .btn-close-modal {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
   }
 
   /* Centrado perfecto en desktop */
-  .text-center {
+  #auth-modal .text-center {
     text-align: center !important;
   }
 }
@@ -258,13 +378,21 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Botón cerrar (X) - Perfectamente centrado */
+/* Botón cerrar (X) - AZUL SÓLIDO en todos los dispositivos */
 .btn-close-modal {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 0 !important;
   line-height: 1 !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: none !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-close-modal:hover {
+  background: #1d4ed8 !important;
 }
 
 .btn-close-modal span {
@@ -275,55 +403,23 @@
   height: 100%;
 }
 
-/* Inputs con bordes simétricos */
-.form-control {
-  transition: all 0.3s ease;
-}
-
-.form-control:focus {
-  border-color: currentColor !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-}
-
 /* Labels con peso uniforme */
-.form-label {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  display: block;
+#auth-modal .form-label {
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 14px !important;
 }
 
-/* Separadores simétricos */
-hr,
-.border-bottom {
+/* Separadores simétricos (solo dentro del modal) */
+#auth-modal hr {
   opacity: 0.1;
 }
-
-/* Estilos para dark mode */
-@media (prefers-color-scheme: dark) {
-  .modern-input {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    color: #ffffff !important;
-  }
-
-  .modern-input:focus {
-    border-color: rgba(59, 130, 246, 0.5) !important;
-    background-color: rgba(0, 0, 0, 0.4) !important;
-  }
-}
-
-/* Estilos para light mode */
-@media (prefers-color-scheme: light) {
-  .modern-input {
-    background-color: #ffffff !important;
-    border-color: rgba(0, 0, 0, 0.15) !important;
-    color: #111827 !important;
-  }
-
-  .modern-input:focus {
-    border-color: rgba(59, 130, 246, 0.5) !important;
-    background-color: #fafafa !important;
-  }
+#auth-modal .border-bottom {
+  opacity: 1;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Contenedor con sombra más sutil y moderno */

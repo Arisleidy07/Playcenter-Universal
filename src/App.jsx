@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import AnimatedRoutes from "./AnimatedRoutes";
@@ -135,9 +136,11 @@ function App() {
   }
 
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <NotificationProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </NotificationProvider>
   );
 }
 

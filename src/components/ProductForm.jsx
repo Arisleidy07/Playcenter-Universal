@@ -23,6 +23,7 @@ import { useStore } from "../hooks/useStore";
 import UniversalFileUploader from "./UniversalFileUploader";
 import VisualVariantSelector from "./VisualVariantSelector";
 import AdditionalFieldsSection from "./AdditionalFieldsSection";
+import ToastNotification from "./ToastNotification";
 // Import CSS
 import "../styles/UniversalFileUploader.css";
 // Validation utilities
@@ -143,6 +144,29 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [hasDraft, setHasDraft] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  // Sistema de notificaciones
+  const [notifications, setNotifications] = useState([]);
+
+  // Función helper para mostrar notificaciones
+  const showNotification = (message, type = "info", title = null) => {
+    const id = Date.now() + Math.random();
+    setNotifications((prev) => [...prev, { id, message, type, title }]);
+  };
+
+  const removeNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const handleDiscardDraft = () => {
+    const draftKey = `product_draft_${usuarioInfo?.uid || "guest"}`;
+    localStorage.removeItem(draftKey);
+    setHasDraft(false);
+    setLastSaved(null);
+    setShowDiscardModal(false);
+    showNotification("Borrador descartado", "info", "Borrador eliminado");
+    window.location.reload();
+  };
 
   useEffect(() => {
     // Cargar datos iniciales
@@ -618,7 +642,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           : e.code === "network-request-failed"
           ? "Error de conexión. Verifica tu internet"
           : `Error al guardar: ${e.message}`;
-      alert(errorMessage);
+      showNotification(errorMessage, "error", "Error al guardar borrador");
     }
   };
 
@@ -696,7 +720,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (error) {
-      alert("Error subiendo imagen");
+      showNotification(
+        "Error al subir la imagen. Intenta nuevamente.",
+        "error",
+        "Error de subida"
+      );
       return null;
     }
   };
@@ -2499,9 +2527,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     }
 
     if (errors.length) {
-      alert(
-        "Corrige los siguientes campos antes de guardar:\n- " +
-          errors.join("\n- ")
+      showNotification(
+        "Corrige los siguientes campos:\n- " + errors.join("\n- "),
+        "warning",
+        "Campos requeridos"
       );
       return;
     }
@@ -2624,8 +2653,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const tiendaData = detectarTiendaUsuario();
 
       if (!tiendaData) {
-        alert(
-          "No tienes una tienda asociada. Por favor crea tu tienda primero."
+        showNotification(
+          "No tienes una tienda asociada. Por favor crea tu tienda primero.",
+          "error",
+          "Tienda requerida"
         );
         setLoading(false);
         return;
@@ -2663,8 +2694,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const draftKey = `product_draft_${usuarioInfo?.uid || "guest"}`;
       localStorage.removeItem(draftKey);
 
-      if (typeof onSave === "function") onSave();
-      if (typeof onClose === "function") onClose();
+      showNotification("Producto guardado exitosamente", "success", "¡Listo!");
+
+      setTimeout(() => {
+        if (typeof onSave === "function") onSave();
+        if (typeof onClose === "function") onClose();
+      }, 500);
     } catch (error) {
       let msg = "Error al guardar el producto";
       if (error?.code === "permission-denied") {
@@ -2674,7 +2709,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       } else if (typeof error?.message === "string" && error.message) {
         msg = error.message;
       }
-      alert(msg);
+      showNotification(msg, "error", "Error al guardar");
     } finally {
       setLoading(false);
     }
@@ -2709,21 +2744,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                   })}
                 </p>
                 <button
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "¿Descartar borrador? Se perderán todos los cambios no guardados."
-                      )
-                    ) {
-                      const draftKey = `product_draft_${
-                        usuarioInfo?.uid || "guest"
-                      }`;
-                      localStorage.removeItem(draftKey);
-                      setHasDraft(false);
-                      setLastSaved(null);
-                      window.location.reload();
-                    }
-                  }}
+                  onClick={() => setShowDiscardModal(true)}
                   className="text-xs text-blue-200 hover:text-white underline"
                 >
                   Descartar
@@ -3876,6 +3897,74 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 archivo(s) en progreso
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sistema de notificaciones */}
+      <ToastNotification
+        notifications={notifications}
+        onRemove={removeNotification}
+      />
+
+      {/* Modal de confirmación para descartar borrador */}
+      <AnimatePresence>
+        {showDiscardModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDiscardModal(false)}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-yellow-600 dark:text-yellow-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                    ¿Descartar borrador?
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                    Se perderán todos los cambios no guardados. Esta acción no
+                    se puede deshacer.
+                  </p>
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      onClick={() => setShowDiscardModal(false)}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleDiscardDraft}
+                      className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                    >
+                      Descartar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

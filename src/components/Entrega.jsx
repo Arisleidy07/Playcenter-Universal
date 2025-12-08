@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "../firebase";
+import { notify } from "../utils/notificationBus";
 import {
   collection,
   addDoc,
@@ -331,7 +332,11 @@ export default function Entrega({
     // console.log("Auth check:", { uid, usuario: usuario?.uid, currentUid });
 
     if (!currentUid) {
-      alert("Error de autenticación. Recarga la página e intenta de nuevo.");
+      notify(
+        "Error de autenticación. Recarga la página e intenta de nuevo.",
+        "error",
+        "Error de autenticación"
+      );
       return;
     }
     setGuardando(true);
@@ -388,7 +393,11 @@ export default function Entrega({
       if (!tieneUbicacion) {
         const dirFinalCheck = armarDireccionDomicilio();
         if (!dirFinalCheck) {
-          alert("Completa provincia, ciudad y calle/número.");
+          notify(
+            "Completa provincia, ciudad y calle/número.",
+            "warning",
+            "Campos requeridos"
+          );
           setGuardando(false);
           return;
         }
@@ -476,8 +485,11 @@ export default function Entrega({
       // Reload page immediately - animation covers the reload
       window.location.reload();
     } catch (err) {
-      // console.error("handleGuardarDireccion error:", err);
-      alert(`Error guardando dirección: ${err?.message || err}`);
+      notify(
+        `Error guardando dirección: ${err?.message || err}`,
+        "error",
+        "Error"
+      );
     } finally {
       setGuardando(false);
     }
@@ -543,9 +555,12 @@ export default function Entrega({
       // Reload page immediately - animation covers the reload
       window.location.reload();
     } catch (err) {
-      // console.error("handleSeleccionarDireccion error:", err);
       setShowVanAnimation(false);
-      alert(`Error seleccionando dirección: ${err?.message || err}`);
+      notify(
+        `Error seleccionando dirección: ${err?.message || err}`,
+        "error",
+        "Error"
+      );
     }
   };
 
@@ -554,10 +569,13 @@ export default function Entrega({
       await deleteDoc(doc(db, "direcciones", id));
       await fetchDirecciones();
       if (typeof actualizarLista === "function") actualizarLista();
-      alert("Dirección eliminada correctamente.");
+      notify("Dirección eliminada correctamente.", "success", "Eliminada");
     } catch (err) {
-      // console.error("eliminarDireccion:", err);
-      alert(`Error eliminando dirección: ${err?.message || err}`);
+      notify(
+        `Error eliminando dirección: ${err?.message || err}`,
+        "error",
+        "Error"
+      );
     }
   };
 
@@ -601,7 +619,11 @@ export default function Entrega({
 
   const agregarUbicacionActual = () => {
     if (!navigator.geolocation) {
-      alert("Geolocalización no soportada en este navegador.");
+      notify(
+        "Geolocalización no soportada en este navegador.",
+        "warning",
+        "Advertencia"
+      );
       return;
     }
     setGeoLoading(true);
@@ -644,7 +666,7 @@ export default function Entrega({
             mensaje = "Error desconocido. Verifica permisos del navegador.";
         }
 
-        alert(mensaje);
+        notify(mensaje, "error", "Error de ubicación");
         setGeoLoading(false);
       },
       {

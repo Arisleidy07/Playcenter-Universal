@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase";
+import { notify } from "../utils/notificationBus";
 import LoadingSpinner from "./LoadingSpinner";
 import {
   FiFolder,
@@ -157,7 +158,7 @@ const CategoryManagement = () => {
       setFormData((prev) => ({ ...prev, imagen: url }));
     } catch (error) {
       // console.error("Error uploading image:", error);
-      alert("Error al subir la imagen");
+      notify("Error al subir la imagen", "error", "Error al subir imagen");
     } finally {
       setUploadingImage(false);
     }
@@ -193,7 +194,7 @@ const CategoryManagement = () => {
       resetForm();
     } catch (error) {
       // console.error("Error saving category:", error);
-      alert("Error al guardar la categoría");
+      notify("Error al guardar la categoría", "error", "Error al guardar");
     } finally {
       setLoading(false);
     }
@@ -207,7 +208,11 @@ const CategoryManagement = () => {
       });
     } catch (error) {
       // console.error("Error updating category status:", error);
-      alert("Error al actualizar el estado de la categoría");
+      notify(
+        "Error al actualizar el estado de la categoría",
+        "error",
+        "Error al actualizar"
+      );
     }
   };
 

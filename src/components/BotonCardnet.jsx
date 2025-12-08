@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../firebase";
+import { notify } from "../utils/notificationBus";
 import "../styles/BotonCardnet.css";
 
 // URL de Cardnet LAB (cambiar a producción cuando esté listo)
@@ -104,8 +105,10 @@ export default function BotonCardnet({ className, total, label, items }) {
       setError(errorMessage);
       setIsProcessing(false);
 
-      alert(
-        `⚠️ Error:\n\n${errorMessage}\n\nPor favor, intenta de nuevo en unos segundos.`
+      notify(
+        `Error: ${errorMessage}. Por favor, intenta de nuevo en unos segundos.`,
+        "error",
+        "Error de pago"
       );
     }
   };

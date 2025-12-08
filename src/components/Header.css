@@ -324,3 +324,44 @@ html.dark-theme .cart-link:hover .cart-icon {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ========================================
+   MENÚ LATERAL - BOTONES AZULES
+   ======================================== */
+
+/* Botón X del menú lateral - AZUL SÓLIDO */
+.border-bottom button.btn {
+  background-color: #2563eb !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
+/* Botón Iniciar sesión en el menú lateral - AZUL SÓLIDO */
+.border-bottom .btn.w-100 {
+  background-color: #2563eb !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* Asegurar que los SVG dentro de los botones sean blancos */
+.border-bottom button.btn svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* En móvil - botones más grandes y redondos */
+@media (max-width: 576px) {
+  .border-bottom button.btn:not(.w-100) {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  .border-bottom .btn.w-100 {
+    min-height: 50px !important;
+    border-radius: 10px !important;
+  }
+}

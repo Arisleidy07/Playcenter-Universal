@@ -13,10 +13,13 @@ import {
   FaPhone,
   FaGoogle,
   FaChevronRight,
+  FaTimes,
 } from "react-icons/fa";
 import { doc, setDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import { db } from "../firebase";
+import { notify } from "../utils/notificationBus";
+import "./AuthModal.css";
 
 export default function AuthModal() {
   const {
@@ -192,7 +195,6 @@ export default function AuthModal() {
             }
           }
         } else if (knownMethod === "apple") {
-          
           setError("Iniciando sesión con Apple...");
           try {
             const result = await loginWithApple();
@@ -214,7 +216,6 @@ export default function AuthModal() {
             setError("Error al iniciar con Apple. Intenta de nuevo.");
           }
         } else if (knownMethod === "email") {
-          
           setEmail(emailToUse);
           setQuickLoginMode(false);
           setError("Por favor ingresa tu contraseña para continuar.");
@@ -345,7 +346,7 @@ export default function AuthModal() {
         // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         // console.log("📧 Email ingresado:", email);
         // console.log("📧 Email procesado:", emailLimpio);
-        
+
         // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
         // PASO 1: Intentar login con email/password
@@ -368,8 +369,6 @@ export default function AuthModal() {
           // console.log("⚠️ Error code:", loginError.code);
 
           if (loginError.code === "auth/invalid-credential") {
-            
-
             // Mostrar banner sugiriendo login con Google
             setShowGoogleAccountWarning(true);
             setError("");
@@ -551,6 +550,7 @@ export default function AuthModal() {
 
   return (
     <motion.div
+      id="auth-modal"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -601,50 +601,34 @@ export default function AuthModal() {
             />
           </motion.div>
 
-          {/* Botón X a la DERECHA - Moderno y Centrado */}
+          {/* Botón X a la DERECHA - AZUL */}
           <motion.button
             onClick={() => setModalAbierto(false)}
-            whileHover={{
-              scale: 1.05,
-              backgroundColor: isDark
-                ? "rgba(239, 68, 68, 0.15)"
-                : "rgba(239, 68, 68, 0.1)",
-            }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="btn btn-close-modal p-0 d-flex align-items-center justify-content-center"
+            className="btn btn-close-modal"
             style={{
-              background: isDark
-                ? "rgba(255, 255, 255, 0.08)"
-                : "rgba(0, 0, 0, 0.04)",
-              color: isDark ? "#ef4444" : "#dc2626",
-              border: `1.5px solid ${
-                isDark ? "rgba(239, 68, 68, 0.3)" : "rgba(239, 68, 68, 0.2)"
-              }`,
-              fontSize: "20px",
-              fontWeight: "400",
+              background: "#2563eb",
+              color: "#ffffff",
+              border: "none",
               width: "40px",
               height: "40px",
-              lineHeight: "1",
+              minWidth: "40px",
+              minHeight: "40px",
+              maxWidth: "40px",
+              maxHeight: "40px",
               borderRadius: "10px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
+              padding: "0",
+              flexShrink: 0,
             }}
             aria-label="Cerrar"
           >
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                height: "100%",
-              }}
-            >
-              ✕
-            </span>
+            <FaTimes size={18} color="#ffffff" />
           </motion.button>
         </div>
 
@@ -980,25 +964,36 @@ export default function AuthModal() {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="mb-4"
+                className="mb-3"
               >
                 <label
-                  className="form-label fw-semibold small"
-                  style={{ color: isDark ? "#ffffff" : "#000000" }}
+                  className="form-label fw-semibold mb-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
                 >
-                  <FaUser className="me-2" />
-                  Nombre de usuario
+                  <FaUser size={14} style={{ opacity: 0.7 }} />
+                  Nombre completo
                 </label>
                 <input
                   type="text"
                   required
-                  className="form-control modern-input"
+                  className="form-control"
                   style={{
-                    backgroundColor: isDark ? "rgba(0, 0, 0, 0.5)" : "#ffffff",
-                    borderColor: isDark ? "#000000" : "#000000",
-                    color: isDark ? "#ffffff" : "#000000",
-                    borderRadius: "12px",
-                    borderWidth: "2px",
+                    backgroundColor: isDark
+                      ? "rgba(31, 41, 55, 0.5)"
+                      : "#ffffff",
+                    borderColor: isDark ? "rgba(75, 85, 99, 0.5)" : "#d1d5db",
+                    color: isDark ? "#ffffff" : "#111827",
+                    borderRadius: "10px",
+                    borderWidth: "1.5px",
+                    padding: "14px 16px",
+                    fontSize: "16px",
+                    transition: "all 0.2s ease",
                   }}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -1011,25 +1006,36 @@ export default function AuthModal() {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="mb-4"
+                className="mb-3"
               >
                 <label
-                  className="form-label fw-semibold small"
-                  style={{ color: isDark ? "#ffffff" : "#000000" }}
+                  className="form-label fw-semibold mb-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
                 >
-                  <FaPhone className="me-2" />
+                  <FaPhone size={14} style={{ opacity: 0.7 }} />
                   Número de teléfono
                 </label>
                 <input
                   type="tel"
                   required
-                  className="form-control modern-input"
+                  className="form-control"
                   style={{
-                    backgroundColor: isDark ? "rgba(0, 0, 0, 0.5)" : "#ffffff",
-                    borderColor: isDark ? "#000000" : "#000000",
-                    color: isDark ? "#ffffff" : "#000000",
-                    borderRadius: "12px",
-                    borderWidth: "2px",
+                    backgroundColor: isDark
+                      ? "rgba(31, 41, 55, 0.5)"
+                      : "#ffffff",
+                    borderColor: isDark ? "rgba(75, 85, 99, 0.5)" : "#d1d5db",
+                    color: isDark ? "#ffffff" : "#111827",
+                    borderRadius: "10px",
+                    borderWidth: "1.5px",
+                    padding: "14px 16px",
+                    fontSize: "16px",
+                    transition: "all 0.2s ease",
                   }}
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
@@ -1038,24 +1044,33 @@ export default function AuthModal() {
               </motion.div>
             )}
 
-            <div className="mb-4">
+            <div className="mb-3">
               <label
-                className="form-label fw-semibold small"
-                style={{ color: isDark ? "#ffffff" : "#000000" }}
+                className="form-label fw-semibold mb-2"
+                style={{
+                  color: isDark ? "#e5e7eb" : "#374151",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
               >
-                <FaEnvelope className="me-2" />
+                <FaEnvelope size={14} style={{ opacity: 0.7 }} />
                 Correo electrónico
               </label>
               <input
                 type="email"
                 required
-                className="form-control modern-input"
+                className="form-control"
                 style={{
-                  backgroundColor: isDark ? "rgba(0, 0, 0, 0.5)" : "#ffffff",
-                  borderColor: isDark ? "#000000" : "#000000",
-                  color: isDark ? "#ffffff" : "#000000",
-                  borderRadius: "12px",
-                  borderWidth: "2px",
+                  backgroundColor: isDark ? "rgba(31, 41, 55, 0.5)" : "#ffffff",
+                  borderColor: isDark ? "rgba(75, 85, 99, 0.5)" : "#d1d5db",
+                  color: isDark ? "#ffffff" : "#111827",
+                  borderRadius: "10px",
+                  borderWidth: "1.5px",
+                  padding: "14px 16px",
+                  fontSize: "16px",
+                  transition: "all 0.2s ease",
                 }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -1065,23 +1080,35 @@ export default function AuthModal() {
 
             <div className="mb-4">
               <label
-                className="form-label fw-semibold small"
-                style={{ color: isDark ? "#ffffff" : "#000000" }}
+                className="form-label fw-semibold mb-2"
+                style={{
+                  color: isDark ? "#e5e7eb" : "#374151",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
               >
-                <FaLock className="me-2" />
+                <FaLock size={14} style={{ opacity: 0.7 }} />
                 Contraseña
               </label>
               <div className="position-relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  className="form-control pe-5 modern-input"
+                  className="form-control pe-5"
                   style={{
-                    backgroundColor: isDark ? "rgba(0, 0, 0, 0.5)" : "#ffffff",
-                    borderColor: isDark ? "#000000" : "#000000",
-                    color: isDark ? "#ffffff" : "#000000",
-                    borderRadius: "12px",
-                    borderWidth: "2px",
+                    backgroundColor: isDark
+                      ? "rgba(31, 41, 55, 0.5)"
+                      : "#ffffff",
+                    borderColor: isDark ? "rgba(75, 85, 99, 0.5)" : "#d1d5db",
+                    color: isDark ? "#ffffff" : "#111827",
+                    borderRadius: "10px",
+                    borderWidth: "1.5px",
+                    padding: "14px 16px",
+                    paddingRight: "50px",
+                    fontSize: "16px",
+                    transition: "all 0.2s ease",
                   }}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -1092,12 +1119,21 @@ export default function AuthModal() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="position-absolute top-50 end-0 translate-middle-y me-3 btn btn-sm p-0"
                   style={{
-                    color: isDark ? "#ffffff" : "#000000",
+                    color: isDark ? "#9ca3af" : "#6b7280",
                     backgroundColor: "transparent",
                     border: "none",
+                    width: "20px",
+                    height: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showPassword ? (
+                    <FaEyeSlash size={16} />
+                  ) : (
+                    <FaEye size={16} />
+                  )}
                 </button>
               </div>
             </div>
@@ -1105,18 +1141,24 @@ export default function AuthModal() {
             <motion.button
               type="submit"
               disabled={loading}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileTap={{ scale: loading ? 1 : 0.98 }}
               transition={{ type: "spring", stiffness: 400 }}
-              className="btn w-100 fw-bold py-2 mb-3 d-flex align-items-center justify-content-center gap-2 position-relative overflow-hidden"
+              className="btn w-100 fw-bold mb-3 d-flex align-items-center justify-content-center gap-2"
               style={{
-                background: "linear-gradient(135deg, #000000 0%, #000000 100%)",
+                background: loading
+                  ? "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)"
+                  : "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
                 border: "none",
                 color: "#ffffff",
-                borderRadius: "12px",
-                boxShadow:
-                  "0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)",
-                transition: "all 0.3s ease",
+                borderRadius: "10px",
+                padding: "15px 24px",
+                fontSize: "16px",
+                fontWeight: "600",
+                boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)",
+                transition: "all 0.2s ease",
+                opacity: loading ? 0.8 : 1,
+                minHeight: "50px",
               }}
             >
               {loading ? (
@@ -1129,18 +1171,24 @@ export default function AuthModal() {
                       ease: "linear",
                     }}
                     style={{
-                      width: "18px",
-                      height: "18px",
+                      width: "16px",
+                      height: "16px",
                       border: "2px solid rgba(255, 255, 255, 0.3)",
                       borderTopColor: "#ffffff",
                       borderRadius: "50%",
                     }}
                   />
-                  <span>Iniciando sesión...</span>
+                  <span>
+                    {modo === "login" ? "Iniciando..." : "Creando cuenta..."}
+                  </span>
                 </>
               ) : (
                 <>
-                  {modo === "login" ? <FaUser /> : <FaUserPlus />}
+                  {modo === "login" ? (
+                    <FaUser size={15} />
+                  ) : (
+                    <FaUserPlus size={15} />
+                  )}
                   <span>
                     {modo === "login" ? "Iniciar sesión" : "Crear cuenta"}
                   </span>
@@ -1260,57 +1308,47 @@ export default function AuthModal() {
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileTap={{ scale: loading ? 1 : 0.98 }}
               transition={{ type: "spring", stiffness: 400 }}
-              className="btn w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 position-relative overflow-hidden google-login-btn"
+              className="btn w-100 fw-semibold d-flex align-items-center justify-content-center gap-3 google-login-btn"
               style={{
-                background: isDark
-                  ? "linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)"
-                  : "#ffffff",
-                border: isDark
-                  ? "1px solid rgba(255, 255, 255, 0.2)"
-                  : "2px solid #f3f4f6",
-                color: isDark ? "#f9fafb" : "#1f2937",
-                borderRadius: "12px",
-                boxShadow: isDark
-                  ? "0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                  : "0 4px 15px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05)",
-                backdropFilter: "blur(10px)",
+                background: "#2563eb",
+                border: "none",
+                color: "#ffffff",
+                borderRadius: "10px",
+                padding: "15px 24px",
+                fontSize: "16px",
+                fontWeight: "600",
+                boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)",
+                transition: "all 0.2s ease",
+                minHeight: "50px",
               }}
             >
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-                className="d-flex align-items-center justify-content-center"
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 48 48"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill="#FFC107"
-                    d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-                  />
-                  <path
-                    fill="#FF3D00"
-                    d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-                  />
-                  <path
-                    fill="#4CAF50"
-                    d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-                  />
-                  <path
-                    fill="#1976D2"
-                    d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-                  />
-                </svg>
-              </motion.div>
-              <span className="d-none d-sm-inline" style={{ fontSize: "14px" }}>
-                Google
-              </span>
+                <path
+                  fill="#FFC107"
+                  d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+                />
+                <path
+                  fill="#FF3D00"
+                  d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+                />
+                <path
+                  fill="#4CAF50"
+                  d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+                />
+                <path
+                  fill="#1976D2"
+                  d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+                />
+              </svg>
+              <span>Continuar con Google</span>
             </motion.button>
           </motion.div>
 
