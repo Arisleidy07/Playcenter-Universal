@@ -1,0 +1,10 @@
+/* Ajuste para que el video de Inicio no quede tapado por el segundo header en escritorio */
+.inicio-video-wrapper {
+  margin-top: 0;
+}
+
+@media (min-width: 992px) {
+  .inicio-video-wrapper {
+    margin-top: 3rem;
+  }
+}

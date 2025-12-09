@@ -13,10 +13,13 @@ import { useMultiAccount } from "./context/MultiAccountContext";
 import { AnimatePresence } from "framer-motion";
 import AccountSwitchLoader from "./components/AccountSwitchLoader";
 import { autoFixFollowers } from "./utils/autoFixFollowers";
+import ConnectionErrorPage from "./pages/ConnectionErrorPage";
+import { useConnectionStatus } from "./hooks/useConnectionStatus";
 
 function AppContent() {
   const { theme } = useTheme();
   const { isSwitching } = useMultiAccount();
+  const { isOnline, showError, setShowError } = useConnectionStatus();
   const [headerVisible, setHeaderVisible] = useState(true);
   const [headerHeight, setHeaderHeight] = useState(0);
   const lastScrollY = useRef(0);
@@ -27,7 +30,7 @@ function AppContent() {
     const measureHeader = () => {
       if (headerRef.current) {
         const height = headerRef.current.offsetHeight;
-        setHeaderHeight(height);
+        setHeaderHeight(height + 8);
       }
     };
 
@@ -74,30 +77,38 @@ function AppContent() {
 
   return (
     <>
-      <div
-        className={`min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300`}
-      >
-        {/* HEADER FIXED - Siempre pegado arriba, se oculta/muestra con translateY */}
+      {/* Mostrar página de error de conexión si no hay internet */}
+      {showError ? (
+        <ConnectionErrorPage />
+      ) : (
         <div
-          ref={headerRef}
-          className="fixed top-0 left-0 right-0 z-40 w-full flex flex-col shadow-sm transition-transform duration-300 ease-in-out"
-          style={{
-            transform: headerVisible ? "translateY(0)" : "translateY(-100%)",
-          }}
+          className={`min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300`}
         >
-          <Header />
-          <TopBar />
-        </div>
+          {/* HEADER FIXED - Siempre pegado arriba, se oculta/muestra con translateY */}
+          <div
+            ref={headerRef}
+            className="fixed top-0 left-0 right-0 z-40 w-full flex flex-col shadow-sm transition-transform duration-300 ease-in-out"
+            style={{
+              transform: headerVisible ? "translateY(0)" : "translateY(-100%)",
+            }}
+          >
+            <Header />
+            <TopBar />
+          </div>
 
-        {/* MAIN con padding-top dinámico para que el contenido NUNCA se tape */}
-        <main className="flex-grow" style={{ paddingTop: `${headerHeight}px` }}>
-          <ScrollToTop />
-          <AnimatedRoutes />
-        </main>
-        <Footer />
-        <NavbarInferior />
-        <AuthModal />
-      </div>
+          {/* MAIN con padding-top dinámico para que el contenido NUNCA se tape */}
+          <main
+            className="flex-grow"
+            style={{ paddingTop: `${headerHeight}px` }}
+          >
+            <ScrollToTop />
+            <AnimatedRoutes />
+          </main>
+          <Footer />
+          <NavbarInferior />
+          <AuthModal />
+        </div>
+      )}
 
       {/* LOADER FULLSCREEN cuando se cambia de cuenta */}
       <AnimatePresence>

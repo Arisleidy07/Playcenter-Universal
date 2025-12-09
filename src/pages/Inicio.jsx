@@ -12,6 +12,7 @@ import SliderAnunciosMovil from "../components/SliderAnunciosMovil";
 import { useProductsByCategories } from "../hooks/useProducts";
 import { useTheme } from "../context/ThemeContext";
 import Anim from "../components/anim";
+import "../styles/Inicio.css";
 
 // Animación sutil para bloques y banners
 const fadeIn = {
