@@ -54,7 +54,7 @@ const VisualVariantSelector = ({
         onClick={onClick}
         className={`
           relative rounded-lg transition-all duration-150 flex-shrink-0 
-          w-[130px] sm:w-[145px] xl:w-[160px]
+          w-[100px] sm:w-[110px] xl:w-[120px]
           ${
             isSelected
               ? "border-[2.5px] border-blue-600"
@@ -63,12 +63,13 @@ const VisualVariantSelector = ({
           ${isOutOfStock ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
           bg-white overflow-hidden
         `}
+        style={{ zIndex: 1 }}
         disabled={isOutOfStock}
       >
         <div className="flex flex-col w-full">
           {/* Imagen - cuadrada como Amazon */}
           {imagenVariante && (
-            <div className="relative w-full bg-white p-3">
+            <div className="relative w-full bg-white p-2.5">
               <div className="pt-[100%]" />
               <img
                 src={imagenVariante}
@@ -79,7 +80,7 @@ const VisualVariantSelector = ({
           )}
 
           {/* Nombre del Color */}
-          <div className="w-full text-center px-2 pt-2 pb-1">
+          <div className="w-full text-center px-2 pt-1.5 pb-1">
             <div className="text-[11px] sm:text-[12px] font-medium text-gray-700 truncate">
               {variante.color}
             </div>
@@ -87,8 +88,13 @@ const VisualVariantSelector = ({
 
           {/* Precio - tipografía mejorada */}
           {showPrice && (
-            <div className="w-full text-center px-2 pb-2">
-              <div className="text-[13px] sm:text-[14px] font-bold text-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+            <div className="w-full text-center px-2 pb-1.5">
+              <div
+                className="text-[12px] sm:text-[13px] font-bold text-gray-900"
+                style={{
+                  fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+                }}
+              >
                 {fmt(variante?.precio ?? basePrice)}
               </div>
             </div>
@@ -99,36 +105,32 @@ const VisualVariantSelector = ({
   };
 
   return (
-    <div className={`visual-variant-selector ${className}`}>
-      {/* Mobile/Tablet: slider horizontal táctil (< 1280px) */}
-      <div className="xl:hidden w-full overflow-x-auto scrollbar-hide">
+    <div
+      className={`visual-variant-selector ${className}`}
+      style={{ zIndex: 1, position: "relative" }}
+    >
+      {/* TODAS LAS PANTALLAS: slider horizontal siempre */}
+      <div className="w-full overflow-x-auto scrollbar-hide">
         <div className="flex gap-2 pb-2">
-          {variantesConColor.map((v, i) => (
-            <Card
-              key={i}
-              variante={v}
-              index={i}
-              isSelected={i === varianteSeleccionada}
-              isOutOfStock={(v?.cantidad ?? 0) <= 0}
-              onClick={() => handleVariantClick(i)}
-            />
-          ))}
-        </div>
-      </div>
+          {variantesConColor.map((v, i) => {
+            // Solo marcar como sin stock cuando la cantidad está definida y es 0 o menos.
+            const stockNum = Number(v?.cantidad);
+            const isOutOfStock =
+              Number.isFinite(stockNum) && !Number.isNaN(stockNum)
+                ? stockNum <= 0
+                : false;
 
-      {/* Desktop: grilla con wrap - se apila como Amazon (≥ 1280px) */}
-      <div className="hidden xl:block w-full">
-        <div className="flex flex-wrap gap-2">
-          {variantesConColor.map((v, i) => (
-            <Card
-              key={i}
-              variante={v}
-              index={i}
-              isSelected={i === varianteSeleccionada}
-              isOutOfStock={(v?.cantidad ?? 0) <= 0}
-              onClick={() => handleVariantClick(i)}
-            />
-          ))}
+            return (
+              <Card
+                key={i}
+                variante={v}
+                index={i}
+                isSelected={i === varianteSeleccionada}
+                isOutOfStock={isOutOfStock}
+                onClick={() => handleVariantClick(i)}
+              />
+            );
+          })}
         </div>
       </div>
     </div>

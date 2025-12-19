@@ -44,16 +44,16 @@ export default function SettingsView() {
         <div className="flex items-center gap-3 mb-6">
           <div
             className={`p-2 rounded-xl ${
-              isDark ? "bg-blue-600/20" : "bg-blue-50"
+              isDark ? "bg-purple-600/20" : "bg-purple-50"
             }`}
           >
             <Palette
-              className={isDark ? "text-blue-400" : "text-blue-600"}
+              className={isDark ? "text-purple-400" : "text-purple-600"}
               size={24}
             />
           </div>
           <h2
-            className={`text-2xl font-bold ${
+            className={`text-xl font-bold ${
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
@@ -61,34 +61,29 @@ export default function SettingsView() {
           </h2>
         </div>
 
-        {/* Toggle de Tema Premium */}
         <div
-          className={`rounded-xl p-5 transition-all duration-300 ${
-            isDark ? "bg-gray-700/50" : "bg-gray-50"
+          className={`rounded-xl p-4 transition-all duration-300 ${
+            isDark ? "bg-gray-700/30" : "bg-gray-50"
           }`}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div
-                className={`p-3 rounded-xl transition-all duration-300 ${
+                className={`p-2 rounded-lg ${
                   isDark
-                    ? "bg-gradient-to-br from-indigo-600 to-purple-600"
-                    : "bg-gradient-to-br from-blue-500 to-indigo-500"
+                    ? "bg-indigo-600/20 text-indigo-400"
+                    : "bg-blue-50 text-blue-600"
                 }`}
               >
-                {isDark ? (
-                  <Moon className="text-white" size={24} />
-                ) : (
-                  <Sun className="text-white" size={24} />
-                )}
+                {isDark ? <Moon size={20} /> : <Sun size={20} />}
               </div>
               <div>
                 <p
-                  className={`font-bold text-lg ${
+                  className={`font-semibold ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  {isDark ? "Tema Oscuro" : "Tema Claro"}
+                  Modo {isDark ? "oscuro" : "claro"}
                 </p>
                 <p
                   className={`text-sm ${
@@ -96,19 +91,18 @@ export default function SettingsView() {
                   }`}
                 >
                   {isDark
-                    ? "Ideal para ambientes con poca luz"
-                    : "Perfecto para el día"}
+                    ? "Cambia a modo claro"
+                    : "Cambia a modo oscuro"}
                 </p>
               </div>
             </div>
 
-            {/* Toggle Switch Premium */}
             <button
               onClick={toggleTheme}
               className={`relative inline-flex h-8 w-16 items-center rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 ${
                 isDark
-                  ? "bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/50"
-                  : "bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg shadow-blue-500/50"
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-600"
+                  : "bg-gradient-to-r from-blue-400 to-blue-500"
               }`}
             >
               <motion.span
@@ -156,7 +150,7 @@ export default function SettingsView() {
             />
           </div>
           <h2
-            className={`text-2xl font-bold ${
+            className={`text-xl font-bold ${
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
@@ -215,7 +209,7 @@ export default function SettingsView() {
             />
           </div>
           <h2
-            className={`text-2xl font-bold ${
+            className={`text-xl font-bold ${
               isDark ? "text-white" : "text-gray-900"
             }`}
           >

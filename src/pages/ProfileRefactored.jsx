@@ -22,9 +22,21 @@ import { notify } from "../utils/notificationBus";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuthModal } from "../context/AuthModalContext";
+import {
+  User,
+  ShoppingBag,
+  MapPin,
+  CreditCard,
+  Settings,
+  Store,
+  Shield,
+  Bell,
+  Headset,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 
 // UI Components
-import ProfileSidebar from "../components/profile/ProfileSidebar";
 import ProfileMobileNav from "../components/profile/ProfileMobileNav";
 import ProfileHeader from "../components/profile/ProfileHeader";
 import LogoutModal from "../components/profile/LogoutModal";
@@ -36,8 +48,11 @@ import OverviewView from "../components/profile/views/OverviewView";
 import OrdersView from "../components/profile/views/OrdersView";
 import AddressesView from "../components/profile/views/AddressesView";
 import SettingsView from "../components/profile/views/SettingsView";
+import NotificationsView from "../components/profile/views/NotificationsView";
+import SecurityView from "../components/profile/views/SecurityView";
 import PaymentsView from "../components/profile/views/PaymentsView";
 import StoreView from "../components/profile/views/StoreView";
+import CustomerServiceView from "../components/profile/views/CustomerServiceView";
 import EditProfileModal from "../components/profile/EditProfileModal";
 import OrderDetailsSheet from "../components/profile/OrderDetailsSheet";
 import FollowersModal from "../components/FollowersModal";
@@ -48,7 +63,9 @@ export default function Profile() {
   const { abrirModal } = useAuthModal();
 
   // Estado de Vista
-  const [activeView, setActiveView] = useState("perfil");
+  // "menu" = nivel 1 (tarjetas tipo Amazon)
+  // resto de ids = nivel 2 (sub-páginas)
+  const [activeView, setActiveView] = useState("menu");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -76,6 +93,58 @@ export default function Profile() {
   });
   const [store, setStore] = useState(null);
   const [storeId, setStoreId] = useState(null);
+
+  // Menú principal tipo Amazon (nivel 1)
+  const mainMenuItems = [
+    {
+      id: "perfil",
+      title: "Información Personal",
+      description: "Editar nombre, celular y correo electrónico.",
+      icon: User,
+    },
+    {
+      id: "pedidos",
+      title: "Mis Pedidos",
+      description: "Rastrear envíos, devoluciones y compras pasadas.",
+      icon: ShoppingBag,
+    },
+    {
+      id: "ubicaciones",
+      title: "Direcciones",
+      description: "Preferencias de envío y lugares de entrega.",
+      icon: MapPin,
+    },
+    {
+      id: "pagos",
+      title: "Pagos y Billetera",
+      description: "Gestionar tarjetas, saldos y cupones.",
+      icon: CreditCard,
+    },
+    {
+      id: "soporte",
+      title: "Servicio al Cliente",
+      description: "Ayuda y soporte de Playcenter Universal.",
+      icon: Headset,
+    },
+    {
+      id: "tiendas",
+      title: "Mi Tienda",
+      description: "Panel de vendedor y estadísticas.",
+      icon: Store,
+    },
+    {
+      id: "seguridad",
+      title: "Inicio de Sesión y Seguridad",
+      description: "Cambiar contraseña y proteger la cuenta.",
+      icon: Shield,
+    },
+    {
+      id: "configuracion",
+      title: "Ajustes",
+      description: "Configuración general de la app.",
+      icon: Settings,
+    },
+  ];
 
   // Cargar Datos Iniciales
   useEffect(() => {
@@ -286,13 +355,43 @@ export default function Profile() {
     if (!usuario) return;
 
     const userRef = doc(db, "users", usuario.uid);
-    const unsub = onSnapshot(userRef, (snap) => {
+    const unsub = onSnapshot(userRef, async (snap) => {
       if (snap.exists()) {
         const data = snap.data();
+        let seguidoresCount = data.stats?.seguidores || 0;
+        let seguidosCount = data.stats?.seguidos || 0;
+
+        // Si los contadores están en 0, contar desde las subcolecciones
+        if (seguidoresCount === 0 || seguidosCount === 0) {
+          try {
+            // Contar seguidores reales
+            const followersRef = collection(
+              db,
+              `users/${usuario.uid}/followers`
+            );
+            const followersSnap = await getDocs(followersRef);
+            const realSeguidores = followersSnap.size;
+
+            // Contar seguidos reales
+            const followingRef = collection(
+              db,
+              `users/${usuario.uid}/following`
+            );
+            const followingSnap = await getDocs(followingRef);
+            const realSeguidos = followingSnap.size;
+
+            // Usar el mayor entre el valor guardado y el conteo real
+            seguidoresCount = Math.max(seguidoresCount, realSeguidores);
+            seguidosCount = Math.max(seguidosCount, realSeguidos);
+          } catch (error) {
+            // Error silencioso
+          }
+        }
+
         setStats((prev) => ({
           ...prev,
-          seguidores: data.stats?.seguidores || 0,
-          seguidos: data.stats?.seguidos || 0,
+          seguidores: seguidoresCount,
+          seguidos: seguidosCount,
         }));
       }
     });
@@ -304,22 +403,74 @@ export default function Profile() {
     };
   }, [usuario]);
 
-  // Stats de publicaciones en tiempo real según tienda
+  // Stats de publicaciones en tiempo real - buscar por múltiples campos
   useEffect(() => {
-    if (!storeId) return;
-    const productosQuery = query(
-      collection(db, "productos"),
-      where("tienda_id", "==", storeId)
-    );
-    const unsub = onSnapshot(productosQuery, (snap) => {
-      setStats((prev) => ({ ...prev, publicaciones: snap.docs.length }));
-    });
-    return () => {
+    if (!usuario) return;
+
+    const fetchPublicaciones = async () => {
       try {
-        unsub();
-      } catch (_) {}
+        const productIds = new Set();
+
+        // Buscar por creadoPor (usuario que creó el producto)
+        const qCreadoPor = query(
+          collection(db, "productos"),
+          where("creadoPor", "==", usuario.uid)
+        );
+        const snapCreadoPor = await getDocs(qCreadoPor);
+        snapCreadoPor.docs.forEach((doc) => {
+          if (doc.data().activo !== false) productIds.add(doc.id);
+        });
+
+        // Buscar por ownerUid
+        const qOwnerUid = query(
+          collection(db, "productos"),
+          where("ownerUid", "==", usuario.uid)
+        );
+        const snapOwnerUid = await getDocs(qOwnerUid);
+        snapOwnerUid.docs.forEach((doc) => {
+          if (doc.data().activo !== false) productIds.add(doc.id);
+        });
+
+        // Si hay storeId, buscar también por storeId
+        if (storeId) {
+          const qStoreId = query(
+            collection(db, "productos"),
+            where("storeId", "==", storeId)
+          );
+          const snapStoreId = await getDocs(qStoreId);
+          snapStoreId.docs.forEach((doc) => {
+            if (doc.data().activo !== false) productIds.add(doc.id);
+          });
+
+          // Buscar por tiendaId
+          const qTiendaId = query(
+            collection(db, "productos"),
+            where("tiendaId", "==", storeId)
+          );
+          const snapTiendaId = await getDocs(qTiendaId);
+          snapTiendaId.docs.forEach((doc) => {
+            if (doc.data().activo !== false) productIds.add(doc.id);
+          });
+
+          // Buscar por tienda_id (legacy)
+          const qTiendaIdLegacy = query(
+            collection(db, "productos"),
+            where("tienda_id", "==", storeId)
+          );
+          const snapTiendaIdLegacy = await getDocs(qTiendaIdLegacy);
+          snapTiendaIdLegacy.docs.forEach((doc) => {
+            if (doc.data().activo !== false) productIds.add(doc.id);
+          });
+        }
+
+        setStats((prev) => ({ ...prev, publicaciones: productIds.size }));
+      } catch (error) {
+        // Error silencioso
+      }
     };
-  }, [storeId]);
+
+    fetchPublicaciones();
+  }, [usuario, storeId]);
 
   const handleLogout = async () => {
     try {
@@ -338,43 +489,10 @@ export default function Profile() {
       {/* Container Principal */}
       <div className="max-w-[1920px] mx-auto">
         <div className="flex gap-0">
-          {/* Sidebar Desktop */}
-          <aside className="hidden xl:block w-72 flex-shrink-0">
-            <div
-              style={{
-                height: "100vh",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div className="flex-shrink-0">
-                <ProfileHeader
-                  key={refreshKey}
-                  user={usuario}
-                  userInfo={usuarioInfo}
-                  simple={true}
-                  onLogout={() => setShowLogoutConfirm(true)}
-                  onAddAccount={() => abrirModal("login")}
-                  setView={setActiveView}
-                />
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <ProfileSidebar
-                  activeView={activeView}
-                  setView={setActiveView}
-                  onLogout={() => setShowLogoutConfirm(true)}
-                  onAddAccount={() => abrirModal("login")}
-                  user={usuario}
-                  userInfo={usuarioInfo}
-                />
-              </div>
-            </div>
-          </aside>
-
-          {/* Contenido Principal */}
-          <main className="flex-1 w-full p-4 md:p-6 lg:p-8 overflow-x-hidden min-w-0">
-            {/* Header + Mobile Nav (solo móvil) */}
-            <div className="xl:hidden mb-6 overflow-visible">
+          {/* Contenido Principal a pantalla completa (sin sidebar lateral) */}
+          <main className="flex-1 w-full px-3 py-4 md:px-6 md:py-6 lg:px-10 lg:py-8 overflow-x-hidden min-w-0">
+            {/* Header (solo móvil / tablet). En desktop manda el título "Hola" del menú. */}
+            <div className="xl:hidden mb-4 overflow-visible">
               <ProfileHeader
                 key={refreshKey}
                 user={usuario}
@@ -383,13 +501,6 @@ export default function Profile() {
                 onAddAccount={() => abrirModal("login")}
                 setView={setActiveView}
               />
-              <div className="mt-4">
-                <ProfileMobileNav
-                  activeView={activeView}
-                  setView={setActiveView}
-                  userInfo={usuarioInfo}
-                />
-              </div>
             </div>
 
             {/* Vistas dinámicas */}
@@ -400,8 +511,138 @@ export default function Profile() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="w-full max-w-5xl mx-auto"
+                className="w-full max-w-6xl mx-auto"
               >
+                {/* Nivel 1: Menú principal tipo Amazon */}
+                {activeView === "menu" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">
+                        Hola,{" "}
+                        {usuarioInfo?.displayName ||
+                          usuario?.displayName ||
+                          usuario?.email ||
+                          "Usuario"}
+                      </h1>
+                      <p className="mt-2 text-sm md:text-base text-gray-600 dark:text-gray-400">
+                        Gestiona tu cuenta de Playcenter Universal
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 mt-5">
+                      {mainMenuItems.map((item) => {
+                        const Icon = item.icon;
+
+                        // Colores específicos para cada tarjeta en modo oscuro
+                        const getDarkModeColors = (id) => {
+                          switch (id) {
+                            case "perfil":
+                              return {
+                                bg: "dark:bg-blue-900/20",
+                                border: "dark:border-blue-700/50",
+                                iconBg: "dark:from-blue-400 dark:to-blue-600",
+                              };
+                            case "pedidos":
+                              return {
+                                bg: "dark:bg-green-900/20",
+                                border: "dark:border-green-700/50",
+                                iconBg: "dark:from-green-400 dark:to-green-600",
+                              };
+                            case "ubicaciones":
+                              return {
+                                bg: "dark:bg-orange-900/20",
+                                border: "dark:border-orange-700/50",
+                                iconBg:
+                                  "dark:from-orange-400 dark:to-orange-600",
+                              };
+                            case "pagos":
+                              return {
+                                bg: "dark:bg-purple-900/20",
+                                border: "dark:border-purple-700/50",
+                                iconBg:
+                                  "dark:from-purple-400 dark:to-purple-600",
+                              };
+                            case "soporte":
+                              return {
+                                bg: "dark:bg-teal-900/20",
+                                border: "dark:border-teal-700/50",
+                                iconBg: "dark:from-teal-400 dark:to-teal-600",
+                              };
+                            case "tiendas":
+                              return {
+                                bg: "dark:bg-indigo-900/20",
+                                border: "dark:border-indigo-700/50",
+                                iconBg:
+                                  "dark:from-indigo-400 dark:to-indigo-600",
+                              };
+                            case "seguridad":
+                              return {
+                                bg: "dark:bg-red-900/20",
+                                border: "dark:border-red-700/50",
+                                iconBg: "dark:from-red-400 dark:to-red-600",
+                              };
+                            case "configuracion":
+                              return {
+                                bg: "dark:bg-gray-800/50",
+                                border: "dark:border-gray-600/50",
+                                iconBg: "dark:from-gray-400 dark:to-gray-600",
+                              };
+                            default:
+                              return {
+                                bg: "dark:bg-[#1b1b1f]",
+                                border: "dark:border-[#333]",
+                                iconBg: "dark:from-blue-500 dark:to-indigo-500",
+                              };
+                          }
+                        };
+
+                        const darkColors = getDarkModeColors(item.id);
+
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setActiveView(item.id)}
+                            className={`group flex items-center gap-4 px-5 py-7 rounded-3xl border border-gray-200 bg-white/95 shadow-sm hover:shadow-md hover:border-blue-300 transition-all text-left ${darkColors.bg} ${darkColors.border} min-h-[140px]`}
+                          >
+                            <div
+                              className={`flex-shrink-0 w-14 h-14 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all ${darkColors.iconBg}`}
+                            >
+                              <Icon size={26} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-lg md:text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-50">
+                                {item.title}
+                              </p>
+                              <p className="mt-1.5 text-sm md:text-base leading-snug text-gray-600 dark:text-gray-400 line-clamp-2">
+                                {item.description}
+                              </p>
+                            </div>
+                            <ArrowRight
+                              size={18}
+                              className="text-gray-300 dark:text-gray-500 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Nivel 2: Vistas detalle con botón de volver */}
+                {activeView !== "menu" && (
+                  <div className="mb-5 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveView("menu")}
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 bg-white text-xs md:text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:shadow-md transition-all dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+                    >
+                      <ArrowLeft size={16} className="flex-shrink-0" />
+                      <span>Volver al menú</span>
+                    </button>
+                  </div>
+                )}
+
                 {activeView === "perfil" && (
                   <OverviewView
                     key={refreshKey}
@@ -490,6 +731,9 @@ export default function Profile() {
                   />
                 )}
                 {activeView === "configuracion" && <SettingsView />}
+                {activeView === "notificaciones" && <NotificationsView />}
+                {activeView === "soporte" && <CustomerServiceView />}
+                {activeView === "seguridad" && <SecurityView />}
                 {activeView === "pagos" && <PaymentsView />}
                 {activeView === "tiendas" && (
                   <StoreView

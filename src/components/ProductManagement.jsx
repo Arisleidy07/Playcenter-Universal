@@ -76,7 +76,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       if (typeof unsub === "function") unsub();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usuario?.uid, usuarioInfo?.isAdmin, usuarioInfo?.storeId]);
+  }, [usuario?.uid, usuarioInfo?.isAdmin, usuarioInfo?.storeId, tienda?.id]);
 
   // Sincronizar estado de fantasmas con localStorage
   useEffect(() => {
@@ -120,10 +120,12 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         );
       }
       // CASO 2: Vendedor con storeId - Solo ve sus productos (filtrado por storeId)
-      else if (usuarioInfo?.storeId) {
+      // Usar storeId del usuario O del hook useStore como fallback
+      else if (usuarioInfo?.storeId || tienda?.id) {
+        const effectiveStoreId = usuarioInfo?.storeId || tienda?.id;
         qRef = query(
           collection(db, "productos"),
-          where("storeId", "==", usuarioInfo.storeId),
+          where("storeId", "==", effectiveStoreId),
           orderBy("fechaCreacion", "desc")
         );
       }

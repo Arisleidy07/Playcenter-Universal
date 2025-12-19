@@ -351,46 +351,51 @@ function Inicio() {
         </Link>
       </motion.div>
 
-      {/* BANNERS GRANDES - SOLO COMPUTADORA */}
+      {/* BANNERS GRANDES - TODOS LOS DISPOSITIVOS */}
       <section
-        className="d-none d-xl-block container-fluid px-4 mt-5"
+        className="container-fluid px-3 px-md-4 mt-4 mt-md-5"
         style={{ maxWidth: "1600px" }}
       >
-        <div className="row g-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {[
             {
               to: "/Productos/retro-consolas",
-              src: "/ads/retro.png",
+              src: "/ads/ads-videos/Retro-consolas.mp4",
               alt: "Retro Consolas",
+              isVideo: true,
             },
             {
               to: "/Productos/camaras",
               src: "/ads/camaras.png",
               alt: "Cámaras",
+              isVideo: false,
             },
           ].map((banner, idx) => (
-            <motion.div
-              key={idx}
-              className="col-12 col-md-6"
-              whileHover={{ scale: 1.01 }}
-            >
+            <div key={idx}>
               <div
-                className="overflow-hidden rounded-4 shadow-lg hover-shadow"
-                style={{ height: "400px" }}
+                className="overflow-hidden rounded-2xl md:rounded-3xl shadow-lg border-2 border-gray-300 dark:border-gray-600"
+                style={{ height: "clamp(200px, 40vw, 400px)" }}
               >
-                <Link
-                  to={banner.to}
-                  className="d-block w-100 h-100 text-decoration-none"
-                >
-                  <img
-                    src={banner.src}
-                    alt={banner.alt}
-                    className="w-100 h-100 hover-lift"
-                    style={{ objectFit: "cover", objectPosition: "center" }}
-                  />
+                <Link to={banner.to} className="block w-full h-full">
+                  {banner.isVideo ? (
+                    <video
+                      src={banner.src}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover rounded-2xl md:rounded-3xl"
+                    />
+                  ) : (
+                    <img
+                      src={banner.src}
+                      alt={banner.alt}
+                      className="w-full h-full object-cover rounded-2xl md:rounded-3xl"
+                    />
+                  )}
                 </Link>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
@@ -791,28 +796,40 @@ function Inicio() {
         {[
           {
             to: "/Productos/hogar-inteligente",
-            src: "/ads/smart.png",
-            alt: "Consolas",
+            src: "/ads/ads-videos/smart.mp4",
+            alt: "Smart Home",
+            isVideo: true,
           },
           {
             to: "/Productos/controles",
             src: "/ads/controlads.png",
             alt: "Controles",
+            isVideo: false,
           },
         ].map((banner, idx) => (
-          <motion.div
+          <div
             key={banner.alt}
-            className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition aspect-[16/9]"
-            whileHover={{ scale: 1.01 }}
+            className="overflow-hidden rounded-2xl shadow-lg border-2 border-gray-300 dark:border-gray-600 aspect-[16/9]"
           >
             <Link to={banner.to} className="block w-full h-full">
-              <img
-                src={banner.src}
-                alt={banner.alt}
-                className="w-full h-full object-contain object-center hover:scale-105 transition-transform duration-400 bg-black"
-              />
+              {banner.isVideo ? (
+                <video
+                  src={banner.src}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover rounded-2xl"
+                />
+              ) : (
+                <img
+                  src={banner.src}
+                  alt={banner.alt}
+                  className="w-full h-full object-cover rounded-2xl"
+                />
+              )}
             </Link>
-          </motion.div>
+          </div>
         ))}
       </section>
 

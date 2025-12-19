@@ -18,6 +18,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [showAll, setShowAll] = useState(false); // Para el botón "Ver más" en móvil
+  const [hasOverflow, setHasOverflow] = useState(false); // Para mostrar flechas en desktop
 
   // REGLA 1 y 2: Filtrar por categoría O etiquetas, EXCLUIR producto actual
   const relacionados = useMemo(() => {
@@ -75,8 +76,10 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
     if (!rail) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = rail;
+    const overflow = scrollWidth - clientWidth > 12;
+    setHasOverflow(overflow);
     setCanScrollLeft(scrollLeft > 10);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    setCanScrollRight(overflow && scrollLeft < scrollWidth - clientWidth - 4);
   }, []);
 
   // Scroll por página completa de productos
@@ -85,11 +88,14 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
       const rail = railRef.current;
       if (!rail) return;
 
-      const card = rail.querySelector(".prl-card");
+      // Priorizar la tarjeta actual del carrusel desktop
+      const card =
+        rail.querySelector(".prl-card-desktop") ||
+        rail.querySelector(".prl-card");
       if (!card) return;
 
       const cardWidth = card.offsetWidth;
-      const gap = 20;
+      const gap = 12; // mismo gap que el rail
       const cardWithGap = cardWidth + gap;
       const visibleCount = getVisibleCount();
 
@@ -109,6 +115,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
     if (!rail) return;
 
     updateScrollButtons();
+    const rafId = requestAnimationFrame(updateScrollButtons);
 
     // Ocultar indicador "Desliza" después del primer scroll
     const hideScrollHint = () => {
@@ -126,6 +133,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
       rail.removeEventListener("scroll", updateScrollButtons);
       rail.removeEventListener("scroll", hideScrollHint);
       window.removeEventListener("resize", updateScrollButtons);
+      cancelAnimationFrame(rafId);
     };
   }, [updateScrollButtons, relacionados]);
 
@@ -239,13 +247,16 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
 
         {/* TABLET/DESKTOP: Carrusel horizontal con flechas */}
         <div className="prl-wrapper-desktop" aria-roledescription="carrusel">
-          {/* Flecha izquierda */}
-          {canScrollLeft && (
+          {/* Flechas desktop fuera del rail (estilo Amazon) */}
+          {hasOverflow && (
             <button
-              className="prl-arrow left"
-              onClick={() => scrollByPage(-1)}
+              className={`prl-arrow left ${
+                !canScrollLeft ? "prl-arrow-disabled" : ""
+              }`}
+              onClick={() => canScrollLeft && scrollByPage(-1)}
               aria-label="Anterior"
               type="button"
+              disabled={!canScrollLeft}
             >
               <FaChevronLeft size={18} />
             </button>
@@ -308,12 +319,15 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
           </div>
 
           {/* Flecha derecha */}
-          {canScrollRight && (
+          {hasOverflow && (
             <button
-              className="prl-arrow right"
-              onClick={() => scrollByPage(1)}
+              className={`prl-arrow right ${
+                !canScrollRight ? "prl-arrow-disabled" : ""
+              }`}
+              onClick={() => canScrollRight && scrollByPage(1)}
               aria-label="Siguiente"
               type="button"
+              disabled={!canScrollRight}
             >
               <FaChevronRight size={18} />
             </button>

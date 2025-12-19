@@ -20,6 +20,7 @@ import {
 } from "firebase/storage";
 import { db, storage } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import { useStore } from "../hooks/useStore";
 import { notify } from "../utils/notificationBus";
 import "../styles/Admin.css";
 import { motion, AnimatePresence } from "framer-motion";
@@ -556,6 +557,7 @@ function OrdersList() {
    ============================================================ */
 function SellerAdminPanel() {
   const { usuario, usuarioInfo } = useAuth();
+  const { tienda } = useStore(); // Hook para obtener tienda del usuario
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -567,15 +569,20 @@ function SellerAdminPanel() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  // Usar storeId del usuario O del hook useStore como fallback
+  const effectiveStoreId = usuarioInfo?.storeId || tienda?.id;
+  const effectiveStoreName =
+    usuarioInfo?.storeName || tienda?.nombre || tienda?.name || "Mi Tienda";
+
   // Cargar estadísticas y pedidos de la tienda del vendedor
   useEffect(() => {
-    if (!usuarioInfo?.storeId) return;
+    if (!effectiveStoreId) return;
 
     // Productos de mi tienda
     const unsubProducts = onSnapshot(
       query(
         collection(db, "productos"),
-        where("storeId", "==", usuarioInfo.storeId)
+        where("storeId", "==", effectiveStoreId)
       ),
       (snapshot) => {
         setStats((prev) => ({ ...prev, productos: snapshot.size }));
@@ -593,7 +600,7 @@ function SellerAdminPanel() {
 
         // Filtrar pedidos que contengan productos de mi tienda
         const myOrders = allOrders.filter((order) =>
-          order.items?.some((item) => item.storeId === usuarioInfo.storeId)
+          order.items?.some((item) => item.storeId === effectiveStoreId)
         );
 
         setOrders(myOrders);
@@ -609,7 +616,7 @@ function SellerAdminPanel() {
       unsubProducts();
       unsubOrders();
     };
-  }, [usuarioInfo?.storeId]);
+  }, [effectiveStoreId]);
 
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: FiHome },
@@ -626,7 +633,7 @@ function SellerAdminPanel() {
             Panel del Vendedor
           </h1>
           <p className="text-sm sm:text-base lg:text-lg text-gray-700 dark:text-gray-300 font-medium">
-            {usuarioInfo?.storeName || "Mi Tienda"}
+            {effectiveStoreName}
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
             <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2">
@@ -726,7 +733,11 @@ function SellerAdminPanel() {
                 <div className="space-y-2 text-gray-700 dark:text-gray-300">
                   <p>
                     <span className="font-semibold">Nombre:</span>{" "}
-                    {usuarioInfo?.storeName || "No configurado"}
+                    {effectiveStoreName || "No configurado"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">ID de Tienda:</span>{" "}
+                    {effectiveStoreId || "No asignado"}
                   </p>
                 </div>
               </div>
@@ -778,7 +789,7 @@ function SellerAdminPanel() {
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             {
                               order.items?.filter(
-                                (item) => item.storeId === usuarioInfo?.storeId
+                                (item) => item.storeId === effectiveStoreId
                               ).length
                             }{" "}
                             productos
@@ -789,7 +800,7 @@ function SellerAdminPanel() {
                             $
                             {order.items
                               ?.filter(
-                                (item) => item.storeId === usuarioInfo?.storeId
+                                (item) => item.storeId === effectiveStoreId
                               )
                               .reduce(
                                 (sum, item) =>
@@ -920,7 +931,24 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [solicitudesPendientes, setSolicitudesPendientes] = useState(0);
   const migrationRanRef = useRef(false);
+
+  // Escuchar solicitudes pendientes en tiempo real
+  useEffect(() => {
+    if (usuarioInfo?.email !== "arisleidy0712@gmail.com") return;
+
+    const solicitudesRef = collection(db, "solicitudes_vendedor");
+    const q = query(solicitudesRef, where("estado", "==", "pendiente"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setSolicitudesPendientes(snapshot.docs.length);
+    });
+
+    return () => unsubscribe();
+  }, [usuarioInfo?.email]);
 
   useEffect(() => {
     if (!usuario || !usuarioInfo?.isAdmin) {
@@ -1236,49 +1264,10 @@ export default function Admin() {
                                 </button>
                               )}
                             <button
-                              onClick={async (e) => {
+                              onClick={(e) => {
                                 e.stopPropagation();
-                                if (
-                                  !window.confirm(
-                                    `¿Eliminar usuario ${
-                                      u.email || u.displayName
-                                    }?\n\nUID: ${
-                                      u.id
-                                    }\n\nEsta acción NO se puede deshacer.`
-                                  )
-                                ) {
-                                  return;
-                                }
-                                try {
-                                  // Eliminar de colección users
-                                  const userDocRef = doc(db, "users", u.id);
-                                  await deleteDoc(userDocRef);
-
-                                  // Intentar eliminar de colección usuarios si existe
-                                  try {
-                                    const usuarioDocRef = doc(
-                                      db,
-                                      "usuarios",
-                                      u.id
-                                    );
-                                    await deleteDoc(usuarioDocRef);
-                                  } catch (err) {
-                                    // Error silencioso
-                                  }
-
-                                  notify(
-                                    "Usuario eliminado exitosamente",
-                                    "success",
-                                    "Eliminado"
-                                  );
-                                } catch (error) {
-                                  notify(
-                                    "Error al eliminar usuario: " +
-                                      error.message,
-                                    "error",
-                                    "Error"
-                                  );
-                                }
+                                setUserToDelete(u);
+                                setShowDeleteUserModal(true);
                               }}
                               className="text-red-600 hover:text-red-800 font-medium"
                               title="Eliminar usuario"
@@ -1336,6 +1325,17 @@ export default function Admin() {
               <FiUsers /> {usuarios.length}{" "}
               {usuarios.length === 1 ? "usuario" : "usuarios"} registrados
             </span>
+            {solicitudesPendientes > 0 && (
+              <button
+                onClick={() => setActiveTab("solicitudes")}
+                className="bg-red-100 dark:bg-red-900/30 text-red-900 dark:text-red-300 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors cursor-pointer border-0"
+              >
+                <FiUserPlus /> {solicitudesPendientes}{" "}
+                {solicitudesPendientes === 1
+                  ? "solicitud pendiente"
+                  : "solicitudes pendientes"}
+              </button>
+            )}
             <span className="bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-300 px-4 py-2 rounded-full text-sm font-bold">
               Sincronización en tiempo real
             </span>
@@ -1363,6 +1363,7 @@ export default function Admin() {
                       id: "solicitudes",
                       label: "Solicitudes",
                       icon: <FiUserPlus />,
+                      badge: solicitudesPendientes,
                     },
                   ]
                 : []),
@@ -1370,7 +1371,7 @@ export default function Admin() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-medium transition-all duration-200 relative ${
                   activeTab === tab.id
                     ? "bg-blue-600 dark:bg-blue-500 text-white shadow-md"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -1379,6 +1380,19 @@ export default function Admin() {
                 <span className="inline-flex items-center gap-2">
                   <span className="text-lg">{tab.icon}</span>
                   <span className="hidden sm:inline">{tab.label}</span>
+                  {tab.badge > 0 && (
+                    <span
+                      className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full"
+                      style={{
+                        backgroundColor:
+                          activeTab === tab.id ? "#ffffff" : "#ef4444",
+                        color: activeTab === tab.id ? "#2563eb" : "#ffffff",
+                        minWidth: "20px",
+                      }}
+                    >
+                      {tab.badge > 99 ? "99+" : tab.badge}
+                    </span>
+                  )}
                 </span>
               </button>
             ))}
@@ -1425,6 +1439,114 @@ export default function Admin() {
             order={selectedOrder}
             onClose={() => setSelectedOrder(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Modal de confirmación para eliminar usuario */}
+      <AnimatePresence>
+        {showDeleteUserModal && userToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+            onClick={() => {
+              setShowDeleteUserModal(false);
+              setUserToDelete(null);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Icono de advertencia */}
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <FiUsers className="w-8 h-8 text-red-600" />
+                </div>
+              </div>
+
+              {/* Título */}
+              <h3 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+                ¿Eliminar usuario?
+              </h3>
+
+              {/* Info del usuario */}
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                <p className="text-center text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  {userToDelete.email || userToDelete.displayName || "Usuario"}
+                </p>
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  UID: {userToDelete.id}
+                </p>
+              </div>
+
+              {/* Advertencia */}
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                <p className="text-sm text-red-800 dark:text-red-200 font-medium text-center">
+                  ⚠️ Esta acción NO se puede deshacer
+                </p>
+              </div>
+
+              {/* Botones */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteUserModal(false);
+                    setUserToDelete(null);
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      // Eliminar de colección users
+                      const userDocRef = doc(db, "users", userToDelete.id);
+                      await deleteDoc(userDocRef);
+
+                      // Intentar eliminar de colección usuarios si existe
+                      try {
+                        const usuarioDocRef = doc(
+                          db,
+                          "usuarios",
+                          userToDelete.id
+                        );
+                        await deleteDoc(usuarioDocRef);
+                      } catch (err) {
+                        // Error silencioso
+                      }
+
+                      notify(
+                        "Usuario eliminado exitosamente",
+                        "success",
+                        "Eliminado"
+                      );
+                    } catch (error) {
+                      notify(
+                        "Error al eliminar usuario: " + error.message,
+                        "error",
+                        "Error"
+                      );
+                    } finally {
+                      setShowDeleteUserModal(false);
+                      setUserToDelete(null);
+                    }
+                  }}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🗑️</span>
+                  Sí, eliminar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </main>

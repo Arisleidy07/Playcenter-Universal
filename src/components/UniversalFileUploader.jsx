@@ -573,32 +573,34 @@ const UniversalFileUploader = React.memo(
     const [captureAttr, setCaptureAttr] = useState(undefined);
     const dropzoneRef = useRef(null);
     const [rejected, setRejected] = useState([]);
-    // Notificar al padre fuera del render para evitar el warning de React
-    const shouldNotifyRef = useRef(false);
+    // Ref para notificar al padre SOLO después de que React haya aplicado el nuevo estado
+    const pendingNotifyRef = useRef(null);
 
-    // Procesar archivos iniciales
+    // Procesar archivos iniciales (solo sincroniza estado interno, sin notificar al padre)
     useEffect(() => {
-      // Remover console.log excesivos para mejorar performance
-
       if (!initialFiles || initialFiles.length === 0) {
+        // CRÍTICO: NO borrar archivos que el usuario acaba de agregar
+        // Solo borrar si no hay archivos pendientes de subir (con .file o blob:)
         setFiles((prev) => {
-          if (prev.length > 0) {
-            shouldNotifyRef.current = true;
+          // Si hay archivos con .file (pendientes de subir) o con blob: URL, NO borrar
+          const hasPendingUploads = prev.some(
+            (f) => f.file || (f.url && f.url.startsWith("blob:"))
+          );
+          if (hasPendingUploads) {
+            return prev; // Mantener archivos pendientes
           }
-          return [];
+          return prev.length > 0 ? [] : prev;
         });
         return;
       }
 
       const processedFiles = initialFiles.map((file, index) => {
-        // Si es una URL existente (string)
         if (typeof file === "string") {
           const fileExtension = file.split(".").pop().toLowerCase();
           const isVideo = ["mp4", "mov", "webm", "avi", "mkv", "m4v"].includes(
             fileExtension
           );
 
-          // Decodificar el nombre del archivo desde la URL para mostrar caracteres especiales correctamente
           const encodedName = file.split("/").pop().split("?")[0];
           const decodedName = decodeURIComponent(encodedName);
 
@@ -612,18 +614,53 @@ const UniversalFileUploader = React.memo(
             isUploaded: true,
           };
         }
-        // Si ya es un objeto de archivo procesado
         return file;
       });
 
       setFiles((prev) => {
-        // Solo notificar si hay cambios reales
-        const hasChanged =
-          JSON.stringify(prev.map((f) => f.id)) !==
-          JSON.stringify(processedFiles.map((f) => f.id));
-        if (hasChanged) {
-          shouldNotifyRef.current = true;
+        // Obtener nombres de archivos ya subidos (de initialFiles)
+        const uploadedNames = new Set(
+          processedFiles.map((f) => f.name?.toLowerCase?.() || "")
+        );
+
+        // CRÍTICO: Solo preservar archivos pendientes que NO estén ya en initialFiles
+        // Si el nombre del archivo pendiente coincide con uno subido, NO preservarlo (ya se subió)
+        const pendingFiles = prev.filter((f) => {
+          const isPending = f.file || (f.url && f.url.startsWith("blob:"));
+          if (!isPending) return false;
+
+          // Si este archivo pendiente ya fue subido (mismo nombre), NO preservarlo
+          const fileName = f.name?.toLowerCase?.() || "";
+          if (uploadedNames.has(fileName)) {
+            // Limpiar URL blob si existe
+            if (f.url && f.url.startsWith("blob:")) {
+              URL.revokeObjectURL(f.url);
+            }
+            return false; // No preservar, ya está subido
+          }
+          return true; // Mantener, aún está pendiente
+        });
+
+        // Si no hay cambios, no actualizar
+        const prevIds = prev.map((f) => f.id);
+        const nextIds = processedFiles.map((f) => f.id);
+
+        if (
+          JSON.stringify(prevIds) === JSON.stringify(nextIds) &&
+          pendingFiles.length === 0
+        ) {
+          return prev;
         }
+
+        // Si hay archivos pendientes únicos, combinarlos con los procesados
+        if (pendingFiles.length > 0) {
+          const processedIds = new Set(processedFiles.map((f) => f.id));
+          const uniquePending = pendingFiles.filter(
+            (f) => !processedIds.has(f.id)
+          );
+          return [...processedFiles, ...uniquePending];
+        }
+
         return processedFiles;
       });
     }, [
@@ -680,23 +717,23 @@ const UniversalFileUploader = React.memo(
           );
         }
 
-        // Actualizar estado con nuevos archivos (no notificar al padre aquí)
+        // Actualizar estado con nuevos archivos y marcar notificación diferida al padre
         setFiles((currentFiles) => {
           let finalFiles;
 
           if (multiple) {
-            const combinedFiles = [...currentFiles, ...newFiles];
-            // Aplicar límite máximo si está definido
+            // CRÍTICO: Evitar duplicados por nombre de archivo
+            const existingNames = new Set(currentFiles.map((f) => f.name));
+            const uniqueNewFiles = newFiles.filter(
+              (f) => !existingNames.has(f.name)
+            );
+
+            const combinedFiles = [...currentFiles, ...uniqueNewFiles];
             finalFiles = maxFiles
               ? combinedFiles.slice(0, maxFiles)
               : combinedFiles;
-            // Actualizando archivos (múltiple)
 
-            // Mostrar advertencia si se alcanzó el límite
             if (maxFiles && combinedFiles.length > maxFiles) {
-              // console.warn(
-              //   `Límite de ${maxFiles} archivos alcanzado. Solo se mantuvieron los primeros ${maxFiles}.`
-              // );
               setRejected((prev) => [
                 ...prev,
                 {
@@ -708,13 +745,11 @@ const UniversalFileUploader = React.memo(
               ]);
             }
           } else {
-            // En modo single, reemplazar archivos existentes
             finalFiles = newFiles;
-            // Actualizando archivos (single)
           }
 
-          // Marcar notificación para después del render
-          shouldNotifyRef.current = true;
+          // Guardar snapshot para notificar en un efecto posterior
+          pendingNotifyRef.current = finalFiles;
           return finalFiles;
         });
       },
@@ -750,7 +785,6 @@ const UniversalFileUploader = React.memo(
       setFiles((currentFiles) => {
         const fileToRemove = currentFiles.find((f) => f.id === id);
 
-        // Liberar URL de objeto si es una vista previa local
         if (
           fileToRemove &&
           fileToRemove.url &&
@@ -762,8 +796,9 @@ const UniversalFileUploader = React.memo(
         const newFiles = currentFiles
           .filter((f) => f.id !== id)
           .map((f, i) => ({ ...f, isMain: i === 0 }));
-        // Deferir notificación
-        shouldNotifyRef.current = true;
+
+        // Notificar al padre en un efecto posterior
+        pendingNotifyRef.current = newFiles;
         return newFiles;
       });
     };
@@ -781,8 +816,8 @@ const UniversalFileUploader = React.memo(
           ...f,
           isMain: i === 0,
         }));
-        // Deferir notificación
-        shouldNotifyRef.current = true;
+
+        pendingNotifyRef.current = newFiles;
         return newFiles;
       });
     };
@@ -801,29 +836,37 @@ const UniversalFileUploader = React.memo(
           newFiles[fromIndex],
         ];
 
-        // Actualizar isMain si es necesario
         const updatedFiles = newFiles.map((f, i) => ({
           ...f,
           isMain: i === 0,
         }));
-        // Deferir notificación
-        shouldNotifyRef.current = true;
+
+        pendingNotifyRef.current = updatedFiles;
         return updatedFiles;
       });
     };
 
-    // Notificar cambios al padre después de que 'files' se haya actualizado y renderizado
+    // Notificar cambios al padre DESPUÉS de que React haya aplicado el nuevo estado `files`
+    // CRÍTICO: Solo notificar UNA VEZ por cambio, no en cada render
+    const lastNotifiedRef = useRef(null);
+
     useEffect(() => {
-      if (shouldNotifyRef.current) {
-        shouldNotifyRef.current = false;
-        // Remover console.log para mejorar performance
-        if (typeof onFilesChange === "function") {
-          onFilesChange(files);
-        } else {
-          // console.warn("⚠️ onFilesChange no es una función");
-        }
+      if (!pendingNotifyRef.current) return;
+
+      const payload = pendingNotifyRef.current;
+      pendingNotifyRef.current = null;
+
+      // Evitar notificaciones duplicadas comparando con la última notificación
+      const payloadKey = payload.map((f) => f.id).join("|");
+      if (lastNotifiedRef.current === payloadKey) {
+        return; // Ya notificamos este mismo payload
       }
-    }, [files]);
+      lastNotifiedRef.current = payloadKey;
+
+      if (typeof onFilesChange === "function") {
+        onFilesChange(payload);
+      }
+    }, [files]); // REMOVIDO onFilesChange de las dependencias para evitar loops
 
     // Abrir la cámara del dispositivo (móvil)
     const openCamera = (e) => {

@@ -251,6 +251,20 @@ export default function TiendaIndividual() {
         }));
       }
 
+      // Fallback: buscar por campo tiendaId
+      if (productosData.length === 0) {
+        const qTiendaId = query(
+          collection(db, "productos"),
+          where("tiendaId", "==", id),
+          where("activo", "==", true)
+        );
+        const snapshotTiendaId = await getDocs(qTiendaId);
+        productosData = snapshotTiendaId.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      }
+
       // Fallback: buscar por campo legacy tienda_id
       if (productosData.length === 0) {
         const qLegacy = query(

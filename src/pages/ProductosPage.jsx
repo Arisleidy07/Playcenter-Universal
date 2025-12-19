@@ -2,12 +2,13 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SidebarCategorias from "../components/SidebarCategorias";
 import SidebarFiltros from "../components/SidebarFiltros";
-import FiltroDrawer from "../components/FiltroDrawer";
+import FiltroDrawerNuevo from "../components/FiltroDrawerNuevo";
 import BotonFiltro from "../components/BotonFiltro";
 import TarjetaProducto from "../components/TarjetaProducto";
 import { useCategories, useProductsByCategory } from "../hooks/useProducts";
 import { normalizar } from "../utils/normalizarCategoria";
 import "../styles/productosGrid.css";
+import "../styles/ModernButtons.css";
 
 function ProductosPage() {
   const { categoria = "Todos" } = useParams();
@@ -236,92 +237,74 @@ function ProductosPage() {
         boxSizing: "border-box",
       }}
     >
-      <div
-        className="flex-1 flex flex-col xl:grid xl:grid-cols-[auto_1fr_auto] w-full"
-        style={{ margin: 0 }}
-      >
-        <SidebarCategorias
-          categoriaActiva={categoriaActiva}
-          onCategoriaClick={handleCategoriaChange}
-          className="bg-transparent border-none shadow-none xl:row-span-2"
-        />
-
-        <main className="flex-1 p-0 xl:p-4 relative pb-32">
-          {/* Botones de Categorías y Filtros con animación inteligente */}
+      <div className="flex-1 flex flex-col w-full" style={{ margin: 0 }}>
+        <main className="flex-1 p-0 relative pb-32">
+          {/* Botones flotando solos */}
           <div
-            className={`flex justify-between items-center gap-2 px-2 sm:px-3 py-2 xl:hidden border-b border-gray-100/30 dark:border-gray-600/30 transition-all duration-500 ease-in-out ${
-              isScrolled ? "fixed top-0 left-0 right-0 z-50" : "relative"
+            className={`flex justify-between items-start px-4 sm:px-6 py-3 transition-all duration-500 ease-in-out ${
+              isScrolled
+                ? "sticky top-0 z-[850] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg"
+                : "relative z-[850]"
             }`}
-            style={{
-              top: isScrolled ? "0" : "auto",
-              background: isScrolled
-                ? isDarkMode
-                  ? "rgba(17, 24, 39, 0.95)"
-                  : "rgba(255, 255, 255, 0.95)"
-                : isDarkMode
-                ? "rgba(17, 24, 39, 0.9)"
-                : "rgba(255, 255, 255, 0.9)",
-              backdropFilter: isScrolled ? "blur(16px)" : "blur(12px)",
-              WebkitBackdropFilter: isScrolled ? "blur(16px)" : "blur(12px)",
-              boxShadow: isScrolled
-                ? "0 4px 20px rgba(0, 0, 0, 0.15)"
-                : "0 1px 3px rgba(0, 0, 0, 0.1)",
-              transform: isScrolled ? "translateY(0)" : "translateY(0)",
-            }}
           >
-            <button
-              onClick={() => setMostrarCategorias(true)}
-              className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
-                isScrolled ? "scale-95" : "scale-100"
-              }`}
-            >
-              <svg
-                className="w-4 h-4 sm:w-5 sm:h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth="2.5"
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setMostrarCategorias(true)}
+                className={`modern-btn modern-btn-categories ${
+                  isScrolled ? "floating" : ""
+                }`}
+                aria-label="Abrir categorías"
               >
-                <path
+                {/* Ícono delgado y bonito de categorías */}
+                <svg
+                  className="modern-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              <span className="whitespace-nowrap">Categorías</span>
-            </button>
+                  strokeWidth="1.5"
+                >
+                  <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span className="font-semibold tracking-wide">Categorías</span>
+              </button>
+
+              {/* Título a la derecha del botón */}
+              <h1 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
+                {categoriaActiva === "Todos"
+                  ? "Todos los productos"
+                  : categoriaActiva}
+              </h1>
+            </div>
+
             <BotonFiltro
               onClick={() => setFiltrosVisible(true)}
-              className={isScrolled ? "scale-95" : "scale-100"}
+              className={isScrolled ? "floating" : ""}
             />
           </div>
 
           {/* Spacer para compensar cuando los botones están fixed */}
           {isScrolled && (
             <div
-              className="xl:hidden"
-              style={{ height: "56px" }} // Altura ajustada para botones más pequeños
+              style={{ height: "80px" }} // Altura ajustada para botones modernos
             />
           )}
 
-          {/* TÍTULO ARRIBA DE LAS BOLITAS */}
-          <div className="mb-2 mt-1 px-2 sm:px-4 xl:px-0">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
-              {categoriaActiva === "Todos"
-                ? "Todos los productos"
-                : categoriaActiva}
-            </h1>
-            {categoriaActiva !== "Todos" && (
+          {/* Descripción debajo si no es "Todos" */}
+          {categoriaActiva !== "Todos" && (
+            <div className="px-4 sm:px-6 mb-2">
               <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
                 Encuentra lo mejor en{" "}
-                <span className="font-bold text-blue-700 dark:text-blue-400">
+                <span className="font-bold text-blue-600 dark:text-blue-400">
                   {categoriaActiva}
                 </span>
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4 px-2 sm:px-4 xl:px-0 mb-2 justify-start">
+          {/* Circulitos de marcas debajo */}
+          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4 px-4 sm:px-6 mb-4 justify-start">
             {logosEmpresa.map((empresa) => {
               const isActive = brandFilter.norm === empresa.norm;
               return (
@@ -366,20 +349,13 @@ function ProductosPage() {
               No hay productos que coincidan con tus filtros.
             </p>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 px-2 sm:px-4 xl:px-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 px-2 sm:px-4 xl:px-6">
               {productosFiltrados.map((producto) => (
                 <TarjetaProducto key={producto.id} producto={producto} />
               ))}
             </div>
           )}
         </main>
-
-        <SidebarFiltros
-          filtros={filtros}
-          setFiltros={setFiltros}
-          productosOriginales={productosOriginales}
-          className="bg-transparent border-none shadow-none xl:row-span-2"
-        />
       </div>
 
       {mostrarCategorias && (
@@ -392,16 +368,16 @@ function ProductosPage() {
         />
       )}
 
-      <div className="xl:hidden">
-        <FiltroDrawer
-          filtros={filtros}
-          setFiltros={setFiltros}
-          visible={filtrosVisible}
-          onClose={() => setFiltrosVisible(false)}
-          onReset={handleResetFiltros}
-          productosOriginales={products}
-        />
-      </div>
+      <FiltroDrawerNuevo
+        filtros={filtros}
+        setFiltros={setFiltros}
+        onReset={() =>
+          setFiltros({ estado: {}, precio: { min: 0, max: 1000000 } })
+        }
+        visible={filtrosVisible}
+        onClose={() => setFiltrosVisible(false)}
+        productosOriginales={products}
+      />
     </div>
   );
 }

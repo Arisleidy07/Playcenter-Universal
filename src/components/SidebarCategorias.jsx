@@ -180,12 +180,18 @@ function SidebarCategorias({
       <AnimatePresence>
         {mostrarEnMovil && (
           <>
-            {/* Overlay oscuro */}
+            {/* Overlay transparente */}
             <motion.div
-              className="fixed inset-0 bg-gray-900 dark:bg-black z-[9998]"
-              style={{ opacity: isDarkMode ? 1 : 0.5 }}
+              className="fixed inset-0 z-[9998]"
+              style={{
+                background: isDarkMode
+                  ? "rgba(0, 0, 0, 0.3)"
+                  : "rgba(255, 255, 255, 0.2)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+              }}
               initial={{ opacity: 0 }}
-              animate={{ opacity: isDarkMode ? 1 : 0.5 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMostrarEnMovil(false)}
             />
@@ -197,29 +203,33 @@ function SidebarCategorias({
               transition={{ type: "spring", stiffness: 250, damping: 30 }}
               className="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-[9999] flex flex-col shadow-2xl transition-colors duration-300"
             >
-              {/* Header con gradiente */}
+              {/* Header con gradiente AZUL */}
               <div className="flex justify-between items-center px-4 py-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800">
                 <h2 className="text-lg font-bold text-white tracking-wide select-none flex items-center gap-2">
                   <svg
                     className="w-6 h-6"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
                   >
-                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                    <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                   </svg>
                   Categorías
                 </h2>
                 <button
                   onClick={() => setMostrarEnMovil(false)}
-                  className="text-white font-bold text-2xl hover:bg-blue-800 dark:hover:bg-blue-900 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
+                  className="text-white font-bold text-2xl hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
                   aria-label="Cerrar categorías"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Contenido */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 bg-gray-50 dark:bg-gray-800">
+              {/* Contenido con fondo moderno */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
                 <ul className="space-y-2 text-sm">
                   {allCategories.map((cat, idx) => (
                     <motion.li key={cat.id || idx} whileHover={{ scale: 1.02 }}>
@@ -229,15 +239,15 @@ function SidebarCategorias({
                         whileHover="hover"
                         whileTap="tap"
                         variants={buttonVariants}
-                        className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-all duration-200 border ${
+                        className={`w-full text-left px-4 py-3 rounded-xl font-semibold transition-all duration-300 border-2 shadow-sm hover:shadow-md ${
                           isActiva(cat.nombre)
-                            ? "text-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-500"
-                            : "text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600"
+                            ? "text-blue-800 dark:text-blue-100 border-blue-400 dark:border-blue-500 shadow-blue-200 dark:shadow-blue-900/30"
+                            : "text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600"
                         }`}
                         style={{
                           backgroundColor: isActiva(cat.nombre)
                             ? isDarkMode
-                              ? "rgba(59, 130, 246, 0.2)"
+                              ? "rgba(37, 99, 235, 0.15)"
                               : "rgba(219, 234, 254, 0.8)"
                             : isDarkMode
                             ? "rgba(255, 255, 255, 0.05)"

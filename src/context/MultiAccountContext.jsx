@@ -3,6 +3,7 @@ import { auth, functions } from "../firebase";
 import { useAuth } from "./AuthContext";
 import { httpsCallable } from "firebase/functions";
 import { signInWithCustomToken } from "firebase/auth";
+import { notify } from "../utils/notificationBus";
 
 const MultiAccountContext = createContext();
 
@@ -108,7 +109,11 @@ export function MultiAccountProvider({ children }) {
     } catch (e) {
       // console.error("❌ Error en switchAccount:", e);
       setIsSwitching(false);
-      alert("Error al cambiar de cuenta. Por favor intenta de nuevo.");
+      notify(
+        "Error al cambiar de cuenta. Por favor intenta de nuevo.",
+        "error",
+        "Error"
+      );
     }
   };
 

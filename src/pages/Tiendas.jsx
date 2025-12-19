@@ -166,31 +166,109 @@ function TiendaCard({ tienda, index, showNotification }) {
   const { isDark } = useTheme();
   const [siguiendo, setSiguiendo] = useState(false);
   const [seguidores, setSeguidores] = useState(tienda.seguidores || 0);
+  const [productosCount, setProductosCount] = useState(tienda.productos || 0);
   const [loadingSeguir, setLoadingSeguir] = useState(false);
+
+  // Determinar la colección correcta (tiendas antiguas vs stores nuevas)
+  const tiendaCollection = tienda.principal ? "tiendas" : "stores";
+
+  // ═══════════════════════════════════════════════════════════
+  // CONTAR PRODUCTOS REALES DE LA TIENDA
+  // ═══════════════════════════════════════════════════════════
+  useEffect(() => {
+    if (!tienda.id) return;
+
+    const fetchProductCount = async () => {
+      try {
+        const productIds = new Set();
+
+        // Buscar productos por storeId (activos)
+        const qStoreIdActivo = query(
+          collection(db, "productos"),
+          where("storeId", "==", tienda.id),
+          where("activo", "==", true)
+        );
+        const snapStoreIdActivo = await getDocs(qStoreIdActivo);
+        snapStoreIdActivo.docs.forEach((doc) => productIds.add(doc.id));
+
+        // Buscar productos por storeId (sin filtro activo, por si no tienen el campo)
+        const qStoreId = query(
+          collection(db, "productos"),
+          where("storeId", "==", tienda.id)
+        );
+        const snapStoreId = await getDocs(qStoreId);
+        snapStoreId.docs.forEach((doc) => {
+          const data = doc.data();
+          // Solo agregar si activo es true o no está definido
+          if (data.activo !== false) {
+            productIds.add(doc.id);
+          }
+        });
+
+        // También buscar por tiendaId (compatibilidad)
+        const qTiendaId = query(
+          collection(db, "productos"),
+          where("tiendaId", "==", tienda.id)
+        );
+        const snapTiendaId = await getDocs(qTiendaId);
+        snapTiendaId.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.activo !== false) {
+            productIds.add(doc.id);
+          }
+        });
+
+        // Buscar por tienda_id (legacy)
+        const qLegacy = query(
+          collection(db, "productos"),
+          where("tienda_id", "==", tienda.id)
+        );
+        const snapLegacy = await getDocs(qLegacy);
+        snapLegacy.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.activo !== false) {
+            productIds.add(doc.id);
+          }
+        });
+
+        setProductosCount(productIds.size);
+      } catch (error) {
+        // Error silencioso, mantener el valor inicial
+      }
+    };
+
+    fetchProductCount();
+  }, [tienda.id]);
 
   // Verificar si usuario sigue esta tienda EN TIEMPO REAL
   useEffect(() => {
     if (!usuario || !tienda.id) return;
 
-    const seguidorRef = doc(db, "stores", tienda.id, "seguidores", usuario.uid);
+    const seguidorRef = doc(
+      db,
+      tiendaCollection,
+      tienda.id,
+      "seguidores",
+      usuario.uid
+    );
     const unsubscribe = onSnapshot(
       seguidorRef,
       (doc) => {
         setSiguiendo(doc.exists());
       },
       (error) => {
-        // console.error("Error verificando seguidor:", error);
+        // Error silencioso
       }
     );
 
     return () => unsubscribe();
-  }, [usuario, tienda.id]);
+  }, [usuario, tienda.id, tiendaCollection]);
 
   // Escuchar cambios en el contador de seguidores EN TIEMPO REAL
   useEffect(() => {
     if (!tienda.id) return;
 
-    const tiendaRef = doc(db, "stores", tienda.id);
+    const tiendaRef = doc(db, tiendaCollection, tienda.id);
     const unsubscribe = onSnapshot(
       tiendaRef,
       (doc) => {
@@ -200,12 +278,12 @@ function TiendaCard({ tienda, index, showNotification }) {
         }
       },
       (error) => {
-        // console.error("Error escuchando seguidores:", error);
+        // Error silencioso
       }
     );
 
     return () => unsubscribe();
-  }, [tienda.id]);
+  }, [tienda.id, tiendaCollection]);
 
   const handleSeguir = async (e) => {
     e.preventDefault(); // Evitar navegación
@@ -223,10 +301,10 @@ function TiendaCard({ tienda, index, showNotification }) {
     setLoadingSeguir(true);
 
     try {
-      const tiendaRef = doc(db, "stores", tienda.id);
+      const tiendaRef = doc(db, tiendaCollection, tienda.id);
       const seguidorRef = doc(
         db,
-        "stores",
+        tiendaCollection,
         tienda.id,
         "seguidores",
         usuario.uid
@@ -427,7 +505,7 @@ function TiendaCard({ tienda, index, showNotification }) {
                         "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
                     }}
                   >
-                    {tienda.productos || 0}
+                    {productosCount}
                   </span>
                 </div>
               </div>

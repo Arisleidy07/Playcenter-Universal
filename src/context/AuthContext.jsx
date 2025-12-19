@@ -175,6 +175,8 @@ export function AuthProvider({ children }) {
                 admin: isAdminEmail(userEmail) || data.admin === true,
                 role: data.role || "buyer",
                 isSeller: data.isSeller === true || data.role === "seller",
+                // CRÍTICO: Incluir storeId para que el panel del vendedor funcione
+                storeId: data.storeId || null,
                 storeName: data.storeName || "",
                 storeDescription: data.storeDescription || "",
                 storeImage: data.storeImage || "",
@@ -201,6 +203,9 @@ export function AuthProvider({ children }) {
                 email: userEmail,
                 fotoURL: user.photoURL || "",
                 isAdmin: isAdminEmail(userEmail),
+                isSeller: false,
+                storeId: null,
+                storeName: "",
               };
               setUsuarioInfo(merged);
             }
@@ -227,6 +232,9 @@ export function AuthProvider({ children }) {
             fotoURL: data.fotoURL || user.photoURL || "",
             isAdmin: isAdminEmail(userEmail) || data.admin === true,
             admin: isAdminEmail(userEmail) || data.admin === true,
+            isSeller: data.isSeller === true || data.role === "seller",
+            storeId: data.storeId || null,
+            storeName: data.storeName || "",
           };
           setUsuarioInfo(merged);
         } catch (e) {
@@ -242,6 +250,9 @@ export function AuthProvider({ children }) {
             isAdmin: isAdminEmail(userEmail),
             admin: isAdminEmail(userEmail),
             codigo: "",
+            isSeller: false,
+            storeId: null,
+            storeName: "",
           });
         } finally {
           setLoading(false);

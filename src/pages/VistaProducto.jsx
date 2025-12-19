@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaTimes, FaTrash, FaShareSquare } from "react-icons/fa";
@@ -670,14 +671,68 @@ function VistaProducto() {
   );
 
   // Helper functions for media processing - available throughout component
+  // ARREGLADO: Solo detectar videos REALES (URLs válidas con extensión de video)
   const getGalleryVideos = () => {
     if (!producto) return [];
-    // Return videos from the gallery if they exist
-    const videos =
-      producto?.galeriaImagenes
-        ?.filter((item) => item?.type === "video")
-        ?.map((item) => item?.url) || [];
-    return videos.filter(Boolean);
+
+    const urls = [];
+    const seen = new Set();
+
+    // Extensiones de video válidas
+    const videoExtensions = [
+      "mp4",
+      "mov",
+      "webm",
+      "avi",
+      "mkv",
+      "m4v",
+      "ogg",
+      "ogv",
+    ];
+
+    // Helper para validar que es realmente un video
+    const isValidVideoUrl = (url) => {
+      if (!url || typeof url !== "string") return false;
+      const trimmed = url.trim();
+      if (!trimmed) return false;
+      // Debe tener una extensión de video
+      const ext = trimmed.split(".").pop()?.split("?")[0]?.toLowerCase() || "";
+      return videoExtensions.includes(ext);
+    };
+
+    const pushUrl = (raw) => {
+      if (!raw) return;
+      const str = String(raw).trim();
+      if (!str) return;
+      // VALIDACIÓN ESTRICTA: Solo agregar si es realmente un video
+      if (!isValidVideoUrl(str)) return;
+      const key = str.split("?")[0].split("#")[0].toLowerCase();
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      urls.push(str);
+    };
+
+    // NUEVO FORMATO: videos del producto en videoUrls (array de strings u objetos)
+    if (Array.isArray(producto.videoUrls)) {
+      producto.videoUrls.forEach((item) => {
+        const url = typeof item === "string" ? item : item?.url;
+        pushUrl(url);
+      });
+    }
+
+    // VIDEOS de la variante activa (si existe)
+    if (varianteSeleccionada >= 0 && variantesConColor[varianteSeleccionada]) {
+      const variante = variantesConColor[varianteSeleccionada];
+
+      if (Array.isArray(variante?.videoUrls)) {
+        variante.videoUrls.forEach((item) => {
+          const url = typeof item === "string" ? item : item?.url;
+          pushUrl(url);
+        });
+      }
+    }
+
+    return urls;
   }; // ALL useEffect hooks MUST be called consistently - BEFORE any early returns
   // Reset variant and gallery state when product id changes to avoid mixing between products
   useEffect(() => {
@@ -815,6 +870,31 @@ function VistaProducto() {
     };
   }, [desktopMediaIndex, producto]);
 
+  // REAL-TIME SYNC: Listen to ProductForm save events for immediate updates
+  useEffect(() => {
+    if (!id) return;
+
+    const handleProductUpdate = (event) => {
+      if (event.detail?.productId === id) {
+        // Force immediate re-render when ProductForm saves
+        setVarianteSeleccionada((prev) => prev);
+        setImagenActualIndex(0);
+        setDesktopMediaIndex(0);
+      }
+    };
+
+    // Listen to custom events from ProductForm
+    window.addEventListener("productSaved", handleProductUpdate);
+    window.addEventListener("forceProductUpdate", handleProductUpdate);
+    window.addEventListener(`productUpdate:${id}`, handleProductUpdate);
+
+    return () => {
+      window.removeEventListener("productSaved", handleProductUpdate);
+      window.removeEventListener("forceProductUpdate", handleProductUpdate);
+      window.removeEventListener(`productUpdate:${id}`, handleProductUpdate);
+    };
+  }, [id]);
+
   // Early returns MUST happen AFTER all hooks to maintain consistent hook order
   if (loading) {
     return null; // sin animación ni texto durante la carga
@@ -882,42 +962,92 @@ function VistaProducto() {
       : variantesConColor[varianteSeleccionada] || null;
   const varianteActiva = varianteActivaUI; // For compatibility with existing code
 
-  // SIMPLE: Obtener imagen principal
+  // ARREGLADO: Obtener imagen principal SIEMPRE mostrando la imagen que subí
   const getMainImage = () => {
-    // Si no hay variante seleccionada (o es -1), usar imagen del producto
-    if (varianteSeleccionada === -1 || varianteSeleccionada === null) {
-      return producto?.imagen || producto?.imagenPrincipal?.[0]?.url || "";
+    // PRIORIDAD 1: Si hay variante seleccionada, usar su imagen
+    if (varianteSeleccionada >= 0 && variantesConColor[varianteSeleccionada]) {
+      const variante = variantesConColor[varianteSeleccionada];
+      return variante?.imagenPrincipal?.[0]?.url || variante?.imagen || "";
     }
-    // Si hay variante seleccionada, usar su imagen
-    return varianteActiva?.imagen || producto?.imagen || "";
+
+    // PRIORIDAD 2: Imagen principal del producto (la que subí)
+    return producto?.imagenPrincipal?.[0]?.url || producto?.imagen || "";
   };
 
-  // AMAZON: Obtener imágenes de galería (Principal + Galería)
+  // ARREGLADO: Obtener imágenes de galería - SIN DUPLICADOS
   const getGalleryImages = () => {
-    const images = [];
+    // Helper para normalizar URL y evitar duplicados
+    const normalizeUrl = (url) => {
+      if (!url || typeof url !== "string") return null;
+      try {
+        // Quitar query params, hash, decodificar y convertir a minúsculas
+        const base = url.split("?")[0].split("#")[0].trim().toLowerCase();
+        return decodeURIComponent(base);
+      } catch {
+        return url.split("?")[0].split("#")[0].trim().toLowerCase();
+      }
+    };
 
-    // Add main image first
+    // PASO 1: Obtener imagen principal
     const mainImg = getMainImage();
-    if (mainImg) images.push(mainImg);
+    const mainKey = mainImg ? normalizeUrl(mainImg) : null;
 
-    // Add gallery images
-    if (varianteActiva) {
-      // From variant
-      const variantImages =
-        varianteActiva?.imagenes || varianteActiva?.galeriaImagenes || [];
-      images.push(
-        ...(Array.isArray(variantImages) ? variantImages.filter(Boolean) : [])
-      );
+    // PASO 2: Obtener imágenes de galería según variante seleccionada
+    let gallerySource = [];
+
+    if (varianteSeleccionada >= 0 && variantesConColor[varianteSeleccionada]) {
+      const variante = variantesConColor[varianteSeleccionada];
+      gallerySource =
+        Array.isArray(variante?.imagenes) && variante.imagenes.length > 0
+          ? variante.imagenes
+          : Array.isArray(variante?.galeriaImagenes)
+          ? variante.galeriaImagenes
+          : [];
     } else {
-      // From product
-      const productImages =
-        producto?.imagenes || producto?.galeriaImagenes || [];
-      images.push(
-        ...(Array.isArray(productImages) ? productImages.filter(Boolean) : [])
-      );
+      gallerySource =
+        Array.isArray(producto?.imagenes) && producto.imagenes.length > 0
+          ? producto.imagenes
+          : Array.isArray(producto?.galeriaImagenes)
+          ? producto.galeriaImagenes
+          : [];
     }
 
-    return [...new Set(images)]; // Remove duplicates
+    // PASO 3: Filtrar imágenes de galería (excluir principal, duplicados y videos)
+    const seen = new Set();
+    if (mainKey) seen.add(mainKey); // Marcar imagen principal como vista
+
+    const galleryImages = [];
+    gallerySource.forEach((img) => {
+      const imgUrl = typeof img === "string" ? img : img?.url || null;
+      if (!imgUrl) return;
+
+      // Excluir videos por tipo explícito
+      const type = (img?.type || "").toLowerCase();
+      if (type === "video") return;
+
+      // Excluir videos por extensión
+      const ext = imgUrl.split(".").pop()?.split("?")[0]?.toLowerCase() || "";
+      if (["mp4", "mov", "webm", "avi", "mkv", "m4v"].includes(ext)) return;
+
+      // Verificar duplicados
+      const key = normalizeUrl(imgUrl);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      galleryImages.push(imgUrl);
+    });
+
+    // PASO 4: Construir resultado final
+    // Si hay imagen principal, siempre va primero
+    // Las imágenes de galería van después (ya filtradas de duplicados)
+    const result = [];
+    if (mainImg) {
+      result.push(mainImg);
+    }
+    
+    // Agregar imágenes de galería que NO son la principal
+    result.push(...galleryImages);
+
+    return result;
   };
 
   const getMainVideo = () => {
@@ -950,6 +1080,17 @@ function VistaProducto() {
     url,
   }));
   const desktopMediaItems = [...imageItemsMedia, ...videoItemsMedia];
+
+  if (VP_DEBUG) {
+    console.log("[VistaProducto] media debug", {
+      id,
+      imagenes,
+      galleryVideosList,
+      desktopMediaItems,
+      varianteSeleccionada,
+      variantesConColor,
+    });
+  }
 
   // Calculate safe desktop index
   const safeDesktopIndex = Math.max(
@@ -1101,14 +1242,20 @@ function VistaProducto() {
     ? Math.max(0, stockDisponible - (enCarrito?.cantidad || 0))
     : Infinity;
 
-  const precioVar =
-    varianteActivaUI && varianteActivaUI.precio !== undefined
-      ? Number(varianteActivaUI.precio)
-      : NaN;
-  const precioProducto =
-    Number.isFinite(precioVar) && precioVar > 0
-      ? precioVar
-      : Number(producto.precio) || 0;
+  // ARREGLADO: Precio que cambia según variante seleccionada
+  const precioProducto = (() => {
+    // Si hay variante seleccionada, usar su precio
+    if (varianteSeleccionada >= 0 && variantesConColor[varianteSeleccionada]) {
+      const variante = variantesConColor[varianteSeleccionada];
+      const precioVariante = Number(variante?.precio);
+      if (Number.isFinite(precioVariante) && precioVariante > 0) {
+        return precioVariante;
+      }
+    }
+
+    // Si no hay variante o no tiene precio, usar precio del producto principal
+    return Number(producto?.precio) || 0;
+  })();
   const itemsBuyNow = [
     {
       id: producto.id,
@@ -1132,8 +1279,9 @@ function VistaProducto() {
   // imagenes already calculated earlier - using global definition
   // Estados derivados para layout compacto cuando no hay medios ni variantes
   const hasImageGallery = imagenes.length > 0;
+  // ARREGLADO: Solo mostrar selector de variantes si hay variantes REALES (no solo el producto principal)
   const hasVariantsUI = Boolean(
-    variantesConColor && variantesConColor.length > 1
+    variantesConColor && variantesConColor.length > 0
   );
   const showLeftColumn = hasImageGallery;
   const isSingleImage = imagenes.length === 1;
@@ -1191,47 +1339,26 @@ function VistaProducto() {
 
   // Funciones de touch simplificadas - se usan las más completas abajo
 
-  // ---------- Handlers ZOOM (desktop) ----------
+  // ---------- Handlers ZOOM (desktop) - ESTILO AMAZON PERFECTO ----------
   const handleMouseEnter = (e) => {
-    if (typeof window === "undefined" || window.innerWidth < 1280) return; // solo desktop (xl)
+    if (typeof window === "undefined" || window.innerWidth < 1280) return;
     const current =
       (desktopMediaItems && desktopMediaItems[displayDesktopIndex]) || null;
-    if (!current || current.type !== "image") return; // zoom solo para imágenes
+    if (!current || current.type !== "image") return;
 
-    const url = current.url;
-    setZoomBg(url);
+    // Establecer la imagen de fondo del zoom
+    setZoomBg(current.url);
 
+    // Guardar el rectángulo de la imagen para posicionar el panel
     const imgEl = mainImgRef.current;
-    if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
-      const imgRect = imgEl.getBoundingClientRect();
-      const dispW = imgRect.width || imgEl.clientWidth || 0;
-      const dispH = imgRect.height || imgEl.clientHeight || 0;
-      const naturalW = imgEl.naturalWidth;
-      const naturalH = imgEl.naturalHeight;
-      const scaleX = naturalW / Math.max(1, dispW);
-      const scaleY = naturalH / Math.max(1, dispH);
-      // ZOOM DE ALTA CALIDAD estilo Amazon - usa la imagen nativa
-      const baseScale = Math.min(scaleX, scaleY);
-      const finalScale = Math.min(5, Math.max(4, baseScale)); // entre 4x y 5x - ALTA CALIDAD
-      const factor = baseScale > 0 ? finalScale / baseScale : 4.5;
-      setZoomBgSize({
-        w: Math.round(naturalW * factor),
-        h: Math.round(naturalH * factor),
-      });
-      zoomRectRef.current = imgRect;
-    } else {
-      setZoomBgSize({ w: 2000, h: 2000 }); // fallback de alta calidad
-      zoomRectRef.current = imgWrapRef.current
-        ? imgWrapRef.current.getBoundingClientRect()
-        : null;
+    if (imgEl) {
+      zoomRectRef.current = imgEl.getBoundingClientRect();
+    } else if (imgWrapRef.current) {
+      zoomRectRef.current = imgWrapRef.current.getBoundingClientRect();
     }
 
-    // Calcular posición inicial basada en donde está el cursor
-    const rect =
-      zoomRectRef.current ||
-      (mainImgRef.current && mainImgRef.current.getBoundingClientRect()) ||
-      (imgWrapRef.current && imgWrapRef.current.getBoundingClientRect());
-
+    // Calcular posición inicial del cursor (en porcentaje)
+    const rect = zoomRectRef.current;
     if (rect && e) {
       const x = Math.max(
         0,
@@ -1247,10 +1374,13 @@ function VistaProducto() {
     }
 
     setIsZooming(true);
+
+    // Aplicar posición inicial del background
     requestAnimationFrame(() => {
       const el = zoomOverlayRef.current;
-      if (el)
+      if (el) {
         el.style.backgroundPosition = `${lastPosRef.current.x}% ${lastPosRef.current.y}%`;
+      }
     });
   };
 
@@ -1596,6 +1726,35 @@ function VistaProducto() {
   };
   const closeMediaOverlay = () => setMediaOverlayOpen(false);
 
+  // Calcular estilos del panel de zoom - ESTILO AMAZON PROFESIONAL
+  const zoomRect = zoomRectRef.current;
+  const zoomOverlayStyle = {
+    display: isZooming && zoomRect ? "block" : "none",
+    backgroundImage: zoomBg ? `url(${zoomBg})` : "none",
+    backgroundRepeat: "no-repeat",
+  };
+
+  if (zoomRect && typeof window !== "undefined" && window.innerWidth >= 1280) {
+    // MISMO TAMAÑO que la imagen principal
+    const panelWidth = zoomRect.width;
+    const panelHeight = zoomRect.height;
+
+    // Factor de zoom: 2.5x para ver detalles
+    const zoomFactor = 2.5;
+    const bgWidth = Math.round(panelWidth * zoomFactor);
+    const bgHeight = Math.round(panelHeight * zoomFactor);
+
+    // Posicionar a la derecha de la imagen principal
+    const leftPosition = zoomRect.right + 16;
+
+    zoomOverlayStyle.position = "fixed";
+    zoomOverlayStyle.top = `${zoomRect.top}px`;
+    zoomOverlayStyle.left = `${leftPosition}px`;
+    zoomOverlayStyle.width = `${panelWidth}px`;
+    zoomOverlayStyle.height = `${panelHeight}px`;
+    zoomOverlayStyle.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+  }
+
   return (
     <>
       {/* Sin topbar móvil: solo contenido */}
@@ -1831,18 +1990,6 @@ function VistaProducto() {
                         Ver vista completa
                       </button>
                     </div>
-
-                    {/* Panel de zoom flotante a la derecha */}
-                    <div
-                      ref={zoomOverlayRef}
-                      className="vp-zoom-float vp-zoom-stage"
-                      style={{
-                        display: isZooming ? "block" : "none",
-                        backgroundImage: zoomBg ? `url(${zoomBg})` : "none",
-                        backgroundRepeat: "no-repeat",
-                        backgroundSize: `${zoomBgSize.w}px ${zoomBgSize.h}px`,
-                      }}
-                    />
                   </div>
                 </div>
               )}
@@ -1875,13 +2022,13 @@ function VistaProducto() {
           {/* Columna Centro - Información del producto (4 columnas) */}
           <div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4">
             {/* Título, descripción y precio - PRIMERO (orden correcto) */}
-            <h1 className="vp-title xl:order-1 order-1">{producto.nombre}</h1>
+            <h1 className="vp-title">{producto.nombre}</h1>
 
             {/* Enlace Visitar Tienda */}
             {(producto.storeId || producto.tienda_id) && tiendaNombreReal ? (
               <Link
                 to={`/tiendas/${producto.storeId || producto.tienda_id}`}
-                className="text-blue-600 hover:text-blue-800 underline hover:underline transition-colors xl:order-2 order-2 w-fit block mb-4 font-semibold"
+                className="text-blue-600 hover:text-blue-800 underline hover:underline transition-colors w-fit block mb-4 font-semibold"
                 aria-label={`Visitar tienda de ${tiendaNombreReal}`}
               >
                 Visitar tienda de {tiendaNombreReal}
@@ -1889,14 +2036,14 @@ function VistaProducto() {
             ) : (
               // Solo mostrar para admins si no hay tienda
               producto.creadorId && (
-                <div className="text-red-500 text-sm xl:order-2 order-2 mb-4">
+                <div className="text-red-500 text-sm mb-4">
                   Producto sin tienda asignada
                 </div>
               )
             )}
 
             <div
-              className="vp-desc prose max-w-none xl:order-3 order-3"
+              className="vp-desc prose max-w-none"
               dangerouslySetInnerHTML={{
                 __html: sanitizeBasic(
                   producto.descripcion ||
@@ -1904,7 +2051,7 @@ function VistaProducto() {
                 ),
               }}
             />
-            <div className="xl:order-4 order-4">
+            <div>
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-1">
                   <span className="text-sm text-gray-600 font-medium">DOP</span>
@@ -1916,11 +2063,52 @@ function VistaProducto() {
               </div>
             </div>
 
-            {/* Acerca de este artículo - DIRECTO DEBAJO DEL PRECIO */}
-            <AcercaDeEsteArticulo producto={producto} />
+            {/* SELECTOR DE VARIANTES - SOLO SI HAY VARIANTES REALES */}
+            {hasVariantsUI && (
+              <div className="-mt-2">
+                <VisualVariantSelector
+                  producto={producto}
+                  variantes={[
+                    // Variante principal (producto base) - solo si hay variantes reales
+                    {
+                      id: "principal",
+                      color: "Principal",
+                      nombre: "Producto Principal",
+                      precio: producto?.precio,
+                      imagen:
+                        producto?.imagenPrincipal?.[0]?.url || producto?.imagen,
+                      imagenPrincipal: producto?.imagenPrincipal,
+                      galeriaImagenes: producto?.galeriaImagenes,
+                      cantidad: producto?.cantidad,
+                    },
+                    // Agregar todas las variantes con color
+                    ...variantesConColor,
+                  ]}
+                  varianteSeleccionada={
+                    varianteSeleccionada === -1 ? 0 : varianteSeleccionada + 1
+                  }
+                  onVarianteChange={(index) => {
+                    // index 0 = Principal, index 1+ = variantes reales
+                    if (index === 0) {
+                      setVarianteSeleccionada(-1); // Producto principal
+                    } else {
+                      setVarianteSeleccionada(index - 1); // Variante real (ajustar índice)
+                    }
+                    // Reset media indexes when variant changes
+                    setImagenActualIndex(0);
+                    setDesktopMediaIndex(0);
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Acerca de este artículo - DESPUÉS DEL SELECTOR DE VARIANTES */}
+            <div>
+              <AcercaDeEsteArticulo producto={producto} />
+            </div>
 
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL/TABLET (restaurado) */}
-            <div className="xl:hidden flex flex-col gap-3 overflow-visible xl:order-5 order-5">
+            <div className="xl:hidden flex flex-col gap-3 overflow-visible">
               <div
                 className={`vp-stock ${
                   restante === 0
@@ -2069,6 +2257,17 @@ function VistaProducto() {
             </div>
           </aside>
         </section>
+
+        {/* Overlay global de zoom tipo Amazon - renderizado como portal en <body> */}
+        {typeof document !== "undefined" &&
+          createPortal(
+            <div
+              ref={zoomOverlayRef}
+              className="vp-zoom-float vp-zoom-stage"
+              style={zoomOverlayStyle}
+            />,
+            document.body
+          )}
 
         {/* Productos relacionados - ARRIBA */}
         {producto && (

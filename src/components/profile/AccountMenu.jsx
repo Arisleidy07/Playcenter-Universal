@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { LogOut, Plus, Check, X, AlertCircle } from "lucide-react";
+import { LogOut, Plus, Check, X, AlertCircle, Bell } from "lucide-react";
 import { useMultiAccount } from "../../context/MultiAccountContext";
+import { useNotifications } from "../../hooks/useNotifications";
 
 export default function AccountMenu({
   currentUser,
@@ -14,6 +15,7 @@ export default function AccountMenu({
   const savedAccounts = ctx?.savedAccounts || [];
   const switchAccount = ctx?.switchAccount || (() => {});
   const removeAccount = ctx?.removeAccount || (() => {});
+  const { unreadCount } = useNotifications();
 
   return (
     <div className="w-full min-w-[280px] max-w-[320px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-600 overflow-hidden">
@@ -30,6 +32,25 @@ export default function AccountMenu({
               alt="Active"
             />
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+            {/* Badge de notificaciones */}
+            {unreadCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 flex items-center justify-center"
+                style={{
+                  minWidth: "18px",
+                  height: "18px",
+                  padding: "0 4px",
+                  backgroundColor: "#dc2626",
+                  color: "#ffffff",
+                  fontSize: "10px",
+                  fontWeight: "700",
+                  borderRadius: "9px",
+                  border: "2px solid #ffffff",
+                }}
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-gray-900 dark:text-white truncate">

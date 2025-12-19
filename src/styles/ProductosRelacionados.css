@@ -11,7 +11,7 @@
   border-top: none;
   overflow: visible;
   position: relative;
-  z-index: 20;
+  z-index: 400; /* Elevado sobre tarjetas sticky */
   margin: 0;
 }
 
@@ -19,10 +19,9 @@
 @media (max-width: 767px) {
   .prl-section {
     padding: 24px 0 60px 0;
-    width: 100vw;
-    margin-left: calc(
-      -1 * var(--screen-padding, 16px)
-    ); /* Márgenes negativos */
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 
@@ -32,7 +31,7 @@
   padding: 0;
   overflow: visible;
   position: relative;
-  z-index: 20;
+  z-index: 400;
 }
 
 .prl-title {
@@ -53,12 +52,18 @@
   display: flex; /* Fila horizontal */
   flex-direction: row;
   gap: 12px;
+  margin: 0; /* Sin márgenes negativos, inicio limpio como Amazon */
   padding: 0 var(--screen-padding, 16px); /* Padding solo en los lados */
   overflow-x: auto; /* Scroll horizontal */
   overflow-y: hidden;
   scroll-snap-type: x mandatory; /* Scroll snap */
   -webkit-overflow-scrolling: touch; /* Smooth iOS */
   scrollbar-width: none; /* Ocultar scrollbar */
+  width: 100%; /* Ocupar todo el ancho sin cortar tarjetas */
+  scroll-padding-inline: var(--screen-padding, 16px);
+  z-index: 420; /* Sobre cualquier overlay lateral */
+  position: relative;
+  background: transparent;
 }
 
 .prl-grid-mobile::-webkit-scrollbar {
@@ -118,22 +123,26 @@
   display: none;
   align-items: center;
   gap: 0;
-  z-index: 20;
+  z-index: 420;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 32px; /* espacio para flechas fuera */
+  overflow: visible;
 }
 
 .prl-rail-desktop {
   display: flex;
   gap: 12px;
-  overflow-x: auto;
+  overflow-x: auto; /* DEBE ser auto para que scroll funcione */
   overflow-y: visible;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  padding: 20px 0.75rem 40px 0.75rem;
+  padding: 20px 0 40px 0;
   scrollbar-width: none;
   flex: 1;
   position: relative;
-  z-index: 20;
+  z-index: 420;
 }
 
 .prl-rail-desktop::-webkit-scrollbar {
@@ -363,19 +372,59 @@
   color: #0f1111;
   font-size: 18px;
   transition: all 0.15s ease;
-  z-index: 100;
+  z-index: 500;
   flex-shrink: 0;
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.prl-arrow-disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
 }
 
 .prl-arrow.left {
   left: 8px;
+  transform: translateY(-50%);
 }
 
 .prl-arrow.right {
   right: 8px;
+  transform: translateY(-50%);
+}
+
+/* Overrides finales estilo Amazon */
+@media (min-width: 1280px) {
+  .prl-arrow {
+    display: flex !important;
+  }
+  .prl-arrow.left {
+    left: 8px !important;
+    transform: translateY(-50%) !important;
+  }
+  .prl-arrow.right {
+    right: 8px !important;
+    transform: translateY(-50%) !important;
+  }
+  .prl-wrapper-desktop {
+    overflow: visible !important;
+    padding: 0 60px !important; /* espacio lateral para flechas */
+  }
+}
+
+/* Desactivar cualquier overlay antiguo */
+.prl-wrapper::before,
+.prl-wrapper::after,
+.prl-wrapper-desktop::before,
+.prl-wrapper-desktop::after,
+.prl-grid-mobile::before,
+.prl-grid-mobile::after {
+  content: none !important;
+  display: none !important;
+  pointer-events: none !important;
 }
 
 .prl-arrow:hover {
@@ -499,10 +548,6 @@
 
   .prl-wrapper-desktop {
     display: flex;
-  }
-
-  .prl-arrow {
-    display: flex; /* Flechas visibles en desktop */
   }
 
   .prl-container {
@@ -788,46 +833,7 @@ html.dark-theme .prl-empty {
   font-size: 14px;
 }
 
-/* Flechas Amazon exactas - AL BORDE del carrusel */
-.prl-arrow {
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #d5d9d9;
-  border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(15, 17, 17, 0.15);
-  cursor: pointer;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  color: #0f1111;
-  font-size: 18px;
-  transition: all 0.15s ease;
-  z-index: 100;
-  flex-shrink: 0;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.prl-arrow.left {
-  left: 8px;
-}
-
-.prl-arrow.right {
-  right: 8px;
-}
-
-.prl-arrow:hover {
-  background: #f7f8fa;
-  border-color: #a8a8a8;
-  box-shadow: 0 4px 8px rgba(15, 17, 17, 0.2);
-}
-
-.prl-arrow:active {
-  background: #ededed;
-  transform: translateY(-50%) scale(0.95);
-}
+/* OLD: Flechas Amazon - REMOVIDO para evitar conflictos, usar definición principal arriba */
 
 /* Empty state */
 .prl-empty {
@@ -852,27 +858,6 @@ html.dark-theme .prl-empty {
     height: 140px;
     padding: 10px;
   }
-
-  .prl-arrow {
-    display: none !important;
-  }
-
-  .prl-wrapper::before {
-    content: "◄ Desliza ►";
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: #666;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 4px 12px;
-    border-radius: 12px;
-    z-index: 6;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    animation: fadeInOut 3s ease-in-out infinite;
-  }
 }
 
 @media (min-width: 481px) and (max-width: 767px) {
@@ -888,27 +873,6 @@ html.dark-theme .prl-empty {
   .prl-imgbox {
     height: 160px;
     padding: 12px;
-  }
-
-  .prl-arrow {
-    display: none !important;
-  }
-
-  .prl-wrapper::before {
-    content: "◄ Desliza ►";
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: #666;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 4px 12px;
-    border-radius: 12px;
-    z-index: 6;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    animation: fadeInOut 3s ease-in-out infinite;
   }
 }
 
@@ -929,7 +893,7 @@ html.dark-theme .prl-empty {
   transition: opacity 0.3s ease;
 }
 
-/* Tablet pequeña-mediana */
+/* Tablet pequeña-mediana - sin flechas (swipe touch) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .prl-container {
     padding: 0;
@@ -939,30 +903,9 @@ html.dark-theme .prl-empty {
     height: 180px;
     padding: 14px;
   }
-
-  .prl-arrow {
-    display: none;
-  }
-
-  .prl-wrapper::before {
-    content: "◄ Desliza ►";
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    color: #888;
-    background: rgba(255, 255, 255, 0.85);
-    padding: 3px 10px;
-    border-radius: 10px;
-    z-index: 6;
-    font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    opacity: 0.7;
-  }
 }
 
-/* Tablet grande */
+/* Tablet grande - sin flechas (swipe touch) */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .prl-container {
     padding: 0;
@@ -971,27 +914,6 @@ html.dark-theme .prl-empty {
   .prl-imgbox {
     height: 190px;
     padding: 16px;
-  }
-
-  .prl-arrow {
-    display: none;
-  }
-
-  .prl-wrapper::before {
-    content: "◄ Desliza ►";
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    color: #888;
-    background: rgba(255, 255, 255, 0.85);
-    padding: 3px 10px;
-    border-radius: 10px;
-    z-index: 6;
-    font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    opacity: 0.7;
   }
 }
 
@@ -1009,10 +931,6 @@ html.dark-theme .prl-empty {
   .prl-imgbox {
     height: 200px;
     padding: 20px;
-  }
-
-  .prl-arrow {
-    display: flex;
   }
 
   /* Sin indicador de scroll en desktop */

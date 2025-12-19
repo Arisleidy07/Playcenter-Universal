@@ -1,0 +1,60 @@
+/* BOTONES - TEMA OSCURO Y CLARO */
+
+:root {
+  /* Colores para tema claro */
+  --btn-bg: #2563eb;
+  --btn-bg-hover: #1d4ed8;
+  --btn-text: #ffffff;
+  --btn-border: transparent;
+}
+
+.dark {
+  /* Colores para tema oscuro */
+  --btn-bg: #1e40af;
+  --btn-bg-hover: #1e3a8a;
+  --btn-text: #ffffff;
+  --btn-border: transparent;
+}
+
+/* Botones principales */
+.btn-primary-theme {
+  background: var(--btn-bg) !important;
+  color: var(--btn-text) !important;
+  border-color: var(--btn-border) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary-theme:hover {
+  background: var(--btn-bg-hover) !important;
+  transform: scale(1.05);
+}
+
+.btn-primary-theme:active {
+  transform: scale(0.95);
+}
+
+/* Asegurar que no haya fondos extraños en tema oscuro */
+.dark .bg-blue-600 {
+  background-color: #1e40af !important;
+}
+
+.dark .bg-blue-700 {
+  background-color: #1e3a8a !important;
+}
+
+.dark .hover\:bg-blue-700:hover {
+  background-color: #1e3a8a !important;
+}
+
+.dark .hover\:bg-blue-800:hover {
+  background-color: #1e3a8a !important;
+}
+
+/* Eliminar cualquier fondo azul oscuro problemático */
+.dark button {
+  background-color: var(--btn-bg, #1e40af) !important;
+}
+
+.dark button:hover {
+  background-color: var(--btn-bg-hover, #1e3a8a) !important;
+}

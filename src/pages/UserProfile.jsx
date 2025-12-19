@@ -67,15 +67,39 @@ export default function UserProfile() {
     // Listener en tiempo real
     const unsubscribe = onSnapshot(
       userRef,
-      (docSnap) => {
+      async (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setUserData(data);
 
+          let seguidoresCount = data.stats?.seguidores || 0;
+          let seguidosCount = data.stats?.seguidos || 0;
+
+          // Si los contadores están en 0, contar desde las subcolecciones
+          if (seguidoresCount === 0 || seguidosCount === 0) {
+            try {
+              // Contar seguidores reales
+              const followersRef = collection(db, `users/${userId}/followers`);
+              const followersSnap = await getDocs(followersRef);
+              const realSeguidores = followersSnap.size;
+
+              // Contar seguidos reales
+              const followingRef = collection(db, `users/${userId}/following`);
+              const followingSnap = await getDocs(followingRef);
+              const realSeguidos = followingSnap.size;
+
+              // Usar el mayor entre el valor guardado y el conteo real
+              seguidoresCount = Math.max(seguidoresCount, realSeguidores);
+              seguidosCount = Math.max(seguidosCount, realSeguidos);
+            } catch (error) {
+              // Error silencioso
+            }
+          }
+
           // Actualizar stats en tiempo real
           setStats({
-            seguidores: data.stats?.seguidores || 0,
-            seguidos: data.stats?.seguidos || 0,
+            seguidores: seguidoresCount,
+            seguidos: seguidosCount,
             publicaciones: data.stats?.publicaciones || 0,
           });
         } else {
@@ -93,26 +117,65 @@ export default function UserProfile() {
   }, [userId, currentUser, navigate]);
 
   // ═══════════════════════════════════════════════════════════
-  // CARGAR PRODUCTOS DEL USUARIO
+  // CARGAR PRODUCTOS DEL USUARIO - BUSCAR POR MÚLTIPLES CAMPOS
   // ═══════════════════════════════════════════════════════════
   useEffect(() => {
     if (!userId) return;
 
     const fetchProductos = async () => {
       try {
-        const q = query(
+        const productIds = new Set();
+        const productosMap = new Map();
+
+        // Buscar por creadoPor
+        const qCreadoPor = query(
           collection(db, "productos"),
-          where("usuario_id", "==", userId),
-          where("activo", "==", true)
+          where("creadoPor", "==", userId)
         );
-        const snapshot = await getDocs(q);
-        const prods = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const snapCreadoPor = await getDocs(qCreadoPor);
+        snapCreadoPor.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.activo !== false) {
+            productIds.add(doc.id);
+            productosMap.set(doc.id, { id: doc.id, ...data });
+          }
+        });
+
+        // Buscar por ownerUid
+        const qOwnerUid = query(
+          collection(db, "productos"),
+          where("ownerUid", "==", userId)
+        );
+        const snapOwnerUid = await getDocs(qOwnerUid);
+        snapOwnerUid.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.activo !== false) {
+            productIds.add(doc.id);
+            productosMap.set(doc.id, { id: doc.id, ...data });
+          }
+        });
+
+        // Buscar por usuario_id (legacy)
+        const qUsuarioId = query(
+          collection(db, "productos"),
+          where("usuario_id", "==", userId)
+        );
+        const snapUsuarioId = await getDocs(qUsuarioId);
+        snapUsuarioId.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.activo !== false) {
+            productIds.add(doc.id);
+            productosMap.set(doc.id, { id: doc.id, ...data });
+          }
+        });
+
+        const prods = Array.from(productosMap.values());
         setProductos(prods);
+
+        // Actualizar stats con el conteo real de publicaciones
+        setStats((prev) => ({ ...prev, publicaciones: prods.length }));
       } catch (error) {
-        // console.error("Error cargando productos:", error);
+        // Error silencioso
       }
     };
 

@@ -132,7 +132,7 @@
   left: 0;
   right: 0;
   height: 56px;
-  z-index: 50;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -326,43 +326,58 @@
   }
 }
 
-/* Panel de zoom flotante (a la derecha, MISMO TAMAÑO que imagen principal) */
+/* Panel de zoom flotante estilo Amazon - proporciones perfectas */
 .vp-zoom-float {
-  position: absolute;
+  position: fixed;
   top: 0;
-  left: calc(100% + 20px); /* a la derecha del contenedor de imagen */
-  width: 100%; /* MISMO ANCHO que la imagen principal */
-  aspect-ratio: 1 / 1.05; /* MISMA PROPORCIÓN que imagen principal */
-  height: auto;
-  z-index: 2147483647 !important; /* Z-INDEX MÁXIMO ABSOLUTO - tapa TODO */
-  pointer-events: none; /* no bloquear interacciones */
+  left: 0;
+  z-index: 2147483647 !important;
+  pointer-events: none;
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 12px 16px rgba(0, 0, 0, 0.12);
-  background-color: #fff; /* OPACO - tapa TODO lo de abajo */
-  border: 2px solid #d1d5db;
-  opacity: 1; /* 100% opaco */
-  will-change: background-position; /* rendimiento suave */
-  background-size: 400% 400% !important; /* ALTA CALIDAD - zoom 4x */
-  image-rendering: auto; /* Mejor calidad para zoom de imágenes */
-  -webkit-font-smoothing: antialiased; /* Anti-aliasing mejorado */
-  -moz-osx-font-smoothing: grayscale;
-  transform: translateZ(0); /* Aceleración de hardware */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  opacity: 1 !important;
+  will-change: background-position, background-size;
+  /* NO forzar background-size aquí - se calcula dinámicamente en JS */
+  background-repeat: no-repeat;
+  image-rendering: -webkit-optimize-contrast; /* Mejor nitidez */
+  image-rendering: crisp-edges;
+  -webkit-font-smoothing: antialiased;
+  transform: translateZ(0);
   -webkit-transform: translateZ(0);
-  filter: blur(0); /* Prevenir blur del navegador */
+  isolation: isolate !important;
+  overflow: hidden;
 }
-@media (min-width: 1280px) {
-  .vp-zoom-float {
-    background-size: 450% 450% !important; /* MÁS CALIDAD - zoom 4.5x */
-  }
-}
-@media (min-width: 1536px) {
-  .vp-zoom-float {
-    background-size: 500% 500% !important; /* MÁXIMA CALIDAD - zoom 5x */
-  }
-}
-/* Evita que el min-height global fuerce el panel flotante a ser alto/vertical */
+/* Evita min-height en el panel flotante */
 .vp-zoom-float.vp-zoom-stage {
   min-height: 0;
+}
+
+/* Regla de z-index para el zoom */
+.vp-zoom-float,
+.vp-zoom-float.vp-zoom-stage {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+  isolation: isolate !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+}
+/* REGLA BRUTAL: TODO EN LA PÁGINA TIENE Z-INDEX 1, EXCEPTO EL ZOOM */
+
+/* VARIANTES HORIZONTALES - SIEMPRE */
+.visual-variant-selector {
+  width: 100%;
+}
+
+.visual-variant-selector .scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.visual-variant-selector .scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 /* ===========================
@@ -783,7 +798,7 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 25;
+  z-index: 1;
   width: 40px;
   height: 40px;
   background: rgba(255, 255, 255, 0.98);
@@ -954,7 +969,7 @@
 .amazon-main-image-container {
   flex: 1;
   position: relative;
-  z-index: 1; /* Base para stacking context */
+  z-index: auto; /* No crear stacking context que limite el zoom */
   overflow: visible; /* Permitir que el zoom se muestre fuera */
 }
 
@@ -968,14 +983,15 @@
   border-radius: 12px;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
+  overflow: visible !important; /* Permitir que el zoom se extienda fuera */
   display: flex;
   align-items: center;
   justify-content: center;
   touch-action: pan-y;
   transition: border-color 0.2s ease;
   box-shadow: none; /* sin sombras fuertes */
-  z-index: 1; /* Base para permitir que el zoom tape todo */
+  z-index: auto; /* Sin z-index forzado */
+  isolation: auto; /* Sin aislamiento que interfiera */
 }
 
 .amazon-main-image-wrap:hover {
@@ -1044,7 +1060,7 @@
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100;
+  z-index: 1;
   display: flex;
   gap: 6px;
   align-items: center;
@@ -1277,7 +1293,7 @@
   align-items: center;
   justify-content: center;
   color: #111827;
-  z-index: 9998;
+  z-index: 1;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -2561,7 +2577,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 50;
+  z-index: 1;
   background: #fff;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   padding: 12px;

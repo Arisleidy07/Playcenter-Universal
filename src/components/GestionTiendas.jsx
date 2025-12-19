@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   collection,
   onSnapshot,
@@ -31,6 +31,8 @@ export default function GestionTiendas() {
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("");
   const [eliminando, setEliminando] = useState(null);
+  const [tiendaAEliminar, setTiendaAEliminar] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // SOLO para super admin
   const isSuperAdmin = usuarioInfo?.email === "arisleidy0712@gmail.com";
@@ -79,7 +81,7 @@ export default function GestionTiendas() {
     cargarTodasTiendas();
   }, [isSuperAdmin]);
 
-  const eliminarTienda = async (tienda) => {
+  const abrirModalEliminar = (tienda) => {
     if (tienda.id === "playcenter_universal") {
       notify(
         "No puedes eliminar la tienda principal de Playcenter Universal",
@@ -88,12 +90,19 @@ export default function GestionTiendas() {
       );
       return;
     }
+    setTiendaAEliminar(tienda);
+    setShowDeleteModal(true);
+  };
 
-    const confirmar = window.confirm(
-      `¿Estás segura de eliminar la tienda "${tienda.nombre}"?\n\nEsto también:\n- Eliminará la tienda de la vista pública\n- El usuario perderá acceso de vendedor\n- Los productos NO se eliminarán (puedes hacerlo manual)\n\n¿Continuar?`
-    );
+  const cerrarModalEliminar = () => {
+    setShowDeleteModal(false);
+    setTiendaAEliminar(null);
+  };
 
-    if (!confirmar) return;
+  const confirmarEliminarTienda = async () => {
+    if (!tiendaAEliminar) return;
+    const tienda = tiendaAEliminar;
+    setShowDeleteModal(false);
 
     setEliminando(tienda.id);
 
@@ -161,6 +170,7 @@ export default function GestionTiendas() {
       );
     } finally {
       setEliminando(null);
+      setTiendaAEliminar(null);
     }
   };
 
@@ -434,7 +444,7 @@ export default function GestionTiendas() {
 
                     {!tienda.principal && (
                       <button
-                        onClick={() => eliminarTienda(tienda)}
+                        onClick={() => abrirModalEliminar(tienda)}
                         disabled={eliminando === tienda.id}
                         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -468,6 +478,87 @@ export default function GestionTiendas() {
           ))
         )}
       </div>
+
+      {/* MODAL DE CONFIRMACIÓN PARA ELIMINAR TIENDA */}
+      <AnimatePresence>
+        {showDeleteModal && tiendaAEliminar && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+            onClick={cerrarModalEliminar}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Icono de advertencia */}
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                </div>
+              </div>
+
+              {/* Título */}
+              <h3 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+                ¿Eliminar tienda?
+              </h3>
+
+              {/* Nombre de la tienda */}
+              <p className="text-center text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                "{tiendaAEliminar.nombre}"
+              </p>
+
+              {/* Advertencias */}
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                <p className="text-sm text-red-800 dark:text-red-200 font-medium mb-2">
+                  Esto también:
+                </p>
+                <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+                  <li>• Eliminará la tienda de la vista pública</li>
+                  <li>• El usuario perderá acceso de vendedor</li>
+                  <li>
+                    • Los productos NO se eliminarán (puedes hacerlo manual)
+                  </li>
+                </ul>
+              </div>
+
+              {/* Botones */}
+              <div className="flex gap-3">
+                <button
+                  onClick={cerrarModalEliminar}
+                  className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmarEliminarTienda}
+                  disabled={eliminando === tiendaAEliminar?.id}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {eliminando === tiendaAEliminar?.id ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Eliminando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Sí, eliminar
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import { collection, addDoc } from "firebase/firestore";
+import { NotificationHelpers } from "../hooks/useNotifications";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase";
 import ToastNotification from "../components/ToastNotification";
@@ -141,7 +142,18 @@ export default function SolicitarVender() {
         notasAdmin: "",
       };
 
-      await addDoc(collection(db, "solicitudes_vendedor"), solicitudData);
+      const docRef = await addDoc(
+        collection(db, "solicitudes_vendedor"),
+        solicitudData
+      );
+
+      // Notificar al admin sobre la nueva solicitud
+      await NotificationHelpers.newSellerRequest({
+        id: docRef.id,
+        nombreContacto: formData.nombreContacto,
+        tiendaNombre: formData.nombre,
+        email: formData.email,
+      });
 
       // 3. Mostrar mensaje de éxito
       showNotification(

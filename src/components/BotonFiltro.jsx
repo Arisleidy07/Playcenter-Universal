@@ -1,25 +1,52 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import "../styles/ModernButtons.css";
 
 function BotonFiltro({ onClick, className = "" }) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(
+        document.documentElement.classList.contains("dark") ||
+          document.documentElement.classList.contains("dark-theme")
+      );
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 ${className}`}
+      className={`modern-btn modern-btn-filters ${className}`}
+      aria-label="Abrir filtros"
     >
+      {/* Ícono CORRECTO de filtros */}
       <svg
-        className="w-4 h-4 sm:w-5 sm:h-5"
+        className="modern-icon"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
-        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-        />
+        <line x1="4" y1="21" x2="4" y2="14" />
+        <line x1="4" y1="10" x2="4" y2="3" />
+        <line x1="12" y1="21" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12" y2="3" />
+        <line x1="20" y1="21" x2="20" y2="16" />
+        <line x1="20" y1="12" x2="20" y2="3" />
+        <line x1="1" y1="14" x2="7" y2="14" />
+        <line x1="9" y1="8" x2="15" y2="8" />
+        <line x1="17" y1="16" x2="23" y2="16" />
       </svg>
-      <span className="whitespace-nowrap">Filtros</span>
+      <span className="font-semibold tracking-wide">Filtros</span>
     </button>
   );
 }

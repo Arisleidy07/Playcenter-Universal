@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   collection,
   onSnapshot,
@@ -9,10 +9,16 @@ import {
   setDoc,
   query,
   orderBy,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { useAuth } from "../context/AuthContext";
 import { notify } from "../utils/notificationBus";
+import {
+  createNotification,
+  NotificationHelpers,
+} from "../hooks/useNotifications";
 import {
   CheckCircle,
   XCircle,
@@ -24,7 +30,12 @@ import {
   User,
   Calendar,
   Image as ImageIcon,
+  Send,
+  Bell,
 } from "lucide-react";
+
+// Inicializar Firebase Functions
+const functions = getFunctions();
 
 export default function SolicitudesVendedor() {
   const { usuarioInfo } = useAuth();
@@ -32,6 +43,8 @@ export default function SolicitudesVendedor() {
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("pendiente"); // pendiente | aprobada | rechazada | todas
   const [procesando, setProcesando] = useState(null);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [solicitudSinUserId, setSolicitudSinUserId] = useState(null);
 
   // SOLO para admin (arisleidy0712@gmail.com)
   const isSuperAdmin = usuarioInfo?.email === "arisleidy0712@gmail.com";
@@ -60,13 +73,10 @@ export default function SolicitudesVendedor() {
     try {
       // VALIDAR: Verificar que tenemos userId
       if (!solicitud.userId) {
-        const continuar = window.confirm(
-          `⚠️ ADVERTENCIA: Esta solicitud NO tiene userId.\n\nEsto significa que la persona NO estaba logueada cuando aplicó.\n\n¿Deseas continuar de todos modos?\n\n- Se creará la tienda\n- Pero NO se actualizará el usuario automáticamente\n- Tendrás que vincularlo manualmente`
-        );
-        if (!continuar) {
-          setProcesando(null);
-          return;
-        }
+        setSolicitudSinUserId(solicitud);
+        setShowWarningModal(true);
+        setProcesando(null);
+        return;
       }
 
       // 1. Crear la tienda en la colección "stores"
@@ -93,11 +103,15 @@ export default function SolicitudesVendedor() {
       const storeRef = await addDoc(collection(db, "stores"), storeData);
 
       // 2. Si el solicitante tiene userId, actualizar su documento de usuario
+      //    para que quede enlazado con la tienda recién creada
       if (solicitud.userId) {
         await setDoc(
           doc(db, "users", solicitud.userId),
           {
             role: "seller",
+            isSeller: true,
+            storeId: storeRef.id,
+            storeName: storeData.nombre || storeData.name || "",
           },
           { merge: true }
         );
@@ -112,48 +126,43 @@ export default function SolicitudesVendedor() {
       });
       console.log("✅ Solicitud marcada como aprobada");
 
-      // 4. OPCIONAL: Enviar notificación por email
-      console.log("📧 Paso 4/4: Encolando email...");
-      // Esto se puede implementar con Firebase Functions + SendGrid/Mailgun
-      // Por ahora guardamos la notificación en Firestore para procesarla después
+      // 4. Enviar email de aprobación con Resend
+      console.log("📧 Paso 4/4: Enviando email con Resend...");
       try {
-        await addDoc(collection(db, "mail_queue"), {
-          to: solicitud.email,
-          subject: "¡Tu tienda ha sido aprobada en Playcenter!",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #2563eb;">¡Felicidades! 🎉</h1>
-              <p>Hola <strong>${solicitud.nombreContacto}</strong>,</p>
-              <p>Tu solicitud para crear la tienda <strong>"${solicitud.tiendaNombre}"</strong> ha sido aprobada.</p>
-              <h2 style="color: #16a34a;">¿Qué sigue?</h2>
-              <ol>
-                <li>Inicia sesión en <a href="https://playcenter.com">Playcenter</a></li>
-                <li>Ve a tu panel de administración</li>
-                <li>Empieza a subir tus productos</li>
-                <li>Comienza a vender</li>
-              </ol>
-              <p style="margin-top: 30px;">
-                <a href="https://playcenter.com/admin" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Ir a mi panel</a>
-              </p>
-              <p style="color: #666; margin-top: 30px; font-size: 14px;">Si tienes alguna pregunta, contáctanos.</p>
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-              <p style="color: #999; font-size: 12px; text-align: center;">
-                © 2024 Playcenter Universal. Todos los derechos reservados.
-              </p>
-            </div>
-          `,
-          sentAt: null,
-          status: "pending",
-          createdAt: new Date(),
+        const sendStoreApprovedEmail = httpsCallable(
+          functions,
+          "sendStoreApprovedEmail"
+        );
+        await sendStoreApprovedEmail({
+          email: solicitud.email,
+          nombreContacto: solicitud.nombreContacto,
+          tiendaNombre: solicitud.tiendaNombre,
+          storeId: storeRef.id,
         });
+        console.log("✅ Email de aprobación enviado exitosamente");
       } catch (emailError) {
+        console.error("⚠️ Error al enviar email (no crítico):", emailError);
         // No fallar si el email no se pudo enviar
       }
 
-      // Mensaje detallado
+      // 5. Crear notificación en la app para el usuario
+      if (solicitud.userId) {
+        try {
+          await NotificationHelpers.sellerApproved(
+            solicitud.userId,
+            solicitud.tiendaNombre,
+            storeRef.id
+          );
+          console.log("🔔 Notificación in-app creada");
+        } catch (notifError) {
+          console.error("⚠️ Error al crear notificación:", notifError);
+        }
+      }
+
+      // Mensaje detallado para el admin
       const mensaje = solicitud.userId
-        ? `✅ Tienda "${solicitud.tiendaNombre}" aprobada exitosamente!\n\n🎉 El vendedor ahora puede:\n✅ Ver su tienda en /tiendas\n✅ Acceder a su panel en /admin\n✅ Subir productos\n\n📧 Se envió email a: ${solicitud.email}`
-        : `✅ Tienda "${solicitud.tiendaNombre}" CREADA!\n\n⚠️ NOTA: El solicitante NO estaba logueado.\n\n✅ La tienda es visible en /tiendas\n❌ Pero debes vincular manualmente al usuario\n\n📧 Email encolado para: ${solicitud.email}`;
+        ? `✅ Tienda "${solicitud.tiendaNombre}" aprobada exitosamente!\n\n🎉 El vendedor ahora puede:\n✅ Ver su tienda en /tiendas\n✅ Acceder a su panel en /admin\n✅ Subir productos\n\n📧 Email enviado a: ${solicitud.email}\n🔔 Notificación enviada`
+        : `✅ Tienda "${solicitud.tiendaNombre}" CREADA!\n\n⚠️ NOTA: El solicitante NO estaba logueado.\n\n✅ La tienda es visible en /tiendas\n❌ Pero debes vincular manualmente al usuario\n\n📧 Email enviado a: ${solicitud.email}`;
 
       notify(mensaje, "success", "Solicitud aprobada");
     } catch (error) {
@@ -173,6 +182,7 @@ export default function SolicitudesVendedor() {
     setProcesando(solicitud.id);
 
     try {
+      // 1. Marcar la solicitud como rechazada
       await updateDoc(doc(db, "solicitudes_vendedor", solicitud.id), {
         estado: "rechazada",
         revisadoPor: usuarioInfo.email,
@@ -180,7 +190,43 @@ export default function SolicitudesVendedor() {
         notasAdmin: motivoRechazo || "Rechazada sin motivo especificado",
       });
 
-      notify(`Solicitud rechazada.`, "info", "Solicitud procesada");
+      // 2. Enviar email de rechazo con Resend
+      console.log("📧 Enviando email de rechazo con Resend...");
+      try {
+        const sendStoreRejectedEmail = httpsCallable(
+          functions,
+          "sendStoreRejectedEmail"
+        );
+        await sendStoreRejectedEmail({
+          email: solicitud.email,
+          nombreContacto: solicitud.nombreContacto,
+          tiendaNombre: solicitud.tiendaNombre,
+          motivo: motivoRechazo || "",
+        });
+        console.log("✅ Email de rechazo enviado exitosamente");
+      } catch (emailError) {
+        console.error("⚠️ Error al enviar email (no crítico):", emailError);
+      }
+
+      // 3. Crear notificación in-app para el usuario
+      if (solicitud.userId) {
+        try {
+          await NotificationHelpers.sellerRejected(
+            solicitud.userId,
+            solicitud.tiendaNombre,
+            motivoRechazo
+          );
+          console.log("🔔 Notificación in-app creada");
+        } catch (notifError) {
+          console.error("⚠️ Error al crear notificación:", notifError);
+        }
+      }
+
+      notify(
+        `Solicitud rechazada.\n📧 Email enviado a: ${solicitud.email}`,
+        "info",
+        "Solicitud procesada"
+      );
     } catch (error) {
       notify("Hubo un error al rechazar la solicitud.", "error", "Error");
     } finally {

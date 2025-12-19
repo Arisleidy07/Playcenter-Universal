@@ -590,3 +590,175 @@
 .ufu-preview-item.uploading {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* ========================================
+   DARK MODE SUPPORT
+   ======================================== */
+
+/* Dark mode: Dropzone */
+:root.dark .ufu-dropzone,
+.dark .ufu-dropzone,
+[data-theme="dark"] .ufu-dropzone {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #4b5563; /* gray-600 */
+  color: #e5e7eb; /* gray-200 */
+}
+
+:root.dark .ufu-dropzone:hover,
+.dark .ufu-dropzone:hover,
+[data-theme="dark"] .ufu-dropzone:hover {
+  border-color: #3b82f6; /* blue-500 */
+  background-color: #1e3a5f; /* blue-900/dark */
+}
+
+:root.dark .ufu-dropzone.dragging,
+.dark .ufu-dropzone.dragging,
+[data-theme="dark"] .ufu-dropzone.dragging {
+  border-color: #2563eb; /* blue-600 */
+  background-color: #1e3a8a; /* blue-800 */
+}
+
+:root.dark .ufu-dropzone.drag-over,
+.dark .ufu-dropzone.drag-over,
+[data-theme="dark"] .ufu-dropzone.drag-over {
+  border-color: #3b82f6; /* blue-500 */
+  background-color: #1e40af; /* blue-700 */
+}
+
+:root.dark .ufu-dropzone-text-main,
+.dark .ufu-dropzone-text-main,
+[data-theme="dark"] .ufu-dropzone-text-main {
+  color: #f3f4f6; /* gray-100 */
+}
+
+:root.dark .ufu-dropzone-text-sub,
+.dark .ufu-dropzone-text-sub,
+[data-theme="dark"] .ufu-dropzone-text-sub {
+  color: #9ca3af; /* gray-400 */
+}
+
+:root.dark .ufu-dropzone-icon,
+.dark .ufu-dropzone-icon,
+[data-theme="dark"] .ufu-dropzone-icon {
+  color: #6b7280; /* gray-500 */
+}
+
+:root.dark .ufu-dropzone:hover .ufu-dropzone-icon,
+.dark .ufu-dropzone:hover .ufu-dropzone-icon,
+[data-theme="dark"] .ufu-dropzone:hover .ufu-dropzone-icon {
+  color: #60a5fa; /* blue-400 */
+}
+
+/* Dark mode: Preview item (tarjeta de archivo) */
+:root.dark .ufu-preview-item,
+.dark .ufu-preview-item,
+[data-theme="dark"] .ufu-preview-item {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #374151; /* gray-700 */
+}
+
+:root.dark .ufu-preview-item:hover,
+.dark .ufu-preview-item:hover,
+[data-theme="dark"] .ufu-preview-item:hover {
+  border-color: #4b5563; /* gray-600 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark .ufu-main-item,
+.dark .ufu-main-item,
+[data-theme="dark"] .ufu-main-item {
+  border-color: #3b82f6; /* blue-500 */
+}
+
+/* Dark mode: Preview media area */
+:root.dark .ufu-preview-media,
+.dark .ufu-preview-media,
+[data-theme="dark"] .ufu-preview-media {
+  background-color: #111827; /* gray-900 */
+  border-color: #374151; /* gray-700 */
+  color: #6b7280; /* gray-500 */
+}
+
+/* Dark mode: Info section */
+:root.dark .ufu-preview-item-info,
+.dark .ufu-preview-item-info,
+[data-theme="dark"] .ufu-preview-item-info {
+  background-color: #111827; /* gray-900 */
+  border-top-color: #374151; /* gray-700 */
+}
+
+:root.dark .ufu-preview-item-name,
+.dark .ufu-preview-item-name,
+[data-theme="dark"] .ufu-preview-item-name {
+  color: #e5e7eb; /* gray-200 */
+}
+
+:root.dark .ufu-preview-item-size,
+.dark .ufu-preview-item-size,
+[data-theme="dark"] .ufu-preview-item-size {
+  color: #9ca3af; /* gray-400 */
+}
+
+/* Dark mode: Document preview */
+:root.dark .document-preview,
+.dark .document-preview,
+[data-theme="dark"] .document-preview {
+  color: #9ca3af; /* gray-400 */
+}
+
+:root.dark .document-ext,
+.dark .document-ext,
+[data-theme="dark"] .document-ext {
+  background-color: #374151; /* gray-700 */
+  color: #d1d5db; /* gray-300 */
+}
+
+/* Dark mode: Control buttons */
+:root.dark .ufu-control-button,
+.dark .ufu-control-button,
+[data-theme="dark"] .ufu-control-button {
+  background-color: rgba(31, 41, 55, 0.95); /* gray-800 */
+  color: #e5e7eb; /* gray-200 */
+  border: 1px solid #4b5563; /* gray-600 */
+}
+
+:root.dark .ufu-control-button:hover,
+.dark .ufu-control-button:hover,
+[data-theme="dark"] .ufu-control-button:hover {
+  background-color: #374151; /* gray-700 */
+}
+
+:root.dark .ufu-download-button:hover,
+.dark .ufu-download-button:hover,
+[data-theme="dark"] .ufu-download-button:hover {
+  background-color: #1e3a8a; /* blue-900 */
+  color: #60a5fa; /* blue-400 */
+}
+
+/* Dark mode: Progress overlay */
+:root.dark .ufu-progress-overlay,
+.dark .ufu-progress-overlay,
+[data-theme="dark"] .ufu-progress-overlay {
+  background-color: rgba(17, 24, 39, 0.8); /* gray-900 */
+}
+
+:root.dark .ufu-progress-text,
+.dark .ufu-progress-text,
+[data-theme="dark"] .ufu-progress-text {
+  color: #f3f4f6; /* gray-100 */
+  background-color: rgba(31, 41, 55, 0.9); /* gray-800 */
+}
+
+/* Dark mode: Reorder buttons disabled */
+:root.dark .ufu-reorder-buttons button:disabled,
+.dark .ufu-reorder-buttons button:disabled,
+[data-theme="dark"] .ufu-reorder-buttons button:disabled {
+  background-color: rgba(55, 65, 81, 0.7); /* gray-700 */
+}
+
+/* Dark mode: Universal file uploader container */
+:root.dark .universal-file-uploader,
+.dark .universal-file-uploader,
+[data-theme="dark"] .universal-file-uploader {
+  color: #e5e7eb; /* gray-200 */
+}

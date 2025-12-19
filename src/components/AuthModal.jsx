@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { useTheme } from "../context/ThemeContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaUser,
   FaEnvelope,
@@ -14,12 +14,23 @@ import {
   FaGoogle,
   FaChevronRight,
   FaTimes,
+  FaArrowLeft,
+  FaCheckCircle,
+  FaKey,
 } from "react-icons/fa";
 import { doc, setDoc } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
-import { db } from "../firebase";
+import {
+  updateProfile,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
+import { db, auth } from "../firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { notify } from "../utils/notificationBus";
 import "./AuthModal.css";
+
+const functions = getFunctions();
 
 export default function AuthModal() {
   const {
@@ -52,6 +63,17 @@ export default function AuthModal() {
   const [quickLoginMode, setQuickLoginMode] = useState(false);
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+
+  // Estados para recuperación con código de verificación
+  const [recoveryStep, setRecoveryStep] = useState("email"); // email | code | newPassword | success
+  const [verificationCode, setVerificationCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [codeError, setCodeError] = useState("");
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [codeVerified, setCodeVerified] = useState(false);
   const [showGoogleAccountWarning, setShowGoogleAccountWarning] =
     useState(false);
 
@@ -102,35 +124,157 @@ export default function AuthModal() {
     }
   }, [modalAbierto, modoGlobal]);
 
-  // Función para recuperar contraseña
-  async function handleForgotPassword() {
+  // Función para iniciar recuperación de contraseña
+  function handleStartRecovery() {
+    setForgotPasswordMode(true);
+    setRecoveryStep("email");
+    setVerificationCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setCodeError("");
+    setCodeVerified(false);
+  }
+
+  // Función para enviar código de verificación
+  async function handleSendRecoveryCode() {
     if (!email || !email.trim()) {
-      setError("Por favor ingresa tu correo electrónico primero");
+      setCodeError("Por favor ingresa tu correo electrónico");
       return;
     }
 
-    setError("");
-    setLoading(true);
+    setSendingCode(true);
+    setCodeError("");
 
     try {
-      await resetPassword(email.trim().toLowerCase());
-      setResetEmailSent(true);
-      setError("");
-      // console.log("✅ Email de recuperación enviado");
-    } catch (e) {
-      // console.error("❌ Error al enviar email:", e);
-      if (e.code === "auth/user-not-found") {
-        setError("No existe una cuenta con este correo electrónico.");
-      } else if (e.code === "auth/invalid-email") {
-        setError("El correo electrónico no es válido.");
-      } else if (e.code === "auth/too-many-requests") {
-        setError("Demasiados intentos. Por favor intenta más tarde.");
+      const sendVerificationCode = httpsCallable(
+        functions,
+        "sendVerificationCode"
+      );
+
+      // Obtener info del dispositivo
+      const deviceInfo = {
+        browser: navigator.userAgent.includes("Chrome")
+          ? "Google Chrome"
+          : navigator.userAgent.includes("Firefox")
+          ? "Firefox"
+          : navigator.userAgent.includes("Safari")
+          ? "Safari"
+          : "Navegador",
+        os: navigator.userAgent.includes("Mac")
+          ? "macOS"
+          : navigator.userAgent.includes("Windows")
+          ? "Windows"
+          : navigator.userAgent.includes("Android")
+          ? "Android"
+          : navigator.userAgent.includes("iPhone")
+          ? "iOS"
+          : "Desconocido",
+        location: "República Dominicana",
+      };
+
+      await sendVerificationCode({
+        email: email.trim().toLowerCase(),
+        userName: "Usuario",
+        deviceInfo,
+        purpose: "password_reset",
+      });
+
+      setRecoveryStep("code");
+      notify("📧 Código enviado a tu correo", "success");
+    } catch (error) {
+      console.error("Error enviando código:", error);
+      if (
+        error.code === "functions/not-found" ||
+        error.message?.includes("user-not-found")
+      ) {
+        setCodeError("No existe una cuenta con este correo electrónico.");
       } else {
-        setError("Error al enviar el email. Por favor intenta de nuevo.");
+        setCodeError("Error al enviar el código. Intenta de nuevo.");
       }
     } finally {
-      setLoading(false);
+      setSendingCode(false);
     }
+  }
+
+  // Función para verificar código
+  async function handleVerifyRecoveryCode() {
+    if (verificationCode.length !== 6) {
+      setCodeError("El código debe tener 6 dígitos");
+      return;
+    }
+
+    setVerifyingCode(true);
+    setCodeError("");
+
+    try {
+      const verifyCode = httpsCallable(functions, "verifyCode");
+      const result = await verifyCode({
+        email: email.trim().toLowerCase(),
+        code: verificationCode,
+      });
+
+      if (result.data.success) {
+        setCodeVerified(true);
+        setRecoveryStep("newPassword");
+        notify("✅ Código verificado", "success");
+      } else {
+        setCodeError(result.data.error || "Código inválido o expirado");
+      }
+    } catch (error) {
+      console.error("Error verificando código:", error);
+      setCodeError("Error al verificar. Intenta de nuevo.");
+    } finally {
+      setVerifyingCode(false);
+    }
+  }
+
+  // Función para establecer nueva contraseña
+  async function handleSetNewPassword() {
+    if (newPassword.length < 6) {
+      setCodeError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setCodeError("Las contraseñas no coinciden");
+      return;
+    }
+
+    setResettingPassword(true);
+    setCodeError("");
+
+    try {
+      // Usar Firebase Admin para cambiar la contraseña (a través de Cloud Function)
+      const resetUserPassword = httpsCallable(functions, "resetUserPassword");
+      const result = await resetUserPassword({
+        email: email.trim().toLowerCase(),
+        newPassword: newPassword,
+        verificationCode: verificationCode,
+      });
+
+      if (result.data.success) {
+        setRecoveryStep("success");
+        notify("✅ Contraseña actualizada exitosamente", "success");
+      } else {
+        setCodeError(result.data.error || "Error al cambiar la contraseña");
+      }
+    } catch (error) {
+      console.error("Error cambiando contraseña:", error);
+      setCodeError("Error al cambiar la contraseña. Intenta de nuevo.");
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
+  // Función para volver al login después de recuperar
+  function handleBackToLogin() {
+    setForgotPasswordMode(false);
+    setRecoveryStep("email");
+    setVerificationCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setCodeError("");
+    setCodeVerified(false);
+    setPassword("");
   }
 
   // Función para "Continuar con email" - LOGIN AUTOMÁTICO CON UN CLICK
@@ -1197,11 +1341,11 @@ export default function AuthModal() {
             </motion.button>
 
             {/* Enlace de recuperación de contraseña */}
-            {modo === "login" && (
+            {modo === "login" && !forgotPasswordMode && (
               <div className="text-center mt-3 mb-2">
                 <button
                   type="button"
-                  onClick={handleForgotPassword}
+                  onClick={handleStartRecovery}
                   disabled={loading}
                   className="btn btn-link text-decoration-none p-0 forgot-password-btn"
                   style={{
@@ -1216,47 +1360,575 @@ export default function AuthModal() {
             )}
           </form>
 
-          {/* Mensaje de éxito al enviar email de recuperación */}
-          {resetEmailSent && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="alert d-flex align-items-start gap-3 mb-4"
-              style={{
-                backgroundColor: isDark
-                  ? "rgba(34, 197, 94, 0.1)"
-                  : "rgba(220, 252, 231, 0.9)",
-                borderLeft: `4px solid ${isDark ? "#22c55e" : "#16a34a"}`,
-                borderRadius: "12px",
-                padding: "14px 16px",
-                color: isDark ? "#86efac" : "#15803d",
-                boxShadow: isDark
-                  ? "0 4px 12px rgba(34, 197, 94, 0.15)"
-                  : "0 4px 12px rgba(34, 197, 94, 0.1)",
-              }}
-            >
-              <div
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* FLUJO DE RECUPERACIÓN DE CONTRASEÑA - TODO EN EL MODAL */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          <AnimatePresence>
+            {forgotPasswordMode && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="recovery-flow"
                 style={{
-                  fontSize: "20px",
-                  marginTop: "2px",
-                  color: isDark ? "#22c55e" : "#16a34a",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: isDark ? "#111827" : "#ffffff",
+                  padding: "20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  zIndex: 10,
                 }}
               >
-                ✅
-              </div>
-              <div className="flex-grow-1">
-                <div className="fw-semibold mb-1" style={{ fontSize: "14px" }}>
-                  Email enviado
+                {/* Header de recuperación */}
+                <div className="d-flex align-items-center gap-3 mb-4">
+                  <button
+                    onClick={handleBackToLogin}
+                    className="btn p-2"
+                    style={{
+                      background: isDark
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.05)",
+                      borderRadius: "10px",
+                      border: "none",
+                      color: isDark ? "#fff" : "#000",
+                    }}
+                  >
+                    <FaArrowLeft size={18} />
+                  </button>
+                  <h2
+                    style={{
+                      margin: 0,
+                      color: isDark ? "#fff" : "#000",
+                      fontSize: "1.5rem",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {recoveryStep === "success"
+                      ? "¡Listo!"
+                      : "Recuperar contraseña"}
+                  </h2>
                 </div>
-                <div
-                  style={{ fontSize: "13px", lineHeight: "1.5", opacity: 0.95 }}
-                >
-                  Revisa tu correo ({email}) para restablecer tu contraseña.
-                </div>
-              </div>
-            </motion.div>
-          )}
+
+                {/* PASO 1: Ingresar email */}
+                {recoveryStep === "email" && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex-grow-1 d-flex flex-column"
+                  >
+                    <p
+                      style={{
+                        color: isDark ? "#9ca3af" : "#6b7280",
+                        marginBottom: "24px",
+                      }}
+                    >
+                      Ingresa tu correo electrónico y te enviaremos un código de
+                      6 dígitos para verificar tu identidad.
+                    </p>
+
+                    <div className="mb-4">
+                      <label
+                        className="form-label fw-semibold mb-2"
+                        style={{
+                          color: isDark ? "#e5e7eb" : "#374151",
+                          fontSize: "14px",
+                        }}
+                      >
+                        <FaEnvelope
+                          size={14}
+                          style={{ opacity: 0.7, marginRight: "8px" }}
+                        />
+                        Correo electrónico
+                      </label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(31, 41, 55, 0.5)"
+                            : "#ffffff",
+                          borderColor: isDark
+                            ? "rgba(75, 85, 99, 0.5)"
+                            : "#d1d5db",
+                          color: isDark ? "#ffffff" : "#111827",
+                          borderRadius: "10px",
+                          padding: "14px 16px",
+                          fontSize: "16px",
+                        }}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="tu@email.com"
+                      />
+                    </div>
+
+                    {codeError && (
+                      <div
+                        className="alert"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(239, 68, 68, 0.1)"
+                            : "rgba(254, 226, 226, 0.9)",
+                          borderLeft: `4px solid ${
+                            isDark ? "#ef4444" : "#dc2626"
+                          }`,
+                          borderRadius: "12px",
+                          padding: "12px 16px",
+                          color: isDark ? "#fecaca" : "#991b1b",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        {codeError}
+                      </div>
+                    )}
+
+                    <motion.button
+                      onClick={handleSendRecoveryCode}
+                      disabled={sendingCode || !email.trim()}
+                      whileHover={{ scale: sendingCode ? 1 : 1.02 }}
+                      whileTap={{ scale: sendingCode ? 1 : 0.98 }}
+                      className="btn w-100 fw-bold d-flex align-items-center justify-content-center gap-2"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                        border: "none",
+                        color: "#ffffff",
+                        borderRadius: "10px",
+                        padding: "15px 24px",
+                        fontSize: "16px",
+                        opacity: sendingCode || !email.trim() ? 0.7 : 1,
+                      }}
+                    >
+                      {sendingCode ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 1,
+                              ease: "linear",
+                            }}
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              border: "2px solid rgba(255, 255, 255, 0.3)",
+                              borderTopColor: "#ffffff",
+                              borderRadius: "50%",
+                            }}
+                          />
+                          Enviando código...
+                        </>
+                      ) : (
+                        <>
+                          <FaEnvelope size={16} />
+                          Enviar código de verificación
+                        </>
+                      )}
+                    </motion.button>
+                  </motion.div>
+                )}
+
+                {/* PASO 2: Ingresar código */}
+                {recoveryStep === "code" && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex-grow-1 d-flex flex-column"
+                  >
+                    <p
+                      style={{
+                        color: isDark ? "#9ca3af" : "#6b7280",
+                        marginBottom: "24px",
+                      }}
+                    >
+                      Enviamos un código de 6 dígitos a <strong>{email}</strong>
+                      . Revisa tu bandeja de entrada.
+                    </p>
+
+                    <div className="mb-4 text-center">
+                      <label
+                        className="form-label fw-semibold mb-3 d-block"
+                        style={{
+                          color: isDark ? "#e5e7eb" : "#374151",
+                          fontSize: "14px",
+                        }}
+                      >
+                        <FaKey
+                          size={14}
+                          style={{ opacity: 0.7, marginRight: "8px" }}
+                        />
+                        Código de verificación
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        className="form-control mx-auto"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(31, 41, 55, 0.5)"
+                            : "#ffffff",
+                          borderColor: isDark
+                            ? "rgba(75, 85, 99, 0.5)"
+                            : "#d1d5db",
+                          color: isDark ? "#ffffff" : "#111827",
+                          borderRadius: "12px",
+                          padding: "16px",
+                          fontSize: "32px",
+                          fontFamily: "monospace",
+                          letterSpacing: "0.5em",
+                          textAlign: "center",
+                          width: "220px",
+                          border: "2px solid",
+                        }}
+                        value={verificationCode}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          setVerificationCode(val);
+                          setCodeError("");
+                        }}
+                        placeholder="000000"
+                      />
+                    </div>
+
+                    {codeError && (
+                      <div
+                        className="alert"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(239, 68, 68, 0.1)"
+                            : "rgba(254, 226, 226, 0.9)",
+                          borderLeft: `4px solid ${
+                            isDark ? "#ef4444" : "#dc2626"
+                          }`,
+                          borderRadius: "12px",
+                          padding: "12px 16px",
+                          color: isDark ? "#fecaca" : "#991b1b",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        {codeError}
+                      </div>
+                    )}
+
+                    <motion.button
+                      onClick={handleVerifyRecoveryCode}
+                      disabled={verifyingCode || verificationCode.length !== 6}
+                      whileHover={{ scale: verifyingCode ? 1 : 1.02 }}
+                      whileTap={{ scale: verifyingCode ? 1 : 0.98 }}
+                      className="btn w-100 fw-bold d-flex align-items-center justify-content-center gap-2 mb-3"
+                      style={{
+                        background:
+                          verificationCode.length === 6
+                            ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)"
+                            : isDark
+                            ? "rgba(75, 85, 99, 0.5)"
+                            : "#e5e7eb",
+                        border: "none",
+                        color:
+                          verificationCode.length === 6
+                            ? "#ffffff"
+                            : isDark
+                            ? "#9ca3af"
+                            : "#6b7280",
+                        borderRadius: "10px",
+                        padding: "15px 24px",
+                        fontSize: "16px",
+                      }}
+                    >
+                      {verifyingCode ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 1,
+                              ease: "linear",
+                            }}
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              border: "2px solid rgba(255, 255, 255, 0.3)",
+                              borderTopColor: "#ffffff",
+                              borderRadius: "50%",
+                            }}
+                          />
+                          Verificando...
+                        </>
+                      ) : (
+                        <>
+                          <FaCheckCircle size={16} />
+                          Verificar código
+                        </>
+                      )}
+                    </motion.button>
+
+                    <button
+                      onClick={handleSendRecoveryCode}
+                      disabled={sendingCode}
+                      className="btn btn-link text-decoration-none"
+                      style={{
+                        color: isDark ? "#60a5fa" : "#1e40af",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {sendingCode
+                        ? "Enviando..."
+                        : "¿No recibiste el código? Reenviar"}
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* PASO 3: Nueva contraseña */}
+                {recoveryStep === "newPassword" && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex-grow-1 d-flex flex-column"
+                  >
+                    <div
+                      className="d-flex align-items-center gap-2 mb-4"
+                      style={{
+                        background: isDark
+                          ? "rgba(34, 197, 94, 0.1)"
+                          : "rgba(220, 252, 231, 0.9)",
+                        padding: "12px 16px",
+                        borderRadius: "10px",
+                        color: isDark ? "#86efac" : "#15803d",
+                      }}
+                    >
+                      <FaCheckCircle size={18} />
+                      <span>
+                        Identidad verificada. Ahora crea tu nueva contraseña.
+                      </span>
+                    </div>
+
+                    <div className="mb-3">
+                      <label
+                        className="form-label fw-semibold mb-2"
+                        style={{
+                          color: isDark ? "#e5e7eb" : "#374151",
+                          fontSize: "14px",
+                        }}
+                      >
+                        <FaLock
+                          size={14}
+                          style={{ opacity: 0.7, marginRight: "8px" }}
+                        />
+                        Nueva contraseña
+                      </label>
+                      <div className="position-relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          className="form-control"
+                          style={{
+                            backgroundColor: isDark
+                              ? "rgba(31, 41, 55, 0.5)"
+                              : "#ffffff",
+                            borderColor: isDark
+                              ? "rgba(75, 85, 99, 0.5)"
+                              : "#d1d5db",
+                            color: isDark ? "#ffffff" : "#111827",
+                            borderRadius: "10px",
+                            padding: "14px 16px",
+                            paddingRight: "50px",
+                            fontSize: "16px",
+                          }}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Mínimo 6 caracteres"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="position-absolute top-50 end-0 translate-middle-y me-3 btn btn-sm p-0"
+                          style={{
+                            color: isDark ? "#9ca3af" : "#6b7280",
+                            background: "transparent",
+                            border: "none",
+                          }}
+                        >
+                          {showPassword ? (
+                            <FaEyeSlash size={16} />
+                          ) : (
+                            <FaEye size={16} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <label
+                        className="form-label fw-semibold mb-2"
+                        style={{
+                          color: isDark ? "#e5e7eb" : "#374151",
+                          fontSize: "14px",
+                        }}
+                      >
+                        <FaLock
+                          size={14}
+                          style={{ opacity: 0.7, marginRight: "8px" }}
+                        />
+                        Confirmar contraseña
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        className="form-control"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(31, 41, 55, 0.5)"
+                            : "#ffffff",
+                          borderColor: isDark
+                            ? "rgba(75, 85, 99, 0.5)"
+                            : "#d1d5db",
+                          color: isDark ? "#ffffff" : "#111827",
+                          borderRadius: "10px",
+                          padding: "14px 16px",
+                          fontSize: "16px",
+                        }}
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        placeholder="Repite la contraseña"
+                      />
+                    </div>
+
+                    {codeError && (
+                      <div
+                        className="alert"
+                        style={{
+                          backgroundColor: isDark
+                            ? "rgba(239, 68, 68, 0.1)"
+                            : "rgba(254, 226, 226, 0.9)",
+                          borderLeft: `4px solid ${
+                            isDark ? "#ef4444" : "#dc2626"
+                          }`,
+                          borderRadius: "12px",
+                          padding: "12px 16px",
+                          color: isDark ? "#fecaca" : "#991b1b",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        {codeError}
+                      </div>
+                    )}
+
+                    <motion.button
+                      onClick={handleSetNewPassword}
+                      disabled={
+                        resettingPassword || !newPassword || !confirmNewPassword
+                      }
+                      whileHover={{ scale: resettingPassword ? 1 : 1.02 }}
+                      whileTap={{ scale: resettingPassword ? 1 : 0.98 }}
+                      className="btn w-100 fw-bold d-flex align-items-center justify-content-center gap-2"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                        border: "none",
+                        color: "#ffffff",
+                        borderRadius: "10px",
+                        padding: "15px 24px",
+                        fontSize: "16px",
+                        opacity:
+                          resettingPassword ||
+                          !newPassword ||
+                          !confirmNewPassword
+                            ? 0.7
+                            : 1,
+                      }}
+                    >
+                      {resettingPassword ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 1,
+                              ease: "linear",
+                            }}
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              border: "2px solid rgba(255, 255, 255, 0.3)",
+                              borderTopColor: "#ffffff",
+                              borderRadius: "50%",
+                            }}
+                          />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <FaLock size={16} />
+                          Guardar nueva contraseña
+                        </>
+                      )}
+                    </motion.button>
+                  </motion.div>
+                )}
+
+                {/* PASO 4: Éxito */}
+                {recoveryStep === "success" && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-center"
+                  >
+                    <div
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        borderRadius: "50%",
+                        background:
+                          "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginBottom: "24px",
+                      }}
+                    >
+                      <FaCheckCircle size={40} color="#fff" />
+                    </div>
+                    <h3
+                      style={{
+                        color: isDark ? "#fff" : "#000",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      ¡Contraseña actualizada!
+                    </h3>
+                    <p
+                      style={{
+                        color: isDark ? "#9ca3af" : "#6b7280",
+                        marginBottom: "32px",
+                      }}
+                    >
+                      Tu contraseña ha sido cambiada exitosamente. Ya puedes
+                      iniciar sesión con tu nueva contraseña.
+                    </p>
+                    <motion.button
+                      onClick={handleBackToLogin}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="btn fw-bold d-flex align-items-center justify-content-center gap-2"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                        border: "none",
+                        color: "#ffffff",
+                        borderRadius: "10px",
+                        padding: "15px 40px",
+                        fontSize: "16px",
+                      }}
+                    >
+                      <FaUser size={16} />
+                      Iniciar sesión
+                    </motion.button>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Separador ultra moderno */}
           <motion.div

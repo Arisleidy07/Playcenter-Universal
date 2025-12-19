@@ -87,7 +87,7 @@ function AppContent() {
           {/* HEADER FIXED - Siempre pegado arriba, se oculta/muestra con translateY */}
           <div
             ref={headerRef}
-            className="fixed top-0 left-0 right-0 z-40 w-full flex flex-col shadow-sm transition-transform duration-300 ease-in-out"
+            className="fixed top-0 left-0 right-0 z-[900] w-full flex flex-col shadow-sm transition-transform duration-300 ease-in-out"
             style={{
               transform: headerVisible ? "translateY(0)" : "translateY(-100%)",
             }}

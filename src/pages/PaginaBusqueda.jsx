@@ -3,10 +3,11 @@ import { useLocation } from "react-router-dom";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
 import SidebarFiltros from "../components/SidebarFiltros";
-import FiltroDrawer from "../components/FiltroDrawer";
+import FiltroDrawerNuevo from "../components/FiltroDrawerNuevo";
 import BotonFiltro from "../components/BotonFiltro";
 import { useProducts } from "../hooks/useProducts";
 import "../styles/productosGrid.css";
+import "../styles/ModernButtons.css";
 
 // Función para normalizar texto (quitar acentos, minúsculas, etc.)
 const normalizarTexto = (texto) => {
@@ -83,6 +84,24 @@ function PaginaBusqueda() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
   const [topbarHeight, setTopbarHeight] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(
+        document.documentElement.classList.contains("dark") ||
+          document.documentElement.classList.contains("dark-theme")
+      );
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // SOLO usa la altura de la TopBar, NO sumes el top del header
   useEffect(() => {
@@ -106,6 +125,18 @@ function PaginaBusqueda() {
       window.removeEventListener("resize", measure);
       observer.disconnect();
     };
+  }, []);
+
+  // Detectar scroll para animar botones
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const threshold = 50;
+      setIsScrolled(scrollY > threshold);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const queryParams = new URLSearchParams(location.search);
@@ -175,66 +206,84 @@ function PaginaBusqueda() {
         boxSizing: "border-box",
       }}
     >
-      <div
-        className="flex-1 flex flex-col xl:grid xl:grid-cols-[auto_1fr_auto] w-full"
-        style={{ margin: 0 }}
-      >
-        <SidebarCategorias
-          categoriaActiva={null}
-          setMostrarEnMovil={setMostrarCategorias}
-          className="bg-transparent border-none shadow-none xl:row-span-2"
-        />
-
-        <main className="flex-1 p-0 xl:p-4 relative pb-32">
+      <div className="flex-1 flex flex-col w-full" style={{ margin: 0 }}>
+        <main className="flex-1 p-0 relative pb-32">
+          {/* Botones flotando solos */}
           <div
-            className="flex justify-between items-center px-3 py-2 xl:hidden bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors duration-300"
-            style={{
-              zIndex: 40,
-              marginTop: 0,
-              paddingTop: 0,
-            }}
+            className={`flex justify-between items-start px-4 sm:px-6 py-3 transition-all duration-500 ease-in-out ${
+              isScrolled
+                ? "sticky top-0 z-[850] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg"
+                : "relative z-[850]"
+            }`}
           >
-            <button
-              onClick={() => setMostrarCategorias(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white dark:from-indigo-600 dark:to-purple-700 dark:text-white rounded-full text-sm font-bold shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-700 dark:hover:from-indigo-700 dark:hover:to-purple-800 transition-all duration-300 transform hover:scale-105 active:scale-95 border-2 border-indigo-600 dark:border-indigo-500"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-              </svg>
-              <span className="font-extrabold tracking-wide">Categorías</span>
-            </button>
-            <BotonFiltro onClick={() => setFiltrosVisible(true)} />
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setMostrarCategorias(true)}
+                className={`modern-btn modern-btn-categories ${
+                  isScrolled ? "floating" : ""
+                }`}
+                aria-label="Abrir categorías"
+              >
+                {/* Ícono delgado y bonito de categorías */}
+                <svg
+                  className="modern-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                >
+                  <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span className="font-semibold tracking-wide">Categorías</span>
+              </button>
+
+              {/* Título a la derecha del botón */}
+              <h1 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
+                Resultados de búsqueda
+              </h1>
+            </div>
+
+            <BotonFiltro
+              onClick={() => setFiltrosVisible(true)}
+              className={isScrolled ? "floating" : ""}
+            />
           </div>
 
-          {/* TÍTULO CON MISMO ESTILO QUE ProductosPage */}
-          <div className="mb-6 mt-4 px-4 xl:px-0">
-            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight leading-tight">
-              Resultados de búsqueda
-            </h1>
-            {queryOriginal && (
-              <div className="flex flex-wrap items-center gap-2">
+          {/* Spacer para compensar cuando los botones están fixed */}
+          {isScrolled && (
+            <div
+              style={{ height: "80px" }} // Altura ajustada para botones modernos
+            />
+          )}
+
+          {/* Información de búsqueda debajo */}
+          {queryOriginal && (
+            <div className="px-4 sm:px-6 mb-4">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
                   Buscaste:{" "}
-                  <span className="font-bold text-blue-700 dark:text-blue-400">
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
                     {terminoBusqueda}
                   </span>
                 </p>
                 {categoriaFiltro && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
                     📂 {categoriaFiltro}
                   </span>
                 )}
               </div>
-            )}
-            {resultadosFiltrados.length > 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {resultadosFiltrados.length}{" "}
-                {resultadosFiltrados.length === 1
-                  ? "producto encontrado"
-                  : "productos encontrados"}
-              </p>
-            )}
-          </div>
+              {resultadosFiltrados.length > 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {resultadosFiltrados.length}{" "}
+                  {resultadosFiltrados.length === 1
+                    ? "producto encontrado"
+                    : "productos encontrados"}
+                </p>
+              )}
+            </div>
+          )}
 
           {loading ? null : resultadosFiltrados.length === 0 ? (
             <p className="text-center text-gray-600 dark:text-gray-400 mt-10">
@@ -242,20 +291,13 @@ function PaginaBusqueda() {
               <span className="font-bold">{queryOriginal}</span>.
             </p>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 px-4 xl:px-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 px-2 sm:px-4 xl:px-6">
               {resultadosFiltrados.map((producto) => (
                 <TarjetaProducto key={producto.id} producto={producto} />
               ))}
             </div>
           )}
         </main>
-
-        <SidebarFiltros
-          filtros={filtros}
-          setFiltros={setFiltros}
-          productosOriginales={productosFiltrados}
-          className="bg-transparent border-none shadow-none xl:row-span-2"
-        />
       </div>
 
       {mostrarCategorias && (
@@ -267,15 +309,16 @@ function PaginaBusqueda() {
         />
       )}
 
-      <div className="xl:hidden">
-        <FiltroDrawer
-          filtros={filtros}
-          setFiltros={setFiltros}
-          visible={filtrosVisible}
-          onClose={() => setFiltrosVisible(false)}
-          onReset={handleResetFiltros}
-        />
-      </div>
+      <FiltroDrawerNuevo
+        filtros={filtros}
+        setFiltros={setFiltros}
+        onReset={() =>
+          setFiltros({ estado: {}, precio: { min: 0, max: 1000000 } })
+        }
+        visible={filtrosVisible}
+        onClose={() => setFiltrosVisible(false)}
+        productosOriginales={productosActivos}
+      />
     </div>
   );
 }

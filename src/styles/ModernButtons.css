@@ -1,0 +1,274 @@
+/* BOTONES MODERNOS CON EFECTO CRISTAL */
+
+/* Variables para tema moderno */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --glass-hover: rgba(255, 255, 255, 0.25);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --accent-gradient: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #475569 0%, #334155 100%);
+}
+
+.dark {
+  --glass-bg: rgba(0, 0, 0, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-hover: rgba(0, 0, 0, 0.35);
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+}
+
+/* Contenedor de botones sticky moderno */
+.modern-sticky-container {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 20px;
+  padding: 12px 16px;
+  margin: 8px 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-sticky-container.sticky {
+  background: var(--glass-hover);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 24px;
+  margin: 12px 16px;
+  padding: 14px 20px;
+}
+
+/* Botón moderno base */
+.modern-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.modern-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.modern-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.modern-btn:hover {
+  background: var(--accent-gradient-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.modern-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón categorías específico - AZUL */
+.modern-btn-categories {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  padding: 12px 18px;
+}
+
+.modern-btn-categories:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+/* Botón filtros específico - VERDE AZULADO */
+.modern-btn-filters {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  padding: 12px 18px;
+}
+
+.modern-btn-filters:hover {
+  background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
+}
+
+/* Íconos modernos */
+.modern-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
+  transition: transform 0.3s ease;
+}
+
+.modern-btn:hover .modern-icon {
+  transform: scale(1.1);
+}
+
+/* Responsive breakpoints */
+@media (min-width: 640px) {
+  .modern-btn {
+    padding: 14px 24px;
+    font-size: 15px;
+    border-radius: 18px;
+    gap: 10px;
+  }
+
+  .modern-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .modern-sticky-container {
+    padding: 14px 20px;
+    margin: 10px 16px;
+    border-radius: 22px;
+  }
+}
+
+@media (min-width: 768px) {
+  .modern-btn {
+    padding: 16px 28px;
+    font-size: 16px;
+    border-radius: 20px;
+  }
+
+  .modern-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .modern-btn {
+    padding: 18px 32px;
+    font-size: 17px;
+    border-radius: 22px;
+    gap: 12px;
+  }
+
+  .modern-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .modern-sticky-container {
+    padding: 16px 24px;
+    margin: 12px 20px;
+    border-radius: 26px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .modern-btn {
+    padding: 20px 36px;
+    font-size: 18px;
+    border-radius: 24px;
+  }
+
+  .modern-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .modern-sticky-container {
+    padding: 18px 28px;
+    margin: 14px 24px;
+    border-radius: 28px;
+  }
+
+  .modern-sticky-container.sticky {
+    padding: 20px 32px;
+    margin: 16px 28px;
+    border-radius: 32px;
+  }
+}
+
+/* Animaciones suaves */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.modern-btn.floating {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Estados especiales */
+.modern-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.modern-btn.loading {
+  pointer-events: none;
+}
+
+.modern-btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mejoras para accesibilidad */
+.modern-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modern-btn,
+  .modern-sticky-container,
+  .modern-icon {
+    transition: none;
+  }
+
+  .modern-btn.floating {
+    animation: none;
+  }
+}

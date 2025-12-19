@@ -122,11 +122,16 @@ function FiltroDrawer({
 
   return (
     <>
-      {/* Overlay oscuro */}
+      {/* Overlay ligeramente transparente */}
       <div
-        className={`fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-[9998] transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[9998] transition-opacity duration-300 ${
           visible ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
+        style={{
+          background: isDarkMode ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.2)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+        }}
         onClick={onClose}
       />
 
@@ -136,29 +141,47 @@ function FiltroDrawer({
           visible ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center px-4 py-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800">
-          <h2 className="text-lg font-bold text-white tracking-wide select-none flex items-center gap-2">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V4z" />
+        {/* Header limpio */}
+        <div className="flex justify-between items-center px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+            >
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
             </svg>
             Filtros
           </h2>
           <button
             onClick={onClose}
-            className="text-white font-bold text-2xl hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="Cerrar filtros"
           >
-            ✕
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        {/* Contenido */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 bg-gray-50 dark:bg-gray-800">
-          {/* Estado */}
-          <div className="mb-6">
-            <h3 className="font-medium mb-2 text-gray-800 dark:text-gray-200">
-              Estado
+        {/* Contenido limpio */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 bg-gray-50 dark:bg-gray-900">
+          {/* Estado del producto */}
+          <div className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">
+              Estado del Producto
             </h3>
             <label className="switch-container mb-2">
               <input
@@ -216,44 +239,32 @@ function FiltroDrawer({
             </label>
           </div>
 
-          {/* Precio */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-              Rango de precio
+          {/* Rango de precio */}
+          <div className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">
+              Rango de Precio
             </h3>
 
-            {/* Inputs numéricos */}
-            <div className="flex items-center gap-2 mb-4">
+            {/* Inputs de precio */}
+            <div className="flex items-center gap-3 mb-3">
               <div className="flex-1">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 font-medium">
-                    RD$
-                  </span>
-                  <input
-                    type="text"
-                    value={min === 0 ? "" : min.toLocaleString("es-DO")}
-                    onChange={handleMinPrecioChange}
-                    placeholder="Mín"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm font-medium border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-500 focus:ring-0 dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-colors hover:border-gray-300 dark:hover:border-gray-600"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={min === 0 ? "" : min.toLocaleString("es-DO")}
+                  onChange={handleMinPrecioChange}
+                  placeholder="Mínimo"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
               </div>
-              <div className="text-gray-400 dark:text-gray-500 font-medium pb-0.5">
-                —
-              </div>
+              <span className="text-gray-400 text-sm">a</span>
               <div className="flex-1">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 font-medium">
-                    RD$
-                  </span>
-                  <input
-                    type="text"
-                    value={max >= 1000000 ? "" : max.toLocaleString("es-DO")}
-                    onChange={handleMaxPrecioChange}
-                    placeholder="Máx"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm font-medium border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-500 focus:ring-0 dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-colors hover:border-gray-300 dark:hover:border-gray-600"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={max >= 1000000 ? "" : max.toLocaleString("es-DO")}
+                  onChange={handleMaxPrecioChange}
+                  placeholder="Máximo"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
               </div>
             </div>
 
@@ -264,22 +275,22 @@ function FiltroDrawer({
                 "& .MuiSlider-thumb": {
                   width: 16,
                   height: 16,
-                  bgcolor: "#1d4ed8",
+                  bgcolor: "#3b82f6",
                   border: "2px solid white",
                   "&:focus, &:hover, &.Mui-active": {
-                    boxShadow: "0 0 0 10px rgba(29, 78, 216, 0.2)",
+                    boxShadow: "0 0 0 8px rgba(59, 130, 246, 0.16)",
                   },
                 },
                 "& .MuiSlider-rail": {
-                  height: 8,
+                  height: 4,
                   opacity: 0.3,
-                  bgcolor: "#cbd5e1",
-                  borderRadius: 4,
+                  bgcolor: "#e5e7eb",
+                  borderRadius: 2,
                 },
                 "& .MuiSlider-track": {
-                  height: 8,
-                  borderRadius: 4,
-                  bgcolor: "#1d4ed8",
+                  height: 4,
+                  borderRadius: 2,
+                  bgcolor: "#3b82f6",
                 },
                 "& .MuiSlider-root": {
                   padding: "20px 0",
@@ -303,7 +314,7 @@ function FiltroDrawer({
                 step={500}
               />
             </Box>
-            <div className="flex justify-between text-xs text-blue-700 dark:text-blue-300 mt-1 font-semibold">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
               <span>RD${min.toLocaleString("es-DO")}</span>
               <span>
                 {max >= 50000
@@ -318,35 +329,17 @@ function FiltroDrawer({
             {productosFiltrados.length === 0
               ? "No hay productos que coincidan con los filtros."
               : `Mostrando ${productosFiltrados.length} producto${
-                  productosFiltrados.length > 1 ? "s" : ""
-                }`}
-          </p>
-        </nav>
-
-        {/* Botones abajo - más arriba con menos padding */}
-        <div className="flex justify-between gap-3 px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
-          <button
-            onClick={() => {
-              onReset();
-              onClose();
-            }}
-            className="w-1/2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold text-sm py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-          >
-            Restablecer
-          </button>
-          <button
-            onClick={() => {
-              setFiltros(tempFiltros);
-              onClose();
-            }}
-            className="w-1/2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold text-sm py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-          >
-            Aplicar filtros
-          </button>
+        </div>
+        <span className="text-gray-400 text-sm">a</span>
+        <div className="flex-1">
+          <input
+            type="text"
+            value={max >= 1000000 ? "" : max.toLocaleString("es-DO")}
+            onChange={handleMaxPrecioChange}
+            placeholder="Máximo"
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          />
         </div>
       </div>
-    </>
-  );
-}
 
 export default FiltroDrawer;

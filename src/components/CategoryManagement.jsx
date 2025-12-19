@@ -251,7 +251,11 @@ const CategoryManagement = () => {
           prevCategories.filter((c) => c.id !== categoryId)
         );
 
-        alert(`✅ "${categoryName}" eliminada (era un fantasma del caché)`);
+        notify(
+          `"${categoryName}" eliminada (era un fantasma del caché)`,
+          "success",
+          "Eliminada"
+        );
         return;
       }
 
@@ -264,8 +268,10 @@ const CategoryManagement = () => {
       const verificacion = await getDoc(docRef);
       if (verificacion.exists()) {
         // console.error("❌ ERROR: La categoría AÚN EXISTE después de deleteDoc");
-        alert(
-          "❌ Error: No se pudo eliminar de Firebase.\n\nPosibles causas:\n1. Reglas de seguridad bloquean la eliminación\n2. No tienes permisos\n3. Problemas de red"
+        notify(
+          "No se pudo eliminar de Firebase. Verifica permisos o conexión.",
+          "error",
+          "Error de eliminación"
         );
         return;
       }
@@ -275,19 +281,23 @@ const CategoryManagement = () => {
         prevCategories.filter((c) => c.id !== categoryId)
       );
 
-      alert(`✅ "${categoryName}" eliminada exitosamente de Firebase`);
+      notify(
+        `"${categoryName}" eliminada exitosamente`,
+        "success",
+        "Eliminada"
+      );
     } catch (error) {
       // Error al eliminar categoría
       // console.error("📝 [CategoryManagement] Mensaje:", error.message);
 
       if (error.code === "permission-denied") {
-        alert(
-          `❌ Error de Permisos\n\nNo tienes permiso para eliminar esta categoría.\n\nVerifica las reglas de seguridad en Firestore.`
+        notify(
+          "No tienes permiso para eliminar esta categoría.",
+          "error",
+          "Error de permisos"
         );
       } else {
-        alert(
-          `❌ Error: ${error.message}\n\nRevisa la consola para más detalles.`
-        );
+        notify(`Error: ${error.message}`, "error", "Error");
       }
     }
   };
@@ -312,7 +322,7 @@ const CategoryManagement = () => {
       await Promise.all(updates);
     } catch (error) {
       // console.error("Error reordering categories:", error);
-      alert("Error al reordenar las categorías");
+      notify("Error al reordenar las categorías", "error", "Error");
     }
   };
 
@@ -359,8 +369,10 @@ const CategoryManagement = () => {
                   ) {
                     const result = await cleanupPhantomCategories();
                     if (result) {
-                      alert(
-                        `✅ Limpieza completada:\n\n${result.recovered} categorías recuperadas\n${result.stillPhantoms} siguen siendo fantasmas\n\nRecargando página...`
+                      notify(
+                        `Limpieza completada: ${result.recovered} recuperadas, ${result.stillPhantoms} fantasmas`,
+                        "success",
+                        "Limpieza completada"
                       );
                       window.location.reload();
                     }
@@ -381,8 +393,10 @@ const CategoryManagement = () => {
                   ) {
                     const count = clearAllPhantomCategories();
                     setPhantomCategoryIds([]);
-                    alert(
-                      `✅ ${count} categorías fantasma limpiadas.\n\nRecargando página...`
+                    notify(
+                      `${count} categorías fantasma limpiadas`,
+                      "success",
+                      "Limpieza completada"
                     );
                     window.location.reload();
                   }

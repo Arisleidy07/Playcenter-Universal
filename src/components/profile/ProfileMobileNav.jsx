@@ -7,6 +7,7 @@ import {
   Settings,
   Store,
   Clock,
+  Shield,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -25,6 +26,7 @@ export default function ProfileMobileNav({ activeView, setView, userInfo }) {
     { id: "ubicaciones", label: "Direcciones", icon: MapPin },
     { id: "pagos", label: "Pagos", icon: CreditCard },
     { id: "tiendas", label: storeLabel, icon: Store },
+    { id: "seguridad", label: "Seguridad", icon: Shield },
     { id: "configuracion", label: "Ajustes", icon: Settings },
   ];
 

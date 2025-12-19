@@ -5,6 +5,8 @@ import {
   where,
   getDocs,
   onSnapshot,
+  doc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
@@ -32,13 +34,39 @@ export function useStore() {
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
+      async (snapshot) => {
         if (!snapshot.empty) {
           const storeData = {
             id: snapshot.docs[0].id,
             ...snapshot.docs[0].data(),
           };
           setTienda(storeData);
+
+          // CRÍTICO: Sincronizar storeId con el documento del usuario
+          // para que ProductManagement y SellerAdminPanel funcionen
+          if (usuario?.uid && storeData.id) {
+            const currentStoreId = usuarioInfo?.storeId;
+            const currentStoreName = usuarioInfo?.storeName;
+            const newStoreName = storeData.nombre || storeData.name || "";
+
+            // Solo actualizar si el storeId o storeName cambió
+            if (
+              currentStoreId !== storeData.id ||
+              currentStoreName !== newStoreName
+            ) {
+              try {
+                const userRef = doc(db, "users", usuario.uid);
+                await updateDoc(userRef, {
+                  storeId: storeData.id,
+                  storeName: newStoreName,
+                  isSeller: true,
+                  role: "seller",
+                });
+              } catch (err) {
+                // Error silencioso - el usuario puede no tener permisos
+              }
+            }
+          }
 
           // Si el usuario tiene rol de seller, cargar en modo tienda por defecto
           // SOLO si está en rutas de admin

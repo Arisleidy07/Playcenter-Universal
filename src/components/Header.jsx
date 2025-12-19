@@ -8,6 +8,9 @@ import { useTheme } from "../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import Entrega from "./Entrega";
+import { notify } from "../utils/notificationBus";
+import NotificationsPanel, { NotificationBell } from "./NotificationsPanel";
+import { useNotifications } from "../hooks/useNotifications";
 import "./Header.css";
 
 const Header = () => {
@@ -19,6 +22,11 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [modalEntrega, setModalEntrega] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Hook de notificaciones para mostrar badge
+  const { unreadCount } = useNotifications();
 
   // Bloquear scroll del body cuando el menú está abierto
   useEffect(() => {
@@ -119,10 +127,10 @@ const Header = () => {
                 />
               </div>
 
-              {/* Botón menú hamburguesa - responsive */}
+              {/* Botón menú hamburguesa - responsive CON BADGE DE NOTIFICACIONES */}
               <button
                 onClick={() => setMenuOpen(true)}
-                className="navbar-toggler d-lg-none btn btn-outline-secondary rounded-3"
+                className="navbar-toggler d-lg-none btn btn-outline-secondary rounded-3 position-relative"
                 type="button"
                 aria-label="Abrir menú"
                 style={{
@@ -148,6 +156,27 @@ const Header = () => {
                     d="M4 6h16M4 12h16M4 18h16"
                   />
                 </svg>
+                {/* Badge rojo pequeño a la izquierda */}
+                {unreadCount > 0 && (
+                  <span
+                    className="position-absolute d-flex align-items-center justify-content-center"
+                    style={{
+                      top: "-4px",
+                      left: "-4px",
+                      minWidth: "16px",
+                      height: "16px",
+                      padding: "0 3px",
+                      background: "#ef4444",
+                      color: "#ffffff",
+                      fontSize: "9px",
+                      fontWeight: "700",
+                      borderRadius: "8px",
+                      border: "1.5px solid #ffffff",
+                    }}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </button>
 
               {/* Header completo - responsive */}
@@ -185,10 +214,7 @@ const Header = () => {
                     <button
                       onClick={() => {
                         if (!usuario) {
-                          alert(
-                            "Debes iniciar sesión para seleccionar un método de entrega"
-                          );
-                          setModalAbierto(true);
+                          setShowLoginAlert(true);
                         } else {
                           setModalEntrega(true);
                         }
@@ -270,14 +296,22 @@ const Header = () => {
                         </svg>
                       </Link>
 
-                      {/* Admin si aplica */}
+                      {/* Notificaciones - Campanita (solo si está logueado) */}
+                      {usuario && (
+                        <NotificationBell
+                          isDark={isDark}
+                          onClick={() => setShowNotifications(true)}
+                        />
+                      )}
+
+                      {/* Admin si aplica - con badge de notificaciones */}
                       {(usuarioInfo?.isAdmin ||
                         usuarioInfo?.isSeller ||
                         usuarioInfo?.empresa ||
                         usuarioInfo?.empresaId) && (
                         <Link
                           to="/admin"
-                          className="btn btn-sm"
+                          className="btn btn-sm position-relative"
                           style={{
                             fontSize: "10px",
                             padding: "4px 10px",
@@ -293,6 +327,28 @@ const Header = () => {
                           }}
                         >
                           Admin
+                          {/* Badge rojo con número de notificaciones */}
+                          {unreadCount > 0 && (
+                            <span
+                              className="position-absolute d-flex align-items-center justify-content-center"
+                              style={{
+                                top: "-8px",
+                                right: "-8px",
+                                minWidth: "18px",
+                                height: "18px",
+                                padding: "0 4px",
+                                backgroundColor: "#ef4444",
+                                color: "#ffffff",
+                                fontSize: "10px",
+                                fontWeight: "700",
+                                borderRadius: "9px",
+                                border: "2px solid #ffffff",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                              }}
+                            >
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
                         </Link>
                       )}
                       {usuario ? (
@@ -1245,16 +1301,91 @@ const Header = () => {
                     Carrito
                   </Link>
 
+                  {/* Notificaciones en menú móvil - CON BADGE */}
+                  {usuario && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setShowNotifications(true);
+                      }}
+                      className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium w-100 border-0 text-start position-relative"
+                      style={{
+                        color: isDark ? "#f9fafb" : "#111827",
+                        backgroundColor:
+                          unreadCount > 0
+                            ? isDark
+                              ? "rgba(59, 130, 246, 0.1)"
+                              : "rgba(59, 130, 246, 0.05)"
+                            : "transparent",
+                      }}
+                    >
+                      <div className="position-relative">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          style={{ width: "24px", height: "24px" }}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                          />
+                        </svg>
+                        {/* Badge en el ícono */}
+                        {unreadCount > 0 && (
+                          <span
+                            className="position-absolute d-flex align-items-center justify-content-center"
+                            style={{
+                              top: "-6px",
+                              right: "-6px",
+                              minWidth: "18px",
+                              height: "18px",
+                              padding: "0 4px",
+                              background:
+                                "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                              color: "#ffffff",
+                              fontSize: "10px",
+                              fontWeight: "700",
+                              borderRadius: "9px",
+                              boxShadow: "0 2px 6px rgba(239, 68, 68, 0.4)",
+                            }}
+                          >
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <span className="d-flex align-items-center gap-2">
+                        Notificaciones
+                        {unreadCount > 0 && (
+                          <span
+                            style={{
+                              fontSize: "12px",
+                              padding: "2px 8px",
+                              background:
+                                "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                              color: "#ffffff",
+                              borderRadius: "12px",
+                              fontWeight: "600",
+                            }}
+                          >
+                            {unreadCount}{" "}
+                            {unreadCount === 1 ? "nueva" : "nuevas"}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  )}
+
                   {/* Método de entrega - Estilizado justo debajo del carrito */}
                   <div className="px-2 py-2">
                     <button
                       onClick={() => {
                         if (!usuario) {
                           setMenuOpen(false);
-                          alert(
-                            "Debes iniciar sesión para seleccionar un método de entrega"
-                          );
-                          setModalAbierto(true);
+                          setShowLoginAlert(true);
                         } else {
                           setMenuOpen(false);
                           setModalEntrega(true);
@@ -1412,6 +1543,144 @@ const Header = () => {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* MODAL DE ALERTA - DEBES INICIAR SESIÓN */}
+      <AnimatePresence>
+        {showLoginAlert && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.6)",
+              zIndex: 99999,
+              backdropFilter: "blur(4px)",
+            }}
+            onClick={() => setShowLoginAlert(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white rounded-4 shadow-lg"
+              style={{
+                maxWidth: "400px",
+                width: "90%",
+                padding: "32px",
+                backgroundColor: isDark ? "#1e293b" : "#ffffff",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Ícono */}
+              <div className="d-flex justify-content-center mb-4">
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center"
+                  style={{
+                    width: "72px",
+                    height: "72px",
+                    backgroundColor: "#2563eb",
+                    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+                  }}
+                >
+                  <svg
+                    width="36"
+                    height="36"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Título */}
+              <h3
+                className="text-center fw-bold mb-2"
+                style={{
+                  fontSize: "22px",
+                  color: isDark ? "#f1f5f9" : "#1e293b",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Debes iniciar sesión
+              </h3>
+
+              {/* Mensaje */}
+              <p
+                className="text-center mb-4"
+                style={{
+                  fontSize: "15px",
+                  color: isDark ? "#94a3b8" : "#64748b",
+                  lineHeight: "1.5",
+                }}
+              >
+                Para seleccionar un método de entrega, primero debes iniciar
+                sesión en tu cuenta.
+              </p>
+
+              {/* Botones */}
+              <div className="d-flex gap-3">
+                <button
+                  onClick={() => setShowLoginAlert(false)}
+                  className="btn flex-fill"
+                  style={{
+                    backgroundColor: isDark ? "#334155" : "#f1f5f9",
+                    color: isDark ? "#f1f5f9" : "#475569",
+                    padding: "12px",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    borderRadius: "10px",
+                    border: "none",
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowLoginAlert(false);
+                    setModalAbierto(true);
+                  }}
+                  className="btn flex-fill"
+                  style={{
+                    backgroundColor: "#2563eb",
+                    color: "#ffffff",
+                    padding: "12px",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    borderRadius: "10px",
+                    border: "none",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1d4ed8";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#2563eb";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  Iniciar sesión
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Panel de Notificaciones */}
+      <NotificationsPanel
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        isDark={isDark}
+      />
     </>
   );
 };
