@@ -22,6 +22,8 @@ const EMAIL_FROM =
 const SITE_URL = config.site?.url || "https://pcu.com.do";
 // Logo URL - usar hosting de Firebase directamente
 const LOGO_URL = "https://playcenter-universal.web.app/logo.JPEG";
+// Email del administrador
+const ADMIN_EMAIL = "arisledy0712@gmail.com";
 
 const db = admin.firestore();
 const messaging = admin.messaging();
@@ -796,6 +798,90 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
 
       console.log("✅ Email de aprobación enviado:", emailData);
 
+      // Enviar email de confirmación al admin
+      try {
+        await resend.emails.send({
+          from: EMAIL_FROM,
+          to: ADMIN_EMAIL,
+          subject: `✅ Tienda aprobada: ${tiendaNombre}`,
+          html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+              .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; text-align: center; }
+              .header h1 { margin: 0; font-size: 24px; }
+              .content { padding: 30px; }
+              .info-box { background: #f0fdf4; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #10b981; }
+              .info-row { display: flex; padding: 8px 0; }
+              .info-label { font-weight: 600; color: #374151; width: 120px; }
+              .info-value { color: #6b7280; flex: 1; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 13px; background: #f9fafb; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="card">
+                <div class="header">
+                  <img src="${LOGO_URL}" alt="Playcenter Universal" style="height: 50px; margin-bottom: 15px;" />
+                  <h1>✅ Tienda Aprobada</h1>
+                  <p>Confirmación de acción</p>
+                </div>
+                <div class="content">
+                  <p>Has aprobado exitosamente la siguiente solicitud de tienda:</p>
+                  
+                  <div class="info-box">
+                    <div class="info-row">
+                      <span class="info-label">🏪 Tienda:</span>
+                      <span class="info-value"><strong>${tiendaNombre}</strong></span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">👤 Vendedor:</span>
+                      <span class="info-value">${nombreContacto}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">📧 Email:</span>
+                      <span class="info-value">${email}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">🆔 Store ID:</span>
+                      <span class="info-value">${storeId || "N/A"}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">📅 Fecha:</span>
+                      <span class="info-value">${new Date().toLocaleString(
+                        "es-DO",
+                        { dateStyle: "long", timeStyle: "short" }
+                      )}</span>
+                    </div>
+                  </div>
+
+                  <p style="margin-top: 20px; color: #6b7280; font-size: 14px;">
+                    El vendedor ha sido notificado por email y ya puede acceder a su panel de administración.
+                  </p>
+                </div>
+                <div class="footer">
+                  <p>Este es un email de confirmación automático</p>
+                </div>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        });
+        console.log("✅ Email de confirmación enviado al admin");
+      } catch (adminEmailError) {
+        console.error(
+          "⚠️ Error enviando email al admin (no crítico):",
+          adminEmailError
+        );
+      }
+
       return { success: true, emailId: emailData?.id };
     } catch (error) {
       console.error("❌ Error al enviar email de aprobación:", error);
@@ -918,6 +1004,97 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
       }
 
       console.log("✅ Email de rechazo enviado:", emailData);
+
+      // Enviar email de confirmación al admin
+      try {
+        await resend.emails.send({
+          from: EMAIL_FROM,
+          to: ADMIN_EMAIL,
+          subject: `❌ Tienda rechazada: ${tiendaNombre}`,
+          html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+              .header { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 30px; text-align: center; }
+              .header h1 { margin: 0; font-size: 24px; }
+              .content { padding: 30px; }
+              .info-box { background: #fef2f2; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #ef4444; }
+              .info-row { display: flex; padding: 8px 0; }
+              .info-label { font-weight: 600; color: #374151; width: 120px; }
+              .info-value { color: #6b7280; flex: 1; }
+              .reason-box { background: #fef3c7; padding: 15px; border-radius: 8px; margin: 15px 0; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 13px; background: #f9fafb; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="card">
+                <div class="header">
+                  <img src="${LOGO_URL}" alt="Playcenter Universal" style="height: 50px; margin-bottom: 15px;" />
+                  <h1>❌ Tienda Rechazada</h1>
+                  <p>Confirmación de acción</p>
+                </div>
+                <div class="content">
+                  <p>Has rechazado la siguiente solicitud de tienda:</p>
+                  
+                  <div class="info-box">
+                    <div class="info-row">
+                      <span class="info-label">🏪 Tienda:</span>
+                      <span class="info-value"><strong>${tiendaNombre}</strong></span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">👤 Vendedor:</span>
+                      <span class="info-value">${nombreContacto}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">📧 Email:</span>
+                      <span class="info-value">${email}</span>
+                    </div>
+                    ${
+                      motivo
+                        ? `
+                    <div class="reason-box" style="margin-top: 15px;">
+                      <strong>📝 Motivo del rechazo:</strong>
+                      <p style="margin: 5px 0 0; color: #78350f;">${motivo}</p>
+                    </div>
+                    `
+                        : ""
+                    }
+                    <div class="info-row" style="margin-top: 15px;">
+                      <span class="info-label">📅 Fecha:</span>
+                      <span class="info-value">${new Date().toLocaleString(
+                        "es-DO",
+                        { dateStyle: "long", timeStyle: "short" }
+                      )}</span>
+                    </div>
+                  </div>
+
+                  <p style="margin-top: 20px; color: #6b7280; font-size: 14px;">
+                    El vendedor ha sido notificado por email sobre esta decisión.
+                  </p>
+                </div>
+                <div class="footer">
+                  <p>Este es un email de confirmación automático</p>
+                </div>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        });
+        console.log("✅ Email de confirmación enviado al admin");
+      } catch (adminEmailError) {
+        console.error(
+          "⚠️ Error enviando email al admin (no crítico):",
+          adminEmailError
+        );
+      }
 
       return { success: true, emailId: emailData?.id };
     } catch (error) {
@@ -1489,7 +1666,23 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
 
     console.log("✅ Contraseña actualizada para:", email);
 
-    // Enviar email de confirmación
+    // Obtener información del usuario para el email al admin
+    let userName = email;
+    try {
+      const userDoc = await db
+        .collection("users")
+        .where("email", "==", email.toLowerCase())
+        .limit(1)
+        .get();
+      if (!userDoc.empty) {
+        const userData = userDoc.docs[0].data();
+        userName = userData.nombre || userData.displayName || email;
+      }
+    } catch (e) {
+      console.log("No se pudo obtener nombre del usuario");
+    }
+
+    // Enviar email de confirmación al usuario
     try {
       await resend.emails.send({
         from: EMAIL_FROM,
@@ -1579,6 +1772,104 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
       // No fallar si el email no se envía
     }
 
+    // Enviar email de notificación al admin
+    try {
+      await resend.emails.send({
+        from: EMAIL_FROM,
+        to: ADMIN_EMAIL,
+        subject: `🔐 Cambio de contraseña - ${userName}`,
+        html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Notificación de cambio de contraseña</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff;">
+            <tr>
+              <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 480px;">
+                  
+                  <!-- Logo -->
+                  <tr>
+                    <td align="center" style="padding-bottom: 32px;">
+                      <img src="${LOGO_URL}" alt="Playcenter Universal" width="200" style="display: block; max-width: 200px; height: auto;" />
+                    </td>
+                  </tr>
+
+                  <!-- Título -->
+                  <tr>
+                    <td align="center" style="padding-bottom: 24px;">
+                      <h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1a1a1a;">Notificación de Cambio de Contraseña</h1>
+                    </td>
+                  </tr>
+
+                  <!-- Mensaje -->
+                  <tr>
+                    <td style="padding-bottom: 32px;">
+                      <p style="margin: 0; font-size: 15px; line-height: 24px; color: #4a4a4a;">
+                        Se ha realizado un cambio de contraseña en una cuenta de Playcenter Universal.
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Información del usuario -->
+                  <tr>
+                    <td style="padding-bottom: 32px;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fafafa; border-radius: 8px;">
+                        <tr>
+                          <td style="padding: 20px;">
+                            <p style="margin: 0 0 10px; font-size: 13px; line-height: 20px; color: #666666;">
+                              <strong style="color: #333333;">Usuario:</strong> ${userName}
+                            </p>
+                            <p style="margin: 0; font-size: 13px; line-height: 20px; color: #666666;">
+                              <strong style="color: #333333;">Email:</strong> ${email}
+                            </p>
+                            <p style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #666666;">
+                              <strong style="color: #333333;">Fecha:</strong> ${new Date().toLocaleString(
+                                "es-DO",
+                                { dateStyle: "long", timeStyle: "short" }
+                              )}
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <!-- Línea divisora -->
+                  <tr>
+                    <td style="padding-bottom: 24px;">
+                      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 0;" />
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td align="center">
+                      <p style="margin: 0; font-size: 12px; color: #999999;">
+                        &copy; ${new Date().getFullYear()} Playcenter Universal<br>
+                        <a href="${SITE_URL}" style="color: #666666; text-decoration: none;">pcu.com.do</a>
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `,
+      });
+      console.log("✅ Email de notificación enviado al admin");
+    } catch (adminEmailError) {
+      console.error("Error enviando email al admin:", adminEmailError);
+      // No fallar si el email no se envía
+    }
+
     return { success: true, message: "Contraseña actualizada exitosamente" };
   } catch (error) {
     console.error("❌ Error al restablecer contraseña:", error);
@@ -1598,6 +1889,140 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
 });
 
 // ============================================
+// 12. NOTIFICAR AL ADMIN - CAMBIO DE CONTRASEÑA DESDE PERFIL
+// ============================================
+exports.notifyAdminPasswordChange = functions.https.onCall(
+  async (data, context) => {
+    try {
+      const { userEmail, userName } = data;
+
+      if (!userEmail) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Email requerido"
+        );
+      }
+
+      console.log(
+        "📧 Notificando al admin sobre cambio de contraseña:",
+        userEmail
+      );
+
+      // Enviar email de notificación al admin
+      const { data: emailData, error } = await resend.emails.send({
+        from: EMAIL_FROM,
+        to: ADMIN_EMAIL,
+        subject: `🔐 Cambio de contraseña - ${userName || userEmail}`,
+        html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Notificación de cambio de contraseña</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff;">
+            <tr>
+              <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 480px;">
+                  
+                  <!-- Logo -->
+                  <tr>
+                    <td align="center" style="padding-bottom: 32px;">
+                      <img src="${LOGO_URL}" alt="Playcenter Universal" width="200" style="display: block; max-width: 200px; height: auto;" />
+                    </td>
+                  </tr>
+
+                  <!-- Título -->
+                  <tr>
+                    <td align="center" style="padding-bottom: 24px;">
+                      <h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1a1a1a;">Notificación de Cambio de Contraseña</h1>
+                    </td>
+                  </tr>
+
+                  <!-- Mensaje -->
+                  <tr>
+                    <td style="padding-bottom: 32px;">
+                      <p style="margin: 0; font-size: 15px; line-height: 24px; color: #4a4a4a;">
+                        Un usuario ha cambiado su contraseña desde su perfil en Playcenter Universal.
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Información del usuario -->
+                  <tr>
+                    <td style="padding-bottom: 32px;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fafafa; border-radius: 8px;">
+                        <tr>
+                          <td style="padding: 20px;">
+                            <p style="margin: 0 0 10px; font-size: 13px; line-height: 20px; color: #666666;">
+                              <strong style="color: #333333;">Usuario:</strong> ${
+                                userName || "N/A"
+                              }
+                            </p>
+                            <p style="margin: 0; font-size: 13px; line-height: 20px; color: #666666;">
+                              <strong style="color: #333333;">Email:</strong> ${userEmail}
+                            </p>
+                            <p style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #666666;">
+                              <strong style="color: #333333;">Fecha:</strong> ${new Date().toLocaleString(
+                                "es-DO",
+                                { dateStyle: "long", timeStyle: "short" }
+                              )}
+                            </p>
+                            <p style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #666666;">
+                              <strong style="color: #333333;">Método:</strong> Cambio desde perfil (usuario autenticado)
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <!-- Línea divisora -->
+                  <tr>
+                    <td style="padding-bottom: 24px;">
+                      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 0;" />
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td align="center">
+                      <p style="margin: 0; font-size: 12px; color: #999999;">
+                        &copy; ${new Date().getFullYear()} Playcenter Universal<br>
+                        <a href="${SITE_URL}" style="color: #666666; text-decoration: none;">pcu.com.do</a>
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `,
+      });
+
+      if (error) {
+        console.error("❌ Error enviando email al admin:", error);
+        throw new functions.https.HttpsError("internal", error.message);
+      }
+
+      console.log("✅ Email de notificación enviado al admin:", emailData);
+      return { success: true, emailId: emailData?.id };
+    } catch (error) {
+      console.error("❌ Error en notifyAdminPasswordChange:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        error.message || "Error al notificar al admin"
+      );
+    }
+  }
+);
+
+// ============================================
 // 13. NOTIFICAR AL ADMIN - NUEVA SOLICITUD DE TIENDA
 // ============================================
 exports.onNewStoreRequest = functions.firestore
@@ -1605,9 +2030,6 @@ exports.onNewStoreRequest = functions.firestore
   .onCreate(async (snap, context) => {
     const solicitud = snap.data();
     const solicitudId = context.params.solicitudId;
-
-    // Email del admin
-    const ADMIN_EMAIL = "arisleidy0712@gmail.com";
 
     try {
       console.log("📧 Nueva solicitud de tienda, notificando al admin...");

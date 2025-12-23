@@ -370,28 +370,43 @@ const Header = () => {
                                 overflow: "hidden",
                               }}
                             >
-                              {usuarioInfo?.fotoURL || usuario.photoURL ? (
-                                <img
-                                  src={usuarioInfo?.fotoURL || usuario.photoURL}
-                                  alt="Perfil"
-                                  className="w-100 h-100"
-                                  style={{ objectFit: "cover" }}
-                                />
-                              ) : (
-                                <div
-                                  className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold"
-                                  style={{
-                                    fontSize: "14px",
-                                    background:
-                                      "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                                    color: "#ffffff",
-                                  }}
-                                >
-                                  {usuario.displayName
-                                    ?.charAt(0)
-                                    .toUpperCase() || "U"}
-                                </div>
-                              )}
+                              {(() => {
+                                // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
+                                const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                                  ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                                  : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                                
+                                return fotoURL ? (
+                                  <img
+                                    src={fotoURL}
+                                    alt="Perfil"
+                                    className="w-100 h-100"
+                                    style={{ objectFit: "cover" }}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      if (e.target.nextSibling) {
+                                        e.target.nextSibling.style.display = 'flex';
+                                      }
+                                    }}
+                                  />
+                                ) : null;
+                              })()}
+                              <div
+                                className="w-100 h-100 d-flex align-items-center justify-content-center fw-semibold"
+                                style={{
+                                  fontSize: "14px",
+                                  backgroundColor: "#475569",
+                                  color: "#ffffff",
+                                  display: (() => {
+                                    const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                                      ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                                      : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                                    return fotoURL ? 'none' : 'flex';
+                                  })(),
+                                }}
+                              >
+                                {((usuarioInfo?.displayName || usuario?.displayName || usuario?.email?.split('@')[0] || "U")?.charAt(0) || "U").toUpperCase()}
+                              </div>
                             </div>
                           </Link>
                         </motion.div>
@@ -1027,25 +1042,42 @@ const Header = () => {
                           backgroundColor: isDark ? "#374151" : "#ffffff",
                         }}
                       >
-                        {usuarioInfo?.fotoURL || usuario.photoURL ? (
-                          <img
-                            src={usuarioInfo?.fotoURL || usuario.photoURL}
-                            alt="Perfil"
-                            className="w-100 h-100"
-                            style={{ objectFit: "contain" }}
-                          />
-                        ) : (
-                          <div
-                            className="w-100 h-100 d-flex align-items-center justify-content-center fw-bold fs-5"
-                            style={{
-                              backgroundColor: isDark ? "#2563eb" : "#3b82f6",
-                              color: "#ffffff",
-                            }}
-                          >
-                            {usuario.displayName?.charAt(0).toUpperCase() ||
-                              "U"}
-                          </div>
-                        )}
+                        {(() => {
+                          // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
+                          const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                            ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                            : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                          
+                          return fotoURL ? (
+                            <img
+                              src={fotoURL}
+                              alt="Perfil"
+                              className="w-100 h-100"
+                              style={{ objectFit: "cover" }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                if (e.target.nextSibling) {
+                                  e.target.nextSibling.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          ) : null;
+                        })()}
+                        <div
+                          className="w-100 h-100 d-flex align-items-center justify-content-center fw-semibold fs-5"
+                          style={{
+                            backgroundColor: "#475569",
+                            color: "#ffffff",
+                            display: (() => {
+                              const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                                ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                                : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                              return fotoURL ? 'none' : 'flex';
+                            })(),
+                          }}
+                        >
+                          {((usuarioInfo?.displayName || usuario?.displayName || usuario?.email?.split('@')[0] || "U")?.charAt(0) || "U").toUpperCase()}
+                        </div>
                       </div>
                       <div className="flex-grow-1">
                         <p

@@ -1,7 +1,7 @@
 import React from "react";
 
 const anuncios = [
-    {
+  {
     id: 1,
     img: "/ads/movil/aficionados-movil.png",
     link: "/Productos/coleccionables",

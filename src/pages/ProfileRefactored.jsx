@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useMultiAccount } from "../context/MultiAccountContext";
 import {
   collection,
   query,
@@ -17,7 +18,8 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import { db, storage } from "../firebase";
+import { db, storage, auth } from "../firebase";
+import { updateProfile } from "firebase/auth";
 import { notify } from "../utils/notificationBus";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -34,7 +36,11 @@ import {
   Headset,
   ArrowRight,
   ArrowLeft,
+  ChevronDown,
+  LogOut,
+  Plus,
 } from "lucide-react";
+import AccountMenu from "../components/profile/AccountMenu";
 
 // UI Components
 import ProfileMobileNav from "../components/profile/ProfileMobileNav";
@@ -58,7 +64,7 @@ import OrderDetailsSheet from "../components/profile/OrderDetailsSheet";
 import FollowersModal from "../components/FollowersModal";
 
 export default function Profile() {
-  const { usuario, usuarioInfo, logout, actualizarUsuarioInfo } = useAuth();
+  const { usuario, usuarioInfo, logout, actualizarUsuarioInfo, subirImagen } = useAuth();
   const navigate = useNavigate();
   const { abrirModal } = useAuthModal();
 
@@ -66,11 +72,11 @@ export default function Profile() {
   // "menu" = nivel 1 (tarjetas tipo Amazon)
   // resto de ids = nivel 2 (sub-páginas)
   const [activeView, setActiveView] = useState("menu");
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [modalEntregaOpen, setModalEntregaOpen] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [refreshProfile, setRefreshProfile] = useState(0);
   const [direccionEditar, setDireccionEditar] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -78,6 +84,37 @@ export default function Profile() {
   // Estados para modales de seguidores/seguidos
   const [followersModalOpen, setFollowersModalOpen] = useState(false);
   const [followersModalType, setFollowersModalType] = useState("seguidores");
+  
+  // Estado para el menú de cambio de cuentas
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const { switchAccount, savedAccounts } = useMultiAccount();
+
+  // Cerrar sesión
+  const handleLogout = async () => {
+    setShowLogoutConfirm(false);
+    setAccountMenuOpen(false);
+    await logout();
+    navigate("/");
+  };
+
+  // Manejar cambio de cuenta
+  const handleSwitchAccount = (account) => {
+    setAccountMenuOpen(false);
+    switchAccount(account);
+  };
+
+  // Manejar agregar cuenta
+  const handleAddAccount = () => {
+    setAccountMenuOpen(false);
+    // Guardar el UID de la cuenta actual para guardar la nueva cuenta en su lista
+    if (usuario?.uid) {
+      try {
+        localStorage.setItem("pcu_adding_account_from", usuario.uid);
+        localStorage.setItem("pcu_adding_account_email", usuario.email || "");
+      } catch (_) {}
+    }
+    abrirModal("login");
+  };
 
   // Estado de Datos (Data Fetching)
   const [historial, setHistorial] = useState([]);
@@ -472,411 +509,595 @@ export default function Profile() {
     fetchPublicaciones();
   }, [usuario, storeId]);
 
-  const handleLogout = async () => {
-    try {
-      setLoading(true);
-      await logout();
-      navigate("/", { replace: true });
-    } finally {
-      setLoading(false);
+  // Colores modernos y profesionales - Estilo limpio y elegante
+  const getCardColors = (id) => {
+    // Estilo moderno: fondos limpios, colores sobrios, acentos sutiles
+    return {
+      bg: "bg-white dark:bg-slate-900",
+      iconBg: "bg-slate-100 dark:bg-slate-800",
+      iconColor: "text-slate-700 dark:text-slate-300",
+      border: "border-slate-200 dark:border-slate-700",
+      hoverBg: "hover:bg-slate-50 dark:hover:bg-slate-800/80",
+      hoverBorder: "hover:border-slate-300 dark:hover:border-slate-600",
+      shadow: "shadow-sm hover:shadow-md",
+    };
+  };
+
+  // Manejar clic en tarjeta del menú
+  const handleCardClick = (id) => {
+    setActiveView(id);
+  };
+
+  // Renderizar vista según activeView
+  const renderView = () => {
+    switch (activeView) {
+      case "menu":
+        return (
+          <div className="w-full">
+            {/* Título flotante y botón de cambiar cuenta - Solo en desktop */}
+            <div className="hidden lg:block max-w-7xl mx-auto px-6 xl:px-8 pt-4 pb-2">
+              <div className="flex items-center justify-between mb-3">
+                {/* Título flotante */}
+                <div className="flex items-center gap-3">
+                  {activeView !== "menu" && (
+                    <button
+                      onClick={() => setActiveView("menu")}
+                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      aria-label="Volver al menú"
+                    >
+                      <ArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
+                    </button>
+                  )}
+                  <h1 className="text-xl xl:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    {activeView === "menu" ? "Mi Cuenta" : 
+                     mainMenuItems.find(item => item.id === activeView)?.title || "Mi Cuenta"}
+                  </h1>
+                </div>
+
+                {/* Botón de cambiar cuenta flotante - Con imagen del usuario - ESTILO PREMIUM */}
+                <div className="relative">
+                  <button
+                    onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                    className="flex items-center space-x-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg"
+                    aria-label="Cambiar cuenta"
+                  >
+                    {/* Imagen del usuario */}
+                    <div className="flex-shrink-0">
+                      {(() => {
+                        // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
+                        const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                          ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                          : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                        
+                        return fotoURL ? (
+                          <img
+                            src={fotoURL}
+                            className="w-8 h-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-600 shadow-sm"
+                            alt="Usuario"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              if (e.target.nextSibling) {
+                                e.target.nextSibling.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null;
+                      })()}
+                      <div 
+                        className={`w-8 h-8 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-sm font-semibold border-2 border-slate-200 dark:border-slate-600 shadow-sm ${(() => {
+                          const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                            ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                            : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                          return fotoURL ? 'hidden' : 'flex';
+                        })()}`}
+                      >
+                        {((usuarioInfo?.displayName || usuario?.displayName || usuario?.email)?.charAt(0) || "U").toUpperCase()}
+                      </div>
+                    </div>
+                    <span className="font-semibold">Cambiar cuenta</span>
+                    <ChevronDown 
+                      size={16} 
+                      className={`transition-transform duration-200 ${accountMenuOpen ? 'rotate-180' : ''} text-slate-500 dark:text-slate-400`} 
+                    />
+                  </button>
+                  
+                  {/* Menú desplegable de cuentas */}
+                  {accountMenuOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setAccountMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[80vh] overflow-y-auto backdrop-blur-sm">
+                        <AccountMenu
+                          currentUser={{
+                            uid: usuario?.uid,
+                            email: usuario?.email,
+                            displayName: usuarioInfo?.displayName || usuario?.displayName || 'Usuario',
+                            photoURL: usuarioInfo?.fotoURL || usuario?.photoURL,
+                          }}
+                          onAddAccount={handleAddAccount}
+                          onLogout={() => setShowLogoutConfirm(true)}
+                          onClose={() => setAccountMenuOpen(false)}
+                          onSwitchAccount={(switchFn) => {
+                            setAccountMenuOpen(false);
+                            setTimeout(switchFn, 50);
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Contenedor principal con padding responsive - COMPACTO */}
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 pt-1 pb-4 sm:pb-5 md:pb-6 lg:pb-8">
+              {/* Grid de tarjetas - EXACTAMENTE 3 columnas en desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {mainMenuItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const colors = getCardColors(item.id);
+                  
+                  return (
+                    <motion.div
+                      key={item.id}
+                      className={`group relative ${colors.bg} ${colors.border} rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 text-left ${colors.hoverBg} ${colors.hoverBorder} ${colors.shadow} transition-all duration-200 cursor-pointer w-full overflow-hidden`}
+                      onClick={() => handleCardClick(item.id)}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02, duration: 0.15 }}
+                      whileHover={{ y: -2, scale: 1.005 }}
+                      whileTap={{ scale: 0.995 }}
+                    >
+                      {/* Contenido de la tarjeta - Horizontal en móvil, vertical en desktop */}
+                      <div className="flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-0 w-full">
+                        {/* Icono con fondo circular - ESTILO MODERNO */}
+                        <div className={`flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center transition-all duration-200 ${colors.iconBg} group-hover:scale-105 sm:mb-3 shadow-sm`}>
+                          <Icon 
+                            size={18}
+                            className={`sm:w-5 sm:h-5 ${colors.iconColor} transition-transform duration-200`}
+                          />
+                        </div>
+                        
+                        {/* Contenido de texto - CON OVERFLOW ESTRICTO */}
+                        <div className="flex-1 min-w-0 w-full sm:w-auto" style={{ overflow: 'hidden', maxWidth: '100%', width: '100%' }}>
+                          {/* Título - CON CONTROL ESTRICTO - TIPOGRAFÍA MODERNA */}
+                          <h3 
+                            className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mb-1 sm:mb-1.5 leading-tight tracking-tight"
+                            style={{ 
+                              wordBreak: 'break-word', 
+                              overflowWrap: 'break-word',
+                              overflow: 'hidden',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              maxWidth: '100%',
+                              width: '100%'
+                            }}
+                            title={item.title}
+                          >
+                            {item.title}
+                          </h3>
+                          
+                          {/* Descripción - CON CONTROL ESTRICTO - TIPOGRAFÍA MODERNA */}
+                          <p 
+                            className="hidden sm:block text-xs text-slate-600 dark:text-slate-400 leading-relaxed"
+                            style={{ 
+                              wordBreak: 'break-word', 
+                              overflowWrap: 'break-word',
+                              overflow: 'hidden',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              maxWidth: '100%',
+                              width: '100%'
+                            }}
+                            title={item.description}
+                          >
+                            {item.description}
+                          </p>
+                        </div>
+                        
+                        {/* Flecha indicadora - Solo en móvil - ESTILO MODERNO */}
+                        <div className="flex-shrink-0 sm:hidden">
+                          <ArrowRight size={16} className="text-blue-600 dark:text-blue-400 transition-transform group-hover:translate-x-1" />
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      
+      case "perfil":
+        return (
+          <OverviewView
+            user={usuario}
+            info={usuarioInfo}
+            stats={stats}
+            onEdit={() => setEditModalOpen(true)}
+            onOpenFollowers={() => {
+              setFollowersModalType("seguidores");
+              setFollowersModalOpen(true);
+            }}
+            onOpenFollowing={() => {
+              setFollowersModalType("seguidos");
+              setFollowersModalOpen(true);
+            }}
+          />
+        );
+      
+      case "pedidos":
+        return (
+          <OrdersView
+            orders={historial}
+            loading={loadingOrders}
+            onOpenOrder={(order) => {
+              setSelectedOrder(order);
+              setOrderSheetOpen(true);
+            }}
+          />
+        );
+      
+      case "ubicaciones":
+        return (
+          <AddressesView
+            addresses={direcciones}
+            userId={usuario?.uid}
+            loading={loadingAddresses}
+            onAdd={() => {
+              setDireccionEditar(null);
+              setModalEntregaOpen(true);
+            }}
+            onEdit={(addr) => {
+              setDireccionEditar(addr);
+              setModalEntregaOpen(true);
+            }}
+            onDelete={async (addrId) => {
+              try {
+                await deleteDoc(doc(db, "direcciones", addrId));
+                setRefreshKey((k) => k + 1);
+                notify.success("Dirección eliminada");
+              } catch (error) {
+                notify.error("Error al eliminar la dirección");
+              }
+            }}
+            onSetDefault={async (addrId) => {
+              try {
+                const addr = direcciones.find((a) => a.id === addrId);
+                if (addr) {
+                  await actualizarUsuarioInfo({ direccionPrincipal: addr });
+                  setRefreshKey((k) => k + 1);
+                  notify.success("Dirección principal actualizada");
+                }
+              } catch (error) {
+                notify.error("Error al actualizar la dirección principal");
+              }
+            }}
+            defaultDireccion={usuarioInfo?.direccionPrincipal?.direccionCompleta || ""}
+            defaultMetodoEntrega={usuarioInfo?.metodoEntrega || ""}
+          />
+        );
+      
+      case "pagos":
+        return <PaymentsView />;
+      
+      case "soporte":
+        return <CustomerServiceView />;
+      
+      case "tiendas":
+        return (
+          <StoreView 
+            store={store} 
+            storeId={storeId}
+            stats={stats}
+            user={usuario}
+            userInfo={usuarioInfo}
+          />
+        );
+      
+      case "seguridad":
+        return <SecurityView />;
+      
+      case "configuracion":
+        return <SettingsView />;
+      
+      default:
+        return null;
     }
   };
 
-  if (!usuario) return <Loader visible={true} />;
+  if (!usuario) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader visible={true} />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Container Principal */}
-      <div className="max-w-[1920px] mx-auto">
-        <div className="flex gap-0">
-          {/* Contenido Principal a pantalla completa (sin sidebar lateral) */}
-          <main className="flex-1 w-full px-3 py-4 md:px-6 md:py-6 lg:px-10 lg:py-8 overflow-x-hidden min-w-0">
-            {/* Header (solo móvil / tablet). En desktop manda el título "Hola" del menú. */}
-            <div className="xl:hidden mb-4 overflow-visible">
-              <ProfileHeader
-                key={refreshKey}
-                user={usuario}
-                userInfo={usuarioInfo}
-                onLogout={() => setShowLogoutConfirm(true)}
-                onAddAccount={() => abrirModal("login")}
-                setView={setActiveView}
-              />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-4 sm:pb-6 md:pb-8">
+      {/* Header flotante solo para móvil/tablet */}
+      <div className="lg:hidden sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-sm bg-white/95 dark:bg-slate-900/95">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
+            {/* Título y botón volver */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              {activeView !== "menu" && (
+                <button
+                  onClick={() => setActiveView("menu")}
+                  className="flex-shrink-0 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95"
+                  aria-label="Volver al menú"
+                >
+                  <ArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
+                </button>
+              )}
+              <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate tracking-tight">
+                {activeView === "menu" ? "Mi Cuenta" : 
+                 mainMenuItems.find(item => item.id === activeView)?.title || "Mi Cuenta"}
+              </h1>
             </div>
 
-            {/* Vistas dinámicas */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeView}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="w-full max-w-6xl mx-auto"
+            {/* Botón de cambio de cuentas - CON ICONO DE USUARIO VISIBLE */}
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md"
+                aria-label="Cambiar cuenta"
               >
-                {/* Nivel 1: Menú principal tipo Amazon */}
-                {activeView === "menu" && (
-                  <div className="space-y-4">
-                    <div>
-                      <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">
-                        Hola,{" "}
-                        {usuarioInfo?.displayName ||
-                          usuario?.displayName ||
-                          usuario?.email ||
-                          "Usuario"}
-                      </h1>
-                      <p className="mt-2 text-sm md:text-base text-gray-600 dark:text-gray-400">
-                        Gestiona tu cuenta de Playcenter Universal
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 mt-5">
-                      {mainMenuItems.map((item) => {
-                        const Icon = item.icon;
-
-                        // Colores específicos para cada tarjeta en modo oscuro
-                        const getDarkModeColors = (id) => {
-                          switch (id) {
-                            case "perfil":
-                              return {
-                                bg: "dark:bg-blue-900/20",
-                                border: "dark:border-blue-700/50",
-                                iconBg: "dark:from-blue-400 dark:to-blue-600",
-                              };
-                            case "pedidos":
-                              return {
-                                bg: "dark:bg-green-900/20",
-                                border: "dark:border-green-700/50",
-                                iconBg: "dark:from-green-400 dark:to-green-600",
-                              };
-                            case "ubicaciones":
-                              return {
-                                bg: "dark:bg-orange-900/20",
-                                border: "dark:border-orange-700/50",
-                                iconBg:
-                                  "dark:from-orange-400 dark:to-orange-600",
-                              };
-                            case "pagos":
-                              return {
-                                bg: "dark:bg-purple-900/20",
-                                border: "dark:border-purple-700/50",
-                                iconBg:
-                                  "dark:from-purple-400 dark:to-purple-600",
-                              };
-                            case "soporte":
-                              return {
-                                bg: "dark:bg-teal-900/20",
-                                border: "dark:border-teal-700/50",
-                                iconBg: "dark:from-teal-400 dark:to-teal-600",
-                              };
-                            case "tiendas":
-                              return {
-                                bg: "dark:bg-indigo-900/20",
-                                border: "dark:border-indigo-700/50",
-                                iconBg:
-                                  "dark:from-indigo-400 dark:to-indigo-600",
-                              };
-                            case "seguridad":
-                              return {
-                                bg: "dark:bg-red-900/20",
-                                border: "dark:border-red-700/50",
-                                iconBg: "dark:from-red-400 dark:to-red-600",
-                              };
-                            case "configuracion":
-                              return {
-                                bg: "dark:bg-gray-800/50",
-                                border: "dark:border-gray-600/50",
-                                iconBg: "dark:from-gray-400 dark:to-gray-600",
-                              };
-                            default:
-                              return {
-                                bg: "dark:bg-[#1b1b1f]",
-                                border: "dark:border-[#333]",
-                                iconBg: "dark:from-blue-500 dark:to-indigo-500",
-                              };
+                {/* Icono/Avatar del usuario - SIEMPRE VISIBLE */}
+                <div className="flex-shrink-0">
+                  {(() => {
+                    // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
+                    const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                      ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                      : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                    
+                    return fotoURL ? (
+                      <img
+                        src={fotoURL}
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-600 shadow-sm"
+                        alt="Usuario"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          if (e.target.nextSibling) {
+                            e.target.nextSibling.style.display = 'flex';
                           }
-                        };
-
-                        const darkColors = getDarkModeColors(item.id);
-
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => setActiveView(item.id)}
-                            className={`group flex items-center gap-4 px-5 py-7 rounded-3xl border border-gray-200 bg-white/95 shadow-sm hover:shadow-md hover:border-blue-300 transition-all text-left ${darkColors.bg} ${darkColors.border} min-h-[140px]`}
-                          >
-                            <div
-                              className={`flex-shrink-0 w-14 h-14 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-all ${darkColors.iconBg}`}
-                            >
-                              <Icon size={26} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-lg md:text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-50">
-                                {item.title}
-                              </p>
-                              <p className="mt-1.5 text-sm md:text-base leading-snug text-gray-600 dark:text-gray-400 line-clamp-2">
-                                {item.description}
-                              </p>
-                            </div>
-                            <ArrowRight
-                              size={18}
-                              className="text-gray-300 dark:text-gray-500 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1"
-                            />
-                          </button>
-                        );
-                      })}
-                    </div>
+                        }}
+                      />
+                    ) : null;
+                  })()}
+                      <div 
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-xs sm:text-sm font-semibold border-2 border-slate-200 dark:border-slate-600 shadow-sm ${(() => {
+                          const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
+                            ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
+                            : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
+                          return fotoURL ? 'hidden' : 'flex';
+                        })()}`}
+                      >
+                        {((usuarioInfo?.displayName || usuario?.displayName || usuario?.email)?.charAt(0) || "U").toUpperCase()}
+                      </div>
+                </div>
+                <span className="hidden sm:inline font-semibold">Cuentas</span>
+                <ChevronDown 
+                  size={14} 
+                  className={`sm:w-4 sm:h-4 transition-transform duration-200 ${accountMenuOpen ? 'rotate-180' : ''} text-slate-500 dark:text-slate-400`} 
+                />
+              </button>
+              
+                  {/* Menú desplegable de cuentas */}
+                  {accountMenuOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setAccountMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-[320px] sm:w-[380px] md:w-[420px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto backdrop-blur-sm">
+                    <AccountMenu
+                      currentUser={{
+                        uid: usuario?.uid,
+                        email: usuario?.email,
+                        displayName: usuarioInfo?.displayName || usuario?.displayName || 'Usuario',
+                        photoURL: usuarioInfo?.fotoURL || usuario?.photoURL,
+                      }}
+                      onAddAccount={handleAddAccount}
+                      onLogout={() => setShowLogoutConfirm(true)}
+                      onClose={() => setAccountMenuOpen(false)}
+                      onSwitchAccount={(switchFn) => {
+                        setAccountMenuOpen(false);
+                        setTimeout(switchFn, 50);
+                      }}
+                    />
                   </div>
-                )}
-
-                {/* Nivel 2: Vistas detalle con botón de volver */}
-                {activeView !== "menu" && (
-                  <div className="mb-5 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setActiveView("menu")}
-                      className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 bg-white text-xs md:text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:shadow-md transition-all dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                    >
-                      <ArrowLeft size={16} className="flex-shrink-0" />
-                      <span>Volver al menú</span>
-                    </button>
-                  </div>
-                )}
-
-                {activeView === "perfil" && (
-                  <OverviewView
-                    key={refreshKey}
-                    user={usuario}
-                    info={usuarioInfo}
-                    stats={stats}
-                    onEdit={() => setEditModalOpen(true)}
-                    onOpenFollowers={() => {
-                      setFollowersModalType("seguidores");
-                      setFollowersModalOpen(true);
-                    }}
-                    onOpenFollowing={() => {
-                      setFollowersModalType("seguidos");
-                      setFollowersModalOpen(true);
-                    }}
-                  />
-                )}
-                {activeView === "pedidos" && (
-                  <OrdersView
-                    orders={historial}
-                    loading={loadingOrders}
-                    onOpenOrder={(order) => {
-                      setSelectedOrder(order);
-                      setOrderSheetOpen(true);
-                    }}
-                  />
-                )}
-                {activeView === "ubicaciones" && (
-                  <AddressesView
-                    addresses={direcciones}
-                    userId={usuario.uid}
-                    defaultDireccion={usuarioInfo?.direccion}
-                    defaultMetodoEntrega={usuarioInfo?.metodoEntrega}
-                    loading={loadingAddresses}
-                    onAdd={() => {
-                      setDireccionEditar(null);
-                      setModalEntregaOpen(true);
-                    }}
-                    onEdit={(addr) => {
-                      setDireccionEditar(addr);
-                      setModalEntregaOpen(true);
-                    }}
-                    onDelete={async (id) => {
-                      try {
-                        await deleteDoc(doc(db, "direcciones", id));
-                        const qAddress = query(
-                          collection(db, "direcciones"),
-                          where("usuarioId", "==", usuario.uid)
-                        );
-                        const snapAddress = await getDocs(qAddress);
-                        setDirecciones(
-                          snapAddress.docs.map((d) => ({
-                            id: d.id,
-                            ...d.data(),
-                          }))
-                        );
-                      } catch (e) {
-                        // console.error("delete address:", e);
-                      }
-                    }}
-                    onSetDefault={async (addr) => {
-                      try {
-                        const direccionCompleta = addr?.direccionCompleta || "";
-                        const metodo = addr?.metodoEntrega || "domicilio";
-                        await actualizarUsuarioInfo({
-                          direccion: direccionCompleta,
-                          metodoEntrega: metodo,
-                        });
-                        const payload = {
-                          direccion: direccionCompleta,
-                          metodoEntrega: metodo,
-                          updatedAt: new Date(),
-                        };
-                        await setDoc(doc(db, "users", usuario.uid), payload, {
-                          merge: true,
-                        });
-                        await setDoc(
-                          doc(db, "usuarios", usuario.uid),
-                          payload,
-                          { merge: true }
-                        );
-                      } catch (e) {
-                        // console.error("set default address:", e);
-                      }
-                    }}
-                  />
-                )}
-                {activeView === "configuracion" && <SettingsView />}
-                {activeView === "notificaciones" && <NotificationsView />}
-                {activeView === "soporte" && <CustomerServiceView />}
-                {activeView === "seguridad" && <SecurityView />}
-                {activeView === "pagos" && <PaymentsView />}
-                {activeView === "tiendas" && (
-                  <StoreView
-                    stats={stats}
-                    user={usuario}
-                    userInfo={usuarioInfo}
-                    store={store}
-                    storeId={storeId}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </main>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Edit Profile Modal (wired) */}
+      {/* Contenido principal - Más grande y responsive en desktop */}
+      <div className="w-full">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeView}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="w-full"
+          >
+            {/* Contenedor responsive para todas las vistas - Solo para vistas que no son el menú */}
+            {activeView === "menu" ? (
+              renderView()
+            ) : (
+              <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 py-3 sm:py-4 md:py-5 lg:py-6">
+                {/* Botón volver - Solo en desktop (en móvil está en el header sticky) */}
+                <div className="hidden lg:block mb-3">
+                  <button
+                    onClick={() => setActiveView("menu")}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 active:scale-95"
+                    aria-label="Volver al menú"
+                  >
+                    <ArrowLeft size={18} className="text-slate-600 dark:text-slate-400" />
+                    <span>Volver</span>
+                  </button>
+                </div>
+                <div className="w-full max-w-full overflow-hidden">
+                  {renderView()}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Modales y componentes adicionales */}
       <EditProfileModal
-        open={editModalOpen}
+        isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        initialInfo={usuarioInfo}
-        saving={savingProfile}
+        onOpenAddressModal={() => {
+          setModalEntregaOpen(true);
+        }}
         onSave={async (data) => {
+          setSavingProfile(true);
           try {
-            setSavingProfile(true);
-
-            let photoURL = usuarioInfo?.fotoURL;
-
-            // Handle photo upload
+            let fotoURL = usuarioInfo?.fotoURL || usuario?.photoURL || null;
+            let photoChanged = false;
+            
+            // Si hay una nueva foto, subirla primero
             if (data.newPhoto) {
-              const storageRef = ref(
-                storage,
-                `usuarios/${usuario.uid}/profile.jpg`
-              );
-              await uploadBytes(storageRef, data.newPhoto);
-              photoURL = await getDownloadURL(storageRef);
-            }
-
-            // Handle photo removal
-            if (data.removePhoto) {
-              photoURL = null;
-              // Try to delete from storage (ignore errors if doesn't exist)
               try {
-                const storageRef = ref(
-                  storage,
-                  `usuarios/${usuario.uid}/profile.jpg`
-                );
-                await deleteObject(storageRef);
-              } catch (err) {
-                // Photo might not exist, that's okay
+                fotoURL = await subirImagen(data.newPhoto);
+                photoChanged = true;
+                notify.success("Foto de perfil actualizada");
+              } catch (error) {
+                console.error("Error al subir imagen:", error);
+                notify.error("Error al subir la imagen. Intenta de nuevo.");
+                setSavingProfile(false);
+                return;
               }
             }
-
-            await actualizarUsuarioInfo({
-              displayName: data.displayName,
-              telefono: data.telefono,
-              direccion: data.direccion,
-              fotoURL: photoURL,
-            });
-
-            // Persist also to users and usuarios for parity with legacy logic
-            const payload = {
-              displayName: data.displayName,
-              telefono: data.telefono,
-              direccion: data.direccion,
-              fotoURL: photoURL,
-              updatedAt: new Date(),
+            
+            // Si se solicita eliminar la foto
+            if (data.removePhoto) {
+              fotoURL = ""; // String vacío explícito
+              photoChanged = true;
+              try {
+                // Eliminar de Firebase Auth
+                await updateProfile(usuario, { photoURL: "" });
+                // Actualizar usuario local
+                setUsuario(auth.currentUser);
+                
+                // Intentar eliminar del storage si existe
+                try {
+                  const oldPhotoRef = ref(storage, `usuarios/${usuario.uid}/perfil.jpg`);
+                  await deleteObject(oldPhotoRef);
+                } catch (storageError) {
+                  // Si no existe en storage, no es un error crítico
+                  console.warn("Foto no encontrada en storage o ya eliminada");
+                }
+              } catch (error) {
+                console.warn("Error al eliminar foto:", error);
+                // Continuar aunque falle
+              }
+            }
+            
+            // Actualizar información del usuario
+            const updateData = {
+              displayName: data.displayName || "",
+              telefono: data.telefono || "",
+              direccion: data.direccion || "",
             };
-            await setDoc(doc(db, "users", usuario.uid), payload, {
-              merge: true,
-            });
-            await setDoc(doc(db, "usuarios", usuario.uid), payload, {
-              merge: true,
-            });
-
-            // Force component refresh to show new photo immediately
-            setRefreshKey((prev) => prev + 1);
+            
+            // CRÍTICO: Actualizar fotoURL si cambió (nueva foto o eliminación)
+            // Si se elimina, guardar string vacío explícitamente para que no se vuelva a cargar de Google
+            if (photoChanged) {
+              updateData.fotoURL = fotoURL === null ? "" : fotoURL;
+            }
+            
+            // Actualizar también displayName en Firebase Auth si cambió
+            if (data.displayName && data.displayName !== (usuario?.displayName || "")) {
+              try {
+                await updateProfile(usuario, { displayName: data.displayName });
+                setUsuario(auth.currentUser);
+              } catch (error) {
+                console.warn("Error al actualizar displayName en auth:", error);
+              }
+            }
+            
+            // Guardar en Firestore
+            const updatedInfo = await actualizarUsuarioInfo(updateData);
+            
+            // CRÍTICO: Forzar actualización del estado local para que el header se actualice inmediatamente
+            // El onSnapshot debería actualizar automáticamente, pero forzamos para asegurar sincronización
+            if (updatedInfo) {
+              // El estado ya se actualiza en actualizarUsuarioInfo, pero forzamos re-render
+              setRefreshKey((k) => k + 1);
+            }
+            
             setEditModalOpen(false);
-          } catch (e) {
-            notify("Error al guardar: " + e.message, "error", "Error");
+            notify.success("Perfil actualizado correctamente");
+          } catch (error) {
+            console.error("Error al actualizar el perfil:", error);
+            notify.error("Error al actualizar el perfil. Intenta de nuevo.");
           } finally {
             setSavingProfile(false);
           }
         }}
+        initialInfo={{
+          // CRÍTICO: Cargar TODOS los datos disponibles - nunca dejar vacío si existe
+          displayName: usuarioInfo?.displayName || usuario?.displayName || "",
+          nombre: usuarioInfo?.displayName || usuario?.displayName || "",
+          telefono: usuarioInfo?.telefono || "",
+          direccion: usuarioInfo?.direccion || usuarioInfo?.direccionCompleta || "",
+          direccionCompleta: usuarioInfo?.direccion || usuarioInfo?.direccionCompleta || "",
+          email: usuario?.email || usuarioInfo?.email || "",
+          // CRÍTICO: Priorizar fotoURL de Firestore (puede ser "" si se eliminó)
+          // Solo usar photoURL de Auth si fotoURL no existe en Firestore
+          fotoURL: usuarioInfo?.hasOwnProperty('fotoURL') 
+            ? usuarioInfo.fotoURL 
+            : (usuario?.photoURL || ""),
+          photoURL: usuario?.photoURL || "",
+        }}
+        key={`edit-modal-${usuarioInfo?.displayName || ''}-${usuarioInfo?.telefono || ''}-${usuarioInfo?.direccion || ''}`}
+        saving={savingProfile}
       />
 
-      {/* Entrega Modal for addresses */}
-      {modalEntregaOpen && (
-        <Entrega
-          abierto={modalEntregaOpen}
-          onClose={async () => {
-            setModalEntregaOpen(false);
-            setDireccionEditar(null);
-            // Refresh addresses on close
-            try {
-              const qAddress = query(
-                collection(db, "direcciones"),
-                where("usuarioId", "==", usuario.uid)
-              );
-              const snapAddress = await getDocs(qAddress);
-              setDirecciones(
-                snapAddress.docs.map((d) => ({ id: d.id, ...d.data() }))
-              );
-            } catch (_) {}
-          }}
-          actualizarUsuarioInfo={actualizarUsuarioInfo}
-          usuarioId={usuario.uid}
-          direccionEditar={direccionEditar}
-          actualizarLista={async () => {
-            try {
-              const qAddress = query(
-                collection(db, "direcciones"),
-                where("usuarioId", "==", usuario.uid)
-              );
-              const snapAddress = await getDocs(qAddress);
-              setDirecciones(
-                snapAddress.docs.map((d) => ({ id: d.id, ...d.data() }))
-              );
-            } catch (_) {}
-          }}
-        />
-      )}
+      <Entrega
+        abierto={modalEntregaOpen}
+        onClose={() => {
+          setModalEntregaOpen(false);
+          setDireccionEditar(null);
+        }}
+        direccionEditar={direccionEditar}
+        onSave={() => {
+          setModalEntregaOpen(false);
+          setDireccionEditar(null);
+          setRefreshKey((k) => k + 1);
+          // Forzar actualización del perfil después de cambiar dirección
+        }}
+        actualizarUsuarioInfo={actualizarUsuarioInfo}
+      />
 
-      {/* Mobile bottom sheet for order details */}
       <OrderDetailsSheet
-        open={orderSheetOpen}
-        order={selectedOrder}
+        isOpen={orderSheetOpen}
         onClose={() => {
           setOrderSheetOpen(false);
           setSelectedOrder(null);
         }}
+        order={selectedOrder}
       />
 
       <LogoutModal
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={async () => {
-          setShowLogoutConfirm(false);
-          await handleLogout();
-        }}
+        onConfirm={handleLogout}
       />
 
-      {/* Modal de Seguidores/Seguidos */}
       <FollowersModal
         isOpen={followersModalOpen}
         onClose={() => setFollowersModalOpen(false)}

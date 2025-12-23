@@ -61,16 +61,16 @@ export default function OrdersView({
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6 lg:space-y-8 w-full max-w-full overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+      <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 dark:text-white break-words">
         Historial de Pedidos
       </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6">
         <AnimatePresence>
           {sortedOrders.map((order, i) => (
             <motion.div
@@ -80,9 +80,9 @@ export default function OrdersView({
               animate="show"
               transition={{ delay: i * 0.05 }}
               onClick={() => onOpenOrder && onOpenOrder(order)}
-              className="group cursor-pointer bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 overflow-hidden"
+              className="group cursor-pointer bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 overflow-hidden"
             >
-              <div className="p-6 flex flex-col sm:flex-row gap-6">
+              <div className="p-4 sm:p-6 lg:p-8 flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8">
                 {/* Galería */}
                 <div className="flex -space-x-3 overflow-hidden py-1 pl-1">
                   {order.productos?.slice(0, 3).map((prod, idx) => (

@@ -12,90 +12,103 @@ export default function OverviewView({
   const name = info?.displayName || user?.displayName || "Usuario";
 
   return (
-    <div className="space-y-8">
-      {/* Layout estilo YouTube: Avatar izquierda, info derecha */}
-      <div className="flex gap-6 items-start pb-6 border-b border-gray-200 dark:border-gray-700">
-        {/* Avatar */}
+    <div className="space-y-6 sm:space-y-8 lg:space-y-10 w-full max-w-full overflow-hidden">
+      {/* Layout estilo YouTube: Avatar izquierda, info derecha - ESTILO PREMIUM */}
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8 items-start pb-4 sm:pb-6 border-b border-slate-200 dark:border-slate-700">
+        {/* Avatar - CÍRCULO CON INICIAL */}
         <div className="flex-shrink-0">
-          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-700 dark:text-white text-2xl md:text-3xl font-bold shadow-lg">
-            {info?.fotoURL || user?.photoURL ? (
-              <img
-                src={info?.fotoURL || user?.photoURL}
-                alt={name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span>{name?.charAt(0)?.toUpperCase() || "U"}</span>
-            )}
+          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold shadow-lg border-2 border-slate-200 dark:border-slate-700">
+            {/* CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente */}
+            {(() => {
+              const fotoURL = info?.hasOwnProperty('fotoURL') 
+                ? (info.fotoURL && info.fotoURL !== "" ? info.fotoURL : null)
+                : (user?.photoURL && user.photoURL !== "" ? user.photoURL : null);
+              
+              return fotoURL ? (
+                <img
+                  src={fotoURL}
+                  alt={name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    if (e.target.nextSibling) {
+                      e.target.nextSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : (
+                <span className="flex items-center justify-center w-full h-full">{(name?.charAt(0) || "U").toUpperCase()}</span>
+              );
+            })()}
           </div>
         </div>
 
-        {/* Nombre y estadísticas */}
-        <div className="flex-1 min-w-0">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+        {/* Nombre y estadísticas - TIPOGRAFÍA ELEGANTE */}
+        <div className="flex-1 min-w-0 w-full sm:w-auto">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white break-words tracking-tight">
             {name}
           </h2>
 
-          {/* Estadísticas en línea estilo YouTube - CLICABLES */}
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-600 dark:text-gray-400">
+          {/* Estadísticas en línea estilo YouTube - CLICABLES - ESTILO PREMIUM */}
+          <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-400">
             <button
               onClick={onOpenFollowers}
-              className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+              className="hover:text-blue-700 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer whitespace-nowrap font-semibold"
             >
-              <span className="font-semibold">{stats?.seguidores || 0}</span>{" "}
+              <span className="font-bold text-slate-900 dark:text-white">{stats?.seguidores || 0}</span>{" "}
               seguidores
             </button>
-            <span>·</span>
+            <span className="text-slate-400">·</span>
             <button
               onClick={onOpenFollowing}
-              className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+              className="hover:text-blue-700 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer whitespace-nowrap font-semibold"
             >
-              <span className="font-semibold">{stats?.seguidos || 0}</span>{" "}
+              <span className="font-bold text-slate-900 dark:text-white">{stats?.seguidos || 0}</span>{" "}
               seguidos
             </button>
-            <span>·</span>
-            <span>
-              <span className="font-semibold">{stats?.publicaciones || 0}</span>{" "}
+            <span className="text-slate-400">·</span>
+            <span className="whitespace-nowrap font-semibold">
+              <span className="font-bold text-slate-900 dark:text-white">{stats?.publicaciones || 0}</span>{" "}
               publicaciones
             </span>
           </div>
 
-          {/* Botón editar */}
+          {/* Botón editar - ESTILO PREMIUM EJECUTIVO */}
           <button
             onClick={onEdit}
-            className="mt-4 flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-medium text-sm hover:opacity-90 transition-opacity"
+            className="mt-4 sm:mt-6 flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-blue-700 dark:to-indigo-800 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-blue-700 hover:to-indigo-800 dark:hover:from-blue-600 dark:hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            <Edit2 size={14} />
+            <Edit2 size={16} className="sm:w-4 sm:h-4" />
             <span>Editar Perfil</span>
           </button>
         </div>
       </div>
 
-      {/* Información Personal - Diseño Profesional y Moderno */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+      {/* Información Personal - Diseño Premium Ejecutivo */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg">
+        {/* Header - ESTILO PREMIUM */}
+        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-800 dark:to-blue-900/10">
+          <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             Información Personal
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-xs sm:text-sm lg:text-base text-slate-600 dark:text-slate-400 mt-1 sm:mt-2 font-medium">
             Administra tu información de contacto
           </p>
         </div>
 
         {/* Contenido */}
-        <div className="p-6 space-y-6">
-          {/* Correo Electrónico */}
+        <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8">
+          {/* Correo Electrónico - ESTILO PREMIUM */}
           <div className="group">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">
+                <label className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 sm:mb-3 block">
                   Correo Electrónico
                 </label>
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl flex items-center justify-center group-hover:from-blue-100 group-hover:to-indigo-100 dark:group-hover:from-blue-900/30 dark:group-hover:to-indigo-900/30 transition-all duration-200 shadow-sm">
                     <svg
-                      className="w-5 h-5 text-gray-600 dark:text-gray-300"
+                      className="w-5 h-5 sm:w-6 sm:h-6 text-blue-700 dark:text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -108,8 +121,8 @@ export default function OverviewView({
                       />
                     </svg>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-base font-medium text-gray-900 dark:text-white break-all">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm sm:text-base lg:text-lg font-semibold text-slate-900 dark:text-white break-words">
                       {info?.email || user?.email || "No configurado"}
                     </p>
                   </div>
@@ -118,17 +131,17 @@ export default function OverviewView({
             </div>
           </div>
 
-          {/* Teléfono */}
+          {/* Teléfono - ESTILO PREMIUM */}
           <div className="group">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
                   Teléfono
                 </label>
                 <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl flex items-center justify-center group-hover:from-blue-100 group-hover:to-indigo-100 dark:group-hover:from-blue-900/30 dark:group-hover:to-indigo-900/30 transition-all duration-200 shadow-sm">
                     <svg
-                      className="w-5 h-5 text-gray-600 dark:text-gray-300"
+                      className="w-5 h-5 text-blue-700 dark:text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -142,9 +155,9 @@ export default function OverviewView({
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-base font-medium text-gray-900 dark:text-white">
+                    <p className="text-base font-semibold text-slate-900 dark:text-white">
                       {info?.telefono || (
-                        <span className="text-gray-400 dark:text-gray-500">
+                        <span className="text-slate-400 dark:text-slate-500">
                           Sin agregar
                         </span>
                       )}
@@ -155,17 +168,17 @@ export default function OverviewView({
             </div>
           </div>
 
-          {/* Dirección Principal */}
+          {/* Dirección Principal - ESTILO PREMIUM */}
           <div className="group">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
                   Dirección Principal
                 </label>
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl flex items-center justify-center group-hover:from-blue-100 group-hover:to-indigo-100 dark:group-hover:from-blue-900/30 dark:group-hover:to-indigo-900/30 transition-all duration-200 shadow-sm">
                     <svg
-                      className="w-5 h-5 text-gray-600 dark:text-gray-300"
+                      className="w-5 h-5 text-blue-700 dark:text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -192,9 +205,9 @@ export default function OverviewView({
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-base font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-2 group/link"
+                        className="text-base font-semibold text-slate-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-2 group/link"
                       >
-                        <span className="border-b border-transparent group-hover/link:border-blue-600 dark:group-hover/link:border-blue-400">
+                        <span className="border-b border-transparent group-hover/link:border-blue-700 dark:group-hover/link:border-blue-400">
                           {info.direccion}
                         </span>
                         <svg
@@ -212,7 +225,7 @@ export default function OverviewView({
                         </svg>
                       </a>
                     ) : (
-                      <p className="text-base font-medium text-gray-400 dark:text-gray-500">
+                      <p className="text-base font-semibold text-slate-400 dark:text-slate-500">
                         Sin dirección configurada
                       </p>
                     )}
@@ -223,9 +236,9 @@ export default function OverviewView({
           </div>
         </div>
 
-        {/* Footer con información adicional */}
-        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+        {/* Footer con información adicional - ESTILO PREMIUM */}
+        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
+          <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2 font-medium">
             <svg
               className="w-4 h-4"
               fill="none"

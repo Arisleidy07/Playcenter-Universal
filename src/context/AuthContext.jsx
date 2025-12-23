@@ -170,7 +170,9 @@ export function AuthProvider({ children }) {
                 ...data,
                 displayName: user.displayName || data.displayName || "",
                 email: userEmail,
-                fotoURL: data.fotoURL || user.photoURL || "",
+                // CRÍTICO: Si fotoURL está explícitamente en Firestore (incluso si es ""), usarlo
+                // Solo usar user.photoURL si fotoURL no existe en Firestore
+                fotoURL: data.hasOwnProperty('fotoURL') ? data.fotoURL : (user.photoURL || ""),
                 isAdmin: isAdminEmail(userEmail) || data.admin === true,
                 admin: isAdminEmail(userEmail) || data.admin === true,
                 role: data.role || "buyer",
@@ -428,6 +430,8 @@ export function AuthProvider({ children }) {
         displayName: usuario.displayName || updatedData.displayName || "",
         email: usuario.email || updatedData.email || "",
         isAdmin: updatedData.admin === true,
+        // CRÍTICO: Preservar fotoURL explícitamente (incluso si es string vacío)
+        fotoURL: updatedData.hasOwnProperty('fotoURL') ? updatedData.fotoURL : (usuario.photoURL || ""),
       };
 
       // actualizar estado local — onSnapshot probablemente ya haga esto, pero lo hacemos para coherencia inmediata
@@ -440,6 +444,16 @@ export function AuthProvider({ children }) {
           setUsuario(auth.currentUser);
         } catch (err) {
           // console.warn("Error actualizando displayName en auth:", err);
+        }
+      }
+      
+      // si se envió fotoURL, actualizar también en auth
+      if (data.fotoURL !== undefined) {
+        try {
+          await updateProfile(usuario, { photoURL: data.fotoURL || "" });
+          setUsuario(auth.currentUser);
+        } catch (err) {
+          // console.warn("Error actualizando photoURL en auth:", err);
         }
       }
 

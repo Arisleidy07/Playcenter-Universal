@@ -527,6 +527,22 @@ export default function SecurityView() {
       const currentUser = auth.currentUser;
       if (currentUser) {
         await updatePassword(currentUser, newPassword);
+
+        // Notificar al admin sobre el cambio de contraseña
+        try {
+          const notifyAdminPasswordChange = httpsCallable(
+            functions,
+            "notifyAdminPasswordChange"
+          );
+          await notifyAdminPasswordChange({
+            userEmail: currentUser.email,
+            userName: userData.nombre || currentUser.displayName || "Usuario",
+          });
+        } catch (notifyError) {
+          console.error("Error notificando al admin:", notifyError);
+          // No fallar si la notificación no se envía
+        }
+
         showSuccessModal("Contraseña actualizada");
         setEditingField(null);
         setNewPassword("");

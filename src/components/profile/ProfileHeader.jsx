@@ -14,7 +14,10 @@ export default function ProfileHeader({
   const [isOpen, setIsOpen] = useState(false);
   const currentName =
     userInfo?.displayName || user?.displayName || user?.email || "Usuario";
-  const currentAvatar = userInfo?.fotoURL || user?.photoURL || "";
+  // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
+  const currentAvatar = userInfo?.hasOwnProperty('fotoURL') 
+    ? (userInfo.fotoURL && userInfo.fotoURL !== "" ? userInfo.fotoURL : null)
+    : (user?.photoURL && user.photoURL !== "" ? user.photoURL : null);
 
   // Datos actuales para el menú
   const currentUser = {
@@ -38,7 +41,7 @@ export default function ProfileHeader({
             }`}
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-700 flex-shrink-0">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex-shrink-0">
                 {currentAvatar ? (
                   <img
                     src={currentAvatar}
@@ -46,10 +49,8 @@ export default function ProfileHeader({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                    {String(currentName || "U")
-                      .charAt(0)
-                      .toUpperCase()}
+                  <div className="w-full h-full flex items-center justify-center text-white font-semibold text-sm">
+                    {(currentName || "U").charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
@@ -98,12 +99,18 @@ export default function ProfileHeader({
                 : "hover:bg-gray-50 dark:hover:bg-slate-700/30 border-transparent"
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-700 p-[2px] flex-shrink-0">
-              <img
-                src={currentAvatar || "https://via.placeholder.com/150"}
-                alt="Avatar"
-                className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-800"
-              />
+            <div className="w-8 h-8 rounded-full bg-slate-700 dark:bg-slate-600 p-[2px] flex-shrink-0 overflow-hidden">
+              {currentAvatar ? (
+                <img
+                  src={currentAvatar}
+                  alt="Avatar"
+                  className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-800"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white font-semibold text-xs border-2 border-white dark:border-slate-800">
+                  {(currentName || "U").charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-sm font-semibold text-gray-900 dark:text-white leading-none truncate max-w-[100px]">
