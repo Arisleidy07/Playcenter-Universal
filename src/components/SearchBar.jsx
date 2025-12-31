@@ -720,7 +720,7 @@ const SearchBar = forwardRef(
             {/* RESULTADOS DE PRODUCTOS */}
             {busqueda.trim() && !loading && resultados.length === 0 && (
               <div className="px-4 py-12 text-center">
-                <div className="text-5xl mb-3">🔍</div>
+                <div className="text-5xl mb-3"></div>
                 <p className="text-base font-medium text-gray-600 dark:text-gray-400">
                   No encontramos resultados
                 </p>

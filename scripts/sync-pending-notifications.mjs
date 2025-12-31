@@ -48,7 +48,7 @@ async function syncPendingNotifications() {
     );
 
     if (snapshot.docs.length === 0) {
-      console.log("✅ No hay solicitudes pendientes para sincronizar");
+      console.log(" No hay solicitudes pendientes para sincronizar");
       return;
     }
 
@@ -103,7 +103,7 @@ async function syncPendingNotifications() {
         createdAt: serverTimestamp(),
       });
 
-      console.log(`✅ Creada notificación para: ${solicitud.tiendaNombre}`);
+      console.log(` Creada notificación para: ${solicitud.tiendaNombre}`);
       created++;
     }
 
@@ -113,7 +113,7 @@ async function syncPendingNotifications() {
     console.log(`   - Solicitudes saltadas: ${skipped}`);
     console.log("=".repeat(50));
   } catch (error) {
-    console.error("❌ Error:", error.message);
+    console.error(" Error:", error.message);
   }
 
   process.exit(0);

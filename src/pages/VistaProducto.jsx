@@ -1292,7 +1292,7 @@ function VistaProducto() {
     return { type: "image", url: u || "" };
   };
 
-  // ✅ FILTRO ESTRICTO: Solo URLs válidas
+  //  FILTRO ESTRICTO: Solo URLs válidas
   const imagenesValidas = imagenes.filter((url) => {
     if (!url) return false;
     if (typeof url !== "string") return false;

@@ -36,7 +36,12 @@ export function MultiAccountProvider({ children }) {
     }
 
     setLoadingAccounts(true);
-    const savedAccountsRef = collection(db, "users", usuario.uid, "savedAccounts");
+    const savedAccountsRef = collection(
+      db,
+      "users",
+      usuario.uid,
+      "savedAccounts"
+    );
     const q = query(savedAccountsRef, orderBy("lastActive", "desc"));
 
     // Escuchar cambios en tiempo real
@@ -62,7 +67,9 @@ export function MultiAccountProvider({ children }) {
         };
 
         // Si la cuenta actual no está en la lista, agregarla
-        const hasCurrentAccount = accounts.some((acc) => acc.uid === usuario.uid);
+        const hasCurrentAccount = accounts.some(
+          (acc) => acc.uid === usuario.uid
+        );
         if (!hasCurrentAccount) {
           accounts.unshift(currentAccountData);
         } else {
@@ -75,14 +82,65 @@ export function MultiAccountProvider({ children }) {
           }
         }
 
-        setSavedAccounts(accounts);
-
-        // Sincronizar con localStorage como backup
+        // Merge con respaldo local para no perder cuentas previas si Firestore está vacío
+        let merged = accounts;
+        let localOnly = [];
         try {
-          localStorage.setItem("pcu_saved_accounts", JSON.stringify(accounts));
+          const stored = localStorage.getItem("pcu_saved_accounts");
+          if (stored) {
+            const local = JSON.parse(stored);
+            const seenKeys = new Set(
+              merged.map((a) => (a.email || a.uid || a.id || "").toLowerCase())
+            );
+            local.forEach((a) => {
+              const key = String(a.email || a.uid || a.id || "").toLowerCase();
+              if (key && !seenKeys.has(key)) {
+                merged.push(a);
+                localOnly.push(a);
+                seenKeys.add(key);
+              }
+            });
+          }
         } catch (_) {}
 
-        setLoadingAccounts(false);
+        setSavedAccounts(merged);
+
+        // Persistir de vuelta el merge a localStorage
+        try {
+          localStorage.setItem("pcu_saved_accounts", JSON.stringify(merged));
+        } catch (_) {}
+
+        // Intentar subir a Firestore las cuentas que sólo existían localmente (migración)
+        Promise.all(
+          (localOnly || []).map(async (acc) => {
+            try {
+              const docRef = doc(
+                db,
+                "users",
+                usuario.uid,
+                "savedAccounts",
+                acc.email || acc.uid || acc.id
+              );
+              await setDoc(
+                docRef,
+                {
+                  uid: acc.uid,
+                  email: acc.email,
+                  displayName:
+                    acc.displayName ||
+                    (acc.email ? acc.email.split("@")[0] : "Usuario"),
+                  photoURL: acc.photoURL || null,
+                  role: acc.role || "user",
+                  lastActive: acc.lastActive || new Date().toISOString(),
+                  savedAt: acc.savedAt || new Date().toISOString(),
+                },
+                { merge: true }
+              );
+            } catch (e) {
+              console.warn("No se pudo migrar cuenta local a Firestore:", e);
+            }
+          })
+        ).finally(() => setLoadingAccounts(false));
       },
       (error) => {
         console.error("Error cargando cuentas guardadas:", error);
@@ -132,9 +190,13 @@ export function MultiAccountProvider({ children }) {
         // Si hay una cuenta anterior guardada (cuando se agregó desde "Agregar cuenta")
         // Guardar esta cuenta nueva en la lista de la cuenta anterior
         try {
-          const previousAccountUid = localStorage.getItem("pcu_adding_account_from");
-          const previousAccountEmail = localStorage.getItem("pcu_adding_account_email");
-          
+          const previousAccountUid = localStorage.getItem(
+            "pcu_adding_account_from"
+          );
+          const previousAccountEmail = localStorage.getItem(
+            "pcu_adding_account_email"
+          );
+
           if (previousAccountUid && previousAccountUid !== usuario.uid) {
             // Guardar la cuenta actual en la lista de la cuenta anterior (cuenta principal)
             const previousAccountDocRef = doc(
@@ -144,16 +206,40 @@ export function MultiAccountProvider({ children }) {
               "savedAccounts",
               usuario.email || usuario.uid
             );
-            await setDoc(previousAccountDocRef, currentAccountData, { merge: true });
-            
-            // Limpiar los valores de localStorage
+            await setDoc(previousAccountDocRef, currentAccountData, {
+              merge: true,
+            });
+
+            // Intentar regresar automáticamente a la sesión anterior para NO cambiar de cuenta
+            try {
+              if (previousAccountEmail) {
+                setIsSwitching(true);
+                const issueToken = httpsCallable(functions, "issueSwitchToken");
+                const res = await issueToken({ email: previousAccountEmail });
+                const token = res?.data?.customToken;
+                if (token) {
+                  await signInWithCustomToken(auth, token);
+                }
+              }
+            } catch (switchBackError) {
+              console.warn(
+                "No se pudo volver a la cuenta anterior automáticamente:",
+                switchBackError
+              );
+            } finally {
+              setIsSwitching(false);
+            }
+
+            // Limpiar los valores de localStorage y notificar
             localStorage.removeItem("pcu_adding_account_from");
             localStorage.removeItem("pcu_adding_account_email");
-            
             notify("Cuenta agregada exitosamente", "success");
           }
         } catch (saveError) {
-          console.error("Error guardando cuenta en cuenta anterior:", saveError);
+          console.error(
+            "Error guardando cuenta en cuenta anterior:",
+            saveError
+          );
           // Limpiar de todas formas
           localStorage.removeItem("pcu_adding_account_from");
           localStorage.removeItem("pcu_adding_account_email");
@@ -255,7 +341,8 @@ export function MultiAccountProvider({ children }) {
           const accountToSave = {
             uid: account.uid,
             email: account.email,
-            displayName: account.displayName || account.email?.split("@")[0] || "Usuario",
+            displayName:
+              account.displayName || account.email?.split("@")[0] || "Usuario",
             photoURL: account.photoURL || null,
             role: account.role || "user",
             lastActive: new Date().toISOString(),
@@ -306,7 +393,9 @@ export function MultiAccountProvider({ children }) {
             displayName:
               usuarioInfo?.displayName ||
               usuario?.displayName ||
-              (currentAccountEmail ? currentAccountEmail.split("@")[0] : "Usuario"),
+              (currentAccountEmail
+                ? currentAccountEmail.split("@")[0]
+                : "Usuario"),
             photoURL: usuarioInfo?.fotoURL || usuario?.photoURL || null,
             role: usuarioInfo?.role || "user",
             lastActive: new Date().toISOString(),
@@ -321,7 +410,9 @@ export function MultiAccountProvider({ children }) {
             "savedAccounts",
             currentAccountEmail || currentAccountUid
           );
-          await setDoc(previousAccountDocRef, previousAccountData, { merge: true });
+          await setDoc(previousAccountDocRef, previousAccountData, {
+            merge: true,
+          });
         } catch (saveError) {
           console.error("Error guardando cuenta anterior:", saveError);
           // Continuar aunque falle
@@ -331,10 +422,10 @@ export function MultiAccountProvider({ children }) {
       // Pequeño delay para que se vea el loader
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // 🎉 OCULTAR LOADER
+      //  OCULTAR LOADER
       setIsSwitching(false);
     } catch (e) {
-      console.error("❌ Error en switchAccount:", e);
+      console.error(" Error en switchAccount:", e);
       setIsSwitching(false);
       notify(
         "Error al cambiar de cuenta. Por favor intenta de nuevo.",

@@ -48,7 +48,7 @@ async function migrarProductos() {
     const productosRef = collection(db, "productos");
     const snapshot = await getDocs(productosRef);
 
-    console.log(`📦 Total de productos encontrados: ${snapshot.size}\n`);
+    console.log(` Total de productos encontrados: ${snapshot.size}\n`);
 
     let actualizados = 0;
     let yaConTienda = 0;
@@ -77,11 +77,11 @@ async function migrarProductos() {
         });
 
         actualizados++;
-        console.log(`✅ ${producto.nombre || docSnap.id} - Actualizado`);
+        console.log(` ${producto.nombre || docSnap.id} - Actualizado`);
       } catch (error) {
         errores++;
         console.error(
-          `❌ ${producto.nombre || docSnap.id} - Error:`,
+          ` ${producto.nombre || docSnap.id} - Error:`,
           error.message
         );
       }
@@ -91,10 +91,10 @@ async function migrarProductos() {
     console.log("\n" + "=".repeat(60));
     console.log("📊 RESUMEN DE MIGRACIÓN");
     console.log("=".repeat(60));
-    console.log(`✅ Productos actualizados: ${actualizados}`);
+    console.log(` Productos actualizados: ${actualizados}`);
     console.log(`⏭️  Productos que ya tenían tienda: ${yaConTienda}`);
-    console.log(`❌ Errores: ${errores}`);
-    console.log(`📦 Total procesado: ${snapshot.size}`);
+    console.log(` Errores: ${errores}`);
+    console.log(` Total procesado: ${snapshot.size}`);
     console.log("=".repeat(60) + "\n");
 
     console.log("✨ Migración completada!");

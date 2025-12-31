@@ -13,15 +13,15 @@
 
 /* TEMA OSCURO */
 html.dark-theme {
-  --bg-primary: #000000;
-  --bg-secondary: #000000;
-  --bg-tertiary: #1e293b;
+  --bg-primary: #0b1220;
+  --bg-secondary: #0f172a;
+  --bg-tertiary: #111c33;
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
   --border-color: #334155;
-  --card-bg: #1e293b;
-  --input-bg: #1e293b;
-  --hover-bg: #334155;
+  --card-bg: rgba(15, 23, 42, 0.72);
+  --input-bg: rgba(15, 23, 42, 0.6);
+  --hover-bg: rgba(51, 65, 85, 0.55);
 }
 
 /* Aplicar tema a elementos generales */
@@ -80,21 +80,9 @@ html.dark-theme textarea::placeholder {
   color: #9ca3af !important;
 }
 
-/* Botones */
-html.dark-theme
-  button:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(
-    .bg-blue-600
-  ) {
-  background-color: var(--bg-tertiary) !important;
-  color: var(--text-primary) !important;
-}
-
-html.dark-theme
-  button:hover:not(.bg-indigo-600):not(.bg-red-600):not(.bg-green-600):not(
-    .bg-blue-600
-  ) {
-  background-color: var(--hover-bg) !important;
-}
+/* Botones
+   IMPORTANTE: Evitar overrides globales con !important, porque pisan Tailwind
+   (por ejemplo bg-gradient-to-r) y terminan volviendo los botones negros en dark mode. */
 
 /* Hover effects */
 html.dark-theme .hover\:bg-gray-50:hover,
@@ -102,19 +90,9 @@ html.dark-theme .hover\:bg-gray-100:hover {
   background-color: var(--hover-bg) !important;
 }
 
-/* Gradientes de fondo */
-html.dark-theme .bg-gradient-to-br {
-  background: linear-gradient(
-    to bottom right,
-    #000000,
-    #000000,
-    #000000
-  ) !important;
-}
-
-html.dark-theme .bg-gradient-to-r {
-  background: linear-gradient(to right, #000000, #000000) !important;
-}
+/* IMPORTANTE: No sobreescribir utilidades de gradiente de Tailwind en modo oscuro.
+   Si se necesita un fondo global, debe aplicarse al contenedor (ej: ProfileRefactored.jsx),
+   no anulando clases como bg-gradient-to-r/bg-gradient-to-br. */
 
 /* Rings */
 html.dark-theme .ring-1,

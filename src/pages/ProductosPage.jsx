@@ -340,7 +340,7 @@ function ProductosPage() {
               className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-2 sm:border-4 flex items-center justify-center text-base sm:text-lg md:text-xl font-bold bg-gradient-to-br from-red-100 to-red-300 text-red-700 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
               title="Quitar filtro"
             >
-              ❌
+              
             </button>
           </div>
 

@@ -46,6 +46,11 @@ export default function SolicitudesVendedor() {
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [solicitudSinUserId, setSolicitudSinUserId] = useState(null);
 
+  // Modal para rechazo con motivo
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [solicitudARechazar, setSolicitudARechazar] = useState(null);
+
   // SOLO para admin (arisleidy0712@gmail.com)
   const isSuperAdmin = usuarioInfo?.email === "arisleidy0712@gmail.com";
 
@@ -124,10 +129,10 @@ export default function SolicitudesVendedor() {
         fechaRevision: new Date(),
         storeId: storeRef.id,
       });
-      console.log("✅ Solicitud marcada como aprobada");
+      console.log(" Solicitud marcada como aprobada");
 
       // 4. Enviar email de aprobación con Resend
-      console.log("📧 Paso 4/4: Enviando email con Resend...");
+      console.log(" Paso 4/4: Enviando email con Resend...");
       try {
         const sendStoreApprovedEmail = httpsCallable(
           functions,
@@ -139,7 +144,7 @@ export default function SolicitudesVendedor() {
           tiendaNombre: solicitud.tiendaNombre,
           storeId: storeRef.id,
         });
-        console.log("✅ Email de aprobación enviado exitosamente");
+        console.log(" Email de aprobación enviado exitosamente");
       } catch (emailError) {
         console.error("⚠️ Error al enviar email (no crítico):", emailError);
         // No fallar si el email no se pudo enviar
@@ -153,7 +158,7 @@ export default function SolicitudesVendedor() {
             solicitud.tiendaNombre,
             storeRef.id
           );
-          console.log("🔔 Notificación in-app creada");
+          console.log(" Notificación in-app creada");
         } catch (notifError) {
           console.error("⚠️ Error al crear notificación:", notifError);
         }
@@ -161,8 +166,8 @@ export default function SolicitudesVendedor() {
 
       // Mensaje detallado para el admin
       const mensaje = solicitud.userId
-        ? `✅ Tienda "${solicitud.tiendaNombre}" aprobada exitosamente!\n\n🎉 El vendedor ahora puede:\n✅ Ver su tienda en /tiendas\n✅ Acceder a su panel en /admin\n✅ Subir productos\n\n📧 Email enviado a: ${solicitud.email}\n🔔 Notificación enviada`
-        : `✅ Tienda "${solicitud.tiendaNombre}" CREADA!\n\n⚠️ NOTA: El solicitante NO estaba logueado.\n\n✅ La tienda es visible en /tiendas\n❌ Pero debes vincular manualmente al usuario\n\n📧 Email enviado a: ${solicitud.email}`;
+        ? ` Tienda "${solicitud.tiendaNombre}" aprobada exitosamente!\n\n El vendedor ahora puede:\n Ver su tienda en /tiendas\n Acceder a su panel en /admin\n Subir productos\n\n Email enviado a: ${solicitud.email}\n Notificación enviada`
+        : ` Tienda "${solicitud.tiendaNombre}" CREADA!\n\n⚠️ NOTA: El solicitante NO estaba logueado.\n\n La tienda es visible en /tiendas\n Pero debes vincular manualmente al usuario\n\n Email enviado a: ${solicitud.email}`;
 
       notify(mensaje, "success", "Solicitud aprobada");
     } catch (error) {
@@ -176,8 +181,31 @@ export default function SolicitudesVendedor() {
     }
   };
 
-  const rechazarSolicitud = async (solicitud, motivo = "") => {
-    const motivoRechazo = motivo || prompt("Motivo del rechazo (opcional):");
+  const openRejectModal = (sol) => {
+    setSolicitudARechazar(sol);
+    setRejectReason("");
+    setRejectModalOpen(true);
+  };
+
+  const confirmarRechazo = async () => {
+    if (!solicitudARechazar) return;
+    const motivo = rejectReason.trim();
+    if (!motivo) {
+      notify("Debes indicar el motivo del rechazo.", "error", "Falta motivo");
+      return;
+    }
+    await rechazarSolicitud(solicitudARechazar, motivo);
+    setRejectModalOpen(false);
+    setRejectReason("");
+    setSolicitudARechazar(null);
+  };
+
+  const rechazarSolicitud = async (solicitud, motivo) => {
+    const motivoRechazo = (motivo || "").trim();
+    if (!motivoRechazo) {
+      notify("Debes indicar el motivo del rechazo.", "error", "Falta motivo");
+      return;
+    }
 
     setProcesando(solicitud.id);
 
@@ -191,7 +219,7 @@ export default function SolicitudesVendedor() {
       });
 
       // 2. Enviar email de rechazo con Resend
-      console.log("📧 Enviando email de rechazo con Resend...");
+      console.log(" Enviando email de rechazo con Resend...");
       try {
         const sendStoreRejectedEmail = httpsCallable(
           functions,
@@ -203,7 +231,7 @@ export default function SolicitudesVendedor() {
           tiendaNombre: solicitud.tiendaNombre,
           motivo: motivoRechazo || "",
         });
-        console.log("✅ Email de rechazo enviado exitosamente");
+        console.log(" Email de rechazo enviado exitosamente");
       } catch (emailError) {
         console.error("⚠️ Error al enviar email (no crítico):", emailError);
       }
@@ -216,14 +244,14 @@ export default function SolicitudesVendedor() {
             solicitud.tiendaNombre,
             motivoRechazo
           );
-          console.log("🔔 Notificación in-app creada");
+          console.log(" Notificación in-app creada");
         } catch (notifError) {
           console.error("⚠️ Error al crear notificación:", notifError);
         }
       }
 
       notify(
-        `Solicitud rechazada.\n📧 Email enviado a: ${solicitud.email}`,
+        `Solicitud rechazada.\n Email enviado a: ${solicitud.email}`,
         "info",
         "Solicitud procesada"
       );
@@ -408,10 +436,10 @@ export default function SolicitudesVendedor() {
                       }`}
                     >
                       {solicitud.estado === "pendiente"
-                        ? "⏳ Pendiente"
+                        ? " Pendiente"
                         : solicitud.estado === "aprobada"
-                        ? "✅ Aprobada"
-                        : "❌ Rechazada"}
+                        ? " Aprobada"
+                        : " Rechazada"}
                     </span>
                   </div>
 
@@ -476,7 +504,7 @@ export default function SolicitudesVendedor() {
                       </button>
 
                       <button
-                        onClick={() => rechazarSolicitud(solicitud)}
+                        onClick={() => openRejectModal(solicitud)}
                         disabled={procesando === solicitud.id}
                         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -511,6 +539,68 @@ export default function SolicitudesVendedor() {
           ))
         )}
       </div>
+      {/* Modal de rechazo */}
+      <AnimatePresence>
+        {rejectModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setRejectModalOpen(false)}
+            />
+            <motion.div
+              className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl p-6"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <h3 className="text-lg font-bold text-gray-900">
+                Rechazar solicitud
+              </h3>
+              {solicitudARechazar && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Tienda: <strong>{solicitudARechazar.tiendaNombre}</strong>
+                </p>
+              )}
+              <label className="block text-sm font-medium text-gray-700 mt-4">
+                Motivo del rechazo
+              </label>
+              <textarea
+                className="mt-1 w-full border rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                rows={4}
+                placeholder="Escribe el motivo del rechazo..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              />
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    setRejectModalOpen(false);
+                    setRejectReason("");
+                    setSolicitudARechazar(null);
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700"
+                  onClick={confirmarRechazo}
+                  disabled={!!procesando}
+                >
+                  Confirmar rechazo
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

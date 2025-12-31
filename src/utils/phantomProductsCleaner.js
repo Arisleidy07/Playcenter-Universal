@@ -40,7 +40,7 @@ export const addPhantomProduct = (productId) => {
         url: window.location.href
       }));
       
-      // console.log(`✅ Producto ${productId} agregado a fantasmas. Total: ${phantoms.length}`);
+      // console.log(` Producto ${productId} agregado a fantasmas. Total: ${phantoms.length}`);
       return true;
     }
     return false;
@@ -68,7 +68,7 @@ export const removePhantomProduct = (productId) => {
         url: window.location.href
       }));
       
-      // console.log(`✅ Producto ${productId} removido de fantasmas. Total: ${filtered.length}`);
+      // console.log(` Producto ${productId} removido de fantasmas. Total: ${filtered.length}`);
       return true;
     }
     return false;
@@ -95,7 +95,7 @@ export const clearAllPhantomProducts = () => {
       url: window.location.href
     }));
     
-    // console.log(`✅ ${count} productos fantasma limpiados`);
+    // console.log(` ${count} productos fantasma limpiados`);
     return count;
   } catch (error) {
     // console.error('Error al limpiar productos fantasma:', error);
@@ -141,7 +141,7 @@ export const cleanupPhantomProducts = async () => {
       const exists = await verifyProductExists(productId);
       if (exists) {
         recovered.push(productId);
-        // console.log(`✅ Producto ${productId} recuperado (ya no es fantasma)`);
+        // console.log(` Producto ${productId} recuperado (ya no es fantasma)`);
       } else {
         stillPhantoms.push(productId);
       }
@@ -157,7 +157,7 @@ export const cleanupPhantomProducts = async () => {
       url: window.location.href
     }));
     
-    // console.log(`🎉 Limpieza completada: ${recovered.length} recuperados, ${stillPhantoms.length} siguen siendo fantasmas`);
+    // console.log(` Limpieza completada: ${recovered.length} recuperados, ${stillPhantoms.length} siguen siendo fantasmas`);
     
     return {
       total: phantoms.length,
@@ -210,7 +210,7 @@ export const addPhantomCategory = (categoryId) => {
         url: window.location.href
       }));
       
-      // console.log(`✅ Categoría ${categoryId} agregada a fantasmas. Total: ${phantoms.length}`);
+      // console.log(` Categoría ${categoryId} agregada a fantasmas. Total: ${phantoms.length}`);
       return true;
     }
     return false;
@@ -238,7 +238,7 @@ export const removePhantomCategory = (categoryId) => {
         url: window.location.href
       }));
       
-      // console.log(`✅ Categoría ${categoryId} removida de fantasmas. Total: ${filtered.length}`);
+      // console.log(` Categoría ${categoryId} removida de fantasmas. Total: ${filtered.length}`);
       return true;
     }
     return false;
@@ -265,7 +265,7 @@ export const clearAllPhantomCategories = () => {
       url: window.location.href
     }));
     
-    // console.log(`✅ ${count} categorías fantasma limpiadas`);
+    // console.log(` ${count} categorías fantasma limpiadas`);
     return count;
   } catch (error) {
     // console.error('Error al limpiar categorías fantasma:', error);
@@ -310,7 +310,7 @@ export const cleanupPhantomCategories = async () => {
       const exists = await verifyCategoryExists(categoryId);
       if (exists) {
         recovered.push(categoryId);
-        // console.log(`✅ Categoría ${categoryId} recuperada (ya no es fantasma)`);
+        // console.log(` Categoría ${categoryId} recuperada (ya no es fantasma)`);
       } else {
         stillPhantoms.push(categoryId);
       }
@@ -326,7 +326,7 @@ export const cleanupPhantomCategories = async () => {
       url: window.location.href
     }));
     
-    // console.log(`🎉 Limpieza completada: ${recovered.length} recuperadas, ${stillPhantoms.length} siguen siendo fantasmas`);
+    // console.log(` Limpieza completada: ${recovered.length} recuperadas, ${stillPhantoms.length} siguen siendo fantasmas`);
     
     return {
       total: phantoms.length,

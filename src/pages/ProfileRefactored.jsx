@@ -24,6 +24,7 @@ import { notify } from "../utils/notificationBus";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuthModal } from "../context/AuthModalContext";
+import "../styles/Profile.css";
 import {
   User,
   ShoppingBag,
@@ -64,7 +65,8 @@ import OrderDetailsSheet from "../components/profile/OrderDetailsSheet";
 import FollowersModal from "../components/FollowersModal";
 
 export default function Profile() {
-  const { usuario, usuarioInfo, logout, actualizarUsuarioInfo, subirImagen } = useAuth();
+  const { usuario, usuarioInfo, logout, actualizarUsuarioInfo, subirImagen } =
+    useAuth();
   const navigate = useNavigate();
   const { abrirModal } = useAuthModal();
 
@@ -80,12 +82,30 @@ export default function Profile() {
   const [direccionEditar, setDireccionEditar] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [postVerifyAction, setPostVerifyAction] = useState(null);
+  const [verificationContext, setVerificationContext] = useState(null);
+
+  const hasValidSecuritySession = () => {
+    try {
+      const uid = usuario?.uid;
+      if (!uid) return false;
+      const raw = localStorage.getItem(`security_verified_${uid}`);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      const ts = parsed?.timestamp;
+      if (!ts) return false;
+      const twoHours = 2 * 60 * 60 * 1000;
+      return Date.now() - ts < twoHours;
+    } catch (_) {
+      return false;
+    }
+  };
 
   // Estados para modales de seguidores/seguidos
   const [followersModalOpen, setFollowersModalOpen] = useState(false);
   const [followersModalType, setFollowersModalType] = useState("seguidores");
-  
-  // Estado para el menú de cambio de cuentas
+
+  // Estado para el menú de cambio de cuentas (dropdown como antes)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const { switchAccount, savedAccounts } = useMultiAccount();
 
@@ -97,16 +117,13 @@ export default function Profile() {
     navigate("/");
   };
 
-  // Manejar cambio de cuenta
-  const handleSwitchAccount = (account) => {
-    setAccountMenuOpen(false);
-    switchAccount(account);
-  };
+  // (El cambio de cuenta se maneja desde AccountMenu con cierre del dropdown)
 
-  // Manejar agregar cuenta
+  // Manejar agregar cuenta (flujo anterior: abrir AuthModal)
   const handleAddAccount = () => {
     setAccountMenuOpen(false);
-    // Guardar el UID de la cuenta actual para guardar la nueva cuenta en su lista
+    // Guardar el UID/email actual para que, al iniciar sesión con otra cuenta,
+    // se guarde en la lista de la cuenta actual
     if (usuario?.uid) {
       try {
         localStorage.setItem("pcu_adding_account_from", usuario.uid);
@@ -131,7 +148,134 @@ export default function Profile() {
   const [store, setStore] = useState(null);
   const [storeId, setStoreId] = useState(null);
 
+  // Cache y utilidades para resolver imágenes de productos en detalles del pedido
+  const detailImageCacheRef = React.useRef({}); // id -> url
+  const pickUrl = (u) => {
+    try {
+      if (!u) return "";
+      if (typeof u === "string") return u;
+      if (typeof u === "object") return u.url || u.src || "";
+      return String(u || "");
+    } catch {
+      return "";
+    }
+  };
+  const firstImageFromMedia = (arr) => {
+    const list = Array.isArray(arr) ? arr : [];
+    for (const m of list) {
+      const t = String(m?.type || "").toLowerCase();
+      const url = pickUrl(m);
+      if (url && (!t || t.includes("image") || t === "img" || t === "photo")) {
+        return url;
+      }
+    }
+    return "";
+  };
+  const resolveProductImageFromDoc = (data) => {
+    if (!data || typeof data !== "object") return "";
+    return (
+      pickUrl(Array.isArray(data.imagenPrincipal) && data.imagenPrincipal[0]) ||
+      pickUrl(data.imagen) ||
+      firstImageFromMedia(data.media) ||
+      pickUrl(Array.isArray(data.galeriaImagenes) && data.galeriaImagenes[0]) ||
+      pickUrl(Array.isArray(data.imagenes) && data.imagenes[0]) ||
+      (() => {
+        const vars = Array.isArray(data.variantes) ? data.variantes : [];
+        for (const v of vars) {
+          const url =
+            pickUrl(
+              Array.isArray(v?.imagenPrincipal) && v.imagenPrincipal[0]
+            ) ||
+            pickUrl(v?.imagen) ||
+            firstImageFromMedia(v?.media);
+          if (url) return url;
+        }
+        return "";
+      })()
+    );
+  };
+  const resolveImageFromOrderItem = (p) => {
+    if (!p) return "";
+    return (
+      pickUrl(Array.isArray(p?.imagenPrincipal) && p.imagenPrincipal[0]) ||
+      pickUrl(p?.imagen) ||
+      firstImageFromMedia(p?.media) ||
+      pickUrl(Array.isArray(p?.galeriaImagenes) && p.galeriaImagenes[0]) ||
+      pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
+      ""
+    );
+  };
+  const getPid = (p) =>
+    p?.id ||
+    p?.productId ||
+    p?.productoId ||
+    p?.pid ||
+    p?.productID ||
+    p?.product_id;
+
+  const prepareOrderForDetails = async (ord) => {
+    try {
+      const productos = Array.isArray(ord?.productos) ? ord.productos : [];
+      const missing = [];
+      productos.forEach((p) => {
+        const pid = getPid(p);
+        const fromOrder = resolveImageFromOrderItem(p);
+        if (pid && !fromOrder && !detailImageCacheRef.current[pid]) {
+          missing.push(pid);
+        }
+      });
+
+      // Fetch en serie para simplicidad (listas pequeñas)
+      for (const id of missing) {
+        try {
+          const snap = await getDoc(doc(db, "productos", id));
+          if (snap.exists()) {
+            const url = resolveProductImageFromDoc(snap.data());
+            if (url) detailImageCacheRef.current[id] = url;
+          }
+        } catch (_) {}
+      }
+
+      const enhanced = {
+        ...ord,
+        productos: productos.map((p) => {
+          const pid = getPid(p);
+          const fromOrder = resolveImageFromOrderItem(p);
+          const url =
+            fromOrder ||
+            (pid && detailImageCacheRef.current[pid]) ||
+            "/Copia de play.png";
+          return { ...p, imagen: url };
+        }),
+      };
+      return enhanced;
+    } catch (_) {
+      return ord;
+    }
+  };
+
+  // Evitar scroll del fondo cuando el modal de pedido está abierto
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    if (orderSheetOpen) document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [orderSheetOpen]);
+
   // Menú principal tipo Amazon (nivel 1)
+  // Mapa de iconos personalizados (desde /public/logos/perfil)
+  const profileIconMap = {
+    perfil: "/logos/perfil/1.jpg",
+    pedidos: "/logos/perfil/2.jpg",
+    ubicaciones: "/logos/perfil/3.jpg",
+    pagos: "/logos/perfil/4.jpg",
+    soporte: "/logos/perfil/5.jpg",
+    tiendas: "/logos/perfil/6.jpg",
+    seguridad: "/logos/perfil/7.jpg",
+    configuracion: "/logos/perfil/8.jpg",
+  };
+
   const mainMenuItems = [
     {
       id: "perfil",
@@ -511,15 +655,53 @@ export default function Profile() {
 
   // Colores modernos y profesionales - Estilo limpio y elegante
   const getCardColors = (id) => {
-    // Estilo moderno: fondos limpios, colores sobrios, acentos sutiles
+    const base = {
+      bg: "bg-gradient-to-br from-white to-slate-50/60 dark:from-slate-900 dark:to-slate-900",
+      border: "border-slate-200/80 dark:border-slate-700/80",
+      hoverBg:
+        "hover:from-white hover:to-slate-50 dark:hover:from-slate-900 dark:hover:to-slate-800/60",
+      hoverBorder: "hover:border-slate-300/90 dark:hover:border-slate-600/90",
+      shadow: "shadow-sm hover:shadow-lg",
+    };
+
+    const accents = {
+      perfil: {
+        iconBg: "bg-blue-50 dark:bg-blue-500/10",
+        iconColor: "text-blue-700 dark:text-blue-300",
+      },
+      pedidos: {
+        iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
+        iconColor: "text-emerald-700 dark:text-emerald-300",
+      },
+      ubicaciones: {
+        iconBg: "bg-indigo-50 dark:bg-indigo-500/10",
+        iconColor: "text-indigo-700 dark:text-indigo-300",
+      },
+      pagos: {
+        iconBg: "bg-violet-50 dark:bg-violet-500/10",
+        iconColor: "text-violet-700 dark:text-violet-300",
+      },
+      soporte: {
+        iconBg: "bg-sky-50 dark:bg-sky-500/10",
+        iconColor: "text-sky-700 dark:text-sky-300",
+      },
+      tiendas: {
+        iconBg: "bg-amber-50 dark:bg-amber-500/10",
+        iconColor: "text-amber-700 dark:text-amber-300",
+      },
+      seguridad: {
+        iconBg: "bg-rose-50 dark:bg-rose-500/10",
+        iconColor: "text-rose-700 dark:text-rose-300",
+      },
+      configuracion: {
+        iconBg: "bg-slate-100 dark:bg-slate-800",
+        iconColor: "text-slate-700 dark:text-slate-300",
+      },
+    };
+
     return {
-      bg: "bg-white dark:bg-slate-900",
-      iconBg: "bg-slate-100 dark:bg-slate-800",
-      iconColor: "text-slate-700 dark:text-slate-300",
-      border: "border-slate-200 dark:border-slate-700",
-      hoverBg: "hover:bg-slate-50 dark:hover:bg-slate-800/80",
-      hoverBorder: "hover:border-slate-300 dark:hover:border-slate-600",
-      shadow: "shadow-sm hover:shadow-md",
+      ...base,
+      ...(accents[id] || accents.configuracion),
     };
   };
 
@@ -535,8 +717,8 @@ export default function Profile() {
         return (
           <div className="w-full">
             {/* Título flotante y botón de cambiar cuenta - Solo en desktop */}
-            <div className="hidden lg:block max-w-7xl mx-auto px-6 xl:px-8 pt-4 pb-2">
-              <div className="flex items-center justify-between mb-3">
+            <div className="hidden lg:block max-w-7xl mx-auto px-6 xl:px-8 pt-2 pb-0">
+              <div className="flex items-center justify-between mb-2">
                 {/* Título flotante */}
                 <div className="flex items-center gap-3">
                   {activeView !== "menu" && (
@@ -545,12 +727,24 @@ export default function Profile() {
                       className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                       aria-label="Volver al menú"
                     >
-                      <ArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
+                      <ArrowLeft
+                        size={20}
+                        className="text-slate-700 dark:text-slate-300"
+                      />
                     </button>
                   )}
-                  <h1 className="text-xl xl:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    {activeView === "menu" ? "Mi Cuenta" : 
-                     mainMenuItems.find(item => item.id === activeView)?.title || "Mi Cuenta"}
+                  <h1 className="text-xl xl:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                    {activeView !== "menu" && (
+                      <img
+                        src={profileIconMap[activeView]}
+                        alt=""
+                        className="w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full object-cover"
+                      />
+                    )}
+                    {activeView === "menu"
+                      ? "Mi Cuenta"
+                      : mainMenuItems.find((item) => item.id === activeView)
+                          ?.title || "Mi Cuenta"}
                   </h1>
                 </div>
 
@@ -565,55 +759,73 @@ export default function Profile() {
                     <div className="flex-shrink-0">
                       {(() => {
                         // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
-                        const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
-                          ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
-                          : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
-                        
+                        const fotoURL = usuarioInfo?.hasOwnProperty("fotoURL")
+                          ? usuarioInfo.fotoURL && usuarioInfo.fotoURL !== ""
+                            ? usuarioInfo.fotoURL
+                            : null
+                          : usuario?.photoURL && usuario.photoURL !== ""
+                          ? usuario.photoURL
+                          : null;
+
                         return fotoURL ? (
                           <img
                             src={fotoURL}
                             className="w-8 h-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-600 shadow-sm"
                             alt="Usuario"
                             onError={(e) => {
-                              e.target.style.display = 'none';
+                              e.target.style.display = "none";
                               if (e.target.nextSibling) {
-                                e.target.nextSibling.style.display = 'flex';
+                                e.target.nextSibling.style.display = "flex";
                               }
                             }}
                           />
                         ) : null;
                       })()}
-                      <div 
+                      <div
                         className={`w-8 h-8 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-sm font-semibold border-2 border-slate-200 dark:border-slate-600 shadow-sm ${(() => {
-                          const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
-                            ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
-                            : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
-                          return fotoURL ? 'hidden' : 'flex';
+                          const fotoURL = usuarioInfo?.hasOwnProperty("fotoURL")
+                            ? usuarioInfo.fotoURL && usuarioInfo.fotoURL !== ""
+                              ? usuarioInfo.fotoURL
+                              : null
+                            : usuario?.photoURL && usuario.photoURL !== ""
+                            ? usuario.photoURL
+                            : null;
+                          return fotoURL ? "hidden" : "flex";
                         })()}`}
                       >
-                        {((usuarioInfo?.displayName || usuario?.displayName || usuario?.email)?.charAt(0) || "U").toUpperCase()}
+                        {(
+                          (
+                            usuarioInfo?.displayName ||
+                            usuario?.displayName ||
+                            usuario?.email
+                          )?.charAt(0) || "U"
+                        ).toUpperCase()}
                       </div>
                     </div>
                     <span className="font-semibold">Cambiar cuenta</span>
-                    <ChevronDown 
-                      size={16} 
-                      className={`transition-transform duration-200 ${accountMenuOpen ? 'rotate-180' : ''} text-slate-500 dark:text-slate-400`} 
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform duration-200 ${
+                        accountMenuOpen ? "rotate-180" : ""
+                      } text-slate-500 dark:text-slate-400`}
                     />
                   </button>
-                  
-                  {/* Menú desplegable de cuentas */}
+                  {/* Menú desplegable de cuentas - Desktop */}
                   {accountMenuOpen && (
                     <>
-                      <div 
-                        className="fixed inset-0 z-40" 
+                      <div
+                        className="fixed inset-0 z-40"
                         onClick={() => setAccountMenuOpen(false)}
                       />
-                      <div className="absolute right-0 mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[80vh] overflow-y-auto backdrop-blur-sm">
+                      <div className="absolute right-0 mt-2 w-[380px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[80vh] overflow-y-auto backdrop-blur-sm">
                         <AccountMenu
                           currentUser={{
                             uid: usuario?.uid,
                             email: usuario?.email,
-                            displayName: usuarioInfo?.displayName || usuario?.displayName || 'Usuario',
+                            displayName:
+                              usuarioInfo?.displayName ||
+                              usuario?.displayName ||
+                              "Usuario",
                             photoURL: usuarioInfo?.fotoURL || usuario?.photoURL,
                           }}
                           onAddAccount={handleAddAccount}
@@ -632,76 +844,83 @@ export default function Profile() {
             </div>
 
             {/* Contenedor principal con padding responsive - COMPACTO */}
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 pt-1 pb-4 sm:pb-5 md:pb-6 lg:pb-8">
-              {/* Grid de tarjetas - EXACTAMENTE 3 columnas en desktop */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 pt-0 pb-4 sm:pb-5 md:pb-6 lg:pb-8">
+              {/* Grid de tarjetas - 1 col móvil, 2 col tablet, 3 col desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
                 {mainMenuItems.map((item, index) => {
-                  const Icon = item.icon;
+                  const iconSrc = profileIconMap[item.id];
                   const colors = getCardColors(item.id);
-                  
+
                   return (
                     <motion.div
                       key={item.id}
-                      className={`group relative ${colors.bg} ${colors.border} rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 text-left ${colors.hoverBg} ${colors.hoverBorder} ${colors.shadow} transition-all duration-200 cursor-pointer w-full overflow-hidden`}
+                      className={`group relative ${colors.bg} ${colors.border} rounded-2xl border p-4 sm:p-4 md:p-5 lg:p-7 text-left ${colors.hoverBg} ${colors.hoverBorder} ${colors.shadow} transition-all duration-200 cursor-pointer w-full`}
                       onClick={() => handleCardClick(item.id)}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.02, duration: 0.15 }}
-                      whileHover={{ y: -2, scale: 1.005 }}
+                      whileHover={{ y: -3, scale: 1.01 }}
                       whileTap={{ scale: 0.995 }}
                     >
-                      {/* Contenido de la tarjeta - Horizontal en móvil, vertical en desktop */}
-                      <div className="flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-0 w-full">
-                        {/* Icono con fondo circular - ESTILO MODERNO */}
-                        <div className={`flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center transition-all duration-200 ${colors.iconBg} group-hover:scale-105 sm:mb-3 shadow-sm`}>
-                          <Icon 
-                            size={18}
-                            className={`sm:w-5 sm:h-5 ${colors.iconColor} transition-transform duration-200`}
+                      {/* Horizontal en móvil/tablet, vertical solo en desktop */}
+                      <div className="flex flex-row lg:flex-col items-center lg:items-start gap-3 lg:gap-0 w-full">
+                        <div
+                          className={`flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center overflow-hidden transition-all duration-200 ${colors.iconBg} group-hover:scale-[1.06] lg:mb-4 shadow-sm ring-1 ring-black/5 dark:ring-white/5`}
+                        >
+                          <img
+                            src={iconSrc}
+                            alt=""
+                            className="w-full h-full object-cover"
                           />
                         </div>
-                        
-                        {/* Contenido de texto - CON OVERFLOW ESTRICTO */}
-                        <div className="flex-1 min-w-0 w-full sm:w-auto" style={{ overflow: 'hidden', maxWidth: '100%', width: '100%' }}>
-                          {/* Título - CON CONTROL ESTRICTO - TIPOGRAFÍA MODERNA */}
-                          <h3 
-                            className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mb-1 sm:mb-1.5 leading-tight tracking-tight"
-                            style={{ 
-                              wordBreak: 'break-word', 
-                              overflowWrap: 'break-word',
-                              overflow: 'hidden',
-                              display: '-webkit-box',
+
+                        <div
+                          className="flex-1 min-w-0 w-full"
+                          style={{
+                            overflow: "hidden",
+                            maxWidth: "100%",
+                            width: "100%",
+                          }}
+                        >
+                          <h3
+                            className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white mb-1 leading-tight tracking-tight"
+                            style={{
+                              wordBreak: "break-word",
+                              overflowWrap: "break-word",
+                              overflow: "hidden",
+                              display: "-webkit-box",
                               WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              maxWidth: '100%',
-                              width: '100%'
+                              WebkitBoxOrient: "vertical",
+                              maxWidth: "100%",
+                              width: "100%",
                             }}
                             title={item.title}
                           >
                             {item.title}
                           </h3>
-                          
-                          {/* Descripción - CON CONTROL ESTRICTO - TIPOGRAFÍA MODERNA */}
-                          <p 
-                            className="hidden sm:block text-xs text-slate-600 dark:text-slate-400 leading-relaxed"
-                            style={{ 
-                              wordBreak: 'break-word', 
-                              overflowWrap: 'break-word',
-                              overflow: 'hidden',
-                              display: '-webkit-box',
+                          <p
+                            className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed"
+                            style={{
+                              wordBreak: "break-word",
+                              overflowWrap: "break-word",
+                              overflow: "hidden",
+                              display: "-webkit-box",
                               WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              maxWidth: '100%',
-                              width: '100%'
+                              WebkitBoxOrient: "vertical",
+                              maxWidth: "100%",
+                              width: "100%",
                             }}
                             title={item.description}
                           >
                             {item.description}
                           </p>
                         </div>
-                        
-                        {/* Flecha indicadora - Solo en móvil - ESTILO MODERNO */}
-                        <div className="flex-shrink-0 sm:hidden">
-                          <ArrowRight size={16} className="text-blue-600 dark:text-blue-400 transition-transform group-hover:translate-x-1" />
+
+                        <div className="flex-shrink-0 lg:hidden">
+                          <ArrowRight
+                            size={16}
+                            className="text-blue-600 dark:text-blue-400 transition-transform group-hover:translate-x-1"
+                          />
                         </div>
                       </div>
                     </motion.div>
@@ -711,14 +930,17 @@ export default function Profile() {
             </div>
           </div>
         );
-      
+
       case "perfil":
         return (
           <OverviewView
             user={usuario}
             info={usuarioInfo}
             stats={stats}
-            onEdit={() => setEditModalOpen(true)}
+            onEdit={() => {
+              // Abrir el modal de edición directamente; no forzar verificación aquí
+              setEditModalOpen(true);
+            }}
             onOpenFollowers={() => {
               setFollowersModalType("seguidores");
               setFollowersModalOpen(true);
@@ -729,19 +951,20 @@ export default function Profile() {
             }}
           />
         );
-      
+
       case "pedidos":
         return (
           <OrdersView
             orders={historial}
             loading={loadingOrders}
-            onOpenOrder={(order) => {
-              setSelectedOrder(order);
+            onOpenOrder={async (order) => {
+              const enhanced = await prepareOrderForDetails(order);
+              setSelectedOrder(enhanced);
               setOrderSheetOpen(true);
             }}
           />
         );
-      
+
       case "ubicaciones":
         return (
           <AddressesView
@@ -765,46 +988,74 @@ export default function Profile() {
                 notify.error("Error al eliminar la dirección");
               }
             }}
-            onSetDefault={async (addrId) => {
+            onSetDefault={async (selection) => {
               try {
-                const addr = direcciones.find((a) => a.id === addrId);
-                if (addr) {
-                  await actualizarUsuarioInfo({ direccionPrincipal: addr });
+                if (selection === "tienda") {
+                  await actualizarUsuarioInfo({ metodoEntrega: "tienda" });
                   setRefreshKey((k) => k + 1);
-                  notify.success("Dirección principal actualizada");
+                  notify.success("Dirección de tienda seleccionada");
+                } else {
+                  const addr = direcciones.find((a) => a.id === selection);
+                  if (addr) {
+                    await actualizarUsuarioInfo({
+                      metodoEntrega: "domicilio",
+                      direccionPrincipal: addr,
+                    });
+                    setRefreshKey((k) => k + 1);
+                    notify.success("Dirección principal actualizada");
+                  } else {
+                    notify.warning?.("Dirección no encontrada");
+                  }
                 }
               } catch (error) {
                 notify.error("Error al actualizar la dirección principal");
               }
             }}
-            defaultDireccion={usuarioInfo?.direccionPrincipal?.direccionCompleta || ""}
+            defaultDireccion={
+              usuarioInfo?.direccionPrincipal?.direccionCompleta || ""
+            }
             defaultMetodoEntrega={usuarioInfo?.metodoEntrega || ""}
           />
         );
-      
+
       case "pagos":
         return <PaymentsView />;
-      
+
       case "soporte":
         return <CustomerServiceView />;
-      
+
       case "tiendas":
         return (
-          <StoreView 
-            store={store} 
+          <StoreView
+            store={store}
             storeId={storeId}
             stats={stats}
             user={usuario}
             userInfo={usuarioInfo}
           />
         );
-      
+
       case "seguridad":
-        return <SecurityView />;
-      
+        return (
+          <SecurityView
+            onVerified={(ctx) => {
+              setVerificationContext(ctx || null);
+              if (postVerifyAction === "edit_profile") {
+                setActiveView("perfil");
+                setEditModalOpen(true);
+              }
+              setPostVerifyAction(null);
+            }}
+            onOpenEditProfile={() => {
+              setActiveView("perfil");
+              setEditModalOpen(true);
+            }}
+          />
+        );
+
       case "configuracion":
         return <SettingsView />;
-      
+
       default:
         return null;
     }
@@ -819,293 +1070,347 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-4 sm:pb-6 md:pb-8">
-      {/* Header flotante solo para móvil/tablet */}
-      <div className="lg:hidden sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-sm bg-white/95 dark:bg-slate-900/95">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4">
-          <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
-            {/* Título y botón volver */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              {activeView !== "menu" && (
-                <button
-                  onClick={() => setActiveView("menu")}
-                  className="flex-shrink-0 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95"
-                  aria-label="Volver al menú"
-                >
-                  <ArrowLeft size={20} className="text-slate-700 dark:text-slate-300" />
-                </button>
-              )}
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate tracking-tight">
-                {activeView === "menu" ? "Mi Cuenta" : 
-                 mainMenuItems.find(item => item.id === activeView)?.title || "Mi Cuenta"}
-              </h1>
-            </div>
+    <div className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-transparent">
+      <div className="pointer-events-none absolute inset-0 z-0 hidden dark:block">
+        <div className="absolute inset-0">
+          <div className="profile-animated-bg" />
+        </div>
+        <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-slate-950/18 dark:via-slate-950/8 dark:to-blue-950/18" />
+      </div>
 
-            {/* Botón de cambio de cuentas - CON ICONO DE USUARIO VISIBLE */}
-            <div className="relative flex-shrink-0">
-              <button
-                onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md"
-                aria-label="Cambiar cuenta"
-              >
-                {/* Icono/Avatar del usuario - SIEMPRE VISIBLE */}
-                <div className="flex-shrink-0">
-                  {(() => {
-                    // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
-                    const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
-                      ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
-                      : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
-                    
-                    return fotoURL ? (
-                      <img
-                        src={fotoURL}
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-600 shadow-sm"
-                        alt="Usuario"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          if (e.target.nextSibling) {
-                            e.target.nextSibling.style.display = 'flex';
-                          }
+      <div className="relative z-10 isolate pb-0">
+        {/* Header flotante solo para móvil/tablet */}
+        <div className="lg:hidden sticky top-0 z-40 bg-white/95 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-transparent shadow-sm dark:shadow-none backdrop-blur">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4">
+            <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
+              {/* Título y botón volver */}
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                {activeView !== "menu" && (
+                  <button
+                    onClick={() => setActiveView("menu")}
+                    className="flex-shrink-0 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95"
+                    aria-label="Volver al menú"
+                  >
+                    <ArrowLeft
+                      size={20}
+                      className="text-slate-700 dark:text-slate-300"
+                    />
+                  </button>
+                )}
+                {activeView === "menu" ? (
+                  <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate tracking-tight">
+                    Mi Cuenta
+                  </h1>
+                ) : null}
+              </div>
+
+              {/* Botón de cambio de cuentas - CON ICONO DE USUARIO VISIBLE */}
+              <div className="relative flex-shrink-0">
+                <button
+                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                  className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md"
+                  aria-label="Cambiar cuenta"
+                >
+                  {/* Icono/Avatar del usuario - SIEMPRE VISIBLE */}
+                  <div className="flex-shrink-0">
+                    {(() => {
+                      // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
+                      const fotoURL = usuarioInfo?.hasOwnProperty("fotoURL")
+                        ? usuarioInfo.fotoURL && usuarioInfo.fotoURL !== ""
+                          ? usuarioInfo.fotoURL
+                          : null
+                        : usuario?.photoURL && usuario.photoURL !== ""
+                        ? usuario.photoURL
+                        : null;
+
+                      return fotoURL ? (
+                        <img
+                          src={fotoURL}
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-600 shadow-sm"
+                          alt="Usuario"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            if (e.target.nextSibling) {
+                              e.target.nextSibling.style.display = "flex";
+                            }
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    <div
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-xs sm:text-sm font-semibold border-2 border-slate-200 dark:border-slate-600 shadow-sm ${(() => {
+                        const fotoURL = usuarioInfo?.hasOwnProperty("fotoURL")
+                          ? usuarioInfo.fotoURL && usuarioInfo.fotoURL !== ""
+                            ? usuarioInfo.fotoURL
+                            : null
+                          : usuario?.photoURL && usuario.photoURL !== ""
+                          ? usuario.photoURL
+                          : null;
+                        return fotoURL ? "hidden" : "flex";
+                      })()}`}
+                    >
+                      {(
+                        (
+                          usuarioInfo?.displayName ||
+                          usuario?.displayName ||
+                          usuario?.email
+                        )?.charAt(0) || "U"
+                      ).toUpperCase()}
+                    </div>
+                  </div>
+                  <span className="hidden sm:inline font-semibold">
+                    Cuentas
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`sm:w-4 sm:h-4 transition-transform duration-200 ${
+                      accountMenuOpen ? "rotate-180" : ""
+                    } text-slate-500 dark:text-slate-400`}
+                  />
+                </button>
+                {/* Menú desplegable de cuentas - Mobile */}
+                {accountMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setAccountMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-[360px] sm:w-[380px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto backdrop-blur-sm">
+                      <AccountMenu
+                        currentUser={{
+                          uid: usuario?.uid,
+                          email: usuario?.email,
+                          displayName:
+                            usuarioInfo?.displayName ||
+                            usuario?.displayName ||
+                            "Usuario",
+                          photoURL: usuarioInfo?.fotoURL || usuario?.photoURL,
+                        }}
+                        onAddAccount={handleAddAccount}
+                        onLogout={() => setShowLogoutConfirm(true)}
+                        onClose={() => setAccountMenuOpen(false)}
+                        onSwitchAccount={(switchFn) => {
+                          setAccountMenuOpen(false);
+                          setTimeout(switchFn, 50);
                         }}
                       />
-                    ) : null;
-                  })()}
-                      <div 
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-xs sm:text-sm font-semibold border-2 border-slate-200 dark:border-slate-600 shadow-sm ${(() => {
-                          const fotoURL = usuarioInfo?.hasOwnProperty('fotoURL') 
-                            ? (usuarioInfo.fotoURL && usuarioInfo.fotoURL !== "" ? usuarioInfo.fotoURL : null)
-                            : (usuario?.photoURL && usuario.photoURL !== "" ? usuario.photoURL : null);
-                          return fotoURL ? 'hidden' : 'flex';
-                        })()}`}
-                      >
-                        {((usuarioInfo?.displayName || usuario?.displayName || usuario?.email)?.charAt(0) || "U").toUpperCase()}
-                      </div>
-                </div>
-                <span className="hidden sm:inline font-semibold">Cuentas</span>
-                <ChevronDown 
-                  size={14} 
-                  className={`sm:w-4 sm:h-4 transition-transform duration-200 ${accountMenuOpen ? 'rotate-180' : ''} text-slate-500 dark:text-slate-400`} 
-                />
-              </button>
-              
-                  {/* Menú desplegable de cuentas */}
-                  {accountMenuOpen && (
-                    <>
-                      <div 
-                        className="fixed inset-0 z-40" 
-                        onClick={() => setAccountMenuOpen(false)}
-                      />
-                      <div className="absolute right-0 mt-2 w-[320px] sm:w-[380px] md:w-[420px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto backdrop-blur-sm">
-                    <AccountMenu
-                      currentUser={{
-                        uid: usuario?.uid,
-                        email: usuario?.email,
-                        displayName: usuarioInfo?.displayName || usuario?.displayName || 'Usuario',
-                        photoURL: usuarioInfo?.fotoURL || usuario?.photoURL,
-                      }}
-                      onAddAccount={handleAddAccount}
-                      onLogout={() => setShowLogoutConfirm(true)}
-                      onClose={() => setAccountMenuOpen(false)}
-                      onSwitchAccount={(switchFn) => {
-                        setAccountMenuOpen(false);
-                        setTimeout(switchFn, 50);
-                      }}
-                    />
-                  </div>
-                </>
-              )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Contenido principal - Más grande y responsive en desktop */}
-      <div className="w-full">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeView}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.15 }}
-            className="w-full"
-          >
-            {/* Contenedor responsive para todas las vistas - Solo para vistas que no son el menú */}
-            {activeView === "menu" ? (
-              renderView()
-            ) : (
-              <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 py-3 sm:py-4 md:py-5 lg:py-6">
-                {/* Botón volver - Solo en desktop (en móvil está en el header sticky) */}
-                <div className="hidden lg:block mb-3">
-                  <button
-                    onClick={() => setActiveView("menu")}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 active:scale-95"
-                    aria-label="Volver al menú"
-                  >
-                    <ArrowLeft size={18} className="text-slate-600 dark:text-slate-400" />
-                    <span>Volver</span>
-                  </button>
+        {/* Contenido principal - Más grande y responsive en desktop */}
+        <div className="w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeView}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.15 }}
+              className="w-full"
+            >
+              {/* Contenedor responsive para todas las vistas - Solo para vistas que no son el menú */}
+              {activeView === "menu" ? (
+                renderView()
+              ) : (
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 pt-0 pb-3 sm:pb-4 md:pb-5 lg:pb-6">
+                  {/* Botón volver - Solo en desktop (en móvil está en el header sticky) */}
+                  <div className="hidden lg:block mt-2 mb-4">
+                    <button
+                      onClick={() => setActiveView("menu")}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 active:scale-95"
+                      aria-label="Volver al menú"
+                    >
+                      <ArrowLeft
+                        size={18}
+                        className="text-slate-600 dark:text-slate-400"
+                      />
+                      <span>Volver</span>
+                    </button>
+                  </div>
+                  <div className="w-full max-w-full overflow-visible">
+                    {renderView()}
+                  </div>
                 </div>
-                <div className="w-full max-w-full overflow-hidden">
-                  {renderView()}
-                </div>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-      {/* Modales y componentes adicionales */}
-      <EditProfileModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        onOpenAddressModal={() => {
-          setModalEntregaOpen(true);
-        }}
-        onSave={async (data) => {
-          setSavingProfile(true);
-          try {
-            let fotoURL = usuarioInfo?.fotoURL || usuario?.photoURL || null;
-            let photoChanged = false;
-            
-            // Si hay una nueva foto, subirla primero
-            if (data.newPhoto) {
-              try {
-                fotoURL = await subirImagen(data.newPhoto);
-                photoChanged = true;
-                notify.success("Foto de perfil actualizada");
-              } catch (error) {
-                console.error("Error al subir imagen:", error);
-                notify.error("Error al subir la imagen. Intenta de nuevo.");
-                setSavingProfile(false);
-                return;
-              }
-            }
-            
-            // Si se solicita eliminar la foto
-            if (data.removePhoto) {
-              fotoURL = ""; // String vacío explícito
-              photoChanged = true;
-              try {
-                // Eliminar de Firebase Auth
-                await updateProfile(usuario, { photoURL: "" });
-                // Actualizar usuario local
-                setUsuario(auth.currentUser);
-                
-                // Intentar eliminar del storage si existe
+        {/* Modales y componentes adicionales */}
+        <EditProfileModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          verificationContext={verificationContext}
+          onOpenAddressModal={() => {
+            setModalEntregaOpen(true);
+          }}
+          onSave={async (data) => {
+            setSavingProfile(true);
+            try {
+              let fotoURL = usuarioInfo?.fotoURL || usuario?.photoURL || null;
+              let photoChanged = false;
+
+              // Si hay una nueva foto, subirla primero
+              if (data.newPhoto) {
                 try {
-                  const oldPhotoRef = ref(storage, `usuarios/${usuario.uid}/perfil.jpg`);
-                  await deleteObject(oldPhotoRef);
-                } catch (storageError) {
-                  // Si no existe en storage, no es un error crítico
-                  console.warn("Foto no encontrada en storage o ya eliminada");
+                  fotoURL = await subirImagen(data.newPhoto);
+                  photoChanged = true;
+                  notify.success("Foto de perfil actualizada");
+                } catch (error) {
+                  console.error("Error al subir imagen:", error);
+                  notify.error("Error al subir la imagen. Intenta de nuevo.");
+                  setSavingProfile(false);
+                  return;
                 }
-              } catch (error) {
-                console.warn("Error al eliminar foto:", error);
-                // Continuar aunque falle
               }
-            }
-            
-            // Actualizar información del usuario
-            const updateData = {
-              displayName: data.displayName || "",
-              telefono: data.telefono || "",
-              direccion: data.direccion || "",
-            };
-            
-            // CRÍTICO: Actualizar fotoURL si cambió (nueva foto o eliminación)
-            // Si se elimina, guardar string vacío explícitamente para que no se vuelva a cargar de Google
-            if (photoChanged) {
-              updateData.fotoURL = fotoURL === null ? "" : fotoURL;
-            }
-            
-            // Actualizar también displayName en Firebase Auth si cambió
-            if (data.displayName && data.displayName !== (usuario?.displayName || "")) {
-              try {
-                await updateProfile(usuario, { displayName: data.displayName });
-                setUsuario(auth.currentUser);
-              } catch (error) {
-                console.warn("Error al actualizar displayName en auth:", error);
+
+              // Si se solicita eliminar la foto
+              if (data.removePhoto) {
+                fotoURL = ""; // String vacío explícito
+                photoChanged = true;
+                try {
+                  // Eliminar de Firebase Auth
+                  await updateProfile(usuario, { photoURL: "" });
+                  // Actualizar usuario local
+                  setUsuario(auth.currentUser);
+
+                  // Intentar eliminar del storage si existe
+                  try {
+                    const oldPhotoRef = ref(
+                      storage,
+                      `usuarios/${usuario.uid}/perfil.jpg`
+                    );
+                    await deleteObject(oldPhotoRef);
+                  } catch (storageError) {
+                    // Si no existe en storage, no es un error crítico
+                    console.warn(
+                      "Foto no encontrada en storage o ya eliminada"
+                    );
+                  }
+                } catch (error) {
+                  console.warn("Error al eliminar foto:", error);
+                  // Continuar aunque falle
+                }
               }
+
+              // Actualizar información del usuario
+              const updateData = {
+                displayName: data.displayName || "",
+                telefono: data.telefono || "",
+                direccion: data.direccion || "",
+              };
+
+              // CRÍTICO: Actualizar fotoURL si cambió (nueva foto o eliminación)
+              // Si se elimina, guardar string vacío explícitamente para que no se vuelva a cargar de Google
+              if (photoChanged) {
+                updateData.fotoURL = fotoURL === null ? "" : fotoURL;
+              }
+
+              // Actualizar también displayName en Firebase Auth si cambió
+              if (
+                data.displayName &&
+                data.displayName !== (usuario?.displayName || "")
+              ) {
+                try {
+                  await updateProfile(usuario, {
+                    displayName: data.displayName,
+                  });
+                  setUsuario(auth.currentUser);
+                } catch (error) {
+                  console.warn(
+                    "Error al actualizar displayName en auth:",
+                    error
+                  );
+                }
+              }
+
+              // Guardar en Firestore
+              const updatedInfo = await actualizarUsuarioInfo(updateData);
+
+              // CRÍTICO: Forzar actualización del estado local para que el header se actualice inmediatamente
+              // El onSnapshot debería actualizar automáticamente, pero forzamos para asegurar sincronización
+              if (updatedInfo) {
+                // El estado ya se actualiza en actualizarUsuarioInfo, pero forzamos re-render
+                setRefreshKey((k) => k + 1);
+              }
+
+              setEditModalOpen(false);
+              notify.success("Perfil actualizado correctamente");
+            } catch (error) {
+              console.error("Error al actualizar el perfil:", error);
+              notify.error("Error al actualizar el perfil. Intenta de nuevo.");
+            } finally {
+              setSavingProfile(false);
             }
-            
-            // Guardar en Firestore
-            const updatedInfo = await actualizarUsuarioInfo(updateData);
-            
-            // CRÍTICO: Forzar actualización del estado local para que el header se actualice inmediatamente
-            // El onSnapshot debería actualizar automáticamente, pero forzamos para asegurar sincronización
-            if (updatedInfo) {
-              // El estado ya se actualiza en actualizarUsuarioInfo, pero forzamos re-render
-              setRefreshKey((k) => k + 1);
-            }
-            
-            setEditModalOpen(false);
-            notify.success("Perfil actualizado correctamente");
-          } catch (error) {
-            console.error("Error al actualizar el perfil:", error);
-            notify.error("Error al actualizar el perfil. Intenta de nuevo.");
-          } finally {
-            setSavingProfile(false);
-          }
-        }}
-        initialInfo={{
-          // CRÍTICO: Cargar TODOS los datos disponibles - nunca dejar vacío si existe
-          displayName: usuarioInfo?.displayName || usuario?.displayName || "",
-          nombre: usuarioInfo?.displayName || usuario?.displayName || "",
-          telefono: usuarioInfo?.telefono || "",
-          direccion: usuarioInfo?.direccion || usuarioInfo?.direccionCompleta || "",
-          direccionCompleta: usuarioInfo?.direccion || usuarioInfo?.direccionCompleta || "",
-          email: usuario?.email || usuarioInfo?.email || "",
-          // CRÍTICO: Priorizar fotoURL de Firestore (puede ser "" si se eliminó)
-          // Solo usar photoURL de Auth si fotoURL no existe en Firestore
-          fotoURL: usuarioInfo?.hasOwnProperty('fotoURL') 
-            ? usuarioInfo.fotoURL 
-            : (usuario?.photoURL || ""),
-          photoURL: usuario?.photoURL || "",
-        }}
-        key={`edit-modal-${usuarioInfo?.displayName || ''}-${usuarioInfo?.telefono || ''}-${usuarioInfo?.direccion || ''}`}
-        saving={savingProfile}
-      />
+          }}
+          initialInfo={{
+            // CRÍTICO: Cargar TODOS los datos disponibles - nunca dejar vacío si existe
+            displayName: usuarioInfo?.displayName || usuario?.displayName || "",
+            nombre: usuarioInfo?.displayName || usuario?.displayName || "",
+            telefono: usuarioInfo?.telefono || "",
+            direccion:
+              usuarioInfo?.direccion || usuarioInfo?.direccionCompleta || "",
+            direccionCompleta:
+              usuarioInfo?.direccion || usuarioInfo?.direccionCompleta || "",
+            email: usuario?.email || usuarioInfo?.email || "",
+            // CRÍTICO: Priorizar fotoURL de Firestore (puede ser "" si se eliminó)
+            // Solo usar photoURL de Auth si fotoURL no existe en Firestore
+            fotoURL: usuarioInfo?.hasOwnProperty("fotoURL")
+              ? usuarioInfo.fotoURL
+              : usuario?.photoURL || "",
+            photoURL: usuario?.photoURL || "",
+          }}
+          key={`edit-modal-${usuarioInfo?.displayName || ""}-${
+            usuarioInfo?.telefono || ""
+          }-${usuarioInfo?.direccion || ""}`}
+          saving={savingProfile}
+        />
 
-      <Entrega
-        abierto={modalEntregaOpen}
-        onClose={() => {
-          setModalEntregaOpen(false);
-          setDireccionEditar(null);
-        }}
-        direccionEditar={direccionEditar}
-        onSave={() => {
-          setModalEntregaOpen(false);
-          setDireccionEditar(null);
-          setRefreshKey((k) => k + 1);
-          // Forzar actualización del perfil después de cambiar dirección
-        }}
-        actualizarUsuarioInfo={actualizarUsuarioInfo}
-      />
+        <Entrega
+          abierto={modalEntregaOpen}
+          onClose={() => {
+            setModalEntregaOpen(false);
+            setDireccionEditar(null);
+          }}
+          direccionEditar={direccionEditar}
+          onSave={() => {
+            setModalEntregaOpen(false);
+            setDireccionEditar(null);
+            setRefreshKey((k) => k + 1);
+            // Forzar actualización del perfil después de cambiar dirección
+          }}
+          actualizarUsuarioInfo={actualizarUsuarioInfo}
+        />
 
-      <OrderDetailsSheet
-        isOpen={orderSheetOpen}
-        onClose={() => {
-          setOrderSheetOpen(false);
-          setSelectedOrder(null);
-        }}
-        order={selectedOrder}
-      />
+        <OrderDetailsSheet
+          isOpen={orderSheetOpen}
+          onClose={() => {
+            setOrderSheetOpen(false);
+            setSelectedOrder(null);
+          }}
+          order={selectedOrder}
+        />
 
-      <LogoutModal
-        isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={handleLogout}
-      />
+        <LogoutModal
+          isOpen={showLogoutConfirm}
+          onClose={() => setShowLogoutConfirm(false)}
+          onConfirm={handleLogout}
+        />
 
-      <FollowersModal
-        isOpen={followersModalOpen}
-        onClose={() => setFollowersModalOpen(false)}
-        userId={usuario?.uid}
-        type={followersModalType}
-      />
+        <FollowersModal
+          isOpen={followersModalOpen}
+          onClose={() => setFollowersModalOpen(false)}
+          userId={usuario?.uid}
+          type={followersModalType}
+        />
 
-      <Loader visible={loading} />
+        <Loader visible={loading} />
+      </div>
     </div>
   );
 }

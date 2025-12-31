@@ -46,6 +46,9 @@ import TarjetaProducto from "../components/TarjetaProducto";
 import { notify } from "../utils/notificationBus";
 import "../styles/CropModal.css";
 import "../styles/LoadingSpinner.css";
+import "../styles/Entrega.css";
+import "../styles/Spinners.css";
+import ReactDOM from "react-dom";
 
 export default function TiendaIndividual() {
   const { id } = useParams();
@@ -65,6 +68,7 @@ export default function TiendaIndividual() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showCategoryLoading, setShowCategoryLoading] = useState(false);
 
   // Estados para edición de tienda
   const [editData, setEditData] = useState({
@@ -175,6 +179,29 @@ export default function TiendaIndividual() {
     }
   }, [showEditModal, tienda]);
 
+  // Bloquear el scroll del body cuando el modal de edición está abierto
+  useEffect(() => {
+    if (!showEditModal) return;
+    const scrollY = window.scrollY;
+    const prev = {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+      overflow: document.body.style.overflow,
+    };
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.position = prev.position || "";
+      document.body.style.top = prev.top || "";
+      document.body.style.width = prev.width || "";
+      document.body.style.overflow = prev.overflow || "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [showEditModal]);
+
   // Cargar seguidores EN TIEMPO REAL y verificar si usuario sigue la tienda
   useEffect(() => {
     if (!id || !tiendaCollection) return;
@@ -224,61 +251,69 @@ export default function TiendaIndividual() {
 
   const fetchProductos = async () => {
     try {
-      // Buscar productos por storeId (campo correcto que usa ProductForm)
-      const qStoreId = query(
-        collection(db, "productos"),
-        where("storeId", "==", id),
-        where("activo", "==", true)
-      );
+      // Unir productos por todos los posibles campos de tienda
+      const consultas = [
+        query(collection(db, "productos"), where("storeId", "==", id)),
+        query(collection(db, "productos"), where("tiendaId", "==", id)),
+        query(collection(db, "productos"), where("tienda_id", "==", id)),
+      ];
 
-      const snapshotStoreId = await getDocs(qStoreId);
-      let productosData = snapshotStoreId.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      // Fallback adicional: productos asociados por el dueño de la tienda o nombre de tienda (compatibilidad legacy)
+      const ownerCandidates = [
+        tienda?.ownerUid,
+        tienda?.ownerId,
+        tienda?.owner_id,
+        tienda?.propietario_id,
+        tienda?.createdBy,
+      ].filter(Boolean);
 
-      // Si no hay productos con storeId, buscar por ownerUid (para tiendas nuevas)
-      if (productosData.length === 0 && tienda?.ownerId) {
-        const qOwner = query(
-          collection(db, "productos"),
-          where("ownerUid", "==", tienda.ownerId),
-          where("activo", "==", true)
+      ownerCandidates.forEach((owner) => {
+        consultas.push(
+          query(collection(db, "productos"), where("ownerUid", "==", owner))
         );
-        const snapshotOwner = await getDocs(qOwner);
-        productosData = snapshotOwner.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-      }
-
-      // Fallback: buscar por campo tiendaId
-      if (productosData.length === 0) {
-        const qTiendaId = query(
-          collection(db, "productos"),
-          where("tiendaId", "==", id),
-          where("activo", "==", true)
+        consultas.push(
+          query(collection(db, "productos"), where("ownerId", "==", owner))
         );
-        const snapshotTiendaId = await getDocs(qTiendaId);
-        productosData = snapshotTiendaId.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-      }
-
-      // Fallback: buscar por campo legacy tienda_id
-      if (productosData.length === 0) {
-        const qLegacy = query(
-          collection(db, "productos"),
-          where("tienda_id", "==", id),
-          where("activo", "==", true)
+        consultas.push(
+          query(collection(db, "productos"), where("owner_id", "==", owner))
         );
-        const snapshotLegacy = await getDocs(qLegacy);
-        productosData = snapshotLegacy.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-      }
+        consultas.push(
+          query(collection(db, "productos"), where("creadoPor", "==", owner))
+        );
+        consultas.push(
+          query(collection(db, "productos"), where("createdBy", "==", owner))
+        );
+      });
 
+      const nameCandidates = [
+        tienda?.nombre,
+        tienda?.name,
+        tienda?.storeName,
+        tienda?.tienda_nombre,
+      ].filter(Boolean);
+      nameCandidates.forEach((n) => {
+        consultas.push(
+          query(collection(db, "productos"), where("tienda_nombre", "==", n))
+        );
+        consultas.push(
+          query(collection(db, "productos"), where("storeName", "==", n))
+        );
+      });
+
+      const snaps = await Promise.all(consultas.map((q) => getDocs(q)));
+
+      const mapProductos = new Map();
+      snaps.forEach((snap) => {
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          // Incluir todos excepto los marcados explícitamente como inactivos
+          if (data?.activo !== false) {
+            mapProductos.set(d.id, { id: d.id, ...data });
+          }
+        });
+      });
+
+      const productosData = Array.from(mapProductos.values());
       setProductos(productosData);
 
       // Organizar productos por categoría
@@ -289,9 +324,7 @@ export default function TiendaIndividual() {
         const categoria = producto.categoria || "Sin categoría";
         categoriasUnicas.add(categoria);
 
-        if (!porCategoria[categoria]) {
-          porCategoria[categoria] = [];
-        }
+        if (!porCategoria[categoria]) porCategoria[categoria] = [];
         porCategoria[categoria].push(producto);
       });
 
@@ -304,6 +337,12 @@ export default function TiendaIndividual() {
     }
   };
 
+  // Re-cargar productos cuando se resuelva la tienda (owner) o cambie el id
+  useEffect(() => {
+    fetchProductos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, tienda?.ownerId, tienda?.ownerUid]);
+
   // Funciones para editar tienda
   const handleFileChange = async (e, type) => {
     const file = e.target.files[0];
@@ -314,31 +353,34 @@ export default function TiendaIndividual() {
         return;
       }
 
-      // SUBIR DIRECTAMENTE sin modal de crop
+      // PREVIEW INMEDIATO con URL local mientras sube
+      const previousUrl = editData[type];
+      const localUrl = URL.createObjectURL(file);
+      setEditData((prev) => ({ ...prev, [type]: localUrl }));
+      if (type === "banner") setBannerFile(file);
+      if (type === "logo") setLogoFile(file);
+
+      // Subir en segundo plano y actualizar en tiempo real al terminar
       setUploading(true);
       try {
-        // Subir imagen a Storage
         const imagePath = `tiendas/${id}/${type}-${Date.now()}`;
         const imageUrl = await uploadFile(file, imagePath);
 
-        // Actualizar en la colección correcta
         const tiendaRef = doc(db, tiendaCollection, id);
-        await updateDoc(tiendaRef, {
-          [type]: imageUrl,
-        });
+        await updateDoc(tiendaRef, { [type]: imageUrl });
 
-        // Mostrar notificación de éxito
+        // Actualizar preview a la URL final (por si el snapshot tarda)
+        setEditData((prev) => ({ ...prev, [type]: imageUrl }));
+
         notify(
           `${type === "banner" ? "Banner" : "Logo"} actualizado correctamente`,
           "success",
           "Actualizado"
         );
       } catch (error) {
-        // Mostrar error en la página, no en consola
         let mensajeError = `No se pudo actualizar el ${
           type === "banner" ? "banner" : "logo"
         }`;
-
         if (error.code === "not-found") {
           mensajeError = "La tienda no existe. Por favor recarga la página.";
         } else if (error.code === "permission-denied") {
@@ -346,10 +388,14 @@ export default function TiendaIndividual() {
         } else if (error.message) {
           mensajeError += ": " + error.message;
         }
-
+        // Revertir preview si falla
+        setEditData((prev) => ({ ...prev, [type]: previousUrl }));
         notify(mensajeError, "error", "Error");
       } finally {
         setUploading(false);
+        try {
+          URL.revokeObjectURL(localUrl);
+        } catch {}
       }
     }
   };
@@ -665,6 +711,165 @@ export default function TiendaIndividual() {
     return coincideBusqueda && coincideCategoria;
   });
 
+  // Mostrar animación de carga al cambiar categoría
+  // Helpers para pre-cargar imágenes y evitar "grid a la mitad"
+  const pickUrl = (u) => {
+    try {
+      if (!u) return "";
+      if (typeof u === "string") return u;
+      if (typeof u === "object" && u !== null) return u.url || "";
+      return String(u || "");
+    } catch {
+      return "";
+    }
+  };
+
+  const getProductImageUrl = (p) => {
+    const principalNueva = pickUrl(p?.imagenPrincipal?.[0]);
+    if (principalNueva) return principalNueva;
+    const principalLegacy = pickUrl(p?.imagen);
+    if (principalLegacy) return principalLegacy;
+    const imgsLegacy = Array.isArray(p?.imagenes) ? p.imagenes : [];
+    if (imgsLegacy.length > 0) return pickUrl(imgsLegacy[0]);
+    return null;
+  };
+
+  const preloadImages = (urls, timeoutMs = 1800) => {
+    return new Promise((resolve) => {
+      if (!urls || urls.length === 0) {
+        setTimeout(resolve, 250);
+        return;
+      }
+      let pending = urls.length;
+      let finished = false;
+      const finish = () => {
+        if (!finished) {
+          finished = true;
+          resolve();
+        }
+      };
+      const timer = setTimeout(finish, timeoutMs);
+      const onDone = () => {
+        pending -= 1;
+        if (pending <= 0) {
+          clearTimeout(timer);
+          finish();
+        }
+      };
+      urls.forEach((u) => {
+        try {
+          const img = new Image();
+          img.onload = onDone;
+          img.onerror = onDone;
+          img.src = u;
+        } catch {
+          onDone();
+        }
+      });
+    });
+  };
+
+  const handleCategoriaChange = useCallback(
+    async (value) => {
+      setCategoriaSeleccionada(value);
+      setShowCategoryLoading(true);
+
+      // Calcular productos para esa categoría y pre-cargar sus imágenes clave
+      const next = productos.filter((producto) => {
+        const coincideCategoria =
+          value === "todas" || producto.categoria === value;
+        const coincideBusquedaInternal =
+          producto.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+          producto.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
+        return coincideCategoria && coincideBusquedaInternal;
+      });
+      const urls = next.map((p) => getProductImageUrl(p)).filter(Boolean);
+
+      try {
+        await preloadImages(urls, 1800);
+      } finally {
+        // Pequeño colchón para evitar parpadeos
+        setTimeout(() => setShowCategoryLoading(false), 120);
+      }
+    },
+    [productos, busqueda]
+  );
+  const getLinkHref = (enlace) => {
+    if (enlace?.tipo === "whatsapp" || enlace?.tipo === "whatsapp2") {
+      const digits = String(enlace?.url || "").replace(/\D/g, "");
+      let href = digits ? `https://wa.me/${digits}` : `https://wa.me`;
+      if (enlace?.mensaje && String(enlace.mensaje).trim()) {
+        href += `?text=${encodeURIComponent(String(enlace.mensaje))}`;
+      }
+      return href;
+    } else if (enlace?.tipo === "email") {
+      return `mailto:${enlace?.url || ""}`;
+    } else if (enlace?.tipo === "telegram") {
+      return `https://t.me/${String(enlace?.url || "").replace("@", "")}`;
+    }
+    return enlace?.url || "#";
+  };
+
+  const getLinkText = (enlace) => {
+    if (enlace?.titulo && enlace.titulo.trim()) return enlace.titulo;
+    if (enlace?.etiqueta && enlace.etiqueta.trim()) return enlace.etiqueta;
+    if (enlace?.tipo === "whatsapp" || enlace?.tipo === "whatsapp2")
+      return "WhatsApp";
+    if (enlace?.url)
+      return enlace.url.replace(/^https?:\/\//, "").substring(0, 50);
+    return "Enlace";
+  };
+
+  const LinkIcon = ({ tipo }) => {
+    switch (tipo) {
+      case "whatsapp":
+      case "whatsapp2":
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884" />
+          </svg>
+        );
+      case "youtube":
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+          </svg>
+        );
+      case "facebook":
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          </svg>
+        );
+      case "instagram":
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.61-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z" />
+          </svg>
+        );
+      case "tiktok":
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+          </svg>
+        );
+      case "twitter":
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+        );
+      case "telegram":
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+          </svg>
+        );
+      default:
+        return <Globe className="w-4 h-4" />;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center">
@@ -705,6 +910,65 @@ export default function TiendaIndividual() {
         paddingTop: "20px",
       }}
     >
+      <style>{`
+        /* Permite animar el ángulo del brillo que recorre el aro */
+        @property --sweep-angle { syntax: '<angle>'; initial-value: 20deg; inherits: false; }
+        @keyframes neonSweep { 0% { --sweep-angle: 20deg; } 50% { --sweep-angle: 200deg; } 100% { --sweep-angle: 380deg; } }
+        @keyframes neonPulse { 0%,100% { opacity: .55 } 50% { opacity: .92 } }
+        .neon-input-wrap, .neon-select-wrap { position: relative; border-radius: 9999px; }
+        /* Aro principal estático + brillo que recorre el borde (sheen) */
+        .neon-input-wrap::before, .neon-select-wrap::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 2.5px; /* grosor del aro */
+          background:
+            /* anillo base */
+            conic-gradient(from 0deg, #cf30aa 0%, #6a33ff 18%, #2563eb 55%, #6a33ff 82%, #cf30aa 100%),
+            /* brillo móvil muy fino */
+            conic-gradient(from var(--sweep-angle, 0deg), transparent 0%, rgba(255,255,255,.9) 1.2%, transparent 5%);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          z-index: 0;
+          pointer-events: none;
+          animation: neonSweep 7.2s linear infinite;
+          will-change: background;
+        }
+        /* Halo suave hacia afuera (pulso sutil, sin rotación del anillo) */
+        .neon-input-wrap::after, .neon-select-wrap::after {
+          content: "";
+          position: absolute;
+          inset: -14px; /* extiende el glow */
+          border-radius: inherit;
+          background:
+            radial-gradient(40% 90% at 0% 50%, rgba(207,48,170,.42), transparent 70%),
+            radial-gradient(40% 90% at 100% 50%, rgba(37,99,235,.42), transparent 70%);
+          filter: blur(22px);
+          z-index: 0;
+          pointer-events: none;
+          animation: neonPulse 2.4s ease-in-out infinite;
+          will-change: filter, opacity;
+        }
+        /* Enfasis al interactuar */
+        .neon-input-wrap:focus-within::before,
+        .neon-input-wrap:hover::before,
+        .neon-select-wrap:focus-within::before,
+        .neon-select-wrap:hover::before { padding: 3px; filter: saturate(1.15); animation-duration: 5.4s; }
+        .neon-input-wrap:focus-within::after,
+        .neon-input-wrap:hover::after,
+        .neon-select-wrap:focus-within::after,
+        .neon-select-wrap:hover::after { filter: blur(26px) brightness(1.1); }
+        @media (prefers-reduced-motion: reduce) {
+          .neon-input-wrap::before, .neon-select-wrap::before { animation: none; }
+          .neon-input-wrap::after, .neon-select-wrap::after { animation: neonPulse 2.4s ease-in-out infinite; }
+        }
+        .neon-input-wrap > *, .neon-select-wrap > * { position: relative; z-index: 1; border-radius: inherit; }
+        @media (max-width: 768px) {
+          .neon-input-wrap::after, .neon-select-wrap::after { inset: -10px; filter: blur(18px); }
+        }
+      `}</style>
       {/* BANNER COMPLETO - Full Width ULTRA HORIZONTAL */}
       <div
         className="position-relative w-100 bg-light d-flex justify-content-center align-items-center overflow-hidden"
@@ -746,8 +1010,8 @@ export default function TiendaIndividual() {
         style={{ maxWidth: "1800px" }}
       >
         <div className="px-3 px-md-4 py-4">
-          {/* Logo + Info lado a lado */}
-          <div className="d-flex align-items-start gap-3 gap-lg-4">
+          {/* Logo + Info - responsive moderno */}
+          <div className="d-flex flex-column flex-lg-row align-items-center align-items-lg-start text-center text-lg-start gap-3 gap-lg-4 w-100">
             {/* Logo circular */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -808,6 +1072,47 @@ export default function TiendaIndividual() {
                 >
                   {tienda.descripcion}
                 </p>
+              )}
+
+              {/* Enlaces externos tipo Instagram - visibles afuera */}
+              {tienda.enlaces && tienda.enlaces.length > 0 && (
+                <div className="mb-3 mb-lg-4">
+                  <div
+                    className="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2"
+                    style={{ maxWidth: "52rem" }}
+                  >
+                    {tienda.enlaces.map((enlace, idx) => (
+                      <a
+                        key={idx}
+                        href={getLinkHref(enlace)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill text-decoration-none"
+                        style={{
+                          backgroundColor: isDark ? "#0f172a" : "#f3f4f6",
+                          color: isDark ? "#e5e7eb" : "#111827",
+                          border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                          boxShadow: isDark
+                            ? "inset 0 0 0 1px rgba(148,163,184,0.15)"
+                            : "0 1px 2px rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        <span
+                          className="text-primary d-flex"
+                          style={{ lineHeight: 0 }}
+                        >
+                          <LinkIcon tipo={enlace.tipo} />
+                        </span>
+                        <span
+                          className="fw-semibold"
+                          style={{ fontSize: "0.85rem" }}
+                        >
+                          {getLinkText(enlace)}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Botones SOLO en desktop */}
@@ -967,47 +1272,68 @@ export default function TiendaIndividual() {
           <div className="mb-4">
             {/* En Desktop: Todo en una línea horizontal */}
             <div className="d-none d-lg-flex align-items-center gap-3">
-              {/* Búsqueda fija horizontal */}
+              {/* Búsqueda fija horizontal con borde animado azul/rojo */}
               <div
-                className="position-relative flex-grow-1"
-                style={{ maxWidth: "28rem" }}
+                className="neon-input-wrap flex-grow-1"
+                style={{
+                  maxWidth: "28rem",
+                  borderRadius: "9999px",
+                  padding: "2px",
+                }}
               >
-                <Search
-                  className="position-absolute start-0 top-50 translate-middle-y text-muted ms-3"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  placeholder="Buscar productos..."
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  className="form-control form-control-lg rounded-pill ps-5 pe-5 shadow-sm border-2"
-                  style={{
-                    paddingLeft: "3rem",
-                    paddingRight: busqueda ? "3rem" : "1rem",
-                  }}
-                />
-                {busqueda && (
-                  <button
-                    onClick={() => setBusqueda("")}
-                    className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted me-2 p-1"
-                    style={{ border: "none" }}
-                  >
-                    <X size={16} />
-                  </button>
-                )}
+                <div className="position-relative">
+                  <Search
+                    className="position-absolute start-0 top-50 translate-middle-y text-muted ms-3"
+                    size={20}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Buscar productos..."
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    className="form-control form-control-lg rounded-pill ps-5 pe-5 shadow-sm border-2"
+                    style={{
+                      paddingLeft: "3rem",
+                      paddingRight: busqueda ? "3rem" : "1rem",
+                      border: "none",
+                      backgroundColor: "#0b0c14",
+                      color: "#e5e7eb",
+                    }}
+                  />
+                  {busqueda && (
+                    <button
+                      onClick={() => setBusqueda("")}
+                      aria-label="Limpiar búsqueda"
+                      className="position-absolute end-0 top-50 translate-middle-y d-flex align-items-center justify-content-center rounded-circle me-2"
+                      style={{
+                        width: "32px",
+                        height: "32px",
+                        backgroundColor: isDark ? "#111827" : "#e5e7eb",
+                        color: isDark ? "#9ca3af" : "#374151",
+                        border: "none",
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Categorías */}
               <motion.div
                 layout
-                className="d-flex align-items-center bg-white rounded-pill px-4 py-2 shadow-sm border"
+                className="neon-select-wrap d-flex align-items-center rounded-pill px-4 py-2 shadow-sm"
+                style={{ borderRadius: "9999px", padding: "2px" }}
               >
                 <select
                   value={categoriaSeleccionada}
-                  onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                  onChange={(e) => handleCategoriaChange(e.target.value)}
                   className="form-select border-0 bg-transparent fw-semibold"
-                  style={{ minWidth: "200px" }}
+                  style={{
+                    minWidth: "200px",
+                    backgroundColor: "#0b0c14",
+                    color: "#e5e7eb",
+                  }}
                 >
                   {categorias.map((categoria) => (
                     <option key={categoria} value={categoria}>
@@ -1043,40 +1369,70 @@ export default function TiendaIndividual() {
                 {busqueda && (
                   <button
                     onClick={() => setBusqueda("")}
-                    className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted me-1 p-1"
-                    style={{ border: "none" }}
+                    aria-label="Limpiar búsqueda"
+                    className="position-absolute end-0 top-50 translate-middle-y d-flex align-items-center justify-content-center rounded-circle me-1"
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      backgroundColor: isDark ? "#111827" : "#e5e7eb",
+                      color: isDark ? "#9ca3af" : "#374151",
+                      border: "none",
+                    }}
                   >
                     <X size={16} />
                   </button>
                 )}
               </div>
 
-              {/* Botón para abrir modal de categorías móvil */}
-              <button
-                onClick={() => setShowCategoryModal(true)}
-                className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-between w-100 rounded-2 shadow-sm"
-                style={{ fontSize: "0.875rem", padding: "0.5rem 0.75rem" }}
+              {/* Botón para abrir modal de categorías móvil con borde animado */}
+              <div
+                className="neon-select-wrap"
+                style={{ borderRadius: "12px", padding: "2px" }}
               >
-                <span className="fw-medium">
-                  {categoriaSeleccionada === "todas"
-                    ? "Todas"
-                    : categoriaSeleccionada}
-                </span>
-                <ChevronRight size={16} className="text-muted" />
-              </button>
+                <button
+                  onClick={() => setShowCategoryModal(true)}
+                  className="btn btn-sm d-flex align-items-center justify-content-between w-100 rounded-2 shadow-sm"
+                  style={{
+                    fontSize: "0.875rem",
+                    padding: "0.5rem 0.75rem",
+                    backgroundColor: "#0b0c14",
+                    color: "#e5e7eb",
+                    border: "none",
+                  }}
+                >
+                  <span className="fw-medium">
+                    {categoriaSeleccionada === "todas"
+                      ? "Todas"
+                      : categoriaSeleccionada}
+                  </span>
+                  <ChevronRight size={16} className="text-muted" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* PRODUCTOS DE ESTA TIENDA - Organizados por categorías como en Productos Page */}
-          {loadingProductos ? (
+          {loadingProductos || showCategoryLoading ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="d-flex justify-content-center align-items-center py-5"
             >
-              <div className="loading-state">
-                <div className="loading-spinner" />
-                <span>Cargando productos...</span>
+              <div className="d-flex flex-column align-items-center gap-2">
+                <div
+                  className="dot-spinner"
+                  style={{ "--uib-size": "2.5rem", "--uib-color": "#2563EB" }}
+                >
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                  <div className="dot-spinner__dot"></div>
+                </div>
+                <span className="spinner-text">Cargando productos...</span>
               </div>
             </motion.div>
           ) : productosFiltrados.length === 0 ? (
@@ -1097,8 +1453,8 @@ export default function TiendaIndividual() {
                 </div>
                 <h3 className="h2 fw-bold text-dark dark:text-white mb-3">
                   {busqueda || categoriaSeleccionada !== "todas"
-                    ? "🔍 No hay coincidencias"
-                    : "📦 Sin productos disponibles"}
+                    ? " No hay coincidencias"
+                    : " Sin productos disponibles"}
                 </h3>
                 <p className="text-muted dark:text-gray-400 fs-5 mb-4">
                   {busqueda || categoriaSeleccionada !== "todas"
@@ -1141,16 +1497,17 @@ export default function TiendaIndividual() {
       </div>
 
       {/* MODAL DE EDICIÓN DE TIENDA - PANTALLA COMPLETA SÓLIDA */}
-      {showEditModal && (
-        <div
-          className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column"
-          style={{
-            backgroundColor: "#ffffff",
-            opacity: 1,
-            zIndex: 9999,
-          }}
-        >
-          <style>{`
+      {showEditModal &&
+        ReactDOM.createPortal(
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column"
+            style={{
+              backgroundColor: "#ffffff",
+              opacity: 1,
+              zIndex: 2147483647,
+            }}
+          >
+            <style>{`
             .dark .modal-edit-tienda {
               background-color: #111827 !important;
             }
@@ -1158,271 +1515,182 @@ export default function TiendaIndividual() {
               background-color: #ffffff !important;
             }
           `}</style>
-          <div className="modal-edit-tienda w-100 h-100 d-flex flex-column">
-            {/* Header COMPACTO */}
-            <div
-              className="flex-shrink-0 bg-white border-bottom shadow-sm"
-              style={{ padding: "12px 24px" }}
-            >
+            <div className="modal-edit-tienda w-100 h-100 d-flex flex-column">
+              {/* Header COMPACTO */}
               <div
-                className="d-flex align-items-center justify-content-between"
-                style={{ maxWidth: "1200px", margin: "0 auto" }}
+                className="flex-shrink-0 bg-white border-bottom shadow-sm"
+                style={{ padding: "12px 24px" }}
               >
-                <div className="d-flex align-items-center gap-2">
-                  <Edit size={20} className="text-primary" />
-                  <h5
-                    className="mb-0 fw-bold"
+                <div
+                  className="d-flex align-items-center justify-content-between"
+                  style={{ maxWidth: "1200px", margin: "0 auto" }}
+                >
+                  <div className="d-flex align-items-center gap-2">
+                    <Edit size={20} className="text-primary" />
+                    <h5
+                      className="mb-0 fw-bold"
+                      style={{
+                        fontSize: "18px",
+                        fontFamily:
+                          "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                      }}
+                    >
+                      Editar Tienda
+                    </h5>
+                  </div>
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className="btn btn-sm btn-light rounded-circle p-2"
                     style={{
-                      fontSize: "18px",
-                      fontFamily:
-                        "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                      width: "32px",
+                      height: "32px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    Editar Tienda
-                  </h5>
+                    <X size={18} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="btn btn-sm btn-light rounded-circle p-2"
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <X size={18} />
-                </button>
               </div>
-            </div>
 
-            {/* Contenido del Modal - Diseño Optimizado */}
-            <div
-              className="flex-grow-1 overflow-auto"
-              style={{ backgroundColor: isDark ? "#0f172a" : "#f8fafc" }}
-            >
+              {/* Contenido del Modal - Diseño Optimizado */}
               <div
-                className="container-fluid px-4 py-4"
-                style={{ maxWidth: "80rem" }}
+                className="flex-grow-1 overflow-auto"
+                style={{ backgroundColor: isDark ? "#0f172a" : "#f8fafc" }}
               >
-                {/* SECCIÓN 1: Nombre y Descripción en 2 columnas */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="row g-3 mb-4"
+                <div
+                  className="container-fluid px-4 py-4"
+                  style={{ maxWidth: "80rem" }}
                 >
-                  {/* Nombre - Izquierda */}
-                  <div className="col-12 col-lg-6">
-                    <label
-                      className="form-label fw-semibold d-flex align-items-center gap-2 mb-2"
-                      style={{
-                        fontSize: "14px",
-                        color: isDark ? "#cbd5e1" : "#475569",
-                      }}
-                    >
-                      <Store size={16} className="text-primary" />
-                      Nombre de la Tienda
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.nombre}
-                      onChange={(e) =>
-                        setEditData((prev) => ({
-                          ...prev,
-                          nombre: e.target.value,
-                        }))
-                      }
-                      className="form-control form-control-lg border-2"
-                      placeholder="Ej: Mi Tienda Oficial"
-                      style={{
-                        borderRadius: "12px",
-                        backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                        borderColor: isDark ? "#334155" : "#e2e8f0",
-                        color: isDark ? "#f1f5f9" : "#1e293b",
-                        padding: "12px 16px",
-                      }}
-                    />
-                  </div>
-
-                  {/* Descripción - Derecha */}
-                  <div className="col-12 col-lg-6">
-                    <label
-                      className="form-label fw-semibold d-flex align-items-center gap-2 mb-2"
-                      style={{
-                        fontSize: "14px",
-                        color: isDark ? "#cbd5e1" : "#475569",
-                      }}
-                    >
-                      <Info size={16} className="text-info" />
-                      Descripción
-                    </label>
-                    <textarea
-                      value={editData.descripcion}
-                      onChange={(e) =>
-                        setEditData((prev) => ({
-                          ...prev,
-                          descripcion: e.target.value,
-                        }))
-                      }
-                      rows={4}
-                      className="form-control border-2"
-                      placeholder="Describe tu tienda, productos y servicios..."
-                      style={{
-                        resize: "none",
-                        borderRadius: "12px",
-                        backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                        borderColor: isDark ? "#334155" : "#e2e8f0",
-                        color: isDark ? "#f1f5f9" : "#1e293b",
-                        padding: "12px 16px",
-                      }}
-                    />
-                  </div>
-                </motion.div>
-
-                {/* SECCIÓN 2: Banner - Grande y Horizontal */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="mb-4"
-                >
-                  <label
-                    className="form-label fw-semibold d-flex align-items-center gap-2 mb-3"
-                    style={{
-                      fontSize: "15px",
-                      color: isDark ? "#cbd5e1" : "#475569",
-                    }}
+                  {/* SECCIÓN 1: Nombre y Descripción en 2 columnas */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="row g-3 mb-4"
                   >
-                    <Camera size={18} className="text-warning" />
-                    Banner de la Tienda
-                  </label>
-                  <div
-                    style={{
-                      backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                      borderRadius: "16px",
-                      border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                      padding: "16px",
-                    }}
-                  >
-                    {editData.banner && (
-                      <div
-                        className="mb-3"
+                    {/* Nombre - Izquierda */}
+                    <div className="col-12 col-lg-6">
+                      <label
+                        className="form-label fw-semibold d-flex align-items-center gap-2 mb-2"
                         style={{
-                          backgroundColor: isDark ? "#0f172a" : "#f1f5f9",
-                          borderRadius: "12px",
-                          overflow: "hidden",
-                          height: "280px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <img
-                          src={editData.banner}
-                          alt="Preview banner"
-                          className="w-100 h-100"
-                          style={{ objectFit: "contain" }}
-                        />
-                      </div>
-                    )}
-                    <label
-                      className="d-flex align-items-center justify-content-center w-100 py-3 border-2 border-dashed"
-                      style={{
-                        borderRadius: "12px",
-                        borderColor: isDark ? "#475569" : "#cbd5e1",
-                        backgroundColor: isDark ? "#0f172a" : "#f8fafc",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Upload
-                        size={18}
-                        className="me-2"
-                        style={{ color: isDark ? "#94a3b8" : "#64748b" }}
-                      />
-                      <span
-                        style={{
-                          color: isDark ? "#cbd5e1" : "#475569",
                           fontSize: "14px",
-                          fontWeight: "500",
+                          color: isDark ? "#cbd5e1" : "#475569",
                         }}
                       >
-                        {editData.banner ? "Cambiar Banner" : "Subir Banner"}
-                      </span>
+                        <Store size={16} className="text-primary" />
+                        Nombre de la Tienda
+                      </label>
                       <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(e, "banner")}
-                        className="d-none"
+                        type="text"
+                        value={editData.nombre}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            nombre: e.target.value,
+                          }))
+                        }
+                        className="form-control form-control-lg border-2"
+                        placeholder="Ej: Mi Tienda Oficial"
+                        style={{
+                          borderRadius: "12px",
+                          backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                          borderColor: isDark ? "#334155" : "#e2e8f0",
+                          color: isDark ? "#f1f5f9" : "#1e293b",
+                          padding: "12px 16px",
+                        }}
                       />
-                    </label>
-                  </div>
-                </motion.div>
+                    </div>
 
-                {/* SECCIÓN 3: Logo */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 }}
-                  className="mb-4"
-                >
-                  <label
-                    className="form-label fw-semibold d-flex align-items-center gap-2 mb-3"
-                    style={{
-                      fontSize: "15px",
-                      color: isDark ? "#cbd5e1" : "#475569",
-                    }}
+                    {/* Descripción - Derecha */}
+                    <div className="col-12 col-lg-6">
+                      <label
+                        className="form-label fw-semibold d-flex align-items-center gap-2 mb-2"
+                        style={{
+                          fontSize: "14px",
+                          color: isDark ? "#cbd5e1" : "#475569",
+                        }}
+                      >
+                        <Info size={16} className="text-info" />
+                        Descripción
+                      </label>
+                      <textarea
+                        value={editData.descripcion}
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            descripcion: e.target.value,
+                          }))
+                        }
+                        rows={4}
+                        className="form-control border-2"
+                        placeholder="Describe tu tienda, productos y servicios..."
+                        style={{
+                          resize: "none",
+                          borderRadius: "12px",
+                          backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                          borderColor: isDark ? "#334155" : "#e2e8f0",
+                          color: isDark ? "#f1f5f9" : "#1e293b",
+                          padding: "12px 16px",
+                        }}
+                      />
+                    </div>
+                  </motion.div>
+
+                  {/* SECCIÓN 2: Banner - Grande y Horizontal */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="mb-4"
                   >
-                    <Upload size={18} className="text-success" />
-                    Logo de la Tienda
-                  </label>
-                  <div
-                    style={{
-                      backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                      borderRadius: "16px",
-                      border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                      padding: "20px",
-                    }}
-                  >
-                    <div className="d-flex align-items-center gap-4">
-                      {editData.logo && (
+                    <label
+                      className="form-label fw-semibold d-flex align-items-center gap-2 mb-3"
+                      style={{
+                        fontSize: "15px",
+                        color: isDark ? "#cbd5e1" : "#475569",
+                      }}
+                    >
+                      <Camera size={18} className="text-warning" />
+                      Banner de la Tienda
+                    </label>
+                    <div
+                      style={{
+                        backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                        borderRadius: "16px",
+                        border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                        padding: "16px",
+                      }}
+                    >
+                      {editData.banner && (
                         <div
+                          className="mb-3"
                           style={{
-                            width: "100px",
-                            height: "100px",
                             backgroundColor: isDark ? "#0f172a" : "#f1f5f9",
-                            borderRadius: "50%",
-                            border: `3px solid ${
-                              isDark ? "#334155" : "#e2e8f0"
-                            }`,
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            height: "280px",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            overflow: "hidden",
-                            flexShrink: 0,
                           }}
                         >
                           <img
-                            src={editData.logo}
-                            alt="Preview logo"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "contain",
-                              padding: "8px",
-                            }}
+                            src={editData.banner}
+                            alt="Preview banner"
+                            className="w-100 h-100"
+                            style={{ objectFit: "contain" }}
                           />
                         </div>
                       )}
                       <label
-                        className="d-flex align-items-center justify-content-center flex-grow-1 py-3 border-2 border-dashed"
+                        className="d-flex align-items-center justify-content-center w-100 py-3 border-2 border-dashed"
                         style={{
                           borderRadius: "12px",
                           borderColor: isDark ? "#475569" : "#cbd5e1",
                           backgroundColor: isDark ? "#0f172a" : "#f8fafc",
                           cursor: "pointer",
-                          minHeight: "60px",
                         }}
                       >
                         <Upload
@@ -1437,259 +1705,453 @@ export default function TiendaIndividual() {
                             fontWeight: "500",
                           }}
                         >
-                          {editData.logo ? "Cambiar Logo" : "Subir Logo"}
+                          {editData.banner ? "Cambiar Banner" : "Subir Banner"}
                         </span>
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => handleFileChange(e, "logo")}
+                          onChange={(e) => handleFileChange(e, "banner")}
                           className="d-none"
                         />
                       </label>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
 
-                {/* SECCIÓN 4: Enlaces - Al Final */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  style={{
-                    backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                    borderRadius: "16px",
-                    border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                    padding: "24px",
-                  }}
-                >
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h3
-                      className="mb-0 fw-bold d-flex align-items-center gap-2"
+                  {/* SECCIÓN 3: Logo */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="mb-4"
+                  >
+                    <label
+                      className="form-label fw-semibold d-flex align-items-center gap-2 mb-3"
                       style={{
-                        fontSize: "16px",
-                        color: isDark ? "#f1f5f9" : "#1e293b",
+                        fontSize: "15px",
+                        color: isDark ? "#cbd5e1" : "#475569",
                       }}
                     >
-                      <Globe size={20} className="text-primary" />
-                      Enlaces y Redes Sociales
-                    </h3>
+                      <Upload size={18} className="text-success" />
+                      Logo de la Tienda
+                    </label>
+                    <div
+                      style={{
+                        backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                        borderRadius: "16px",
+                        border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                        padding: "20px",
+                      }}
+                    >
+                      <div className="d-flex align-items-center gap-4">
+                        {editData.logo && (
+                          <div
+                            style={{
+                              width: "100px",
+                              height: "100px",
+                              backgroundColor: isDark ? "#0f172a" : "#f1f5f9",
+                              borderRadius: "50%",
+                              border: `3px solid ${
+                                isDark ? "#334155" : "#e2e8f0"
+                              }`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              overflow: "hidden",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <img
+                              src={editData.logo}
+                              alt="Preview logo"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "contain",
+                                padding: "8px",
+                              }}
+                            />
+                          </div>
+                        )}
+                        <label
+                          className="d-flex align-items-center justify-content-center flex-grow-1 py-3 border-2 border-dashed"
+                          style={{
+                            borderRadius: "12px",
+                            borderColor: isDark ? "#475569" : "#cbd5e1",
+                            backgroundColor: isDark ? "#0f172a" : "#f8fafc",
+                            cursor: "pointer",
+                            minHeight: "60px",
+                          }}
+                        >
+                          <Upload
+                            size={18}
+                            className="me-2"
+                            style={{ color: isDark ? "#94a3b8" : "#64748b" }}
+                          />
+                          <span
+                            style={{
+                              color: isDark ? "#cbd5e1" : "#475569",
+                              fontSize: "14px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            {editData.logo ? "Cambiar Logo" : "Subir Logo"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, "logo")}
+                            className="d-none"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* SECCIÓN 4: Enlaces - Al Final */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    style={{
+                      backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                      borderRadius: "16px",
+                      border: `2px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                      padding: "24px",
+                    }}
+                  >
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                      <h3
+                        className="mb-0 fw-bold d-flex align-items-center gap-2"
+                        style={{
+                          fontSize: "16px",
+                          color: isDark ? "#f1f5f9" : "#1e293b",
+                        }}
+                      >
+                        <Globe size={20} className="text-primary" />
+                        Enlaces y Redes Sociales
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditData((prev) => ({
+                            ...prev,
+                            enlaces: [
+                              ...(prev.enlaces || []),
+                              { titulo: "", tipo: "otro", url: "" },
+                            ],
+                          }));
+                        }}
+                        className="btn btn-primary btn-sm d-flex align-items-center gap-2"
+                        style={{
+                          borderRadius: "10px",
+                          padding: "8px 16px",
+                          fontSize: "13px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        <Plus size={16} />
+                        Agregar
+                      </button>
+                    </div>
+
+                    <div className="d-flex flex-column gap-3">
+                      {(editData.enlaces || []).map((enlace, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          style={{
+                            padding: "16px",
+                            backgroundColor: isDark ? "#0f172a" : "#f8fafc",
+                            borderRadius: "12px",
+                            border: `1px solid ${
+                              isDark ? "#334155" : "#e2e8f0"
+                            }`,
+                          }}
+                        >
+                          <div className="row g-2 align-items-end">
+                            <div className="col-12 col-md-4">
+                              <label
+                                className="form-label mb-1"
+                                style={{
+                                  fontSize: "12px",
+                                  color: isDark ? "#94a3b8" : "#64748b",
+                                  fontWeight: "600",
+                                }}
+                              >
+                                Título
+                              </label>
+                              <input
+                                type="text"
+                                value={enlace.titulo || ""}
+                                onChange={(e) => {
+                                  const newEnlaces = [...editData.enlaces];
+                                  newEnlaces[index].titulo = e.target.value;
+                                  setEditData((prev) => ({
+                                    ...prev,
+                                    enlaces: newEnlaces,
+                                  }));
+                                }}
+                                placeholder="Ej: TikTok oficial"
+                                className="form-control form-control-sm"
+                                style={{
+                                  borderRadius: "8px",
+                                  backgroundColor: isDark
+                                    ? "#1e293b"
+                                    : "#ffffff",
+                                  borderColor: isDark ? "#475569" : "#cbd5e1",
+                                  color: isDark ? "#f1f5f9" : "#1e293b",
+                                  fontSize: "13px",
+                                }}
+                              />
+                            </div>
+                            <div className="col-12 col-md-3">
+                              <label
+                                className="form-label mb-1"
+                                style={{
+                                  fontSize: "12px",
+                                  color: isDark ? "#94a3b8" : "#64748b",
+                                  fontWeight: "600",
+                                }}
+                              >
+                                Tipo
+                              </label>
+                              <select
+                                value={enlace.tipo || "otro"}
+                                onChange={(e) => {
+                                  const newEnlaces = [...editData.enlaces];
+                                  newEnlaces[index].tipo = e.target.value;
+                                  setEditData((prev) => ({
+                                    ...prev,
+                                    enlaces: newEnlaces,
+                                  }));
+                                }}
+                                className="form-select form-select-sm"
+                                style={{
+                                  borderRadius: "8px",
+                                  backgroundColor: isDark
+                                    ? "#1e293b"
+                                    : "#ffffff",
+                                  borderColor: isDark ? "#475569" : "#cbd5e1",
+                                  color: isDark ? "#f1f5f9" : "#1e293b",
+                                  fontSize: "13px",
+                                }}
+                              >
+                                <option value="otro">Genérico</option>
+                                <option value="website">Web</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="facebook">Facebook</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="youtube">YouTube</option>
+                                <option value="tiktok">TikTok</option>
+                                <option value="twitter">Twitter/X</option>
+                                <option value="telegram">Telegram</option>
+                              </select>
+                            </div>
+                            <div className="col-12 col-md-4">
+                              {enlace.tipo === "whatsapp" ? (
+                                <>
+                                  <label
+                                    className="form-label mb-1"
+                                    style={{
+                                      fontSize: "12px",
+                                      color: isDark ? "#94a3b8" : "#64748b",
+                                      fontWeight: "600",
+                                    }}
+                                  >
+                                    WhatsApp
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    value={enlace.url || ""}
+                                    onChange={(e) => {
+                                      const raw = e.target.value || "";
+                                      const cleaned = String(raw).replace(
+                                        /\D/g,
+                                        ""
+                                      );
+                                      const newEnlaces = [...editData.enlaces];
+                                      newEnlaces[index].url = cleaned;
+                                      setEditData((prev) => ({
+                                        ...prev,
+                                        enlaces: newEnlaces,
+                                      }));
+                                    }}
+                                    placeholder="Ej: 8095551234 o 18095551234"
+                                    className="form-control form-control-sm"
+                                    style={{
+                                      borderRadius: "8px",
+                                      backgroundColor: isDark
+                                        ? "#1e293b"
+                                        : "#ffffff",
+                                      borderColor: isDark
+                                        ? "#475569"
+                                        : "#cbd5e1",
+                                      color: isDark ? "#f1f5f9" : "#1e293b",
+                                      fontSize: "13px",
+                                    }}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={enlace.mensaje || ""}
+                                    onChange={(e) => {
+                                      const newEnlaces = [...editData.enlaces];
+                                      newEnlaces[index].mensaje =
+                                        e.target.value;
+                                      setEditData((prev) => ({
+                                        ...prev,
+                                        enlaces: newEnlaces,
+                                      }));
+                                    }}
+                                    placeholder="Mensaje opcional (ej: Hola, estoy interesado)"
+                                    className="form-control form-control-sm mt-2"
+                                    style={{
+                                      borderRadius: "8px",
+                                      backgroundColor: isDark
+                                        ? "#1e293b"
+                                        : "#ffffff",
+                                      borderColor: isDark
+                                        ? "#475569"
+                                        : "#cbd5e1",
+                                      color: isDark ? "#f1f5f9" : "#1e293b",
+                                      fontSize: "13px",
+                                    }}
+                                  />
+                                  <div
+                                    className="mt-2"
+                                    style={{
+                                      fontSize: "12px",
+                                      color: isDark ? "#94a3b8" : "#64748b",
+                                      wordBreak: "break-all",
+                                    }}
+                                  >
+                                    Previsualización:
+                                    <span className="ms-1 fw-semibold text-primary">
+                                      {`https://wa.me/${String(
+                                        enlace.url || ""
+                                      ).replace(/\D/g, "")}${
+                                        enlace.mensaje
+                                          ? `?text=${encodeURIComponent(
+                                              enlace.mensaje
+                                            )}`
+                                          : ""
+                                      }`}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <label
+                                    className="form-label mb-1"
+                                    style={{
+                                      fontSize: "12px",
+                                      color: isDark ? "#94a3b8" : "#64748b",
+                                      fontWeight: "600",
+                                    }}
+                                  >
+                                    URL
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={enlace.url || ""}
+                                    onChange={(e) => {
+                                      const newEnlaces = [...editData.enlaces];
+                                      newEnlaces[index].url = e.target.value;
+                                      setEditData((prev) => ({
+                                        ...prev,
+                                        enlaces: newEnlaces,
+                                      }));
+                                    }}
+                                    placeholder="https://..."
+                                    className="form-control form-control-sm"
+                                    style={{
+                                      borderRadius: "8px",
+                                      backgroundColor: isDark
+                                        ? "#1e293b"
+                                        : "#ffffff",
+                                      borderColor: isDark
+                                        ? "#475569"
+                                        : "#cbd5e1",
+                                      color: isDark ? "#f1f5f9" : "#1e293b",
+                                      fontSize: "13px",
+                                    }}
+                                  />
+                                </>
+                              )}
+                            </div>
+                            <div className="col-12 col-md-1 d-flex align-items-end">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newEnlaces = editData.enlaces.filter(
+                                    (_, i) => i !== index
+                                  );
+                                  setEditData((prev) => ({
+                                    ...prev,
+                                    enlaces: newEnlaces,
+                                  }));
+                                }}
+                                className="btn btn-danger btn-sm w-100"
+                                style={{ borderRadius: "8px", padding: "6px" }}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                      {(!editData.enlaces || editData.enlaces.length === 0) && (
+                        <p
+                          className="text-center mb-0"
+                          style={{
+                            color: isDark ? "#94a3b8" : "#64748b",
+                            fontSize: "14px",
+                            padding: "24px 0",
+                          }}
+                        >
+                          No hay enlaces. Haz clic en "Agregar" para comenzar.
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Footer compacto */}
+              <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                <div className="max-w-6xl mx-auto px-4 py-3 d-flex justify-content-end">
+                  <div className="d-flex align-items-center gap-3">
                     <button
-                      type="button"
-                      onClick={() => {
-                        setEditData((prev) => ({
-                          ...prev,
-                          enlaces: [
-                            ...(prev.enlaces || []),
-                            { titulo: "", tipo: "otro", url: "" },
-                          ],
-                        }));
-                      }}
-                      className="btn btn-primary btn-sm d-flex align-items-center gap-2"
-                      style={{
-                        borderRadius: "10px",
-                        padding: "8px 16px",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
+                      onClick={() => setShowEditModal(false)}
+                      className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl font-semibold transition-all duration-200 border-2 border-gray-300 dark:border-gray-600 hover:scale-105"
                     >
-                      <Plus size={16} />
-                      Agregar
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleSaveTienda}
+                      disabled={uploading}
+                      className="flex items-center gap-2 px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02]"
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={18} />
+                          Guardar Cambios
+                        </>
+                      )}
                     </button>
                   </div>
-
-                  <div className="d-flex flex-column gap-3">
-                    {(editData.enlaces || []).map((enlace, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        style={{
-                          padding: "16px",
-                          backgroundColor: isDark ? "#0f172a" : "#f8fafc",
-                          borderRadius: "12px",
-                          border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
-                        }}
-                      >
-                        <div className="row g-2 align-items-end">
-                          <div className="col-12 col-md-4">
-                            <label
-                              className="form-label mb-1"
-                              style={{
-                                fontSize: "12px",
-                                color: isDark ? "#94a3b8" : "#64748b",
-                                fontWeight: "600",
-                              }}
-                            >
-                              Título
-                            </label>
-                            <input
-                              type="text"
-                              value={enlace.titulo || ""}
-                              onChange={(e) => {
-                                const newEnlaces = [...editData.enlaces];
-                                newEnlaces[index].titulo = e.target.value;
-                                setEditData((prev) => ({
-                                  ...prev,
-                                  enlaces: newEnlaces,
-                                }));
-                              }}
-                              placeholder="Ej: TikTok oficial"
-                              className="form-control form-control-sm"
-                              style={{
-                                borderRadius: "8px",
-                                backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                                borderColor: isDark ? "#475569" : "#cbd5e1",
-                                color: isDark ? "#f1f5f9" : "#1e293b",
-                                fontSize: "13px",
-                              }}
-                            />
-                          </div>
-                          <div className="col-12 col-md-3">
-                            <label
-                              className="form-label mb-1"
-                              style={{
-                                fontSize: "12px",
-                                color: isDark ? "#94a3b8" : "#64748b",
-                                fontWeight: "600",
-                              }}
-                            >
-                              Tipo
-                            </label>
-                            <select
-                              value={enlace.tipo || "otro"}
-                              onChange={(e) => {
-                                const newEnlaces = [...editData.enlaces];
-                                newEnlaces[index].tipo = e.target.value;
-                                setEditData((prev) => ({
-                                  ...prev,
-                                  enlaces: newEnlaces,
-                                }));
-                              }}
-                              className="form-select form-select-sm"
-                              style={{
-                                borderRadius: "8px",
-                                backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                                borderColor: isDark ? "#475569" : "#cbd5e1",
-                                color: isDark ? "#f1f5f9" : "#1e293b",
-                                fontSize: "13px",
-                              }}
-                            >
-                              <option value="otro">Genérico</option>
-                              <option value="website">Web</option>
-                              <option value="whatsapp">WhatsApp</option>
-                              <option value="facebook">Facebook</option>
-                              <option value="instagram">Instagram</option>
-                              <option value="youtube">YouTube</option>
-                              <option value="tiktok">TikTok</option>
-                              <option value="twitter">Twitter/X</option>
-                              <option value="telegram">Telegram</option>
-                            </select>
-                          </div>
-                          <div className="col-12 col-md-4">
-                            <label
-                              className="form-label mb-1"
-                              style={{
-                                fontSize: "12px",
-                                color: isDark ? "#94a3b8" : "#64748b",
-                                fontWeight: "600",
-                              }}
-                            >
-                              URL
-                            </label>
-                            <input
-                              type="text"
-                              value={enlace.url || ""}
-                              onChange={(e) => {
-                                const newEnlaces = [...editData.enlaces];
-                                newEnlaces[index].url = e.target.value;
-                                setEditData((prev) => ({
-                                  ...prev,
-                                  enlaces: newEnlaces,
-                                }));
-                              }}
-                              placeholder="https://..."
-                              className="form-control form-control-sm"
-                              style={{
-                                borderRadius: "8px",
-                                backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                                borderColor: isDark ? "#475569" : "#cbd5e1",
-                                color: isDark ? "#f1f5f9" : "#1e293b",
-                                fontSize: "13px",
-                              }}
-                            />
-                          </div>
-                          <div className="col-12 col-md-1 d-flex align-items-end">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newEnlaces = editData.enlaces.filter(
-                                  (_, i) => i !== index
-                                );
-                                setEditData((prev) => ({
-                                  ...prev,
-                                  enlaces: newEnlaces,
-                                }));
-                              }}
-                              className="btn btn-danger btn-sm w-100"
-                              style={{ borderRadius: "8px", padding: "6px" }}
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                    {(!editData.enlaces || editData.enlaces.length === 0) && (
-                      <p
-                        className="text-center mb-0"
-                        style={{
-                          color: isDark ? "#94a3b8" : "#64748b",
-                          fontSize: "14px",
-                          padding: "24px 0",
-                        }}
-                      >
-                        No hay enlaces. Haz clic en "Agregar" para comenzar.
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Footer compacto */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-              <div className="max-w-6xl mx-auto px-4 py-3 d-flex justify-content-end">
-                <div className="d-flex align-items-center gap-3">
-                  <button
-                    onClick={() => setShowEditModal(false)}
-                    className="px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl font-semibold transition-all duration-200 border-2 border-gray-300 dark:border-gray-600 hover:scale-105"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleSaveTienda}
-                    disabled={uploading}
-                    className="flex items-center gap-2 px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02]"
-                  >
-                    {uploading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                        Guardando...
-                      </>
-                    ) : (
-                      <>
-                        <Save size={18} />
-                        Guardar Cambios
-                      </>
-                    )}
-                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* MODAL CROP PROFESIONAL CON REACT-EASY-CROP */}
       <AnimatePresence>
@@ -1798,7 +2260,7 @@ export default function TiendaIndividual() {
                 {/* Zoom */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-white text-sm">
-                    <span className="font-medium">🔍 Zoom</span>
+                    <span className="font-medium"> Zoom</span>
                     <span className="text-gray-400">{zoom.toFixed(1)}x</span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1879,7 +2341,7 @@ export default function TiendaIndividual() {
                 {/* Instrucciones */}
                 <div className="text-center pt-2">
                   <p className="text-gray-400 text-xs leading-relaxed">
-                    💡 Arrastra la imagen • Pellizca para zoom • Usa los
+                     Arrastra la imagen • Pellizca para zoom • Usa los
                     controles para ajustar
                   </p>
                 </div>
@@ -2228,7 +2690,7 @@ export default function TiendaIndividual() {
                 <button
                   key={categoria}
                   onClick={() => {
-                    setCategoriaSeleccionada(categoria);
+                    handleCategoriaChange(categoria);
                     setShowCategoryModal(false);
                   }}
                   className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-between ${

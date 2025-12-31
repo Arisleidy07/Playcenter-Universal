@@ -30,7 +30,7 @@ function AppContent() {
     const measureHeader = () => {
       if (headerRef.current) {
         const height = headerRef.current.offsetHeight;
-        setHeaderHeight(height + 8);
+        setHeaderHeight(height);
       }
     };
 
@@ -96,10 +96,13 @@ function AppContent() {
             <TopBar />
           </div>
 
-          {/* MAIN con padding-top dinámico para que el contenido NUNCA se tape */}
+          {/* MAIN con padding-top dinámico: si el header está oculto, no dejar espacio */}
           <main
             className="flex-grow"
-            style={{ paddingTop: `${headerHeight}px` }}
+            style={{
+              paddingTop: headerVisible ? `${headerHeight}px` : "0px",
+              "--app-header-height": `${headerHeight}px`,
+            }}
           >
             <ScrollToTop />
             <AnimatedRoutes />

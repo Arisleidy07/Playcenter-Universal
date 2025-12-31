@@ -63,7 +63,7 @@ try {
       ?.trim(),
   };
 } catch (error) {
-  console.error("❌ Error leyendo .env.local:", error);
+  console.error(" Error leyendo .env.local:", error);
   process.exit(1);
 }
 
@@ -79,7 +79,7 @@ async function setupAdminOwner() {
   const userEmail = process.argv[2];
 
   if (!userEmail) {
-    console.error("❌ Error: Debes proporcionar el email del administrador");
+    console.error(" Error: Debes proporcionar el email del administrador");
     console.log("Uso: node scripts/setup-admin-owner.mjs <USER_EMAIL>");
     console.log(
       "Ejemplo: node scripts/setup-admin-owner.mjs admin@playcenter.com\n"
@@ -89,7 +89,7 @@ async function setupAdminOwner() {
 
   try {
     // Buscar el usuario por email en la colección usuarios
-    console.log(`🔍 Buscando usuario con email: ${userEmail}...`);
+    console.log(` Buscando usuario con email: ${userEmail}...`);
     const usuariosRef = collection(db, "usuarios");
     const q = query(usuariosRef, where("email", "==", userEmail));
     const querySnapshot = await getDocs(q);
@@ -98,14 +98,14 @@ async function setupAdminOwner() {
 
     if (!querySnapshot.empty) {
       userId = querySnapshot.docs[0].id;
-      console.log(`✅ Usuario encontrado con ID: ${userId}`);
+      console.log(` Usuario encontrado con ID: ${userId}`);
     } else {
       console.log("⚠️  Usuario no encontrado en la colección usuarios");
       console.log("Por favor, ingresa el UID del usuario manualmente:");
 
       // En un entorno real, podrías usar readline para obtener input
       // Por ahora, mostraremos instrucciones
-      console.log("\n📝 Instrucciones:");
+      console.log("\n Instrucciones:");
       console.log("1. Ve a Firebase Console > Authentication");
       console.log("2. Busca tu usuario y copia el UID");
       console.log(
@@ -115,7 +115,7 @@ async function setupAdminOwner() {
     }
 
     // Verificar si existe la tienda Playcenter Universal
-    console.log("\n🔍 Verificando tienda Playcenter Universal...");
+    console.log("\n Verificando tienda Playcenter Universal...");
     const storeRef = doc(db, "tiendas", "playcenter_universal");
     const storeDoc = await getDoc(storeRef);
 
@@ -160,9 +160,9 @@ async function setupAdminOwner() {
       };
 
       await setDoc(storeRef, playcenterStore);
-      console.log("✅ Tienda creada exitosamente!");
+      console.log(" Tienda creada exitosamente!");
     } else {
-      console.log("✅ Tienda encontrada. Actualizando propietario...");
+      console.log(" Tienda encontrada. Actualizando propietario...");
 
       await updateDoc(storeRef, {
         propietario_id: userId,
@@ -171,11 +171,11 @@ async function setupAdminOwner() {
         "contacto.email": userEmail,
       });
 
-      console.log("✅ Tienda actualizada exitosamente!");
+      console.log(" Tienda actualizada exitosamente!");
     }
 
     // Actualizar el documento del usuario para marcarla como admin
-    console.log("\n🔍 Actualizando perfil de usuario...");
+    console.log("\n Actualizando perfil de usuario...");
     const userDocRef = doc(db, "usuarios", userId);
     const userDoc = await getDoc(userDocRef);
 
@@ -185,7 +185,7 @@ async function setupAdminOwner() {
         rol: "admin",
         tienda_id: "playcenter_universal",
       });
-      console.log("✅ Perfil de usuario actualizado!");
+      console.log(" Perfil de usuario actualizado!");
     } else {
       console.log("⚠️  Creando documento de usuario...");
       await setDoc(userDocRef, {
@@ -194,19 +194,19 @@ async function setupAdminOwner() {
         rol: "admin",
         tienda_id: "playcenter_universal",
       });
-      console.log("✅ Documento de usuario creado!");
+      console.log(" Documento de usuario creado!");
     }
 
     console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("🎉 ¡Configuración completada exitosamente!");
+    console.log(" ¡Configuración completada exitosamente!");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log(`👤 Usuario:       ${userEmail}`);
-    console.log(`🆔 User ID:       ${userId}`);
-    console.log(`🏪 Tienda:        Playcenter Universal`);
+    console.log(` Usuario:       ${userEmail}`);
+    console.log(` User ID:       ${userId}`);
+    console.log(` Tienda:        Playcenter Universal`);
     console.log(`👑 Rol:           Administrador`);
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    console.log("📝 Próximos pasos:");
+    console.log(" Próximos pasos:");
     console.log("1. Recarga la página del perfil");
     console.log('2. Deberías ver "Playcenter Universal" como tu tienda');
     console.log(
@@ -215,7 +215,7 @@ async function setupAdminOwner() {
 
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error durante la configuración:", error);
+    console.error(" Error durante la configuración:", error);
     console.error("Detalles:", error.message);
     process.exit(1);
   }

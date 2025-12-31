@@ -1,4 +1,4 @@
-// ✅ ACTUALIZADO PARA CLOUDINARY - Sin problemas de CORS
+//  ACTUALIZADO PARA CLOUDINARY - Sin problemas de CORS
 import { uploadToCloudinary } from '../cloudinary';
 
 /**

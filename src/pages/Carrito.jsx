@@ -104,12 +104,81 @@ export default function Carrito() {
     0
   );
 
-  const cartItemsForPayload = carrito.map((item) => ({
-    id: item.id,
-    nombre: item.nombre,
-    precio: Number(item.precio) || 0,
-    cantidad: item.cantidad,
-  }));
+  const cartItemsForPayload = carrito.map((item) => {
+    // Resolver imagen real del producto (usando doc LIVE si existe)
+    const pickUrl = (u) => {
+      try {
+        if (!u) return "";
+        if (typeof u === "string") return u;
+        if (typeof u === "object" && u !== null) return u.url || "";
+        return String(u || "");
+      } catch {
+        return "";
+      }
+    };
+    const p = productosLive[item.id] || item;
+    const vars = Array.isArray(p.variantes) ? p.variantes : [];
+    const fromVariant = () => {
+      // Si hay color seleccionado, intentar esa variante primero
+      if (item.colorSeleccionado) {
+        const vSel = vars.find((va) => va.color === item.colorSeleccionado);
+        if (vSel) {
+          const vMain = pickUrl(vSel?.imagenPrincipal?.[0]);
+          if (vMain) return vMain;
+          if (vSel?.imagen) return vSel.imagen;
+          const vMediaArr = Array.isArray(vSel?.media) ? vSel.media : [];
+          const vMediaImg = vMediaArr.find((m) => {
+            const t = (m?.type || "").toLowerCase();
+            return (
+              pickUrl(m) &&
+              (!t || t.includes("image") || t === "img" || t === "photo")
+            );
+          });
+          if (vMediaImg) return pickUrl(vMediaImg);
+        }
+      }
+      // Si no hay variante seleccionada, intentar la primera disponible
+      for (const v of vars) {
+        const vMain = pickUrl(v?.imagenPrincipal?.[0]);
+        if (vMain) return vMain;
+        if (v?.imagen) return v.imagen;
+        const vMediaArr = Array.isArray(v?.media) ? v.media : [];
+        const vMediaImg = vMediaArr.find((m) => {
+          const t = (m?.type || "").toLowerCase();
+          return (
+            pickUrl(m) &&
+            (!t || t.includes("image") || t === "img" || t === "photo")
+          );
+        });
+        if (vMediaImg) return pickUrl(vMediaImg);
+      }
+      return "";
+    };
+    const mediaArr = Array.isArray(p.media) ? p.media : [];
+    const mediaImg = mediaArr.find((m) => {
+      const t = (m?.type || "").toLowerCase();
+      return (
+        pickUrl(m) &&
+        (!t || t.includes("image") || t === "img" || t === "photo")
+      );
+    });
+    const displayImage =
+      pickUrl(p?.imagenPrincipal?.[0]) ||
+      p?.imagen ||
+      (mediaImg ? pickUrl(mediaImg) : "") ||
+      pickUrl(Array.isArray(p?.galeriaImagenes) && p.galeriaImagenes[0]) ||
+      pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
+      fromVariant() ||
+      "/Copia de play.png";
+
+    return {
+      id: item.id,
+      nombre: item.nombre,
+      precio: Number(item.precio) || 0,
+      cantidad: item.cantidad,
+      imagen: displayImage,
+    };
+  });
 
   return (
     <>

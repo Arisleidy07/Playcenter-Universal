@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaFacebook } from "react-icons/fa";
 
 export default function CustomerServiceView() {
   const fadeInUp = {
@@ -23,10 +23,15 @@ export default function CustomerServiceView() {
         }}
       >
         <motion.div variants={fadeInUp} className="mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-50">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <img
+              src="/logos/perfil/5.jpg"
+              alt=""
+              className="w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full object-cover"
+            />
             Servicio al Cliente
           </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 max-w-2xl">
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
             ¿Necesitas ayuda con tu pedido, tu tienda o tu cuenta? Aquí tienes
             todas las formas oficiales de contactar con el equipo de Playcenter
             Universal.
@@ -36,9 +41,9 @@ export default function CustomerServiceView() {
         {/* Tarjeta principal de contacto */}
         <motion.div
           variants={fadeInUp}
-          className="rounded-2xl p-5 md:p-6 border bg-white border-gray-200 shadow-sm dark:bg-gray-900 dark:border-gray-700"
+          className="rounded-2xl p-5 md:p-6 border bg-white border-slate-200/80 shadow-sm dark:bg-slate-900 dark:border-slate-700/80 ring-1 ring-black/5 dark:ring-white/5"
         >
-          <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
+          <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">
             Información de contacto
           </h2>
 
@@ -66,35 +71,38 @@ export default function CustomerServiceView() {
           </div>
         </motion.div>
 
-        {/* Tarjeta de WhatsApp */}
+        {/* Canales rápidos */}
         <motion.div
           variants={fadeInUp}
-          className="rounded-2xl p-5 md:p-6 border bg-white border-gray-200 shadow-sm dark:bg-gray-900 dark:border-gray-700"
+          className="rounded-2xl p-5 md:p-6 border bg-white border-slate-200/80 shadow-sm dark:bg-slate-900 dark:border-slate-700/80 ring-1 ring-black/5 dark:ring-white/5"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center dark:bg-emerald-900/30 dark:text-emerald-300">
-              <FaWhatsapp size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
-                WhatsApp de atención
-              </h2>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Escríbenos por WhatsApp para ayuda con tus pedidos o tu tienda.
-              </p>
-            </div>
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              Canales rápidos
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Contáctanos por WhatsApp o a través de nuestras redes oficiales.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-            <WhatsAppButton
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <ChannelButton
               href="https://wa.me/18496357000"
               label="WhatsApp Tienda"
-              description="Consultas sobre compras en tienda física y productos"
+              variant="whatsapp"
+              icon={<FaWhatsapp size={16} />}
             />
-            <WhatsAppButton
+            <ChannelButton
               href="https://wa.me/18095821212"
               label="WhatsApp Internet"
-              description="Ayuda con pedidos en línea y entregas a domicilio"
+              variant="whatsapp"
+              icon={<FaWhatsapp size={16} />}
+            />
+            <ChannelButton
+              href="https://www.facebook.com/pcu12"
+              label="Facebook Oficial"
+              variant="facebook"
+              icon={<FaFacebook size={16} />}
             />
           </div>
         </motion.div>
@@ -106,14 +114,14 @@ export default function CustomerServiceView() {
 function ContactRow({ icon, label, value }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center dark:bg-blue-900/30 dark:text-blue-300">
+      <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center ring-1 ring-black/5 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-white/5">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
           {label}
         </p>
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
+        <p className="text-base font-bold text-slate-900 dark:text-white break-words leading-tight">
           {value}
         </p>
       </div>
@@ -121,25 +129,24 @@ function ContactRow({ icon, label, value }) {
   );
 }
 
-function WhatsAppButton({ href, label, description }) {
+function ChannelButton({ href, label, icon, variant = "default" }) {
+  const variants = {
+    whatsapp:
+      "bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-500/40",
+    facebook: "bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500/40",
+    default: "bg-slate-700 hover:bg-slate-800 focus-visible:ring-slate-500/40",
+  };
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-3 px-3 py-2.5 rounded-full border border-emerald-500 text-emerald-600 bg-white hover:bg-emerald-50 dark:bg-transparent dark:hover:bg-emerald-900/10 dark:text-emerald-300 text-sm md:text-base transition-all"
+      className={`group inline-flex items-center gap-3 px-4 py-3 rounded-xl text-white shadow-sm transition-colors focus:outline-none focus-visible:ring-4 ${variants[variant]}`}
     >
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white">
-        <FaWhatsapp size={14} />
+      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/20">
+        {icon}
       </span>
-      <div className="flex flex-col min-w-0">
-        <span className="font-semibold leading-tight truncate">{label}</span>
-        {description && (
-          <span className="text-[11px] md:text-xs opacity-80 leading-tight truncate">
-            {description}
-          </span>
-        )}
-      </div>
+      <span className="font-bold leading-tight truncate">{label}</span>
     </a>
   );
 }

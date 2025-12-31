@@ -4,25 +4,28 @@ import {
   Sun,
   Moon,
   Bell,
+  Mail,
   Package,
   Tag,
   Palette,
   LogOut,
   AlertCircle,
+  CreditCard,
 } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import "../../../styles/SettingsToggle.css";
 
 export default function SettingsView() {
-  const [notiEmail, setNotiEmail] = useState(true);
-  const [notiPedidos, setNotiPedidos] = useState(true);
-  const [notiOfertas, setNotiOfertas] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, setTheme, isDark } = useTheme();
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const isDark = theme === "dark";
+
+  const selectTheme = (mode) => {
+    if (mode !== theme) setTheme(mode);
+  };
 
   const handleLogout = () => {
     logout();
@@ -30,159 +33,107 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto grid grid-cols-1 gap-4 md:gap-6">
       {/* Sección de Apariencia */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-2xl p-6 border transition-all duration-300 ${
+        className={`rounded-xl p-4 md:p-5 border transition-all duration-300 ring-1 ring-black/5 dark:ring-white/5 ${
           isDark
-            ? "bg-gray-800 border-gray-700"
-            : "bg-white border-gray-200 shadow-sm"
+            ? "bg-slate-900/80 border-slate-700/60"
+            : "bg-white border-slate-200/80 shadow-sm"
         }`}
       >
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-3">
           <div
-            className={`p-2 rounded-xl ${
-              isDark ? "bg-purple-600/20" : "bg-purple-50"
+            className={`p-2 rounded-xl ring-1 ${
+              isDark
+                ? "ring-white/5 bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-blue-500/10 text-blue-300"
+                : "ring-black/5 bg-gradient-to-br from-blue-500/10 via-sky-500/10 to-blue-500/10 text-blue-700"
             }`}
           >
-            <Palette
-              className={isDark ? "text-purple-400" : "text-purple-600"}
-              size={24}
-            />
+            <Palette size={20} />
           </div>
           <h2
-            className={`text-xl font-bold ${
-              isDark ? "text-white" : "text-gray-900"
+            className={`text-lg md:text-xl font-bold ${
+              isDark ? "text-white" : "text-slate-900"
             }`}
           >
             Apariencia
           </h2>
         </div>
-
-        <div
-          className={`rounded-xl p-4 transition-all duration-300 ${
-            isDark ? "bg-gray-700/30" : "bg-gray-50"
+        <p
+          className={`text-sm mb-3 ${
+            isDark ? "text-slate-400" : "text-slate-600"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-lg ${
-                  isDark
-                    ? "bg-indigo-600/20 text-indigo-400"
-                    : "bg-blue-50 text-blue-600"
-                }`}
-              >
-                {isDark ? <Moon size={20} /> : <Sun size={20} />}
-              </div>
-              <div>
-                <p
-                  className={`font-semibold ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  Modo {isDark ? "oscuro" : "claro"}
-                </p>
-                <p
-                  className={`text-sm ${
-                    isDark ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
-                  {isDark
-                    ? "Cambia a modo claro"
-                    : "Cambia a modo oscuro"}
-                </p>
-              </div>
-            </div>
+          Elige cómo se ve la aplicación.
+        </p>
 
+        <div
+          className={`rounded-lg p-3 transition-all duration-300 ${
+            isDark ? "bg-slate-800/60" : "bg-slate-50"
+          }`}
+        >
+          <div className="grid grid-cols-1 gap-3">
             <button
-              onClick={toggleTheme}
-              className={`relative inline-flex h-8 w-16 items-center rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 ${
-                isDark
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-600"
-                  : "bg-gradient-to-r from-blue-400 to-blue-500"
+              onClick={() => selectTheme("light")}
+              aria-pressed={
+                theme === "light" || (theme === "system" && !isDark)
+              }
+              type="button"
+              className={`group w-full rounded-lg p-3 border bg-white dark:bg-slate-900 ring-1 ring-black/5 dark:ring-white/5 transition-all relative overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                theme === "light" || (theme === "system" && !isDark)
+                  ? "border-blue-500 ring-2 ring-blue-400/70 bg-blue-50 shadow-md shadow-blue-500/20"
+                  : "border-slate-200/80 hover:border-blue-300"
               }`}
             >
-              <motion.span
-                layout
-                transition={{
-                  type: "spring",
-                  stiffness: 700,
-                  damping: 30,
-                }}
-                className={`inline-flex h-6 w-6 items-center justify-center transform rounded-full bg-white shadow-lg ${
-                  isDark ? "translate-x-9" : "translate-x-1"
-                }`}
-              >
-                {isDark ? (
-                  <Moon className="text-indigo-600" size={14} />
-                ) : (
-                  <Sun className="text-blue-600" size={14} />
+              {(theme === "light" || (theme === "system" && !isDark)) && (
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-blue-500 to-indigo-500" />
+              )}
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded-lg bg-blue-50 text-blue-700 ring-1 ring-black/5">
+                  <Sun size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm md:text-base text-slate-900 dark:text-slate-200">
+                    Claro
+                  </p>
+                </div>
+                {(theme === "light" || (theme === "system" && !isDark)) && (
+                  <span className="ml-auto w-3 h-3 rounded-full bg-blue-600 ring-2 ring-blue-300 shadow-[0_0_0.45rem_rgba(59,130,246,0.45)]" />
                 )}
-              </motion.span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => selectTheme("dark")}
+              aria-pressed={theme === "dark" || (theme === "system" && isDark)}
+              type="button"
+              className={`group w-full rounded-lg p-3 border bg-white dark:bg-slate-900 ring-1 ring-black/5 dark:ring-white/5 transition-all relative overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                theme === "dark" || (theme === "system" && isDark)
+                  ? "border-blue-500 ring-2 ring-blue-400/70 dark:bg-slate-800 shadow-md shadow-blue-500/20"
+                  : "border-slate-200/80 hover:border-blue-300"
+              }`}
+            >
+              {(theme === "dark" || (theme === "system" && isDark)) && (
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-blue-500 to-indigo-500" />
+              )}
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded-lg ring-1 bg-blue-50 text-blue-700 ring-black/5 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-white/5">
+                  <Moon size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm md:text-base text-slate-900 dark:text-white">
+                    Oscuro
+                  </p>
+                </div>
+                {(theme === "dark" || (theme === "system" && isDark)) && (
+                  <span className="ml-auto w-3 h-3 rounded-full bg-blue-600 ring-2 ring-blue-300 shadow-[0_0_0.45rem_rgba(59,130,246,0.5)]" />
+                )}
+              </div>
             </button>
           </div>
-        </div>
-      </motion.div>
-
-      {/* Sección de Notificaciones */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className={`rounded-2xl p-6 border transition-all duration-300 ${
-          isDark
-            ? "bg-gray-800 border-gray-700"
-            : "bg-white border-gray-200 shadow-sm"
-        }`}
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div
-            className={`p-2 rounded-xl ${
-              isDark ? "bg-green-600/20" : "bg-green-50"
-            }`}
-          >
-            <Bell
-              className={isDark ? "text-green-400" : "text-green-600"}
-              size={24}
-            />
-          </div>
-          <h2
-            className={`text-xl font-bold ${
-              isDark ? "text-white" : "text-gray-900"
-            }`}
-          >
-            Notificaciones
-          </h2>
-        </div>
-
-        <div className="space-y-4">
-          <SettingToggle
-            icon={<Bell size={20} />}
-            label="Notificaciones por email"
-            description="Recibe actualizaciones en tu correo"
-            checked={notiEmail}
-            onChange={() => setNotiEmail((v) => !v)}
-            isDark={isDark}
-          />
-          <SettingToggle
-            icon={<Package size={20} />}
-            label="Actualizaciones de pedidos"
-            description="Estado de tus compras en tiempo real"
-            checked={notiPedidos}
-            onChange={() => setNotiPedidos((v) => !v)}
-            isDark={isDark}
-          />
-          <SettingToggle
-            icon={<Tag size={20} />}
-            label="Ofertas y promociones"
-            description="Descuentos exclusivos para ti"
-            checked={notiOfertas}
-            onChange={() => setNotiOfertas((v) => !v)}
-            isDark={isDark}
-          />
         </div>
       </motion.div>
 
@@ -191,26 +142,25 @@ export default function SettingsView() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className={`rounded-2xl p-6 border transition-all duration-300 ${
+        className={`rounded-xl p-4 md:p-5 border transition-all duration-300 ring-1 ring-black/5 dark:ring-white/5 ${
           isDark
-            ? "bg-gray-800 border-gray-700"
-            : "bg-white border-gray-200 shadow-sm"
+            ? "bg-slate-900/80 border-slate-700/60"
+            : "bg-white border-slate-200/80 shadow-sm"
         }`}
       >
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-4">
           <div
-            className={`p-2 rounded-xl ${
-              isDark ? "bg-red-600/20" : "bg-red-50"
+            className={`p-2 rounded-xl ring-1 ${
+              isDark
+                ? "bg-rose-500/10 ring-white/5 text-rose-300"
+                : "bg-rose-50 ring-black/5 text-rose-700"
             }`}
           >
-            <LogOut
-              className={isDark ? "text-red-400" : "text-red-600"}
-              size={24}
-            />
+            <LogOut size={20} />
           </div>
           <h2
-            className={`text-xl font-bold ${
-              isDark ? "text-white" : "text-gray-900"
+            className={`text-lg md:text-xl font-bold ${
+              isDark ? "text-white" : "text-slate-900"
             }`}
           >
             Cuenta
@@ -222,32 +172,32 @@ export default function SettingsView() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowConfirmLogout(true)}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
+            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
               isDark
-                ? "bg-red-600/10 border border-red-600/20 hover:bg-red-600/20"
-                : "bg-red-50 border border-red-100 hover:bg-red-100"
+                ? "bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/15"
+                : "bg-rose-50 border border-rose-100 hover:bg-rose-100"
             }`}
           >
             <div
-              className={`p-2 rounded-lg ${
+              className={`p-1.5 rounded-lg ${
                 isDark
-                  ? "bg-red-600/20 text-red-400"
-                  : "bg-red-100 text-red-600"
+                  ? "bg-rose-500/15 text-rose-300"
+                  : "bg-rose-100 text-rose-700"
               }`}
             >
-              <LogOut size={20} />
+              <LogOut size={18} />
             </div>
             <div className="flex-1 text-left">
               <p
-                className={`font-semibold ${
-                  isDark ? "text-white" : "text-gray-900"
+                className={`font-semibold text-sm md:text-base ${
+                  isDark ? "text-white" : "text-slate-900"
                 }`}
               >
                 Cerrar Sesión
               </p>
               <p
                 className={`text-sm ${
-                  isDark ? "text-gray-400" : "text-gray-600"
+                  isDark ? "text-slate-400" : "text-slate-600"
                 }`}
               >
                 Salir de tu cuenta actual
@@ -258,7 +208,7 @@ export default function SettingsView() {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`rounded-xl p-4 border ${
+            className={`rounded-lg p-3 border ${
               isDark
                 ? "bg-red-600/10 border-red-600/20"
                 : "bg-red-50 border-red-200"
@@ -270,7 +220,7 @@ export default function SettingsView() {
                 size={20}
               />
               <p
-                className={`font-semibold ${
+                className={`font-semibold text-sm md:text-base ${
                   isDark ? "text-white" : "text-gray-900"
                 }`}
               >
@@ -282,7 +232,7 @@ export default function SettingsView() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
-                className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+                className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm md:text-base transition-all duration-300 ${
                   isDark
                     ? "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/30"
                     : "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20"
@@ -294,7 +244,7 @@ export default function SettingsView() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowConfirmLogout(false)}
-                className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+                className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm md:text-base transition-all duration-300 ${
                   isDark
                     ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
                     : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -317,39 +267,55 @@ function SettingToggle({
   checked,
   onChange,
   isDark,
+  accent,
 }) {
   return (
     <div
-      className={`rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] ${
-        isDark ? "bg-gray-700/30" : "bg-gray-50 hover:bg-gray-100"
-      }`}
+      className={`rounded-lg p-3 transition-all duration-200 h-full relative overflow-hidden ${
+        isDark
+          ? "bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700/60"
+          : "bg-slate-50 hover:bg-white border border-slate-200/70"
+      } ${checked ? "ring-2 ring-blue-400/60" : ""}`}
+      role="button"
+      aria-pressed={checked}
+      tabIndex={0}
+      onClick={() => onChange?.()}
+      onKeyDown={(e) => {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          onChange?.();
+        }
+      }}
     >
-      <div className="flex items-center justify-between">
+      {checked && (
+        <span className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-blue-500 to-indigo-500" />
+      )}
+      <div className="flex items-center justify-between h-full">
         <div className="flex items-center gap-3 flex-1">
           <div
             className={`p-2 rounded-lg ${
               checked
                 ? isDark
-                  ? "bg-blue-600/20 text-blue-400"
-                  : "bg-blue-50 text-blue-600"
+                  ? "bg-blue-500/15 text-blue-300"
+                  : "bg-blue-50 text-blue-700"
                 : isDark
-                ? "bg-gray-600/50 text-gray-400"
-                : "bg-gray-100 text-gray-400"
+                ? "bg-slate-700/70 text-slate-300"
+                : "bg-slate-100 text-slate-500"
             }`}
           >
             {icon}
           </div>
           <div className="flex-1">
             <p
-              className={`font-semibold ${
-                isDark ? "text-white" : "text-gray-900"
+              className={`font-semibold text-sm md:text-base ${
+                isDark ? "text-white" : "text-slate-900"
               }`}
             >
               {label}
             </p>
             <p
               className={`text-sm ${
-                isDark ? "text-gray-400" : "text-gray-600"
+                isDark ? "text-slate-400" : "text-slate-600"
               }`}
             >
               {description}
@@ -357,31 +323,23 @@ function SettingToggle({
           </div>
         </div>
 
-        {/* Toggle Switch */}
-        <button
-          role="switch"
-          aria-checked={checked}
-          onClick={onChange}
-          className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 ${
-            checked
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50"
-              : isDark
-              ? "bg-gray-600"
-              : "bg-gray-300"
-          }`}
+        {/* Toggle Switch - user's exact HTML/CSS structure */}
+        <label
+          className="container"
+          style={{ "--clr": accent || "#3B82F6" }}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
-          <motion.span
-            layout
-            transition={{
-              type: "spring",
-              stiffness: 700,
-              damping: 30,
-            }}
-            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ${
-              checked ? "translate-x-6" : "translate-x-1"
-            }`}
+          <input
+            type="checkbox"
+            role="switch"
+            aria-checked={checked}
+            aria-label={label}
+            checked={checked}
+            onChange={onChange}
           />
-        </button>
+          <div className="checkmark"></div>
+        </label>
       </div>
     </div>
   );

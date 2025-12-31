@@ -29,6 +29,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import "../styles/Entrega.css";
+import "../styles/Spinners.css";
 
 /* Provincias RD */
 const provinciasRD = [
@@ -389,24 +390,28 @@ export default function Entrega({
         return;
       }
 
-      const tieneUbicacion = !!coords;
-      if (!tieneUbicacion) {
-        const dirFinalCheck = armarDireccionDomicilio();
-        if (!dirFinalCheck) {
-          notify(
-            "Completa provincia, ciudad y calle/número.",
-            "warning",
-            "Campos requeridos"
-          );
-          setGuardando(false);
-          return;
-        }
+      const missing = [];
+      if (!provincia?.trim()) missing.push("provincia");
+      if (!ciudad?.trim()) missing.push("ciudad");
+      if (!sector?.trim()) missing.push("sector");
+      if (!numeroCalle?.trim()) missing.push("calle");
+      if (!numeroCasa?.trim()) missing.push("número de casa");
+      if (!referencia?.trim()) missing.push("referencia");
+      if (missing.length > 0) {
+        notify(
+          `Completa: ${missing.join(", ")}.`,
+          "warning",
+          "Campos requeridos"
+        );
+        setGuardando(false);
+        return;
       }
 
+      const tieneUbicacion = !!coords;
       const dirFinal = tieneUbicacion
-        ? `${
-            armarDireccionDomicilio() ? armarDireccionDomicilio() + ", " : ""
-          }Ubicación: ${ubicacion} (${coords?.lat}, ${coords?.lon})`
+        ? `${armarDireccionDomicilio()}, Ubicación: ${ubicacion} (${
+            coords?.lat
+          }, ${coords?.lon})`
         : armarDireccionDomicilio();
 
       const payload = {
@@ -1013,7 +1018,7 @@ export default function Entrega({
 
                   {!coords && (
                     <div className="form-note">
-                      💡 <strong>Tip:</strong> Usa "Mi ubicación actual" para
+                       <strong>Tip:</strong> Usa "Mi ubicación actual" para
                       completar automáticamente las coordenadas
                     </div>
                   )}
@@ -1214,26 +1219,37 @@ export default function Entrega({
             role="status"
             aria-live="polite"
           >
-            <div className="spinner-container">
-              <div className="spinner">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
+            <div
+              className="spinner-container"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "0.75rem",
+              }}
+            >
+              {/* Spinner arriba */}
+              <div
+                className="dot-spinner"
+                style={{ "--uib-size": "3rem", "--uib-color": "#2563EB" }}
+              >
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
+                <div className="dot-spinner__dot"></div>
               </div>
+              {/* Texto abajo */}
               <motion.div
                 className="spinner-text"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.15 }}
               >
-                Procesando entrega...
+                Guardando dirección...
               </motion.div>
             </div>
           </motion.div>

@@ -18,7 +18,7 @@ export async function subirImagenCloudinary(file) {
   if (!res.ok) {
     const errorText = await res.text();
     // console.error("Error Cloudinary:", errorText);
-    throw new Error("❌ Error al subir la imagen a Cloudinary");
+    throw new Error(" Error al subir la imagen a Cloudinary");
   }
 
   const data = await res.json();

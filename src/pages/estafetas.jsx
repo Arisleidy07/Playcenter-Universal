@@ -7,6 +7,7 @@ import {
   FaRegCopy,
   FaCheck,
   FaTimes,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 
 const estafetas = [
@@ -194,7 +195,7 @@ export default function Estafetas() {
 
   return (
     <div
-      className="max-w-[1400px] mx-auto px-4 py-10"
+      className="max-w-[1400px] mx-auto px-4 py-6 antialiased font-sans"
       style={{ paddingTop: "30px" }}
     >
       {/* Header con animación */}
@@ -206,13 +207,13 @@ export default function Estafetas() {
       >
         <motion.h1
           variants={fadeInUp}
-          className="text-3xl md:text-4xl font-extrabold text-gray-800 dark:text-gray-100 tracking-tight mb-2"
+          className="text-2xl md:text-3xl font-black font-sans tracking-tight leading-tight mb-2 text-gray-900 dark:text-gray-100 uppercase"
         >
           Estafetas de Pago y Métodos de Pago
         </motion.h1>
         <motion.p
           variants={fadeInUp}
-          className="text-gray-600 dark:text-gray-300"
+          className="text-gray-600 dark:text-gray-300 text-sm md:text-base"
         >
           Puedes pagar tu factura en cualquiera de nuestros puntos autorizados o
           mediante transferencia bancaria.
@@ -225,10 +226,10 @@ export default function Estafetas() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 border border-blue-200 dark:border-gray-700 rounded-xl p-4 md:p-6 mb-8 md:mb-12 shadow-lg"
+        className="bg-transparent rounded-xl p-2.5 md:p-3 mb-5 md:mb-6"
       >
-        <h2 className="text-lg md:text-xl font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2 mb-2">
-          <FaMoneyCheckAlt className="text-base md:text-lg" />
+        <h2 className="text-base md:text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-1 uppercase">
+          <FaMoneyCheckAlt className="text-sm md:text-base" />
           Cuentas Bancarias
         </h2>
         <p className="text-xs md:text-sm text-red-600 dark:text-red-400 font-semibold mb-2">
@@ -236,26 +237,30 @@ export default function Estafetas() {
         </p>
         <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 mb-3 md:mb-4">
           Envía el comprobante al{" "}
-          <span className="font-bold">809-582-1212</span>
+          <span className="font-bold font-mono">809-582-1212</span>
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 tabular-nums">
           {cuentasBancarias.map((cuenta, index) => (
             <div
               key={index}
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 md:p-4 shadow-sm hover:shadow-md transition"
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 md:p-3 shadow-sm hover:shadow-md transition"
             >
-              <h3 className="text-sm md:text-base font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1 mb-2">
+              <h3 className="text-sm md:text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1 mb-1 tracking-wide uppercase">
                 <FaUniversity className="text-xs md:text-sm" />
                 {cuenta.banco}
+                <span className="text-[11px] md:text-xs font-normal text-gray-500 dark:text-gray-400">
+                  · {cuenta.tipo}
+                </span>
               </h3>
               <div className="space-y-1">
-                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 flex items-center justify-between">
-                  <span className="font-mono text-gray-900 dark:text-gray-100 text-xs md:text-sm">
+                <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                  <span className="font-mono tabular-nums whitespace-nowrap text-gray-900 dark:text-gray-100 text-xs md:text-sm">
                     {cuenta.numero}
                   </span>
                   <button
                     onClick={() => handleCopy(cuenta.numero, index)}
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 ml-2 p-1"
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 p-1"
+                    aria-label={`Copiar ${cuenta.numero}`}
                     title="Copiar"
                   >
                     {copiedIndex === index ? (
@@ -264,9 +269,6 @@ export default function Estafetas() {
                       <FaRegCopy size={14} />
                     )}
                   </button>
-                </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {cuenta.tipo}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500">
                   {cuenta.titular}
@@ -283,52 +285,54 @@ export default function Estafetas() {
         whileInView="visible"
         viewport={{ once: true }}
         variants={staggerContainer}
-        className="grid grid-cols-1 md:grid-cols-2 gap-10"
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"
       >
         {estafetas.map((punto, index) => (
           <motion.div
             key={punto.id}
             variants={fadeInUp}
             transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition"
+            className="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition"
           >
             <div
-              className="w-full md:w-1/2 h-64 md:h-auto bg-gradient-to-br from-blue-50 to-slate-50 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center p-3 cursor-pointer transition-colors"
+              className="w-full md:w-1/2 h-40 md:h-48 lg:h-56 bg-transparent flex items-center justify-center p-2 cursor-pointer"
               onClick={() => openImageModal(punto)}
               title="Click para ver imagen completa"
             >
               <img
                 src={punto.imagen}
                 alt={punto.nombre}
-                className="w-full h-full object-contain rounded-xl"
+                className="w-full h-full object-contain rounded-lg"
               />
             </div>
-            <div className="p-6 flex flex-col justify-between flex-1">
+            <div className="p-4 flex flex-col justify-between flex-1">
               <div>
-                <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-1">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
                   {punto.nombre}
                 </h2>
-                <p className="text-gray-700 dark:text-gray-300 text-lg font-medium mb-1">
+                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base font-medium mb-1">
                   {punto.descripcion}
                 </p>
-                <p className="text-gray-600 dark:text-gray-400 mb-1">
+                <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base mb-1">
                   {punto.direccion}
                 </p>
-                <p className="text-green-600 dark:text-green-400 flex items-center gap-2 mb-2">
-                  <FaWhatsapp className="text-green-500 dark:text-green-300" />
-                  {punto.telefono}
-                </p>
+                {punto.telefono && (
+                  <p className="text-green-600 dark:text-green-400 text-sm md:text-base flex items-center gap-1 mb-1">
+                    <FaWhatsapp className="text-green-500 dark:text-green-300 text-sm md:text-base" />
+                    <span className="font-mono tabular-nums whitespace-nowrap">
+                      {punto.telefono}
+                    </span>
+                  </p>
+                )}
               </div>
               <a
                 href={punto.ubicacionLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:underline mt-3 font-semibold flex items-center gap-2"
+                className="text-gray-800 dark:text-gray-100 hover:underline mt-2 text-sm md:text-base font-semibold flex items-center gap-2"
               >
-                <span role="img" aria-label="location">
-                  📍
-                </span>
-                Ver Ubicación
+                <FaMapMarkerAlt className="text-xs md:text-sm" />
+                Ver ubicación
               </a>
             </div>
           </motion.div>
@@ -340,7 +344,7 @@ export default function Estafetas() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="text-center text-gray-500 dark:text-gray-400 mt-12 text-lg"
+        className="text-center text-gray-500 dark:text-gray-400 mt-8 text-sm md:text-base"
       >
         ¡Agradecemos su preferencia! Estamos para servirle.
       </motion.p>
@@ -397,7 +401,7 @@ export default function Estafetas() {
 
           {/* Header con Título y Botón Cerrar */}
           <div
-            className="estafeta-modal-header flex items-center justify-between px-4 md:px-8 py-4 md:py-6 border-b"
+            className="estafeta-modal-header flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b"
             style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}
           >
             <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 dark:text-blue-400 flex-1 pr-4">
@@ -405,7 +409,7 @@ export default function Estafetas() {
             </h3>
             <button
               onClick={closeModal}
-              className="estafeta-modal-btn p-3 md:p-4 rounded-full transition-all duration-300 shadow-2xl hover:scale-110 hover:rotate-90 flex-shrink-0"
+              className="estafeta-modal-btn p-2 md:p-3 rounded-full transition-all duration-300 shadow-2xl hover:scale-110 hover:rotate-90 flex-shrink-0"
               style={{ backgroundColor: "#f3f4f6", color: "#111827" }}
               title="Cerrar"
             >
@@ -437,7 +441,7 @@ export default function Estafetas() {
             style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}
           >
             <div className="max-w-4xl mx-auto">
-              <p className="text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-200 text-center font-medium leading-relaxed">
+              <p className="text-sm md:text-base lg:text-lg text-gray-700 dark:text-gray-200 text-center font-medium leading-relaxed">
                 {selectedImage.descripcion}
               </p>
             </div>

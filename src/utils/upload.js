@@ -1,4 +1,4 @@
-// ✅ ACTUALIZADO PARA CLOUDINARY
+//  ACTUALIZADO PARA CLOUDINARY
 import { uploadToCloudinary } from '../cloudinary';
 
 /**

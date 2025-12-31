@@ -267,7 +267,7 @@ export default function Vender() {
                   disabled={verificando}
                   className={`group px-6 py-3 sm:px-8 sm:py-3.5 lg:px-10 lg:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                     darkMode
-                      ? "bg-yellow-400 text-slate-900 hover:bg-yellow-500 shadow-lg"
+                      ? "bg-yellow-400 text-white hover:bg-yellow-500 shadow-lg"
                       : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg"
                   }`}
                 >
@@ -663,7 +663,7 @@ export default function Vender() {
                 onClick={handleComenzar}
                 className={`group w-full lg:w-auto px-6 py-3 sm:px-8 sm:py-3.5 lg:px-10 lg:py-4 rounded-lg font-bold text-sm sm:text-base lg:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl inline-flex items-center justify-center gap-2 ${
                   darkMode
-                    ? "bg-yellow-400 text-slate-900 hover:bg-yellow-500 shadow-lg"
+                    ? "bg-yellow-400 text-white hover:bg-yellow-500 shadow-lg"
                     : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg"
                 }`}
               >

@@ -1,4 +1,4 @@
-// ✅ ACTUALIZADO PARA CLOUDINARY
+//  ACTUALIZADO PARA CLOUDINARY
 import { uploadToCloudinary } from '../cloudinary';
 
 /**
@@ -40,7 +40,7 @@ export const uploadFileUniversal = async (file, productId, fileType = 'media') =
       throw new Error('No se pudo obtener la URL de descarga');
     }
 
-    // console.log(`✅ Archivo subido exitosamente a Cloudinary: ${downloadURL}`);
+    // console.log(` Archivo subido exitosamente a Cloudinary: ${downloadURL}`);
     return {
       url: downloadURL,
       type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'document',
@@ -49,7 +49,7 @@ export const uploadFileUniversal = async (file, productId, fileType = 'media') =
       path: cloudinaryFolder
     };
   } catch (error) {
-    // console.error('❌ Error en uploadFileUniversal:', error);
+    // console.error(' Error en uploadFileUniversal:', error);
     throw error;
   }
 };

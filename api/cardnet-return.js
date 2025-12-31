@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
     res.end();
   } catch (err) {
-    console.error("❌ Error en cardnet-return:", err);
+    console.error(" Error en cardnet-return:", err);
     res.writeHead(302, { Location: "/payment/cancel" });
     res.end();
   }

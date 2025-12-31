@@ -34,10 +34,10 @@ async function fixAdminStore() {
     // 1. Verificar que existe la tienda playcenter_universal
     const storeDoc = await getDoc(doc(db, "tiendas", "playcenter_universal"));
     if (!storeDoc.exists()) {
-      console.error("❌ No existe la tienda playcenter_universal");
+      console.error(" No existe la tienda playcenter_universal");
       return;
     }
-    console.log("✅ Tienda playcenter_universal encontrada");
+    console.log(" Tienda playcenter_universal encontrada");
     console.log("   Nombre:", storeDoc.data().nombre);
 
     // 2. Buscar usuarios admin
@@ -58,7 +58,7 @@ async function fixAdminStore() {
       const usersSnap2 = await getDocs(usersQuery2);
 
       if (usersSnap2.empty) {
-        console.log("❌ No se encontraron usuarios admin");
+        console.log(" No se encontraron usuarios admin");
         return;
       }
 
@@ -73,10 +73,10 @@ async function fixAdminStore() {
       await updateAdmins(usersSnap.docs);
     }
 
-    console.log("\n✅ ¡Corrección completada!");
+    console.log("\n ¡Corrección completada!");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error:", error);
+    console.error(" Error:", error);
     process.exit(1);
   }
 }
@@ -87,7 +87,7 @@ async function updateAdmins(adminDocs) {
     const adminId = adminDoc.id;
 
     console.log(
-      `\n👤 Procesando admin: ${adminData.displayName || adminData.email}`
+      `\n Procesando admin: ${adminData.displayName || adminData.email}`
     );
     console.log(`   UID: ${adminId}`);
     console.log(`   storeId actual: ${adminData.storeId || "ninguno"}`);
@@ -99,7 +99,7 @@ async function updateAdmins(adminDocs) {
         storeName: "Playcenter Universal",
         isSeller: true,
       });
-      console.log("   ✅ Perfil actualizado");
+      console.log("    Perfil actualizado");
     } else {
       console.log("   ℹ️  Perfil ya tiene storeId correcto");
     }
@@ -111,7 +111,7 @@ async function updateAdmins(adminDocs) {
     );
     const productosSnap = await getDocs(productosQuery);
 
-    console.log(`   📦 Encontrados ${productosSnap.docs.length} productos`);
+    console.log(`    Encontrados ${productosSnap.docs.length} productos`);
 
     let updatedCount = 0;
     for (const productDoc of productosSnap.docs) {
@@ -126,7 +126,7 @@ async function updateAdmins(adminDocs) {
     }
 
     if (updatedCount > 0) {
-      console.log(`   ✅ ${updatedCount} productos actualizados`);
+      console.log(`    ${updatedCount} productos actualizados`);
     } else {
       console.log("   ℹ️  Todos los productos ya tienen storeId correcto");
     }

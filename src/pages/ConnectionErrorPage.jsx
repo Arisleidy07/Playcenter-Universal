@@ -32,16 +32,23 @@ const ConnectionErrorPage = () => {
           <div className="connection-error-body">
             {/* Icono animado pero suave (no mueve el logo) */}
             <div className="connection-error-icon">
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                className="connection-error-icon-svg"
-              >
-                <path
-                  d="M12 18.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Zm6.36-7.78a11.25 11.25 0 0 0-12.72 0 1 1 0 1 0 1.12 1.64 9.25 9.25 0 0 1 10.48 0 1 1 0 0 0 1.12-1.64Zm-3 3.9a7.25 7.25 0 0 0-6.72 0 1 1 0 1 0 .92 1.76 5.25 5.25 0 0 1 4.88 0 1 1 0 0 0 .92-1.76Zm-3-6.9a13.25 13.25 0 0 0-8 2.6 1 1 0 0 0 1.2 1.6 11.25 11.25 0 0 1 13.6 0 1 1 0 0 0 1.2-1.6 13.25 13.25 0 0 0-8-2.6Z"
-                  fill="currentColor"
-                />
-              </svg>
+              <div className="connection-error-icon-badge" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="connection-error-icon-svg"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 9.5a11 11 0 0 1 14 0" />
+                  <path d="M8.5 13a6 6 0 0 1 7 0" />
+                  <path d="M11.5 16.2a2.6 2.6 0 0 1 1 0" />
+                  <path d="M12 20h.01" />
+                  <path d="M4 4l16 16" />
+                </svg>
+              </div>
             </div>
 
             <h1 className="connection-error-title">Sin conexión a internet</h1>

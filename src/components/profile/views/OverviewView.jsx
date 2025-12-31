@@ -12,32 +12,38 @@ export default function OverviewView({
   const name = info?.displayName || user?.displayName || "Usuario";
 
   return (
-    <div className="space-y-6 sm:space-y-8 lg:space-y-10 w-full max-w-full overflow-hidden">
+    <div className="space-y-6 sm:space-y-8 lg:space-y-10 w-full max-w-full overflow-visible">
       {/* Layout estilo YouTube: Avatar izquierda, info derecha - ESTILO PREMIUM */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8 items-start pb-4 sm:pb-6 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8 items-start pb-4 sm:pb-6 border-b border-slate-200/80 dark:border-slate-700/80">
         {/* Avatar - CÍRCULO CON INICIAL */}
         <div className="flex-shrink-0">
           <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold shadow-lg border-2 border-slate-200 dark:border-slate-700">
             {/* CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente */}
             {(() => {
-              const fotoURL = info?.hasOwnProperty('fotoURL') 
-                ? (info.fotoURL && info.fotoURL !== "" ? info.fotoURL : null)
-                : (user?.photoURL && user.photoURL !== "" ? user.photoURL : null);
-              
+              const fotoURL = info?.hasOwnProperty("fotoURL")
+                ? info.fotoURL && info.fotoURL !== ""
+                  ? info.fotoURL
+                  : null
+                : user?.photoURL && user.photoURL !== ""
+                ? user.photoURL
+                : null;
+
               return fotoURL ? (
                 <img
                   src={fotoURL}
                   alt={name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.style.display = 'none';
+                    e.target.style.display = "none";
                     if (e.target.nextSibling) {
-                      e.target.nextSibling.style.display = 'flex';
+                      e.target.nextSibling.style.display = "flex";
                     }
                   }}
                 />
               ) : (
-                <span className="flex items-center justify-center w-full h-full">{(name?.charAt(0) || "U").toUpperCase()}</span>
+                <span className="flex items-center justify-center w-full h-full">
+                  {(name?.charAt(0) || "U").toUpperCase()}
+                </span>
               );
             })()}
           </div>
@@ -55,7 +61,9 @@ export default function OverviewView({
               onClick={onOpenFollowers}
               className="hover:text-blue-700 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer whitespace-nowrap font-semibold"
             >
-              <span className="font-bold text-slate-900 dark:text-white">{stats?.seguidores || 0}</span>{" "}
+              <span className="font-bold text-slate-900 dark:text-white">
+                {stats?.seguidores || 0}
+              </span>{" "}
               seguidores
             </button>
             <span className="text-slate-400">·</span>
@@ -63,12 +71,16 @@ export default function OverviewView({
               onClick={onOpenFollowing}
               className="hover:text-blue-700 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer whitespace-nowrap font-semibold"
             >
-              <span className="font-bold text-slate-900 dark:text-white">{stats?.seguidos || 0}</span>{" "}
+              <span className="font-bold text-slate-900 dark:text-white">
+                {stats?.seguidos || 0}
+              </span>{" "}
               seguidos
             </button>
             <span className="text-slate-400">·</span>
             <span className="whitespace-nowrap font-semibold">
-              <span className="font-bold text-slate-900 dark:text-white">{stats?.publicaciones || 0}</span>{" "}
+              <span className="font-bold text-slate-900 dark:text-white">
+                {stats?.publicaciones || 0}
+              </span>{" "}
               publicaciones
             </span>
           </div>
@@ -76,7 +88,7 @@ export default function OverviewView({
           {/* Botón editar - ESTILO PREMIUM EJECUTIVO */}
           <button
             onClick={onEdit}
-            className="mt-4 sm:mt-6 flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-blue-700 dark:to-indigo-800 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-blue-700 hover:to-indigo-800 dark:hover:from-blue-600 dark:hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            className="mt-4 sm:mt-6 flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 border border-blue-600 transition-colors shadow-md active:scale-[0.99]"
           >
             <Edit2 size={16} className="sm:w-4 sm:h-4" />
             <span>Editar Perfil</span>
@@ -85,10 +97,15 @@ export default function OverviewView({
       </div>
 
       {/* Información Personal - Diseño Premium Ejecutivo */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-lg ring-1 ring-black/5 dark:ring-white/5 overflow-hidden">
         {/* Header - ESTILO PREMIUM */}
-        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-800 dark:to-blue-900/10">
-          <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-b border-slate-200/80 dark:border-slate-700/80 bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-900">
+          <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <img
+              src="/logos/perfil/1.jpg"
+              alt=""
+              className="w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full object-cover"
+            />
             Información Personal
           </h3>
           <p className="text-xs sm:text-sm lg:text-base text-slate-600 dark:text-slate-400 mt-1 sm:mt-2 font-medium">
@@ -237,7 +254,7 @@ export default function OverviewView({
         </div>
 
         {/* Footer con información adicional - ESTILO PREMIUM */}
-        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
+        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200/80 dark:border-slate-700/80">
           <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2 font-medium">
             <svg
               className="w-4 h-4"

@@ -33,7 +33,7 @@ try {
     appId: lines.find(l => l.startsWith('VITE_FIREBASE_APP_ID'))?.split('=')[1]?.trim()
   };
 } catch (error) {
-  console.error('❌ Error leyendo .env.local:', error);
+  console.error(' Error leyendo .env.local:', error);
   process.exit(1);
 }
 
@@ -42,7 +42,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function migrateProductsToStore() {
-  console.log('📦 Iniciando migración de productos...\n');
+  console.log(' Iniciando migración de productos...\n');
   
   try {
     // Obtener todos los productos
@@ -80,10 +80,10 @@ async function migrateProductsToStore() {
           tienda_nombre: 'Playcenter Universal'
         });
         
-        console.log(`✅ ${productData.nombre || productId} - Asignado a Playcenter Universal`);
+        console.log(` ${productData.nombre || productId} - Asignado a Playcenter Universal`);
         updated++;
       } catch (error) {
-        console.error(`❌ Error en ${productId}:`, error.message);
+        console.error(` Error en ${productId}:`, error.message);
         errors++;
       }
     }
@@ -92,15 +92,15 @@ async function migrateProductsToStore() {
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📊 RESUMEN DE MIGRACIÓN');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`✅ Actualizados:    ${updated}`);
+    console.log(` Actualizados:    ${updated}`);
     console.log(`⏭️  Omitidos:        ${skipped}`);
-    console.log(`❌ Errores:         ${errors}`);
-    console.log(`📦 Total:           ${snapshot.size}`);
+    console.log(` Errores:         ${errors}`);
+    console.log(` Total:           ${snapshot.size}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     
     if (updated > 0) {
-      console.log('🎉 Migración completada exitosamente!');
-      console.log('\n📝 Siguiente paso:');
+      console.log(' Migración completada exitosamente!');
+      console.log('\n Siguiente paso:');
       console.log('   Los productos ahora tienen los campos:');
       console.log('   - tienda_id: "playcenter_universal"');
       console.log('   - tienda_nombre: "Playcenter Universal"\n');
@@ -108,7 +108,7 @@ async function migrateProductsToStore() {
     
     process.exit(errors > 0 ? 1 : 0);
   } catch (error) {
-    console.error('❌ Error general en la migración:', error);
+    console.error(' Error general en la migración:', error);
     process.exit(1);
   }
 }

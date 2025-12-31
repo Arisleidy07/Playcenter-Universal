@@ -33,7 +33,7 @@ try {
     appId: lines.find(l => l.startsWith('VITE_FIREBASE_APP_ID'))?.split('=')[1]?.trim()
   };
 } catch (error) {
-  console.error('❌ Error leyendo .env.local:', error);
+  console.error(' Error leyendo .env.local:', error);
   process.exit(1);
 }
 
@@ -77,14 +77,14 @@ const playcenterStore = {
 };
 
 async function initializePlaycenterStore() {
-  console.log('🏪 Inicializando tienda Playcenter Universal...\n');
+  console.log(' Inicializando tienda Playcenter Universal...\n');
   
   try {
     // Crear documento en Firestore
     const storeRef = doc(db, 'tiendas', 'playcenter_universal');
     await setDoc(storeRef, playcenterStore);
     
-    console.log('✅ Tienda creada exitosamente!');
+    console.log(' Tienda creada exitosamente!');
     console.log('\n📋 Detalles de la tienda:');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`ID:           ${playcenterStore.id}`);
@@ -94,13 +94,13 @@ async function initializePlaycenterStore() {
     console.log(`Principal:    ${playcenterStore.principal ? 'Sí' : 'No'}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     
-    console.log('📝 Siguiente paso:');
+    console.log(' Siguiente paso:');
     console.log('   Ejecuta: node scripts/migrate-products-to-store.mjs');
     console.log('   Para asignar todos los productos existentes a esta tienda.\n');
     
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error al crear la tienda:', error);
+    console.error(' Error al crear la tienda:', error);
     process.exit(1);
   }
 }

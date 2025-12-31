@@ -125,7 +125,7 @@ router.get("/verify/:session/:sk", async (req, res) => {
   }
 });
 
-// ✅ Endpoints que CardNet llama (Render → redirige al frontend en Vercel)
+//  Endpoints que CardNet llama (Render → redirige al frontend en Vercel)
 router.post("/return", express.urlencoded({ extended: true }), (req, res) => {
   const session = req.body.SESSION || req.query.SESSION;
   console.log("<< Return de CardNet:", req.body);

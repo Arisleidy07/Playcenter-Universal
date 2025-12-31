@@ -55,11 +55,11 @@ const TIENDA_PRINCIPAL = {
 };
 
 async function crearTiendaPrincipal() {
-  console.log("🏪 Creando/Restaurando Tienda Principal de Playcenter...\n");
+  console.log(" Creando/Restaurando Tienda Principal de Playcenter...\n");
 
   try {
     // 1. Verificar si ya existe una tienda principal
-    console.log("🔍 Verificando si ya existe tienda principal...");
+    console.log(" Verificando si ya existe tienda principal...");
     const q = query(collection(db, "stores"), where("principal", "==", true));
     const snapshot = await getDocs(q);
 
@@ -83,12 +83,12 @@ async function crearTiendaPrincipal() {
     const docRef = await addDoc(collection(db, "stores"), TIENDA_PRINCIPAL);
 
     console.log("\n" + "=".repeat(60));
-    console.log("✅ TIENDA PRINCIPAL CREADA EXITOSAMENTE");
+    console.log(" TIENDA PRINCIPAL CREADA EXITOSAMENTE");
     console.log("=".repeat(60));
-    console.log(`📦 ID de la tienda: ${docRef.id}`);
-    console.log(`🏪 Nombre: ${TIENDA_PRINCIPAL.nombre}`);
-    console.log(`📧 Email: ${TIENDA_PRINCIPAL.ownerEmail}`);
-    console.log(`✅ Activa: Sí`);
+    console.log(` ID de la tienda: ${docRef.id}`);
+    console.log(` Nombre: ${TIENDA_PRINCIPAL.nombre}`);
+    console.log(` Email: ${TIENDA_PRINCIPAL.ownerEmail}`);
+    console.log(` Activa: Sí`);
     console.log(`⭐ Principal: Sí`);
     console.log("=".repeat(60));
 

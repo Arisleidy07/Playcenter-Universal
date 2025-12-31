@@ -11,6 +11,16 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+const profileIconMap = {
+  perfil: "/logos/perfil/1.jpg",
+  pedidos: "/logos/perfil/2.jpg",
+  ubicaciones: "/logos/perfil/3.jpg",
+  pagos: "/logos/perfil/4.jpg",
+  tiendas: "/logos/perfil/6.jpg",
+  seguridad: "/logos/perfil/7.jpg",
+  configuracion: "/logos/perfil/8.jpg",
+};
+
 export default function ProfileMobileNav({ activeView, setView, userInfo }) {
   const storeLabel =
     userInfo?.isAdmin === true ||
@@ -80,7 +90,7 @@ export default function ProfileMobileNav({ activeView, setView, userInfo }) {
             style={{ left: indicator.left, width: indicator.width }}
           />
           {items.map((item) => {
-            const Icon = item.icon;
+            const iconSrc = profileIconMap[item.id];
             const active = activeView === item.id;
             return (
               <motion.button
@@ -97,13 +107,17 @@ export default function ProfileMobileNav({ activeView, setView, userInfo }) {
                 whileTap={{ scale: 0.96 }}
               >
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center ${
                     active
                       ? "bg-blue-600 text-white shadow-sm"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  <Icon size={18} />
+                  <img
+                    src={iconSrc}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <span className="text-[10px] font-medium">{item.label}</span>
               </motion.button>

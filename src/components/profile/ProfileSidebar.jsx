@@ -11,6 +11,17 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+// Mapa de iconos personalizados
+const profileIconMap = {
+  perfil: "/logos/perfil/1.jpg",
+  pedidos: "/logos/perfil/2.jpg",
+  ubicaciones: "/logos/perfil/3.jpg",
+  pagos: "/logos/perfil/4.jpg",
+  seguridad: "/logos/perfil/7.jpg",
+  tiendas: "/logos/perfil/6.jpg",
+  configuracion: "/logos/perfil/8.jpg",
+};
+
 export default function ProfileSidebar({
   activeView,
   setView,
@@ -92,19 +103,19 @@ export default function ProfileSidebar({
         }
 
         .dark .psb-shell {
-          --psb-bg: #121212;
-          --psb-card-bg: #1e1e1e;
-          --psb-card-border: #333333;
+          --psb-bg: #0f172a; /* slate-900 */
+          --psb-card-bg: #111827; /* near slate-900/950 mix */
+          --psb-card-border: #334155; /* slate-700 */
           --psb-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-          --psb-title: #e0e0e0;
-          --psb-desc: #a0a0a0;
-          --psb-icon: #e0e0e0;
-          --psb-arrow: #9ca3af;
-          --psb-active-border: #3b82f6;
+          --psb-title: #e2e8f0; /* slate-200 */
+          --psb-desc: #94a3b8; /* slate-400 */
+          --psb-icon: #cbd5e1; /* slate-300 */
+          --psb-arrow: #94a3b8; /* slate-400 */
+          --psb-active-border: #3b82f6; /* blue-500 */
           --psb-active-glow: rgba(59, 130, 246, 0.2);
-          --psb-logout-bg: rgba(220, 38, 38, 0.1);
-          --psb-logout-border: rgba(220, 38, 38, 0.3);
-          --psb-logout-icon: #f87171;
+          --psb-logout-bg: rgba(239, 68, 68, 0.1); /* red-500/10 */
+          --psb-logout-border: rgba(239, 68, 68, 0.3);
+          --psb-logout-icon: #fca5a5; /* red-300 */
         }
 
         .psb-shell {
@@ -165,8 +176,8 @@ export default function ProfileSidebar({
         }
 
         .dark .psb-icon-wrapper {
-          background: #2c2c2c;
-          border: 1px solid #3a3a3a;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid #334155;
         }
 
         .psb-icon {
@@ -279,15 +290,19 @@ export default function ProfileSidebar({
         <nav className="psb-menu">
           {menuItems.map((item) => {
             const isActive = activeView === item.id;
-            const Icon = item.icon;
+            const iconSrc = profileIconMap[item.id];
             return (
               <button
                 key={item.id}
                 onClick={() => setView(item.id)}
                 className={`psb-card ${isActive ? "psb-active" : ""}`}
               >
-                <div className="psb-icon-wrapper">
-                  <Icon size={22} className="psb-icon" />
+                <div className="psb-icon-wrapper rounded-full overflow-hidden">
+                  <img
+                    src={iconSrc}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="psb-content">
                   <p className="psb-title">{item.title}</p>
@@ -299,7 +314,7 @@ export default function ProfileSidebar({
           })}
 
           <button onClick={onLogout} className="psb-card psb-logout-card">
-            <div className="psb-icon-wrapper">
+            <div className="psb-icon-wrapper rounded-full overflow-hidden">
               <LogOut size={22} className="psb-icon" />
             </div>
             <div className="psb-content">

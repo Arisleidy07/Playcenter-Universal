@@ -1845,9 +1845,9 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       // Combinar todas las URLs con las que ya estaban en formData para evitar borrar imágenes existentes
 
       setFormData((prev) => {
-        // ✅ CORRECCIÓN CRÍTICA: Solo usar lo que el UFU reporta (existentes + nuevos)
+        //  CORRECCIÓN CRÍTICA: Solo usar lo que el UFU reporta (existentes + nuevos)
         // NO usar prevImages/prevVideos porque ignora las eliminaciones del usuario
-        // ✅ FILTRO ESTRICTO: Solo URLs válidas (no null, undefined, o strings vacíos)
+        //  FILTRO ESTRICTO: Solo URLs válidas (no null, undefined, o strings vacíos)
         const validExistingImages = existingImages
           .filter((url) => url && typeof url === "string" && url.trim() !== "")
           .map((url) => ({
@@ -2071,10 +2071,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         } catch (e) {}
       }
 
-      // ✅ CORRECCIÓN: Solo usar lo que el UFU reporta (existentes + nuevos)
+      //  CORRECCIÓN: Solo usar lo que el UFU reporta (existentes + nuevos)
       setFormData((prev) => {
         // NO usar prevExtras porque ignora eliminaciones del usuario
-        // ✅ FILTRO ESTRICTO: Solo URLs válidas
+        //  FILTRO ESTRICTO: Solo URLs válidas
         const validExisting = existingUrls.filter(
           (url) => url && typeof url === "string" && url.trim() !== ""
         );
@@ -2929,7 +2929,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                 {/* Fila 1: Información Básica (ancho completo) */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 md:p-6 border-l-4 border-blue-500">
                   <h3 className="text-base md:text-base md:text-lg font-bold text-gray-900 dark:text-white mb-3 md:mb-4 flex items-center gap-2">
-                    <span>📝</span> Información Básica
+                    <span></span> Información Básica
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -3438,7 +3438,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            💡 Escribe el color o variante que representa esta
+                             Escribe el color o variante que representa esta
                             imagen. En VistaProducto será parte del selector de
                             variantes.
                           </p>

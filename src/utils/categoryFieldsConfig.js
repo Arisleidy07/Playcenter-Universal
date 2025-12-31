@@ -242,7 +242,7 @@ export const CATEGORY_FIELDS_CONFIG = {
       },
       {
         titulo: "Certificaciones y Fabricante",
-        icono: "✅",
+        icono: "",
         campos: [
           {
             id: "certificaciones",

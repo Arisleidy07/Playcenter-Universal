@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 // Hook para detectar tipo de dispositivo según especificaciones del usuario
 const useDeviceDetection = () => {
-  const [deviceType, setDeviceType] = useState('desktop');
+  const [deviceType, setDeviceType] = useState("desktop");
   const [screenInfo, setScreenInfo] = useState({
     width: 0,
     height: 0,
     diagonal: 0,
-    ppi: 0
+    ppi: 0,
   });
 
   useEffect(() => {
     const detectDevice = () => {
-      if (typeof window === 'undefined') return;
+      if (typeof window === "undefined") return;
 
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -21,13 +21,16 @@ const useDeviceDetection = () => {
       // Calcular información de pantalla
       const physicalWidth = width * pixelRatio;
       const physicalHeight = height * pixelRatio;
-      
+
       // Estimación de PPI (pixels per inch) basada en dispositivos comunes
       let estimatedPPI = 96; // Default desktop PPI
-      
+
       // Detectar si es móvil por user agent
-      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
+      const isMobileUA =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
       if (isMobileUA) {
         // Para móviles, estimar PPI más alto
         if (physicalWidth >= 1080) estimatedPPI = 400; // High-end phones
@@ -36,38 +39,38 @@ const useDeviceDetection = () => {
       }
 
       // Calcular diagonal en pulgadas
-      const diagonalPixels = Math.sqrt(physicalWidth * physicalWidth + physicalHeight * physicalHeight);
+      const diagonalPixels = Math.sqrt(
+        physicalWidth * physicalWidth + physicalHeight * physicalHeight
+      );
       const diagonalInches = diagonalPixels / estimatedPPI;
 
       setScreenInfo({
         width,
         height,
         diagonal: diagonalInches,
-        ppi: estimatedPPI
+        ppi: estimatedPPI,
       });
 
       // Lógica de detección según especificaciones del usuario
-      let detectedType = 'desktop';
+      let detectedType = "desktop";
 
       if (isMobileUA) {
         // Regla específica: Samsung S24 y teléfonos grandes siguen siendo "móvil"
         // S24 ≈ 6.8" diagonal, densidad ~ 500-520 ppi
-        if (diagonalInches <= 7.5) { // Hasta 7.5" es teléfono
-          detectedType = 'mobile';
-        } else if (diagonalInches <= 12) { // 7.5" - 12" es tablet
-          detectedType = 'tablet';
+        if (diagonalInches <= 7.5) {
+          // Hasta 7.5" es teléfono
+          detectedType = "mobile";
+        } else if (diagonalInches <= 12) {
+          // 7.5" - 12" es tablet
+          detectedType = "tablet";
         } else {
-          detectedType = 'desktop';
+          detectedType = "desktop";
         }
       } else {
-        // Para dispositivos no móviles, usar breakpoints de ancho
-        if (width < 768) {
-          detectedType = 'mobile';
-        } else if (width < 1280) { // xl breakpoint
-          detectedType = 'tablet';
-        } else {
-          detectedType = 'desktop';
-        }
+        // Para dispositivos NO móviles (UA de escritorio), forzar 'desktop'
+        // para evitar falsos positivos por ventanas estrechas.
+        // La adaptación visual sigue dependiendo de CSS/Media Queries.
+        detectedType = "desktop";
       }
 
       setDeviceType(detectedType);
@@ -77,20 +80,20 @@ const useDeviceDetection = () => {
     detectDevice();
 
     // Detectar al redimensionar
-    window.addEventListener('resize', detectDevice);
-    window.addEventListener('orientationchange', detectDevice);
+    window.addEventListener("resize", detectDevice);
+    window.addEventListener("orientationchange", detectDevice);
 
     return () => {
-      window.removeEventListener('resize', detectDevice);
-      window.removeEventListener('orientationchange', detectDevice);
+      window.removeEventListener("resize", detectDevice);
+      window.removeEventListener("orientationchange", detectDevice);
     };
   }, []);
 
   // Funciones de utilidad
-  const isMobile = deviceType === 'mobile';
-  const isTablet = deviceType === 'tablet';
-  const isDesktop = deviceType === 'desktop';
-  
+  const isMobile = deviceType === "mobile";
+  const isTablet = deviceType === "tablet";
+  const isDesktop = deviceType === "desktop";
+
   // Breakpoints específicos
   const isMobileOrTablet = isMobile || isTablet;
   const isTabletOrDesktop = isTablet || isDesktop;
@@ -102,7 +105,7 @@ const useDeviceDetection = () => {
     isTablet,
     isDesktop,
     isMobileOrTablet,
-    isTabletOrDesktop
+    isTabletOrDesktop,
   };
 };
 

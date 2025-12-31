@@ -70,11 +70,11 @@ export const CarritoProvider = ({ children }) => {
           const cleanedItems = cleanForFirestore(items);
           setDoc(carritoRef, { items: cleanedItems }, { merge: true })
             .then(() => {
-              // console.log("✅ Carrito migrado a Firestore");
+              // console.log(" Carrito migrado a Firestore");
               setCarritoMigrado(true);
             })
             .catch((error) => {
-              // console.error("❌ Error al migrar carrito:", error);
+              // console.error(" Error al migrar carrito:", error);
             });
         }
       } catch (error) {

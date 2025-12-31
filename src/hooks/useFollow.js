@@ -121,7 +121,7 @@ export function useFollow(targetUserId) {
             "stats.seguidos": increment(-1),
           });
 
-          // console.log(`✅ Dejaste de seguir`);
+          // console.log(` Dejaste de seguir`);
         }
       } else {
         // SEGUIR
@@ -159,7 +159,7 @@ export function useFollow(targetUserId) {
           "stats.seguidos": increment(1),
         });
 
-        // console.log(`✅ Ahora sigues`);
+        // console.log(` Ahora sigues`);
       }
     } catch (error) {
       // console.error("Error al seguir/dejar de seguir:", error);

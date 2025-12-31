@@ -1,0 +1,156 @@
+/* Settings custom checkbox/toggle inspired by user's design */
+
+.pcu-toggle {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  font-size: 1.5rem;
+  user-select: none;
+}
+
+/* Scoped version using the user's exact class names
+   to avoid global collisions: only active inside .settings-toggles */
+.settings-toggles .container {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  font-size: 1.5rem;
+  user-select: none;
+  width: auto; /* override Tailwind .container width */
+  line-height: 1;
+}
+
+.settings-toggles .container > input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.settings-toggles .checkmark {
+  --clr: #0b6e4f;
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 1.3em;
+  width: 1.3em;
+  background-color: #ccc;
+  border-radius: 50%;
+  transition: 300ms;
+}
+
+.settings-toggles .container > input:checked ~ .checkmark {
+  background-color: var(--clr);
+  border-radius: 0.5rem;
+  animation: pulse 500ms ease-in-out;
+}
+
+.settings-toggles .checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.settings-toggles .container > input:checked ~ .checkmark::after {
+  display: block;
+}
+
+.settings-toggles .container .checkmark::after {
+  left: 0.45em;
+  top: 0.25em;
+  width: 0.25em;
+  height: 0.5em;
+  border: solid #e0e0e2;
+  border-width: 0 0.15em 0.15em 0;
+  transform: rotate(45deg);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 #0b6e4f90;
+    rotate: 20deg;
+  }
+  50% {
+    rotate: -20deg;
+  }
+  75% {
+    box-shadow: 0 0 0 10px #0b6e4f60;
+  }
+  100% {
+    box-shadow: 0 0 0 13px #0b6e4f30;
+    rotate: 0;
+  }
+}
+
+/* Hide the default checkbox */
+.pcu-toggle > input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.pcu-checkmark {
+  --clr: #0b6e4f;
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 1.3em;
+  width: 1.3em;
+  background-color: #ccc;
+  border-radius: 50%;
+  transition: 300ms;
+}
+
+/* When the checkbox is checked, add a green background */
+.pcu-toggle > input:checked ~ .pcu-checkmark {
+  background-color: var(--clr);
+  border-radius: 0.5rem;
+  animation: pcu-pulse 500ms ease-in-out;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.pcu-checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.pcu-toggle > input:checked ~ .pcu-checkmark::after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.pcu-toggle .pcu-checkmark::after {
+  left: 0.45em;
+  top: 0.25em;
+  width: 0.25em;
+  height: 0.5em;
+  border: solid #e0e0e2;
+  border-width: 0 0.15em 0.15em 0;
+  transform: rotate(45deg);
+}
+
+@keyframes pcu-pulse {
+  0% {
+    box-shadow: 0 0 0 #0b6e4f90;
+    rotate: 20deg;
+  }
+
+  50% {
+    rotate: -20deg;
+  }
+
+  75% {
+    box-shadow: 0 0 0 10px #0b6e4f60;
+  }
+
+  100% {
+    box-shadow: 0 0 0 13px #0b6e4f30;
+    rotate: 0;
+  }
+}

@@ -637,7 +637,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
             </p>
             {isAdmin && storeFilter && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                🏪{" "}
+                {" "}
                 {storeOptions.find((s) => s.id === storeFilter)?.name ||
                   "Tienda seleccionada"}
               </span>
@@ -694,7 +694,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           {isAdmin && storeOptions.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                🏪 Filtrar por Tienda
+                 Filtrar por Tienda
               </label>
               <div className="flex gap-2">
                 <select
@@ -702,7 +702,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                   onChange={(e) => setStoreFilter(e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gradient-to-r from-blue-50 to-purple-50"
                 >
-                  <option value="">📦 Todas las tiendas</option>
+                  <option value=""> Todas las tiendas</option>
                   {storeOptions.map((store) => (
                     <option key={store.id} value={store.id}>
                       {store.name}

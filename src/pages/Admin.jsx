@@ -378,7 +378,7 @@ function UsuarioFullView({ usuario, onClose }) {
                             ? "✓ Completado"
                             : order.estado === "cancelado"
                             ? "✗ Cancelado"
-                            : "⏳ Pendiente"}
+                            : " Pendiente"}
                         </span>
                         <div className="order-total">
                           {new Intl.NumberFormat("es-DO", {
@@ -1245,7 +1245,7 @@ export default function Admin() {
                                         // Error silencioso
                                       }
                                       notify(
-                                        "✅ ¡Ahora eres Admin! Refresca la página.",
+                                        " ¡Ahora eres Admin! Refresca la página.",
                                         "success",
                                         "Admin asignado"
                                       );
@@ -1599,9 +1599,9 @@ function OrderDetailsModal({ order, onClose }) {
       case "cancelado":
         return "✗ Cancelado";
       case "pendiente":
-        return "⏳ Pendiente";
+        return " Pendiente";
       default:
-        return "⏳ Pendiente";
+        return " Pendiente";
     }
   };
 

@@ -2,22 +2,18 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Shield,
-  Key,
-  Mail,
-  User,
   Lock,
-  Phone,
   CheckCircle,
   Eye,
   EyeOff,
-  ChevronRight,
-  ArrowLeft,
-  Smartphone,
-  Fingerprint,
-  X,
   Edit3,
   AlertCircle,
+  KeyRound,
+  UserRound,
+  Shield,
+  X,
+  Mail as MailIcon,
+  Smartphone as PhoneIcon,
 } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import { useAuth } from "../../../context/AuthContext";
@@ -27,11 +23,32 @@ import {
   updateEmail,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db, auth } from "../../../firebase";
 
 const functions = getFunctions();
+
+const scorePassword = (p) => {
+  if (!p) return 0;
+  let s = 0;
+  if (p.length >= 8) s++;
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+  if (/\d/.test(p)) s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  return Math.max(0, Math.min(s, 4));
+};
+
+const strengthLabel = (score) => {
+  return score <= 1
+    ? "Débil"
+    : score === 2
+    ? "Media"
+    : score === 3
+    ? "Fuerte"
+    : "Muy fuerte";
+};
 
 // Spinner estilo iOS
 const Spinner = ({ size = 28 }) => {
@@ -114,73 +131,263 @@ const SuccessModal = ({ message, onClose }) => (
   </motion.div>
 );
 
-export default function SecurityView() {
+const SecurityItem = ({
+  icon: Icon,
+  title,
+  description,
+  action,
+  actionLabel,
+  showDivider = true,
+}) => (
+  <>
+    <div className="flex items-center justify-between py-4">
+      <div className="flex items-center gap-4 min-w-0">
+        <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-black/5 dark:ring-white/5 flex-shrink-0">
+          <Icon className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {title}
+          </p>
+          <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight truncate">
+            {description}
+          </p>
+        </div>
+      </div>
+      {action && (
+        <button
+          onClick={action}
+          className="px-3 py-2 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+    {showDivider && (
+      <div className="border-t border-slate-200/80 dark:border-slate-700/80"></div>
+    )}
+  </>
+);
+
+export default function SecurityView({ onVerified }) {
+  const {
+    usuario,
+    actualizarUsuarioInfo,
+    linkPasswordToAccount,
+    checkSignInMethods,
+  } = useAuth();
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const { usuario, usuarioInfo, actualizarUsuarioInfo } = useAuth();
+
+  // Refs
   const passwordInputRef = useRef(null);
   const codeInputRef = useRef(null);
 
-  const [isVerified, setIsVerified] = useState(false);
-  const [currentStep, setCurrentStep] = useState("loading");
-  const [hasPasswordProvider, setHasPasswordProvider] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
-
+  // User data state
   const [userData, setUserData] = useState({
     nombre: "",
     email: "",
     telefono: "",
     photoURL: "",
+    emailVerified: false,
   });
 
+  // Password change state
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [verifyingPassword, setVerifyingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showEditNewPassword, setShowEditNewPassword] = useState(false);
 
+  // UI state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [editingField, setEditingField] = useState(null);
+  const [editValue, setEditValue] = useState("");
+  const [savingChanges, setSavingChanges] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  // Verification state
   const [verificationCode, setVerificationCode] = useState("");
   const [sendingCode, setSendingCode] = useState(false);
   const [verifyingCode, setVerifyingCode] = useState(false);
+  const [verifyingPassword, setVerifyingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
   const [codeError, setCodeError] = useState("");
   const [codeSent, setCodeSent] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [currentStep, setCurrentStep] = useState("send");
+  const [verificationChecked, setVerificationChecked] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
+  // Password reset state
   const [newPasswordForReset, setNewPasswordForReset] = useState("");
   const [confirmPasswordForReset, setConfirmPasswordForReset] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
 
-  const [editingField, setEditingField] = useState(null);
-  const [editValue, setEditValue] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showEditNewPassword, setShowEditNewPassword] = useState(false);
-  const [showEditConfirmPassword, setShowEditConfirmPassword] = useState(false);
-  const [savingChanges, setSavingChanges] = useState(false);
-  const [editError, setEditError] = useState("");
+  // Two-factor auth state
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [hasPasswordProvider, setHasPasswordProvider] = useState(false);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const otpRefs = useRef([]);
+
+  useEffect(() => {
+    if (showVerificationModal) {
+      if (currentStep === "code") {
+        const idx = Math.max(
+          0,
+          otp.findIndex((d) => !d)
+        );
+        if (otpRefs.current[idx]) otpRefs.current[idx].focus();
+      } else if (currentStep === "password" && passwordInputRef.current) {
+        passwordInputRef.current.focus();
+      }
+    }
+  }, [showVerificationModal, currentStep, otp]);
+
+  const handleOtpChange = (index, value) => {
+    const v = (value || "").replace(/\D/g, "");
+    if (v.length === 0) {
+      setOtp((prev) => {
+        const next = [...prev];
+        next[index] = "";
+        setVerificationCode(next.join(""));
+        return next;
+      });
+      return;
+    }
+    if (v.length > 1) {
+      const chars = v.slice(0, 6).split("");
+      const next = ["", "", "", "", "", ""];
+      for (let i = 0; i < 6; i++) next[i] = chars[i] || "";
+      setOtp(next);
+      setVerificationCode(next.join(""));
+      const idx = Math.min(
+        5,
+        next.findIndex((d) => !d) === -1 ? 5 : next.findIndex((d) => !d)
+      );
+      if (otpRefs.current[idx]) otpRefs.current[idx].focus();
+      return;
+    }
+    setOtp((prev) => {
+      const next = [...prev];
+      next[index] = v;
+      setVerificationCode(next.join(""));
+      return next;
+    });
+    if (index < 5 && otpRefs.current[index + 1])
+      otpRefs.current[index + 1].focus();
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace") {
+      if (!otp[index] && index > 0) {
+        if (otpRefs.current[index - 1]) otpRefs.current[index - 1].focus();
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      if (otpRefs.current[index - 1]) otpRefs.current[index - 1].focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      if (otpRefs.current[index + 1]) otpRefs.current[index + 1].focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    const pasted = (e.clipboardData.getData("text") || "").replace(/\D/g, "");
+    if (!pasted) return;
+    e.preventDefault();
+    const chars = pasted.slice(0, 6).split("");
+    const next = ["", "", "", "", "", ""];
+    for (let i = 0; i < 6; i++) next[i] = chars[i] || "";
+    setOtp(next);
+    setVerificationCode(next.join(""));
+    const idx = Math.min(
+      5,
+      next.findIndex((d) => !d) === -1 ? 5 : next.findIndex((d) => !d)
+    );
+    if (otpRefs.current[idx]) otpRefs.current[idx].focus();
+  };
+
+  const showSuccessModal = (message) => {
+    setSuccessMsg(message);
+    setShowSuccess(true);
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await updatePassword(usuario, newPassword);
+      setSuccess("Contraseña actualizada correctamente");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setShowChangePassword(false), 2000);
+    } catch (err) {
+      console.error("Error al cambiar contraseña:", err);
+      setError(
+        "Error al cambiar la contraseña. Asegúrate de que la contraseña actual sea correcta."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadUserData = async () => {
       const currentUser = auth.currentUser || usuario;
       if (currentUser) {
-        // Verificar si hay sesión de verificación válida (2 horas)
+        // Verificar si hay sesión de verificación válida (1 hora)
         const savedVerification = localStorage.getItem(
           `security_verified_${currentUser.uid}`
         );
+        const savedVerificationAlias = localStorage.getItem(
+          `last_identity_verification_${currentUser.uid}`
+        );
         let alreadyVerified = false;
-        if (savedVerification) {
+        const parseTs = (raw) => {
           try {
-            const { timestamp } = JSON.parse(savedVerification);
-            const twoHours = 2 * 60 * 60 * 1000;
-            if (Date.now() - timestamp < twoHours) {
+            const { timestamp } = JSON.parse(raw);
+            return typeof timestamp === "number" ? timestamp : 0;
+          } catch (_) {
+            return 0;
+          }
+        };
+        const tsMain = savedVerification ? parseTs(savedVerification) : 0;
+        const tsAlias = savedVerificationAlias
+          ? parseTs(savedVerificationAlias)
+          : 0;
+        const latestTs = Math.max(tsMain, tsAlias);
+        if (latestTs) {
+          try {
+            const oneHour = 60 * 60 * 1000;
+            if (Date.now() - latestTs < oneHour) {
               setIsVerified(true);
               setCurrentStep("verified");
               alreadyVerified = true;
             }
           } catch (e) {
             localStorage.removeItem(`security_verified_${currentUser.uid}`);
+            localStorage.removeItem(
+              `last_identity_verification_${currentUser.uid}`
+            );
           }
         }
 
@@ -197,94 +404,170 @@ export default function SecurityView() {
               email: data.email || currentUser.email || "",
               telefono: data.telefono || data.phone || "",
               photoURL:
-                data.fotoURL ||
-                data.photoURL ||
-                usuarioInfo?.fotoURL ||
-                currentUser.photoURL ||
-                usuarioInfo?.photoURL ||
-                "",
+                data.fotoURL || data.photoURL || currentUser.photoURL || "",
+              emailVerified: !!currentUser.emailVerified,
             });
           } else {
             setUserData({
               nombre: currentUser.displayName || "",
               email: currentUser.email || "",
               telefono: "",
-              photoURL:
-                usuarioInfo?.fotoURL ||
-                currentUser.photoURL ||
-                usuarioInfo?.photoURL ||
-                "",
+              photoURL: currentUser.photoURL || "",
+              emailVerified: !!currentUser.emailVerified,
             });
           }
         } catch (error) {
           console.error("Error cargando datos:", error);
         }
 
-        const providers =
-          currentUser.providerData?.map((p) => p.providerId) || [];
-        const hasPassword = providers.includes("password");
+        const email = (currentUser.email || "").trim().toLowerCase();
+        let hasPassword = false;
+        try {
+          if (typeof currentUser.reload === "function") {
+            await currentUser.reload();
+          }
+          if (email && typeof checkSignInMethods === "function") {
+            const methods = await checkSignInMethods(email);
+            hasPassword = Array.isArray(methods)
+              ? methods.includes("password")
+              : false;
+          }
+        } catch (e) {
+          // fallback abajo
+        }
+
+        if (!hasPassword) {
+          const providers =
+            (auth.currentUser || currentUser).providerData?.map(
+              (p) => p.providerId
+            ) || [];
+          hasPassword = providers.includes("password");
+        }
+
         setHasPasswordProvider(hasPassword);
 
-        // Si NO está verificado, mostrar opción de contraseña
         if (!alreadyVerified) {
-          setCurrentStep("password");
+          setCurrentStep("send");
+          setShowVerificationModal(true);
         }
+        setVerificationChecked(true);
       } else {
-        // Sin usuario, ir directo a password
-        setCurrentStep("password");
+        setCurrentStep("send");
+        setVerificationChecked(true);
       }
     };
     loadUserData();
-  }, [usuario?.uid, usuarioInfo]);
+  }, [usuario?.uid]);
 
   useEffect(() => {
-    if (usuarioInfo) {
+    if (usuario) {
       setUserData((prev) => ({
-        nombre: usuarioInfo.nombre || usuarioInfo.displayName || prev.nombre,
-        email: usuarioInfo.email || auth.currentUser?.email || prev.email,
-        telefono: usuarioInfo.telefono || usuarioInfo.phone || prev.telefono,
-        photoURL:
-          usuarioInfo.fotoURL ||
-          usuarioInfo.photoURL ||
-          auth.currentUser?.photoURL ||
-          prev.photoURL,
+        nombre: usuario.displayName || prev.nombre,
+        email: usuario.email || prev.email,
+        telefono: usuario.phoneNumber || prev.telefono,
+        photoURL: usuario.photoURL || prev.photoURL,
+        emailVerified:
+          typeof usuario.emailVerified === "boolean"
+            ? usuario.emailVerified
+            : prev.emailVerified,
       }));
     }
-  }, [usuarioInfo]);
+  }, [usuario]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (currentStep === "password" && passwordInputRef.current)
+      if (currentStep === "password" && passwordInputRef.current) {
         passwordInputRef.current.focus();
-      if (currentStep === "code" && codeInputRef.current)
+      } else if (currentStep === "code" && codeInputRef.current) {
         codeInputRef.current.focus();
+      }
     }, 150);
     return () => clearTimeout(timer);
   }, [currentStep]);
 
-  const showSuccessModal = (msg) => {
-    setSuccessMsg(msg);
-    setShowSuccess(true);
-  };
+  // Cerrar modales con Escape
+  useEffect(() => {
+    if (!showVerificationModal) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showVerificationModal]);
 
-  const sendCodeAuto = async (email) => {
-    if (!email || codeSent) return;
-    setSendingCode(true);
+  useEffect(() => {
+    if (!editingField) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") closeEdit();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editingField]);
+
+  // Bloquear scroll del body cuando cualquier modal esté abierto
+  useEffect(() => {
+    const anyOpen = showVerificationModal || !!editingField || showSuccess;
+    if (!anyOpen) return;
+    const scrollY = window.scrollY;
+    const prev = {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+      overflow: document.body.style.overflow,
+    };
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.position = prev.position || "";
+      document.body.style.top = prev.top || "";
+      document.body.style.width = prev.width || "";
+      document.body.style.overflow = prev.overflow || "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [showVerificationModal, editingField, showSuccess]);
+
+  const handleVerifyCode = async () => {
+    if (verificationCode.length !== 6) {
+      setCodeError("El código debe tener 6 dígitos");
+      return;
+    }
+
+    setVerifyingCode(true);
+    setCodeError("");
+
     try {
-      const sendVerificationCode = httpsCallable(
-        functions,
-        "sendVerificationCode"
-      );
-      await sendVerificationCode({
+      const email = (auth.currentUser?.email || userData.email || "")
+        .trim()
+        .toLowerCase();
+      if (!email) {
+        setCodeError("No se encontró el correo del usuario");
+        return;
+      }
+
+      const verifyCode = httpsCallable(functions, "verifyCode");
+      const result = await verifyCode({
         email,
-        userName: userData.nombre || "Usuario",
+        code: verificationCode,
       });
-      setCodeSent(true);
+
+      if (result?.data?.success) {
+        saveVerification();
+        setIsVerified(true);
+        setCurrentStep("verified");
+        setShowVerificationModal(false);
+        setShowSuccess(true);
+        setSuccessMsg("Identidad verificada");
+        if (onVerified) onVerified({ email, code: verificationCode });
+      } else {
+        setCodeError(result?.data?.error || "Código inválido o expirado");
+      }
     } catch (error) {
-      console.error("Error enviando código:", error);
-      setCodeError("Error al enviar código");
+      console.error("Error verificando código:", error);
+      setCodeError("Error al verificar. Intenta de nuevo.");
     } finally {
-      setSendingCode(false);
+      setVerifyingCode(false);
     }
   };
 
@@ -297,20 +580,15 @@ export default function SecurityView() {
         `security_verified_${currentUser.uid}`,
         JSON.stringify({ timestamp: Date.now() })
       );
+      // Alias requerido por reglas: last_identity_verification
+      localStorage.setItem(
+        `last_identity_verification_${currentUser.uid}`,
+        JSON.stringify({ timestamp: Date.now() })
+      );
     }
   };
 
   const handleVerifyPassword = async () => {
-    // Si el usuario no tiene proveedor de contraseña, enviar código automáticamente
-    if (!hasPasswordProvider) {
-      const email = auth.currentUser?.email || userData.email;
-      setCurrentStep("code");
-      if (email && !codeSent) {
-        sendCodeAuto(email);
-      }
-      return;
-    }
-
     if (!currentPassword.trim()) {
       setPasswordError("Ingresa tu contraseña");
       return;
@@ -323,13 +601,18 @@ export default function SecurityView() {
         setPasswordError("Sesión expirada");
         return;
       }
+
+      // Intentar verificar con contraseña para cualquier tipo de cuenta (incluyendo Google)
       const credential = EmailAuthProvider.credential(
         currentUser.email,
         currentPassword
       );
       await reauthenticateWithCredential(currentUser, credential);
+
       saveVerification();
       setIsVerified(true);
+      setCurrentStep("verified");
+      setShowVerificationModal(false);
       showSuccessModal("Identidad verificada");
     } catch (error) {
       console.error("Error auth:", error);
@@ -337,18 +620,9 @@ export default function SecurityView() {
         error.code === "auth/invalid-credential" ||
         error.code === "auth/wrong-password"
       ) {
-        // Cambiar a verificación por código si falla la credencial
-        setPasswordError(
-          "Contraseña incorrecta. Prueba con el código por email."
-        );
-        setCurrentStep("code");
-        sendCodeAuto(auth.currentUser?.email || userData.email);
-      } else if (error.code === "auth/too-many-requests") {
-        setPasswordError("Demasiados intentos. Usa código por email.");
-        setCurrentStep("code");
-        sendCodeAuto(auth.currentUser?.email || userData.email);
+        setPasswordError("Contraseña incorrecta");
       } else {
-        setPasswordError("Error de autenticación");
+        setPasswordError("Error al verificar contraseña");
       }
     } finally {
       setVerifyingPassword(false);
@@ -356,8 +630,11 @@ export default function SecurityView() {
   };
 
   const handleSendCode = async () => {
-    const email = auth.currentUser?.email || userData.email;
+    const email = (auth.currentUser?.email || userData.email || "")
+      .trim()
+      .toLowerCase();
     if (!email) return;
+
     setSendingCode(true);
     setCodeError("");
     try {
@@ -365,84 +642,44 @@ export default function SecurityView() {
         functions,
         "sendVerificationCode"
       );
+      const deviceInfo = {
+        browser: navigator.userAgent.includes("Chrome")
+          ? "Google Chrome"
+          : navigator.userAgent.includes("Firefox")
+          ? "Firefox"
+          : navigator.userAgent.includes("Safari")
+          ? "Safari"
+          : navigator.userAgent.includes("Android")
+          ? "Android"
+          : navigator.userAgent.includes("iPhone")
+          ? "iOS"
+          : "Desconocido",
+        os: navigator.userAgent.includes("Mac")
+          ? "macOS"
+          : navigator.userAgent.includes("Windows")
+          ? "Windows"
+          : navigator.userAgent.includes("Android")
+          ? "Android"
+          : navigator.userAgent.includes("iPhone")
+          ? "iOS"
+          : "Desconocido",
+      };
+
       await sendVerificationCode({
         email,
         userName: userData.nombre || "Usuario",
+        deviceInfo,
+        purpose: "identity_verification",
       });
+
       setCodeSent(true);
+      setVerificationCode("");
       setCurrentStep("code");
     } catch (error) {
       console.error("Error enviando código:", error);
-      setCodeError("Error al enviar código");
+      setCodeError("Error al enviar el código. Intenta de nuevo.");
     } finally {
       setSendingCode(false);
-    }
-  };
-
-  const handleVerifyCode = async () => {
-    if (verificationCode.length !== 6) {
-      setCodeError("El código debe tener 6 dígitos");
-      return;
-    }
-    setVerifyingCode(true);
-    setCodeError("");
-    try {
-      const email = auth.currentUser?.email || userData.email;
-      const verifyCode = httpsCallable(functions, "verifyCode");
-      const result = await verifyCode({ email, code: verificationCode });
-      if (result.data.success) {
-        // Si viene de "olvidé contraseña" (currentStep era code después de password)
-        if (hasPasswordProvider && currentStep === "code") {
-          setCurrentStep("newPassword");
-        } else {
-          // Verificación exitosa - guardar y entrar
-          saveVerification();
-          setIsVerified(true);
-          showSuccessModal("Identidad verificada");
-        }
-      } else {
-        setCodeError(result.data.error || "Código inválido");
-      }
-    } catch (error) {
-      console.error("Error verificando código:", error);
-      setCodeError("Error al verificar");
-    } finally {
-      setVerifyingCode(false);
-    }
-  };
-
-  const handleSetNewPassword = async () => {
-    if (newPasswordForReset.length < 6) {
-      setCodeError("Mínimo 6 caracteres");
-      return;
-    }
-    if (newPasswordForReset !== confirmPasswordForReset) {
-      setCodeError("Las contraseñas no coinciden");
-      return;
-    }
-    setResettingPassword(true);
-    setCodeError("");
-    try {
-      const email = auth.currentUser?.email || userData.email;
-      const resetUserPassword = httpsCallable(functions, "resetUserPassword");
-      const result = await resetUserPassword({
-        email,
-        code: verificationCode,
-        newPassword: newPasswordForReset,
-      });
-      if (result.data.success) {
-        saveVerification();
-        setIsVerified(true);
-        setHasPasswordProvider(true); // Ahora tiene contraseña
-        showSuccessModal("Contraseña actualizada");
-      } else {
-        setCodeError(result.data.error || "Error");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setCodeError("Error al cambiar contraseña");
-    } finally {
-      setResettingPassword(false);
     }
   };
 
@@ -480,6 +717,9 @@ export default function SecurityView() {
       const uid = currentUser?.uid || usuario?.uid;
       await updateDoc(doc(db, "users", uid), { email: editValue.trim() });
       setUserData((prev) => ({ ...prev, email: editValue.trim() }));
+      actualizarUsuarioInfo?.({
+        email: editValue.trim(),
+      });
       showSuccessModal("Email actualizado");
       setEditingField(null);
     } catch (error) {
@@ -526,7 +766,44 @@ export default function SecurityView() {
     try {
       const currentUser = auth.currentUser;
       if (currentUser) {
-        await updatePassword(currentUser, newPassword);
+        // Si el usuario ya tiene proveedor de contraseña, reautenticar con la contraseña actual
+        if (hasPasswordProvider) {
+          try {
+            if (!currentPassword || !currentPassword.trim()) {
+              setSavingChanges(false);
+              setEditError("Ingresa tu contraseña actual");
+              return;
+            }
+            const credential = EmailAuthProvider.credential(
+              currentUser.email,
+              currentPassword
+            );
+            await reauthenticateWithCredential(currentUser, credential);
+          } catch (reauthErr) {
+            const code = reauthErr?.code || "";
+            if (
+              code === "auth/invalid-credential" ||
+              code === "auth/wrong-password"
+            ) {
+              setSavingChanges(false);
+              setEditError("Contraseña actual incorrecta");
+              return;
+            }
+            // Si requiere login reciente o cualquier otro error, mostrar mensaje genérico
+            if (code === "auth/requires-recent-login") {
+              setSavingChanges(false);
+              setEditError(
+                "Vuelve a iniciar sesión para cambiar la contraseña"
+              );
+              return;
+            }
+          }
+          await updatePassword(currentUser, newPassword);
+        } else {
+          // Para cuentas sin contraseña (ej. Google), crear contraseña
+          await linkPasswordToAccount(newPassword);
+          setHasPasswordProvider(true);
+        }
 
         // Notificar al admin sobre el cambio de contraseña
         try {
@@ -543,24 +820,601 @@ export default function SecurityView() {
           // No fallar si la notificación no se envía
         }
 
-        showSuccessModal("Contraseña actualizada");
+        showSuccessModal(
+          hasPasswordProvider ? "Contraseña actualizada" : "Contraseña creada"
+        );
         setEditingField(null);
         setNewPassword("");
         setConfirmPassword("");
+        setCurrentPassword("");
       }
     } catch (error) {
-      setEditError("Error al actualizar");
+      const code = error?.code || "";
+      if (code === "auth/credential-already-in-use") {
+        setEditError(
+          "Ya existe una contraseña para este correo. Usa 'Olvidé mi contraseña' o inicia sesión con correo y contraseña."
+        );
+      } else if (code === "auth/email-already-in-use") {
+        setEditError(
+          "Este correo ya tiene una cuenta con contraseña. Usa 'Olvidé mi contraseña' o inicia sesión con correo y contraseña."
+        );
+      } else if (code === "auth/requires-recent-login") {
+        setEditError("Vuelve a iniciar sesión para cambiar la contraseña");
+      } else {
+        setEditError("Error al actualizar");
+      }
     } finally {
       setSavingChanges(false);
     }
   };
 
   const openEdit = (field) => {
+    // Permitir editar nombre sin verificación de identidad
+    if (field === "name") {
+      setEditingField("name");
+      setEditError("");
+      setEditValue(userData.nombre);
+      return;
+    }
+
+    // Revalidar TTL en tiempo real antes de permitir cambios sensibles
+    const currentUser = auth.currentUser || usuario;
+    if (currentUser) {
+      const savedVerification = localStorage.getItem(
+        `security_verified_${currentUser.uid}`
+      );
+      let stillValid = false;
+      if (savedVerification) {
+        try {
+          const { timestamp } = JSON.parse(savedVerification);
+          const oneHour = 60 * 60 * 1000;
+          stillValid = Date.now() - timestamp < oneHour;
+        } catch (_) {
+          // ignore parse errors
+        }
+      }
+      if (!stillValid) {
+        setIsVerified(false);
+        setShowVerificationModal(true);
+        setCurrentStep(codeSent ? "code" : "send");
+        return;
+      }
+    }
+
+    if (verificationChecked && !isVerified) {
+      setShowVerificationModal(true);
+      setCurrentStep(codeSent ? "code" : "send");
+      return;
+    }
     setEditingField(field);
     setEditError("");
-    if (field === "name") setEditValue(userData.nombre);
-    else if (field === "email") setEditValue(userData.email);
+    if (field === "email") setEditValue(userData.email);
     else if (field === "phone") setEditValue(userData.telefono);
+  };
+
+  const renderVerificationModal = () => {
+    if (!(verificationChecked && !isVerified)) return null;
+
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-white dark:bg-slate-900"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="verify-title"
+          onClick={handleClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden"
+          >
+            <div className="relative px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
+              <button
+                onClick={handleClose}
+                className="absolute top-2 right-2 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                type="button"
+                aria-label="Cerrar"
+              >
+                <X size={18} className="text-slate-600 dark:text-slate-300" />
+              </button>
+              <div className="flex flex-col items-center text-center gap-3 sm:flex-row sm:items-center sm:justify-start sm:text-left sm:pr-10 pr-0">
+                <img
+                  src="/logos/perfil/7.jpg"
+                  alt=""
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover flex-shrink-0 ring-2 ring-blue-200 dark:ring-blue-800 shadow-md mx-auto sm:mx-0"
+                />
+                <div className="min-w-0">
+                  <p
+                    id="verify-title"
+                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+                  >
+                    Verifica tu identidad
+                  </p>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+                    Necesario para cambios sensibles (correo, contraseña, etc.).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6 lg:p-7">
+              {currentStep === "send" && (
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    Te enviaremos un código de 6 dígitos
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    Presiona “Enviar código” y revisa tu correo para continuar.
+                  </p>
+
+                  <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/70 dark:bg-slate-950/40 p-3">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      Tu correo
+                    </p>
+                    <p className="mt-1 text-sm sm:text-base font-bold text-slate-900 dark:text-white break-all">
+                      {userData.email}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 items-center sm:justify-center">
+                    <button
+                      onClick={handleSendCode}
+                      disabled={sendingCode}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors disabled:opacity-60"
+                      type="button"
+                    >
+                      <MailIcon size={16} />
+                      {sendingCode ? "Enviando..." : "Enviar código"}
+                    </button>
+
+                    {codeSent && (
+                      <button
+                        onClick={() => setCurrentStep("code")}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        type="button"
+                      >
+                        <KeyRound size={16} />
+                        Ya tengo el código
+                      </button>
+                    )}
+                  </div>
+
+                  {hasPasswordProvider && (
+                    <div className="pt-1 flex justify-center">
+                      <button
+                        onClick={() => setCurrentStep("password")}
+                        type="button"
+                        className="px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Verificar con contraseña
+                      </button>
+                    </div>
+                  )}
+
+                  {codeError && (
+                    <div className="mt-2 text-sm text-rose-700 dark:text-rose-300">
+                      {codeError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentStep === "code" && (
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    Ingresa el código de 6 dígitos
+                  </p>
+                  <div
+                    className="flex justify-center gap-2 sm:gap-3"
+                    onPaste={handleOtpPaste}
+                  >
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => (otpRefs.current[i] = el)}
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={otp[i]}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-semibold rounded-xl border bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 ${
+                          codeError
+                            ? "border-rose-400 dark:border-rose-500 focus:ring-rose-500/30"
+                            : "border-slate-300 dark:border-slate-700 focus:ring-blue-500/30"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleVerifyCode}
+                    disabled={verifyingCode || verificationCode.length !== 6}
+                    className="w-full py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors disabled:opacity-60"
+                    type="button"
+                  >
+                    {verifyingCode ? "Verificando..." : "Verificar"}
+                  </button>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={handleSendCode}
+                      disabled={sendingCode}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-60"
+                      type="button"
+                    >
+                      <MailIcon size={16} />
+                      {sendingCode ? "Reenviando..." : "Reenviar código"}
+                    </button>
+
+                    {hasPasswordProvider && (
+                      <button
+                        onClick={() => setCurrentStep("password")}
+                        type="button"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Verificar con contraseña
+                      </button>
+                    )}
+                  </div>
+
+                  {codeError && (
+                    <div className="mt-2 text-sm text-rose-700 dark:text-rose-300">
+                      {codeError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentStep === "password" && (
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    Verifica con tu contraseña
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={passwordInputRef}
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => {
+                        setCurrentPassword(e.target.value);
+                        setPasswordError("");
+                      }}
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none"
+                      placeholder="Tu contraseña"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword((v) => !v)}
+                      className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      aria-label="Mostrar u ocultar"
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff
+                          size={18}
+                          className="text-slate-600 dark:text-slate-300"
+                        />
+                      ) : (
+                        <Eye
+                          size={18}
+                          className="text-slate-600 dark:text-slate-300"
+                        />
+                      )}
+                    </button>
+                  </div>
+                  {passwordError && (
+                    <div className="text-sm text-rose-700 dark:text-rose-300">
+                      {passwordError}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleVerifyPassword}
+                    disabled={verifyingPassword}
+                    className="w-full py-2.5 rounded-xl font-semibold text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-60"
+                    type="button"
+                  >
+                    {verifyingPassword
+                      ? "Verificando..."
+                      : "Verificar con contraseña"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
+
+  const closeEdit = () => {
+    setEditingField(null);
+    setEditError("");
+    setEditValue("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const renderEditModal = () => {
+    if (!editingField) return null;
+
+    const isPassword = editingField === "password";
+    const title =
+      editingField === "name"
+        ? "Editar nombre"
+        : editingField === "email"
+        ? "Editar correo"
+        : editingField === "phone"
+        ? "Editar teléfono"
+        : "Cambiar contraseña";
+
+    const primaryAction = async () => {
+      if (editingField === "name") return handleSaveName();
+      if (editingField === "email") return handleSaveEmail();
+      if (editingField === "phone") return handleSavePhone();
+      if (editingField === "password") return handleSavePassword();
+    };
+
+    const pwScore = scorePassword(newPassword);
+    const reqLen = newPassword.length >= 6;
+    const reqUpperLower =
+      /[A-Z]/.test(newPassword) && /[a-z]/.test(newPassword);
+    const reqNumber = /\d/.test(newPassword);
+    const reqSpecial = /[^A-Za-z0-9]/.test(newPassword);
+    const reqMatch =
+      confirmPassword.length > 0 && confirmPassword === newPassword;
+
+    const disableSave = isPassword
+      ? savingChanges ||
+        !reqLen ||
+        !reqMatch ||
+        (hasPasswordProvider && !currentPassword.trim())
+      : savingChanges;
+
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm"
+          onClick={closeEdit}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden ring-1 ring-black/5 dark:ring-white/5"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-title"
+          >
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="hidden sm:flex w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 items-center justify-center ring-1 ring-blue-100/60 dark:ring-blue-800/40">
+                    <Lock size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      id="edit-title"
+                      className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+                    >
+                      {title}
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+                      Cambios sensibles requieren verificación.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeEdit}
+                  className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  type="button"
+                  aria-label="Cerrar"
+                >
+                  <X size={18} className="text-slate-600 dark:text-slate-300" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-4">
+              {!isPassword ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    Nuevo valor
+                  </label>
+                  <input
+                    value={editValue}
+                    onChange={(e) => {
+                      setEditValue(e.target.value);
+                      setEditError("");
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 dark:focus:ring-blue-400/15"
+                    placeholder={
+                      editingField === "email"
+                        ? "tu@email.com"
+                        : editingField === "phone"
+                        ? "+1 809..."
+                        : "Tu nombre"
+                    }
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {hasPasswordProvider && (
+                    <div className="space-y-2 sm:col-span-2">
+                      <label className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        Contraseña actual
+                      </label>
+                      <div className="mt-0 flex items-center gap-2">
+                        <input
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={currentPassword}
+                          onChange={(e) => {
+                            setCurrentPassword(e.target.value);
+                            setEditError("");
+                          }}
+                          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 dark:focus:ring-blue-400/15"
+                          placeholder="Tu contraseña actual"
+                          aria-invalid={
+                            !currentPassword.trim() && savingChanges
+                              ? true
+                              : undefined
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword((v) => !v)}
+                          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          aria-label="Mostrar u ocultar"
+                        >
+                          {showCurrentPassword ? (
+                            <EyeOff
+                              size={18}
+                              className="text-slate-600 dark:text-slate-300"
+                            />
+                          ) : (
+                            <Eye
+                              size={18}
+                              className="text-slate-600 dark:text-slate-300"
+                            />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {!hasPasswordProvider && (
+                    <div className="sm:col-span-2 -mt-1">
+                      <div className="text-xs text-slate-600 dark:text-slate-400">
+                        Tu cuenta no tiene contraseña. Puedes crear una ahora
+                        para iniciar también con correo y contraseña. Google
+                        seguirá funcionando.
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      Nueva contraseña
+                    </label>
+                    <div className="mt-0 flex items-center gap-2">
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => {
+                          setNewPassword(e.target.value);
+                          setEditError("");
+                        }}
+                        className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 dark:focus:ring-blue-400/15"
+                        placeholder="Mín. 6 caracteres"
+                        aria-invalid={
+                          !reqLen && newPassword.length > 0 ? true : undefined
+                        }
+                        aria-describedby="password-reqs password-strength"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword((v) => !v)}
+                        className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        aria-label="Mostrar u ocultar"
+                      >
+                        {showNewPassword ? (
+                          <EyeOff
+                            size={18}
+                            className="text-slate-600 dark:text-slate-300"
+                          />
+                        ) : (
+                          <Eye
+                            size={18}
+                            className="text-slate-600 dark:text-slate-300"
+                          />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      Confirmar
+                    </label>
+                    <div className="mt-0 flex items-center gap-2">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setEditError("");
+                        }}
+                        className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/15 dark:focus:ring-blue-400/15"
+                        placeholder="Repite la contraseña"
+                        aria-invalid={
+                          confirmPassword.length > 0 && !reqMatch
+                            ? true
+                            : undefined
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((v) => !v)}
+                        className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        aria-label="Mostrar u ocultar"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff
+                            size={18}
+                            className="text-slate-600 dark:text-slate-300"
+                          />
+                        ) : (
+                          <Eye
+                            size={18}
+                            className="text-slate-600 dark:text-slate-300"
+                          />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {editError && (
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="rounded-xl border border-rose-200/80 dark:border-rose-500/30 bg-rose-50/80 dark:bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-200"
+                >
+                  {editError}
+                </div>
+              )}
+
+              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+                <button
+                  onClick={closeEdit}
+                  type="button"
+                  className="px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  disabled={savingChanges}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={primaryAction}
+                  type="button"
+                  className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors disabled:opacity-60"
+                  disabled={disableSave}
+                >
+                  {savingChanges ? "Guardando..." : "Guardar"}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   // Loading
@@ -575,371 +1429,26 @@ export default function SecurityView() {
     );
   }
 
-  // Verificación
-  if (!isVerified) {
+  // Main render
+  if (verificationChecked && !isVerified) {
+    return renderVerificationModal();
+  }
+
+  if (!verificationChecked) {
     return (
-      <>
-        <AnimatePresence>
-          {showSuccess && (
-            <SuccessModal
-              message={successMsg}
-              onClose={() => setShowSuccess(false)}
-            />
-          )}
-        </AnimatePresence>
-
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            {/* Password */}
-            {currentStep === "password" && (
-              <>
-                <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                      <Shield
-                        size={24}
-                        className="text-blue-600 dark:text-blue-400"
-                      />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                        Verificar identidad
-                      </h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Para proteger tu cuenta
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleClose}
-                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <X size={20} className="text-gray-500" />
-                  </button>
-                </div>
-
-                <div className="p-5 space-y-4">
-                  {verifyingPassword ? (
-                    <div className="py-12 flex flex-col items-center">
-                      <Spinner size={36} />
-                      <p className="mt-4 text-gray-600 dark:text-gray-400">
-                        Verificando...
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                          Contraseña
-                        </label>
-                        <div className="relative">
-                          <input
-                            ref={passwordInputRef}
-                            type={showCurrentPassword ? "text" : "password"}
-                            value={currentPassword}
-                            onChange={(e) => {
-                              setCurrentPassword(e.target.value);
-                              setPasswordError("");
-                            }}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && handleVerifyPassword()
-                            }
-                            placeholder="Tu contraseña"
-                            className={`w-full px-4 py-3 pr-12 rounded-xl border ${
-                              passwordError
-                                ? "border-red-500 bg-red-50 dark:bg-red-900/10"
-                                : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-                            } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                          />
-                          <button
-                            onClick={() =>
-                              setShowCurrentPassword(!showCurrentPassword)
-                            }
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                          >
-                            {showCurrentPassword ? (
-                              <EyeOff size={20} className="text-gray-500" />
-                            ) : (
-                              <Eye size={20} className="text-gray-500" />
-                            )}
-                          </button>
-                        </div>
-                        {passwordError && (
-                          <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                            <AlertCircle size={14} /> {passwordError}
-                          </p>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={handleVerifyPassword}
-                        disabled={!currentPassword}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white font-semibold rounded-xl transition-colors"
-                      >
-                        Continuar
-                      </button>
-
-                      <div className="relative py-2">
-                        <div className="absolute inset-0 flex items-center">
-                          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-                        </div>
-                        <div className="relative flex justify-center">
-                          <span className="px-3 text-sm bg-white dark:bg-gray-800 text-gray-500">
-                            o
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={handleSendCode}
-                        disabled={sendingCode}
-                        className="w-full py-3 rounded-xl font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 flex items-center justify-center gap-2 transition-colors"
-                      >
-                        {sendingCode ? (
-                          <Spinner size={20} />
-                        ) : (
-                          <Mail size={20} />
-                        )}
-                        {sendingCode ? "Enviando..." : "Verificar con email"}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Code */}
-            {currentStep === "code" && (
-              <>
-                <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
-                  {hasPasswordProvider && (
-                    <button
-                      onClick={() => setCurrentStep("password")}
-                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <ArrowLeft size={20} className="text-gray-500" />
-                    </button>
-                  )}
-                  <div className="flex-1">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                      Código de verificación
-                    </h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {userData.email}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleClose}
-                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <X size={20} className="text-gray-500" />
-                  </button>
-                </div>
-
-                <div className="p-5 space-y-4">
-                  {sendingCode || verifyingCode ? (
-                    <div className="py-12 flex flex-col items-center">
-                      <Spinner size={36} />
-                      <p className="mt-4 text-gray-600 dark:text-gray-400">
-                        {sendingCode ? "Enviando código..." : "Verificando..."}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="text-center py-4">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                          <Mail
-                            size={32}
-                            className="text-blue-600 dark:text-blue-400"
-                          />
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          {codeSent
-                            ? "Revisa tu correo"
-                            : "Te enviaremos un código"}
-                        </p>
-                      </div>
-
-                      <input
-                        ref={codeInputRef}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={verificationCode}
-                        onChange={(e) => {
-                          setVerificationCode(
-                            e.target.value.replace(/\D/g, "")
-                          );
-                          setCodeError("");
-                        }}
-                        onKeyDown={(e) =>
-                          e.key === "Enter" &&
-                          verificationCode.length === 6 &&
-                          handleVerifyCode()
-                        }
-                        placeholder="000000"
-                        className={`w-full text-center text-3xl font-mono tracking-widest px-4 py-4 rounded-xl border ${
-                          codeError
-                            ? "border-red-500"
-                            : "border-gray-300 dark:border-gray-600"
-                        } bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                      />
-                      {codeError && (
-                        <p className="text-sm text-red-600 dark:text-red-400 text-center flex items-center justify-center gap-1">
-                          <AlertCircle size={14} /> {codeError}
-                        </p>
-                      )}
-
-                      <button
-                        onClick={handleVerifyCode}
-                        disabled={verificationCode.length !== 6}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white font-semibold rounded-xl transition-colors"
-                      >
-                        Verificar código
-                      </button>
-
-                      <button
-                        onClick={handleSendCode}
-                        disabled={sendingCode}
-                        className="w-full py-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
-                      >
-                        Reenviar código
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* New Password */}
-            {currentStep === "newPassword" && (
-              <>
-                <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20">
-                      <Key
-                        size={24}
-                        className="text-blue-600 dark:text-blue-400"
-                      />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                        Nueva contraseña
-                      </h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Crea una contraseña segura
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleClose}
-                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <X size={20} className="text-gray-500" />
-                  </button>
-                </div>
-
-                <div className="p-5 space-y-4">
-                  {resettingPassword ? (
-                    <div className="py-12 flex flex-col items-center">
-                      <Spinner size={36} />
-                      <p className="mt-4 text-gray-600 dark:text-gray-400">
-                        Guardando...
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                          Nueva contraseña
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showNewPassword ? "text" : "password"}
-                            value={newPasswordForReset}
-                            onChange={(e) =>
-                              setNewPasswordForReset(e.target.value)
-                            }
-                            placeholder="Mínimo 6 caracteres"
-                            className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                          />
-                          <button
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                          >
-                            {showNewPassword ? (
-                              <EyeOff size={20} className="text-gray-500" />
-                            ) : (
-                              <Eye size={20} className="text-gray-500" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                          Confirmar
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            value={confirmPasswordForReset}
-                            onChange={(e) =>
-                              setConfirmPasswordForReset(e.target.value)
-                            }
-                            placeholder="Repite la contraseña"
-                            className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                          />
-                          <button
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff size={20} className="text-gray-500" />
-                            ) : (
-                              <Eye size={20} className="text-gray-500" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {codeError && (
-                        <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                          <AlertCircle size={14} /> {codeError}
-                        </p>
-                      )}
-
-                      <button
-                        onClick={handleSetNewPassword}
-                        disabled={
-                          newPasswordForReset.length < 6 ||
-                          newPasswordForReset !== confirmPasswordForReset
-                        }
-                        className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-                      >
-                        <CheckCircle size={20} />
-                        Guardar contraseña
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-          </motion.div>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white dark:bg-slate-900">
+        <div className="text-center">
+          <Spinner size={40} />
+          <p className="mt-4 text-slate-600 dark:text-slate-400">
+            Preparando verificación...
+          </p>
         </div>
-      </>
+      </div>
     );
   }
 
-  // Panel verificado
   return (
-    <>
+    <div className="space-y-6">
       <AnimatePresence>
         {showSuccess && (
           <SuccessModal
@@ -949,438 +1458,71 @@ export default function SecurityView() {
         )}
       </AnimatePresence>
 
-      <div className="space-y-6 pb-6">
-        {/* Header - Inicio de sesión y seguridad */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-              <Key size={28} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Inicio de sesión y seguridad
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Administra tu contraseña y acceso a la cuenta
-              </p>
-            </div>
-          </div>
-        </div>
+      {renderVerificationModal()}
+      {renderEditModal()}
 
-        <style>{`
-          .security-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            overflow: hidden;
-          }
-          .dark .security-card {
-            background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
-            border-color: rgba(75, 85, 99, 0.4);
-          }
-          .security-card-header {
-            padding: 16px;
-            border-bottom: 1px solid #e5e7eb;
-            background: #f9fafb;
-          }
-          .dark .security-card-header {
-            border-color: rgba(75, 85, 99, 0.3);
-            background: rgba(31, 41, 55, 0.5);
-          }
-          .security-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            width: 100%;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: left;
-          }
-          .security-item:hover {
-            background: rgba(59, 130, 246, 0.04);
-          }
-          .dark .security-item:hover {
-            background: rgba(96, 165, 250, 0.06);
-          }
-          .security-icon-box {
-            padding: 10px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .security-icon-box.blue {
-            background: rgba(59, 130, 246, 0.1);
-          }
-          .dark .security-icon-box.blue {
-            background: rgba(59, 130, 246, 0.15);
-          }
-          .security-icon-box.purple {
-            background: rgba(139, 92, 246, 0.1);
-          }
-          .dark .security-icon-box.purple {
-            background: rgba(139, 92, 246, 0.15);
-          }
-          .security-icon-box.green {
-            background: rgba(34, 197, 94, 0.1);
-          }
-          .dark .security-icon-box.green {
-            background: rgba(34, 197, 94, 0.15);
-          }
-          .security-icon-box.orange {
-            background: rgba(249, 115, 22, 0.1);
-          }
-          .dark .security-icon-box.orange {
-            background: rgba(249, 115, 22, 0.15);
-          }
-          .security-icon-box.pink {
-            background: rgba(236, 72, 153, 0.1);
-          }
-          .dark .security-icon-box.pink {
-            background: rgba(236, 72, 153, 0.15);
-          }
-          .security-icon-box.cyan {
-            background: rgba(6, 182, 212, 0.1);
-          }
-          .dark .security-icon-box.cyan {
-            background: rgba(6, 182, 212, 0.15);
-          }
-          .security-divider {
-            height: 1px;
-            background: #f3f4f6;
-            margin: 0 16px;
-          }
-          .dark .security-divider {
-            background: rgba(75, 85, 99, 0.3);
-          }
-        `}</style>
-
-        {/* Información personal */}
-        <div className="security-card">
-          <div className="security-card-header">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-                <User size={20} className="text-blue-500" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Información personal
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Datos de tu cuenta
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            {[
-              {
-                icon: User,
-                label: "Nombre",
-                value: userData.nombre,
-                field: "name",
-                color: "blue",
-                iconColor: "text-blue-500",
-              },
-              {
-                icon: Mail,
-                label: "Email",
-                value: userData.email,
-                field: "email",
-                color: "blue",
-                iconColor: "text-blue-500",
-              },
-              {
-                icon: Phone,
-                label: "Teléfono",
-                value: userData.telefono,
-                field: "phone",
-                color: "blue",
-                iconColor: "text-blue-500",
-              },
-              {
-                icon: Lock,
-                label: "Contraseña",
-                value: "••••••••",
-                field: "password",
-                color: "blue",
-                iconColor: "text-blue-500",
-              },
-            ].map((item, index, arr) => (
-              <div key={item.field}>
-                <button
-                  onClick={() => openEdit(item.field)}
-                  className="security-item"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`security-icon-box ${item.color}`}>
-                      <item.icon size={20} className={item.iconColor} />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {item.label}
-                      </p>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {item.value || "No configurado"}
-                      </p>
-                    </div>
-                  </div>
-                  <Edit3
-                    size={16}
-                    className="text-gray-400 dark:text-gray-500"
-                  />
-                </button>
-                {index < arr.length - 1 && <div className="security-divider" />}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Opciones de seguridad */}
-        <div className="security-card">
-          <div className="security-card-header">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                <Shield
-                  size={20}
-                  className="text-gray-600 dark:text-gray-300"
-                />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Opciones de seguridad
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Protección adicional
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="security-item" style={{ cursor: "default" }}>
-              <div className="flex items-center gap-3">
-                <div className="security-icon-box blue">
-                  <Smartphone size={20} className="text-blue-500" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    Verificación en dos pasos
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Protección extra
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setTwoFactorEnabled(!twoFactorEnabled);
-                  showSuccessModal(
-                    twoFactorEnabled ? "Desactivado" : "Activado"
-                  );
-                }}
-                className={`w-12 h-7 rounded-full transition-all relative ${
-                  twoFactorEnabled
-                    ? "bg-blue-500"
-                    : "bg-gray-300 dark:bg-gray-600"
-                }`}
-              >
-                <span
-                  className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
-                    twoFactorEnabled ? "left-6" : "left-1"
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="security-divider" />
-
-            <button
-              onClick={() => showSuccessModal("Próximamente")}
-              className="security-item"
-            >
-              <div className="flex items-center gap-3">
-                <div className="security-icon-box blue">
-                  <Fingerprint size={20} className="text-blue-500" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    Clave de acceso
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Huella o Face ID
-                  </p>
-                </div>
-              </div>
-              <ChevronRight
-                size={18}
-                className="text-gray-400 dark:text-gray-500"
-              />
-            </button>
-          </div>
-        </div>
+      <div className="space-y-1">
+        <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+          <img
+            src="/logos/perfil/7.jpg"
+            alt=""
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover"
+          />
+          Inicio de sesión y seguridad
+        </h2>
+        <p className="text-sm lg:text-base text-slate-600 dark:text-slate-400">
+          Administra tu información de inicio de sesión, verifica tu identidad y
+          protege tu cuenta.
+        </p>
       </div>
 
-      {/* Modal edición */}
-      <AnimatePresence>
-        {editingField && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl"
-            >
-              <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {editingField === "name" && "Editar nombre"}
-                  {editingField === "email" && "Editar email"}
-                  {editingField === "phone" && "Editar teléfono"}
-                  {editingField === "password" && "Cambiar contraseña"}
-                </h2>
-                <button
-                  onClick={() => setEditingField(null)}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
-              </div>
+      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-900 shadow-sm overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+        <div className="px-5 sm:px-6 lg:px-8 py-5 sm:py-6 border-b border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-r from-slate-50 to-slate-50/30 dark:from-slate-900 dark:to-slate-900">
+          <p className="text-base lg:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+            Tu información
+          </p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            Edita los datos de tu cuenta. Los cambios sensibles requieren
+            verificación.
+          </p>
+        </div>
 
-              <div className="p-5 space-y-4">
-                {savingChanges ? (
-                  <div className="py-12 flex flex-col items-center">
-                    <Spinner size={36} />
-                    <p className="mt-4 text-gray-600 dark:text-gray-400">
-                      Guardando...
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {editingField === "password" ? (
-                      <>
-                        <div>
-                          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                            Nueva contraseña
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={showEditNewPassword ? "text" : "password"}
-                              value={newPassword}
-                              onChange={(e) => setNewPassword(e.target.value)}
-                              placeholder="Mínimo 6 caracteres"
-                              className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button
-                              onClick={() =>
-                                setShowEditNewPassword(!showEditNewPassword)
-                              }
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                            >
-                              {showEditNewPassword ? (
-                                <EyeOff size={20} className="text-gray-500" />
-                              ) : (
-                                <Eye size={20} className="text-gray-500" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                            Confirmar
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={
-                                showEditConfirmPassword ? "text" : "password"
-                              }
-                              value={confirmPassword}
-                              onChange={(e) =>
-                                setConfirmPassword(e.target.value)
-                              }
-                              placeholder="Repite la contraseña"
-                              className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button
-                              onClick={() =>
-                                setShowEditConfirmPassword(
-                                  !showEditConfirmPassword
-                                )
-                              }
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                            >
-                              {showEditConfirmPassword ? (
-                                <EyeOff size={20} className="text-gray-500" />
-                              ) : (
-                                <Eye size={20} className="text-gray-500" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                          {editingField === "name" && "Nombre"}
-                          {editingField === "email" && "Email"}
-                          {editingField === "phone" && "Teléfono"}
-                        </label>
-                        <input
-                          type={
-                            editingField === "email"
-                              ? "email"
-                              : editingField === "phone"
-                              ? "tel"
-                              : "text"
-                          }
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    )}
-
-                    {editError && (
-                      <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                        <AlertCircle size={14} /> {editError}
-                      </p>
-                    )}
-
-                    <div className="flex gap-3 pt-2">
-                      <button
-                        onClick={() => setEditingField(null)}
-                        className="flex-1 py-3 rounded-xl font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (editingField === "name") handleSaveName();
-                          else if (editingField === "email") handleSaveEmail();
-                          else if (editingField === "phone") handleSavePhone();
-                          else if (editingField === "password")
-                            handleSavePassword();
-                        }}
-                        className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        <div className="px-5 sm:px-6 lg:px-8 py-2">
+          <SecurityItem
+            icon={UserRound}
+            title="Nombre"
+            description={userData?.nombre || "Sin nombre"}
+            action={() => openEdit("name")}
+            actionLabel="Editar"
+          />
+          <SecurityItem
+            icon={MailIcon}
+            title="Correo"
+            description={userData?.email || "Sin correo"}
+            action={() => openEdit("email")}
+            actionLabel="Editar"
+          />
+          <SecurityItem
+            icon={PhoneIcon}
+            title="Teléfono"
+            description={userData?.telefono || "Sin teléfono"}
+            action={() => openEdit("phone")}
+            actionLabel="Editar"
+          />
+          <SecurityItem
+            icon={Lock}
+            title="Contraseña"
+            description={
+              hasPasswordProvider
+                ? "••••••••••••"
+                : "Tu cuenta no tiene contraseña"
+            }
+            action={() => openEdit("password")}
+            actionLabel={hasPasswordProvider ? "Cambiar" : "Crear"}
+            showDivider={false}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

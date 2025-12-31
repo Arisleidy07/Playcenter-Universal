@@ -267,7 +267,7 @@ const CategoryManagement = () => {
 
       const verificacion = await getDoc(docRef);
       if (verificacion.exists()) {
-        // console.error("❌ ERROR: La categoría AÚN EXISTE después de deleteDoc");
+        // console.error(" ERROR: La categoría AÚN EXISTE después de deleteDoc");
         notify(
           "No se pudo eliminar de Firebase. Verifica permisos o conexión.",
           "error",
@@ -288,7 +288,7 @@ const CategoryManagement = () => {
       );
     } catch (error) {
       // Error al eliminar categoría
-      // console.error("📝 [CategoryManagement] Mensaje:", error.message);
+      // console.error(" [CategoryManagement] Mensaje:", error.message);
 
       if (error.code === "permission-denied") {
         notify(

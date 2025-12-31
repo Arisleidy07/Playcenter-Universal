@@ -59,7 +59,7 @@ export async function autoFixFollowers() {
     }
 
     if (arreglados > 0) {
-      // console.log(`✅ Contadores corregidos: ${arreglados} usuarios`);
+      // console.log(` Contadores corregidos: ${arreglados} usuarios`);
     } else {
       // console.log(`✓ Todos los contadores están correctos`);
     }

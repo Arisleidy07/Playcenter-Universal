@@ -13,15 +13,29 @@ export default function TopBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Mostrar TopBar solo en móvil (<768px)
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 768 : true
-  );
+  // Detectar iPad (incluye iPadOS 13+ que se reporta como Mac)
+  const getIsIpad = () => {
+    try {
+      const ua = navigator.userAgent || "";
+      const isIpadUA = /iPad/.test(ua);
+      const isIOS13iPad =
+        navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      return isIpadUA || isIOS13iPad;
+    } catch {
+      return false;
+    }
+  };
+
+  // Mostrar TopBar en móvil y tablet (<1280px) y SIEMPRE en iPad (incl. 12.9" 1366px)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.innerWidth < 1280 || getIsIpad();
+  });
 
   // Detectar cambios de tamaño para mostrar/ocultar TopBar
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 1280 || getIsIpad());
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);

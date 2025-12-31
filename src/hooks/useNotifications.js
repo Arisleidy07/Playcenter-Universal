@@ -10,6 +10,7 @@ import {
   addDoc,
   serverTimestamp,
   limit,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
@@ -132,7 +133,25 @@ export function useNotifications() {
           return false;
         });
 
-        setNotifications(filteredNotifs);
+        // Deduplicar notificaciones de solicitud_vendedor que puedan provenir
+        // tanto del cliente como de la Cloud Function (mismo solicitudId)
+        const dedupMap = new Map();
+        for (const n of filteredNotifs) {
+          if (n.type === "solicitud_vendedor" && n.metadata?.solicitudId) {
+            const key = `solicitud:${n.metadata.solicitudId}:${
+              n.targetType || ""
+            }`;
+            const prev = dedupMap.get(key);
+            if (!prev || new Date(n.createdAt) > new Date(prev.createdAt)) {
+              dedupMap.set(key, n);
+            }
+          } else {
+            // Usar el id del doc como clave para otros tipos
+            dedupMap.set(`id:${n.id}`, n);
+          }
+        }
+
+        setNotifications(Array.from(dedupMap.values()));
         setLoading(false);
       },
       (error) => {
@@ -144,8 +163,22 @@ export function useNotifications() {
     return () => unsubscribe();
   }, [usuario, isAdmin]);
 
-  // Combinar solicitudes pendientes (marcando las vistas) con notificaciones normales
-  const solicitudesConEstado = solicitudesPendientes.map((s) => ({
+  const adminSolicitudNotifIds = new Set(
+    notifications
+      .filter(
+        (n) =>
+          n.type === "solicitud_vendedor" &&
+          n.targetType === "admin" &&
+          n.metadata?.solicitudId
+      )
+      .map((n) => n.metadata.solicitudId)
+  );
+
+  const solicitudesSinDuplicar = solicitudesPendientes.filter(
+    (s) => !adminSolicitudNotifIds.has(s.metadata?.solicitudId)
+  );
+
+  const solicitudesConEstado = solicitudesSinDuplicar.map((s) => ({
     ...s,
     read: solicitudesVistas.includes(s.id),
   }));
@@ -156,12 +189,12 @@ export function useNotifications() {
 
   // Calcular total de no leídas - recalcular cada vez que cambian las dependencias
   useEffect(() => {
-    const solicitudesNoLeidas = solicitudesPendientes.filter(
+    const solicitudesNoLeidas = solicitudesSinDuplicar.filter(
       (s) => !solicitudesVistas.includes(s.id)
     ).length;
     const notificacionesNoLeidas = notifications.filter((n) => !n.read).length;
     setUnreadCount(solicitudesNoLeidas + notificacionesNoLeidas);
-  }, [solicitudesPendientes, notifications, solicitudesVistas]);
+  }, [solicitudesSinDuplicar, notifications, solicitudesVistas]);
 
   // Marcar notificación como leída
   const markAsRead = async (notificationId) => {
@@ -267,6 +300,16 @@ export const NotificationHelpers = {
 
   // Notificar al usuario que su tienda fue aprobada
   sellerApproved: async (userId, tiendaNombre, storeId) => {
+    const existingSnap = await getDocs(
+      query(
+        collection(db, "notifications"),
+        where("type", "==", "solicitud_aprobada"),
+        where("targetUserId", "==", userId),
+        where("metadata.storeId", "==", storeId),
+        limit(1)
+      )
+    );
+    if (!existingSnap.empty) return true;
     return createNotification({
       type: "solicitud_aprobada",
       title: "Tu tienda fue aprobada",
@@ -281,6 +324,16 @@ export const NotificationHelpers = {
 
   // Notificar al usuario que su tienda fue rechazada
   sellerRejected: async (userId, tiendaNombre, motivo) => {
+    const existingSnap = await getDocs(
+      query(
+        collection(db, "notifications"),
+        where("type", "==", "solicitud_rechazada"),
+        where("targetUserId", "==", userId),
+        where("metadata.tiendaNombre", "==", tiendaNombre),
+        limit(1)
+      )
+    );
+    if (!existingSnap.empty) return true;
     return createNotification({
       type: "solicitud_rechazada",
       title: "Solicitud no aprobada",
@@ -297,6 +350,16 @@ export const NotificationHelpers = {
 
   // Notificar al vendedor sobre nuevo pedido
   newOrder: async (sellerId, order) => {
+    const existingSnap = await getDocs(
+      query(
+        collection(db, "notifications"),
+        where("type", "==", "nuevo_pedido"),
+        where("targetUserId", "==", sellerId),
+        where("metadata.orderId", "==", order.id),
+        limit(1)
+      )
+    );
+    if (!existingSnap.empty) return true;
     return createNotification({
       type: "nuevo_pedido",
       title: "¡Nuevo pedido! 🛒",
@@ -320,11 +383,21 @@ export const NotificationHelpers = {
     const estadoTexto = {
       pendiente: "está pendiente",
       procesando: "está siendo procesado",
-      enviado: "ha sido enviado 📦",
-      entregado: "ha sido entregado ✅",
+      enviado: "ha sido enviado ",
+      entregado: "ha sido entregado ",
       cancelado: "fue cancelado",
     };
-
+    const existingSnap = await getDocs(
+      query(
+        collection(db, "notifications"),
+        where("type", "==", "pedido_actualizado"),
+        where("targetUserId", "==", userId),
+        where("metadata.orderId", "==", orderId),
+        where("metadata.estado", "==", nuevoEstado),
+        limit(1)
+      )
+    );
+    if (!existingSnap.empty) return true;
     return createNotification({
       type: "pedido_actualizado",
       title: "Actualización de pedido",
@@ -339,6 +412,16 @@ export const NotificationHelpers = {
 
   // Notificar sobre nuevo seguidor
   newFollower: async (userId, followerName) => {
+    const existingSnap = await getDocs(
+      query(
+        collection(db, "notifications"),
+        where("type", "==", "nuevo_seguidor"),
+        where("targetUserId", "==", userId),
+        where("metadata.followerName", "==", followerName),
+        limit(1)
+      )
+    );
+    if (!existingSnap.empty) return true;
     return createNotification({
       type: "nuevo_seguidor",
       title: "Nuevo seguidor",

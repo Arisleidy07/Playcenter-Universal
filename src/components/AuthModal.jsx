@@ -90,7 +90,7 @@ export default function AuthModal() {
       try {
         const userData = JSON.parse(lastUserData);
         setRememberedUser(userData);
-        // console.log("✅ Usuario guardado encontrado:", userData.email);
+        // console.log(" Usuario guardado encontrado:", userData.email);
       } catch (e) {
         // console.error("Error al parsear userData:", e);
       }
@@ -105,7 +105,7 @@ export default function AuthModal() {
       // 🔥 PRE-LLENAR EMAIL desde localStorage (para cambio de cuenta)
       const lastEmail = localStorage.getItem("lastLoginEmail");
       if (lastEmail) {
-        // console.log("✅ Pre-llenando email:", lastEmail);
+        // console.log(" Pre-llenando email:", lastEmail);
         setEmail(lastEmail);
         // NO mostrar quick login cuando cambiamos de cuenta
         setRememberedEmail("");
@@ -180,7 +180,7 @@ export default function AuthModal() {
       });
 
       setRecoveryStep("code");
-      notify("📧 Código enviado a tu correo", "success");
+      notify(" Código enviado a tu correo", "success");
     } catch (error) {
       console.error("Error enviando código:", error);
       if (
@@ -216,7 +216,7 @@ export default function AuthModal() {
       if (result.data.success) {
         setCodeVerified(true);
         setRecoveryStep("newPassword");
-        notify("✅ Código verificado", "success");
+        notify(" Código verificado", "success");
       } else {
         setCodeError(result.data.error || "Código inválido o expirado");
       }
@@ -253,7 +253,7 @@ export default function AuthModal() {
 
       if (result.data.success) {
         setRecoveryStep("success");
-        notify("✅ Contraseña actualizada exitosamente", "success");
+        notify(" Contraseña actualizada exitosamente", "success");
       } else {
         setCodeError(result.data.error || "Error al cambiar la contraseña");
       }
@@ -290,7 +290,7 @@ export default function AuthModal() {
 
       // Si ya hay un usuario conectado en Firebase, simplemente cerrar el modal
       if (usuario) {
-        // console.log("✅ Usuario ya conectado:", usuario.email);
+        // console.log(" Usuario ya conectado:", usuario.email);
         setModalAbierto(false);
         return;
       }
@@ -306,7 +306,7 @@ export default function AuthModal() {
       }
 
       if (emailToUse) {
-        // console.log("📧 Email recordado:", emailToUse);
+        // console.log(" Email recordado:", emailToUse);
 
         // 1) Si tenemos el método guardado en lastUserData, úsalo directamente
         const knownMethod = saved?.loginMethod;
@@ -314,7 +314,7 @@ export default function AuthModal() {
           setError("Iniciando sesión con Google...");
           try {
             const userCredential = await loginWithGoogle();
-            // console.log("✅ Login con Google exitoso!");
+            // console.log(" Login con Google exitoso!");
             if (userCredential?.user?.email) {
               const emailFromGoogle = userCredential.user.email.toLowerCase();
               const userData = {
@@ -327,11 +327,11 @@ export default function AuthModal() {
             }
             setModalAbierto(false);
             // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            // console.log("✅ QUICK LOGIN COMPLETADO");
+            // console.log(" QUICK LOGIN COMPLETADO");
             // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return;
           } catch (googleError) {
-            // console.error("❌ Error en login con Google:", googleError);
+            // console.error(" Error en login con Google:", googleError);
             if (googleError.code === "auth/popup-closed-by-user") {
               setError("Popup cerrado. Intenta de nuevo.");
             } else {
@@ -353,10 +353,10 @@ export default function AuthModal() {
               localStorage.setItem("lastUserData", JSON.stringify(userData));
             }
             setModalAbierto(false);
-            // console.log("✅ Login con Apple exitoso!");
+            // console.log(" Login con Apple exitoso!");
             return;
           } catch (appleError) {
-            // console.error("❌ Error en login con Apple:", appleError);
+            // console.error(" Error en login con Apple:", appleError);
             setError("Error al iniciar con Apple. Intenta de nuevo.");
           }
         } else if (knownMethod === "email") {
@@ -372,7 +372,7 @@ export default function AuthModal() {
 
         // 2) Si no hay método conocido, consultar a Firebase
         const methods = await checkSignInMethods(emailToUse);
-        // console.log("🔍 Métodos disponibles:", methods);
+        // console.log(" Métodos disponibles:", methods);
 
         if (methods.includes("google.com")) {
           // Es cuenta de Google - Abrir popup automáticamente
@@ -380,7 +380,7 @@ export default function AuthModal() {
           setError("Iniciando sesión con Google...");
           try {
             const userCredential = await loginWithGoogle();
-            // console.log("✅ Login con Google exitoso!");
+            // console.log(" Login con Google exitoso!");
             if (userCredential?.user?.email) {
               const emailFromGoogle = userCredential.user.email.toLowerCase();
               const userData = {
@@ -393,11 +393,11 @@ export default function AuthModal() {
             }
             setModalAbierto(false);
             // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            // console.log("✅ QUICK LOGIN COMPLETADO");
+            // console.log(" QUICK LOGIN COMPLETADO");
             // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return;
           } catch (googleError) {
-            // console.error("❌ Error en login con Google:", googleError);
+            // console.error(" Error en login con Google:", googleError);
             if (googleError.code === "auth/popup-closed-by-user") {
               setError("Popup cerrado. Intenta de nuevo.");
             } else {
@@ -423,7 +423,7 @@ export default function AuthModal() {
             setModalAbierto(false);
             return;
           } catch (appleError) {
-            // console.error("❌ Error en login con Apple:", appleError);
+            // console.error(" Error en login con Apple:", appleError);
             setError("Error al iniciar con Apple. Intenta de nuevo.");
           }
         } else if (methods.includes("password")) {
@@ -446,7 +446,7 @@ export default function AuthModal() {
 
       setQuickLoginMode(false);
     } catch (e) {
-      // console.error("❌ Error en quick login:", e);
+      // console.error(" Error en quick login:", e);
       setError("Error al iniciar sesión. Intenta de nuevo.");
       setQuickLoginMode(false);
     } finally {
@@ -486,17 +486,17 @@ export default function AuthModal() {
     try {
       if (modo === "login") {
         // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        // console.log("🔐 INTENTO DE LOGIN INTELIGENTE");
+        // console.log(" INTENTO DE LOGIN INTELIGENTE");
         // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        // console.log("📧 Email ingresado:", email);
-        // console.log("📧 Email procesado:", emailLimpio);
+        // console.log(" Email ingresado:", email);
+        // console.log(" Email procesado:", emailLimpio);
 
         // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
         // PASO 1: Intentar login con email/password
         try {
           await login(emailLimpio, passwordFinal);
-          // console.log("✅ Login exitoso con email/password");
+          // console.log(" Login exitoso con email/password");
 
           // Guardar datos completos del usuario para quick login
           const userData = {
@@ -530,7 +530,7 @@ export default function AuthModal() {
             return; // No continuar con el error
           } else {
             // Otro tipo de error, lanzar para manejarlo en catch externo
-            // console.log("❌ Error diferente, lanzando:", loginError.code);
+            // console.log(" Error diferente, lanzando:", loginError.code);
             throw loginError;
           }
         }
@@ -585,9 +585,9 @@ export default function AuthModal() {
       }
       setModalAbierto(false);
     } catch (e) {
-      // console.error("❌ Error en login/signup:", e);
-      // console.error("❌ Error code:", e.code);
-      // console.error("❌ Error message:", e.message);
+      // console.error(" Error en login/signup:", e);
+      // console.error(" Error code:", e.code);
+      // console.error(" Error message:", e.message);
 
       // Mensajes de error user-friendly
       if (
@@ -595,7 +595,7 @@ export default function AuthModal() {
         e.code === "auth/wrong-password"
       ) {
         // Si es error de credenciales, asumir que es cuenta de Google
-        // console.log("✅✅✅ BANNER DE GOOGLE ACTIVADO (catch externo)");
+        // console.log(" BANNER DE GOOGLE ACTIVADO (catch externo)");
         setShowGoogleAccountWarning(true);
         setError(""); // Limpiar error
         setLoading(false);

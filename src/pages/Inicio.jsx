@@ -60,13 +60,13 @@ function Inicio() {
   //       categories.map((c) => ({
   //         "📌 Nombre": c.nombre,
   //         "🔗 Ruta": c.ruta,
-  //         "🆔 ID": c.id,
-  //         "📦 Productos": (productsByCategory[c.id] || []).length,
+  //         " ID": c.id,
+  //         " Productos": (productsByCategory[c.id] || []).length,
   //       }))
   //     );
   //     console.log("════════════════════════════════════════════════════════");
   //     console.log(
-  //       "💡 COPIA las rutas exactas de arriba para usarlas en getProductsByRoute()"
+  //       " COPIA las rutas exactas de arriba para usarlas en getProductsByRoute()"
   //     );
   //     console.log("════════════════════════════════════════════════════════");
   //   }
@@ -205,9 +205,9 @@ function Inicio() {
   const getProductsByRoute = (ruta) => {
     const cat = getCategoryByRoute(ruta);
     if (!cat) {
-      // console.warn(`❌ Categoría no encontrada para ruta: "${ruta}"`);
+      // console.warn(` Categoría no encontrada para ruta: "${ruta}"`);
       // console.log(
-      //   "💡 Sugerencia: Verifica las categorías disponibles en la tabla arriba"
+      //   " Sugerencia: Verifica las categorías disponibles en la tabla arriba"
       // );
       return [];
     }

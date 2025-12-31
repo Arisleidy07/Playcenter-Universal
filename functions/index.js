@@ -17,13 +17,12 @@ const RESEND_API_KEY =
 const resend = new Resend(RESEND_API_KEY);
 
 // Configuración de email con dominio verificado pcu.com.do
-const EMAIL_FROM =
-  config.mail?.from || "Playcenter Universal <soporte@pcu.com.do>";
+const EMAIL_FROM = config.mail?.from || "Playcenter <soporte@pcu.com.do>";
 const SITE_URL = config.site?.url || "https://pcu.com.do";
-// Logo URL - usar hosting de Firebase directamente
-const LOGO_URL = "https://playcenter-universal.web.app/logo.JPEG";
+// Logo URL (debe ser público). Usamos el asset del sitio/hosting.
+const LOGO_URL = `${SITE_URL}/PCU.png`;
 // Email del administrador
-const ADMIN_EMAIL = "arisledy0712@gmail.com";
+const ADMIN_EMAIL = "arisleidy0712@gmail.com";
 
 const db = admin.firestore();
 const messaging = admin.messaging();
@@ -101,11 +100,11 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
 
     // Verificar respuesta de Cardnet
     if (!response.data || !response.data.SESSION) {
-      console.error("❌ Respuesta inválida de Cardnet:", response.data);
+      console.error(" Respuesta inválida de Cardnet:", response.data);
       throw new Error(response.data?.error || "Cardnet no retornó SESSION");
     }
 
-    console.log("✅ Respuesta de Cardnet:", response.data);
+    console.log(" Respuesta de Cardnet:", response.data);
 
     return {
       success: true,
@@ -115,7 +114,7 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
       transactionId: requestBody.TransactionId,
     };
   } catch (error) {
-    console.error("❌ Error creando sesión Cardnet:", {
+    console.error(" Error creando sesión Cardnet:", {
       message: error.message,
       response: error.response?.data,
       status: error.response?.status,
@@ -159,7 +158,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
       );
     }
 
-    console.log("🔍 Verificando transacción Cardnet:", session);
+    console.log(" Verificando transacción Cardnet:", session);
 
     // Consultar resultado
     const response = await axios.get(
@@ -170,7 +169,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
       }
     );
 
-    console.log("✅ Resultado Cardnet:", response.data);
+    console.log(" Resultado Cardnet:", response.data);
 
     return {
       success: true,
@@ -178,7 +177,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
     };
   } catch (error) {
     console.error(
-      "❌ Error verificando transacción:",
+      " Error verificando transacción:",
       error.response?.data || error.message
     );
 
@@ -225,7 +224,8 @@ exports.onOrderCreated = functions.firestore
       const msg = {
         to,
         from: EMAIL_FROM,
-        subject: `✅ Pedido recibido - #${orderId}`,
+        replyTo: "soporte@pcu.com.do",
+        subject: `Pedido recibido - #${orderId}`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -233,7 +233,7 @@ exports.onOrderCreated = functions.firestore
             <style>
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .header { background: #2563eb; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
               .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
               .order-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
               .item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
@@ -245,7 +245,8 @@ exports.onOrderCreated = functions.firestore
           <body>
             <div class="container">
               <div class="header">
-                <h1>🎮 Playcenter Universal</h1>
+                <img src="${LOGO_URL}" alt="Playcenter" style="height: 48px; margin-bottom: 12px;" />
+                <h1>Playcenter</h1>
                 <p>¡Gracias por tu compra!</p>
               </div>
               <div class="content">
@@ -308,7 +309,7 @@ exports.onOrderCreated = functions.firestore
       };
 
       await sgMail.send(msg);
-      console.log("✅ Email enviado a:", to);
+      console.log(" Email enviado a:", to);
 
       // Marcar como enviado
       await snap.ref.update({
@@ -318,7 +319,7 @@ exports.onOrderCreated = functions.firestore
 
       return true;
     } catch (error) {
-      console.error("❌ Error al enviar email:", error);
+      console.error(" Error al enviar email:", error);
 
       // Guardar error para reintento manual
       await snap.ref.update({
@@ -368,20 +369,20 @@ exports.onOrderStatusChanged = functions.firestore
 
       switch (after.status?.toLowerCase()) {
         case "completado":
-          title = "🎉 Pedido completado";
+          title = " Pedido completado";
           body = `Tu pedido #${orderId} ha sido entregado`;
           break;
         case "enviado":
         case "en camino":
-          title = "📦 Pedido en camino";
+          title = " Pedido en camino";
           body = `Tu pedido #${orderId} ya salió del almacén`;
           break;
         case "cancelado":
-          title = "❌ Pedido cancelado";
+          title = " Pedido cancelado";
           body = `Tu pedido #${orderId} ha sido cancelado`;
           break;
         case "procesando":
-          title = "⏳ Pedido en proceso";
+          title = " Pedido en proceso";
           body = `Estamos preparando tu pedido #${orderId}`;
           break;
       }
@@ -426,14 +427,14 @@ exports.onOrderStatusChanged = functions.firestore
       await Promise.all(removePromises);
 
       console.log(
-        "✅ Push notification enviada:",
+        " Push notification enviada:",
         response.successCount,
         "exitosas"
       );
 
       return true;
     } catch (error) {
-      console.error("❌ Error al enviar push notification:", error);
+      console.error(" Error al enviar push notification:", error);
       return null;
     }
   });
@@ -483,7 +484,7 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
       .map((doc) => doc.data().email)
       .filter((email) => email && email.includes("@"));
 
-    console.log(`📧 Enviando campaña a ${emails.length} usuarios`);
+    console.log(` Enviando campaña a ${emails.length} usuarios`);
 
     let totalSent = 0;
     let totalFailed = 0;
@@ -507,13 +508,13 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
         totalSent += batch.length;
 
         console.log(
-          `✅ Batch ${i / batchSize + 1} enviado: ${batch.length} emails`
+          ` Batch ${i / batchSize + 1} enviado: ${batch.length} emails`
         );
 
         // Pequeña pausa entre batches
         await new Promise((resolve) => setTimeout(resolve, 100));
       } catch (error) {
-        console.error(`❌ Error en batch ${i / batchSize + 1}:`, error);
+        console.error(` Error en batch ${i / batchSize + 1}:`, error);
         totalFailed += batch.length;
 
         // Guardar errores en colección para revisar
@@ -534,7 +535,7 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
       testMode,
     });
   } catch (error) {
-    console.error("❌ Error en campaña:", error);
+    console.error(" Error en campaña:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -568,7 +569,7 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
         <html>
         <head><title>Unsubscribe</title></head>
         <body style="font-family: Arial; text-align: center; padding: 50px;">
-          <h1>❌ Usuario no encontrado</h1>
+          <h1>Usuario no encontrado</h1>
           <p>No se encontró una cuenta con ese email.</p>
         </body>
         </html>
@@ -589,7 +590,7 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
       <html>
       <head><title>Unsubscribed</title></head>
       <body style="font-family: Arial; text-align: center; padding: 50px;">
-        <h1>✅ Cancelado exitosamente</h1>
+        <h1>Cancelado exitosamente</h1>
         <p>Has sido removido de nuestra lista de correos promocionales.</p>
         <p>Aún recibirás emails importantes sobre tus pedidos.</p>
         <br>
@@ -600,9 +601,9 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
       </html>
     `);
 
-    console.log("✅ Usuario desuscrito:", email);
+    console.log(" Usuario desuscrito:", email);
   } catch (error) {
-    console.error("❌ Error al desuscribir:", error);
+    console.error(" Error al desuscribir:", error);
     res.status(500).send("Error al procesar tu solicitud");
   }
 });
@@ -631,7 +632,7 @@ exports.issueSwitchToken = functions.https.onCall(async (data, context) => {
       .get();
 
     if (usersSnap.empty) {
-      console.log("❌ Usuario no encontrado:", email);
+      console.log(" Usuario no encontrado:", email);
       throw new functions.https.HttpsError(
         "not-found",
         "Usuario no encontrado"
@@ -639,11 +640,11 @@ exports.issueSwitchToken = functions.https.onCall(async (data, context) => {
     }
 
     const uid = usersSnap.docs[0].id;
-    console.log("✅ Usuario encontrado:", uid);
+    console.log(" Usuario encontrado:", uid);
 
     // Generar Custom Token
     const customToken = await admin.auth().createCustomToken(uid);
-    console.log("✅ Custom token generado exitosamente");
+    console.log(" Custom token generado exitosamente");
 
     return {
       customToken,
@@ -651,7 +652,7 @@ exports.issueSwitchToken = functions.https.onCall(async (data, context) => {
       email: email.toLowerCase(),
     };
   } catch (error) {
-    console.error("❌ Error generando custom token:", error);
+    console.error(" Error generando custom token:", error);
     throw new functions.https.HttpsError(
       "internal",
       error.message || "Error al generar token"
@@ -687,7 +688,7 @@ exports.cleanupOldFCMTokens = functions.pubsub
       console.log(`🧹 Limpieza FCM: ${totalDeleted} tokens viejos eliminados`);
       return null;
     } catch (error) {
-      console.error("❌ Error en limpieza FCM:", error);
+      console.error(" Error en limpieza FCM:", error);
       return null;
     }
   });
@@ -707,12 +708,12 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
         );
       }
 
-      console.log("📧 Enviando email de aprobación a:", email);
+      console.log(" Enviando email de aprobación a:", email);
 
       const { data: emailData, error } = await resend.emails.send({
         from: EMAIL_FROM,
         to: email,
-        subject: "🎉 ¡Tu tienda ha sido aprobada en Playcenter!",
+        subject: "Tu tienda ha sido aprobada en Playcenter",
         html: `
         <!DOCTYPE html>
         <html>
@@ -723,19 +724,19 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
             body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 40px 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; }
-            .header p { margin: 10px 0 0; opacity: 0.9; font-size: 16px; }
+            .header { background: #2563eb; color: white; padding: 30px 24px; text-align: center; }
+            .header h1 { margin: 0; font-size: 22px; }
+            .header p { margin: 8px 0 0; opacity: 0.9; font-size: 14px; }
             .content { padding: 40px 30px; }
             .success-icon { font-size: 60px; margin-bottom: 20px; }
-            .store-name { background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; border-left: 4px solid #10b981; }
-            .store-name h2 { margin: 0; color: #059669; font-size: 24px; }
+            .store-name { background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; border-left: 4px solid #2563eb; }
+            .store-name h2 { margin: 0; color: #0f172a; font-size: 24px; }
             .steps { background: #f9fafb; padding: 25px; border-radius: 12px; margin: 25px 0; }
             .steps h3 { margin: 0 0 15px; color: #374151; }
             .steps ol { margin: 0; padding-left: 20px; }
             .steps li { padding: 8px 0; color: #4b5563; }
-            .button { display: inline-block; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 16px 40px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; }
-            .button:hover { background: linear-gradient(135deg, #1d4ed8, #1e40af); }
+            .button { display: inline-block; background: #2563eb; color: white; padding: 16px 40px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; }
+            .button:hover { background: #1d4ed8; }
             .footer { text-align: center; padding: 30px; color: #6b7280; font-size: 14px; background: #f9fafb; }
             .footer a { color: #2563eb; text-decoration: none; }
           </style>
@@ -745,31 +746,31 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
             <div class="card">
               <div class="header">
                 <img src="${LOGO_URL}" alt="Playcenter Universal" style="height: 50px; margin-bottom: 15px;" />
-                <div class="success-icon">🎉</div>
-                <h1>¡Felicidades!</h1>
+                
+                <h1>Tienda aprobada</h1>
                 <p>Tu solicitud ha sido aprobada</p>
               </div>
               <div class="content">
                 <p>Hola <strong>${nombreContacto}</strong>,</p>
-                <p>Nos complace informarte que tu solicitud para crear una tienda en Playcenter Universal ha sido <strong style="color: #10b981;">APROBADA</strong>.</p>
+                <p>Nos complace informarte que tu solicitud para crear una tienda en Playcenter Universal ha sido <strong style="color: #2563eb;">APROBADA</strong>.</p>
                 
                 <div class="store-name">
-                  <h2>🏪 ${tiendaNombre}</h2>
+                  <h2>${tiendaNombre}</h2>
                 </div>
 
                 <div class="steps">
-                  <h3>📋 ¿Cómo acceder a tu Panel de Vendedor?</h3>
+                  <h3>Cómo acceder a tu Panel de Vendedor</h3>
                   <ol>
                     <li>Inicia sesión en <a href="${SITE_URL}" style="color: #2563eb;">pcu.com.do</a> con tu cuenta</li>
                     <li><strong>En computadora:</strong> Verás el botón <strong>"Admin"</strong> en la barra superior, junto a tu perfil</li>
-                    <li><strong>En teléfono:</strong> Abre el menú ☰ (hamburguesa) y verás la opción <strong>"Panel Admin"</strong></li>
+                    <li><strong>En teléfono:</strong> Abre el menú de navegación y verás la opción <strong>"Panel Admin"</strong></li>
                     <li>Personaliza tu tienda (logo, banner, descripción)</li>
                     <li>Sube tus productos y ¡comienza a vender!</li>
                   </ol>
                 </div>
 
                 <div style="background: #dbeafe; padding: 15px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #2563eb;">
-                  <p style="margin: 0; color: #1e40af;"><strong>💡 Tip:</strong> Tu tienda "${tiendaNombre}" ya está activa y visible para todos los usuarios de Playcenter Universal.</p>
+                  <p style="margin: 0; color: #1e40af;"><strong>Información:</strong> Tu tienda "${tiendaNombre}" ya está activa y visible para todos los usuarios de Playcenter Universal.</p>
                 </div>
 
                 <center>
@@ -792,18 +793,18 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
       });
 
       if (error) {
-        console.error("❌ Error Resend:", error);
+        console.error(" Error Resend:", error);
         throw new functions.https.HttpsError("internal", error.message);
       }
 
-      console.log("✅ Email de aprobación enviado:", emailData);
+      console.log(" Email de aprobación enviado:", emailData);
 
       // Enviar email de confirmación al admin
       try {
         await resend.emails.send({
           from: EMAIL_FROM,
           to: ADMIN_EMAIL,
-          subject: `✅ Tienda aprobada: ${tiendaNombre}`,
+          subject: `Tienda aprobada: ${tiendaNombre}`,
           html: `
           <!DOCTYPE html>
           <html>
@@ -814,10 +815,10 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
               body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-              .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; text-align: center; }
+              .header { background: #2563eb; color: white; padding: 30px; text-align: center; }
               .header h1 { margin: 0; font-size: 24px; }
               .content { padding: 30px; }
-              .info-box { background: #f0fdf4; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #10b981; }
+              .info-box { background: #f0fdf4; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #2563eb; }
               .info-row { display: flex; padding: 8px 0; }
               .info-label { font-weight: 600; color: #374151; width: 120px; }
               .info-value { color: #6b7280; flex: 1; }
@@ -829,7 +830,7 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
               <div class="card">
                 <div class="header">
                   <img src="${LOGO_URL}" alt="Playcenter Universal" style="height: 50px; margin-bottom: 15px;" />
-                  <h1>✅ Tienda Aprobada</h1>
+                  <h1>Tienda aprobada</h1>
                   <p>Confirmación de acción</p>
                 </div>
                 <div class="content">
@@ -837,27 +838,20 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
                   
                   <div class="info-box">
                     <div class="info-row">
-                      <span class="info-label">🏪 Tienda:</span>
+                      <span class="info-label">Tienda:</span>
                       <span class="info-value"><strong>${tiendaNombre}</strong></span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">👤 Vendedor:</span>
+                      <span class="info-label">Vendedor:</span>
                       <span class="info-value">${nombreContacto}</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">📧 Email:</span>
+                      <span class="info-label">Email:</span>
                       <span class="info-value">${email}</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">🆔 Store ID:</span>
+                      <span class="info-label">Store ID:</span>
                       <span class="info-value">${storeId || "N/A"}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">📅 Fecha:</span>
-                      <span class="info-value">${new Date().toLocaleString(
-                        "es-DO",
-                        { dateStyle: "long", timeStyle: "short" }
-                      )}</span>
                     </div>
                   </div>
 
@@ -874,7 +868,7 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
           </html>
         `,
         });
-        console.log("✅ Email de confirmación enviado al admin");
+        console.log(" Email de confirmación enviado al admin");
       } catch (adminEmailError) {
         console.error(
           "⚠️ Error enviando email al admin (no crítico):",
@@ -884,7 +878,7 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
 
       return { success: true, emailId: emailData?.id };
     } catch (error) {
-      console.error("❌ Error al enviar email de aprobación:", error);
+      console.error(" Error al enviar email de aprobación:", error);
       throw new functions.https.HttpsError(
         "internal",
         error.message || "Error al enviar email"
@@ -892,6 +886,183 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
     }
   }
 );
+
+// ============================================
+// 9. ADMIN: RESET/BULK-UPDATE ORDERS (CANCEL/ARCHIVE/DELETE)
+// ============================================
+exports.resetOrders = functions.https.onRequest(async (req, res) => {
+  // CORS
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST");
+  res.set("Access-Control-Allow-Headers", "Content-Type, x-api-key");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  // Seguridad por API Key
+  const apiKey = req.headers["x-api-key"];
+  if (apiKey !== config.admin?.apikey) {
+    res.status(403).json({ error: "Forbidden - Invalid API Key" });
+    return;
+  }
+
+  try {
+    const {
+      mode = "cancel", // "cancel" | "delete" | "archive"
+      dryRun = true,
+      limit = 500,
+      reason = "Bulk reset",
+      archive = true, // solo aplica si mode === "delete" (mover a orders_archive antes de borrar)
+      filters = {}, // { userId, createdAfterISO, createdBeforeISO, estadoIn: [], statusIn: [] }
+    } = req.body || {};
+
+    const parseDate = (val) => {
+      if (!val) return null;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const createdAfter = parseDate(filters.createdAfterISO);
+    const createdBefore = parseDate(filters.createdBeforeISO);
+    const estadoIn = Array.isArray(filters.estadoIn)
+      ? filters.estadoIn.map((s) => String(s || "").toLowerCase())
+      : null;
+    const statusIn = Array.isArray(filters.statusIn)
+      ? filters.statusIn.map((s) => String(s || "").toLowerCase())
+      : null;
+    const userIdFilter = filters.userId || null;
+
+    // Obtener órdenes (nota: filtramos en memoria para flexibilidad)
+    const snap = await db.collection("orders").get();
+
+    const candidates = [];
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data();
+      // Filtro por userId
+      if (userIdFilter && data.userId !== userIdFilter) continue;
+
+      // Filtro por estado/status
+      const estado = String(data.estado || "").toLowerCase();
+      const status = String(data.status || "").toLowerCase();
+      if (estadoIn && estadoIn.length > 0 && !estadoIn.includes(estado))
+        continue;
+      if (statusIn && statusIn.length > 0 && !statusIn.includes(status))
+        continue;
+
+      // Filtro por fechas (usar createdAt; si no, fecha)
+      let ts = null;
+      try {
+        if (data.createdAt?.toDate) ts = data.createdAt.toDate();
+        else if (data.fecha?.toDate) ts = data.fecha.toDate();
+        else if (data.createdAt) ts = new Date(data.createdAt);
+        else if (data.fecha) ts = new Date(data.fecha);
+      } catch (e) {
+        ts = null;
+      }
+
+      if (createdAfter && ts && ts < createdAfter) continue;
+      if (createdBefore && ts && ts > createdBefore) continue;
+
+      candidates.push({ id: docSnap.id, ref: docSnap.ref, data });
+      if (candidates.length >= Number(limit)) break;
+    }
+
+    if (dryRun) {
+      res.json({
+        dryRun: true,
+        mode,
+        limit,
+        count: candidates.length,
+        sampleIds: candidates.slice(0, 10).map((c) => c.id),
+      });
+      return;
+    }
+
+    let updated = 0;
+    let archived = 0;
+    let deleted = 0;
+
+    // Procesar por lotes pequeños para evitar límites
+    const chunk = (arr, size) =>
+      arr.reduce(
+        (acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]),
+        []
+      );
+    const chunks = chunk(candidates, 200);
+
+    for (const batchItems of chunks) {
+      if (mode === "cancel") {
+        const batch = db.batch();
+        batchItems.forEach(({ ref }) => {
+          batch.update(ref, {
+            estado: "Cancelado",
+            invalidatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            invalidatedBy: "resetOrders",
+            invalidationReason: reason,
+            // NOTA: No tocamos "status" para no disparar notificaciones push
+            refund: {
+              requested: true,
+              processed: false,
+              method: "cardnet",
+              note: "bulk reset",
+              at: admin.firestore.FieldValue.serverTimestamp(),
+            },
+          });
+        });
+        await batch.commit();
+        updated += batchItems.length;
+      } else if (mode === "archive") {
+        const batch = db.batch();
+        batchItems.forEach(({ ref, id, data }) => {
+          const archiveRef = db.collection("orders_archive").doc(id);
+          batch.set(archiveRef, {
+            ...data,
+            archivedAt: admin.firestore.FieldValue.serverTimestamp(),
+            archivedBy: "resetOrders",
+            archivedReason: reason,
+          });
+        });
+        await batch.commit();
+        archived += batchItems.length;
+      } else if (mode === "delete") {
+        // Opcional: archivar antes de borrar
+        if (archive) {
+          const batchA = db.batch();
+          batchItems.forEach(({ id, data }) => {
+            const archiveRef = db.collection("orders_archive").doc(id);
+            batchA.set(archiveRef, {
+              ...data,
+              archivedAt: admin.firestore.FieldValue.serverTimestamp(),
+              archivedBy: "resetOrders",
+              archivedReason: reason,
+            });
+          });
+          await batchA.commit();
+          archived += batchItems.length;
+        }
+
+        const batchD = db.batch();
+        batchItems.forEach(({ ref }) => batchD.delete(ref));
+        await batchD.commit();
+        deleted += batchItems.length;
+      }
+    }
+
+    res.json({
+      success: true,
+      mode,
+      processed: candidates.length,
+      updated,
+      archived,
+      deleted,
+    });
+  } catch (error) {
+    console.error(" resetOrders error:", error);
+    res.status(500).json({ error: error.message || "Internal error" });
+  }
+});
 
 // ============================================
 // 8. ENVIAR EMAIL CON RESEND - SOLICITUD RECHAZADA
@@ -908,7 +1079,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
         );
       }
 
-      console.log("📧 Enviando email de rechazo a:", email);
+      console.log(" Enviando email de rechazo a:", email);
 
       const { data: emailData, error } = await resend.emails.send({
         from: EMAIL_FROM,
@@ -924,20 +1095,20 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
             body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; padding: 40px 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; }
-            .header p { margin: 10px 0 0; opacity: 0.9; font-size: 16px; }
+            .header { background: #ef4444; color: white; padding: 28px 24px; text-align: center; }
+            .header h1 { margin: 0; font-size: 22px; }
+            .header p { margin: 8px 0 0; opacity: 0.9; font-size: 14px; }
             .content { padding: 40px 30px; }
             .store-name { background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; border-left: 4px solid #6b7280; }
             .store-name h2 { margin: 0; color: #4b5563; font-size: 20px; }
-            .reason-box { background: #fef3c7; padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #f59e0b; }
-            .reason-box h3 { margin: 0 0 10px; color: #92400e; }
+            .reason-box { background: #fef3c7; padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #2563eb; }
+            .reason-box h3 { margin: 0 0 10px; color: #0f172a; }
             .reason-box p { margin: 0; color: #78350f; }
             .next-steps { background: #f0f9ff; padding: 25px; border-radius: 12px; margin: 25px 0; }
             .next-steps h3 { margin: 0 0 15px; color: #0369a1; }
             .next-steps ul { margin: 0; padding-left: 20px; }
             .next-steps li { padding: 5px 0; color: #0c4a6e; }
-            .button { display: inline-block; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 16px 40px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; }
+            .button { display: inline-block; background: #2563eb; color: white; padding: 16px 40px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; }
             .footer { text-align: center; padding: 30px; color: #6b7280; font-size: 14px; background: #f9fafb; }
             .footer a { color: #2563eb; text-decoration: none; }
           </style>
@@ -955,7 +1126,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
                 <p>Gracias por tu interés en vender en Playcenter Universal. Hemos revisado tu solicitud para la tienda:</p>
                 
                 <div class="store-name">
-                  <h2>🏪 ${tiendaNombre}</h2>
+                  <h2>${tiendaNombre}</h2>
                 </div>
 
                 <p>Lamentablemente, en esta ocasión no hemos podido aprobar tu solicitud.</p>
@@ -964,7 +1135,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
                   motivo
                     ? `
                 <div class="reason-box">
-                  <h3>📝 Motivo:</h3>
+                  <h3>Motivo:</h3>
                   <p>${motivo}</p>
                 </div>
                 `
@@ -972,7 +1143,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
                 }
 
                 <div class="next-steps">
-                  <h3>💡 ¿Qué puedes hacer?</h3>
+                  <h3>¿Qué puedes hacer?</h3>
                   <ul>
                     <li>Revisa los requisitos para vendedores en nuestra plataforma</li>
                     <li>Asegúrate de completar toda la información requerida</li>
@@ -999,18 +1170,18 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
       });
 
       if (error) {
-        console.error("❌ Error Resend:", error);
+        console.error(" Error Resend:", error);
         throw new functions.https.HttpsError("internal", error.message);
       }
 
-      console.log("✅ Email de rechazo enviado:", emailData);
+      console.log(" Email de rechazo enviado:", emailData);
 
       // Enviar email de confirmación al admin
       try {
         await resend.emails.send({
           from: EMAIL_FROM,
           to: ADMIN_EMAIL,
-          subject: `❌ Tienda rechazada: ${tiendaNombre}`,
+          subject: `Tienda rechazada: ${tiendaNombre}`,
           html: `
           <!DOCTYPE html>
           <html>
@@ -1021,7 +1192,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
               body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-              .header { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 30px; text-align: center; }
+              .header { background: #ef4444; color: white; padding: 30px; text-align: center; }
               .header h1 { margin: 0; font-size: 24px; }
               .content { padding: 30px; }
               .info-box { background: #fef2f2; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #ef4444; }
@@ -1037,7 +1208,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
               <div class="card">
                 <div class="header">
                   <img src="${LOGO_URL}" alt="Playcenter Universal" style="height: 50px; margin-bottom: 15px;" />
-                  <h1>❌ Tienda Rechazada</h1>
+                  <h1>Tienda rechazada</h1>
                   <p>Confirmación de acción</p>
                 </div>
                 <div class="content">
@@ -1045,29 +1216,29 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
                   
                   <div class="info-box">
                     <div class="info-row">
-                      <span class="info-label">🏪 Tienda:</span>
+                      <span class="info-label">Tienda:</span>
                       <span class="info-value"><strong>${tiendaNombre}</strong></span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">👤 Vendedor:</span>
+                      <span class="info-label">Vendedor:</span>
                       <span class="info-value">${nombreContacto}</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">📧 Email:</span>
+                      <span class="info-label">Email:</span>
                       <span class="info-value">${email}</span>
                     </div>
                     ${
                       motivo
                         ? `
                     <div class="reason-box" style="margin-top: 15px;">
-                      <strong>📝 Motivo del rechazo:</strong>
+                      <strong>Motivo del rechazo:</strong>
                       <p style="margin: 5px 0 0; color: #78350f;">${motivo}</p>
                     </div>
                     `
                         : ""
                     }
                     <div class="info-row" style="margin-top: 15px;">
-                      <span class="info-label">📅 Fecha:</span>
+                      <span class="info-label">Fecha:</span>
                       <span class="info-value">${new Date().toLocaleString(
                         "es-DO",
                         { dateStyle: "long", timeStyle: "short" }
@@ -1088,7 +1259,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
           </html>
         `,
         });
-        console.log("✅ Email de confirmación enviado al admin");
+        console.log(" Email de confirmación enviado al admin");
       } catch (adminEmailError) {
         console.error(
           "⚠️ Error enviando email al admin (no crítico):",
@@ -1098,7 +1269,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
 
       return { success: true, emailId: emailData?.id };
     } catch (error) {
-      console.error("❌ Error al enviar email de rechazo:", error);
+      console.error(" Error al enviar email de rechazo:", error);
       throw new functions.https.HttpsError(
         "internal",
         error.message || "Error al enviar email"
@@ -1135,7 +1306,7 @@ exports.processMailQueue = functions.firestore
         return null;
       }
 
-      console.log("📧 Procesando email de cola para:", to);
+      console.log(" Procesando email de cola para:", to);
 
       const { data: emailData, error } = await resend.emails.send({
         from: EMAIL_FROM,
@@ -1145,7 +1316,7 @@ exports.processMailQueue = functions.firestore
       });
 
       if (error) {
-        console.error("❌ Error Resend en cola:", error);
+        console.error(" Error Resend en cola:", error);
         await snap.ref.update({
           status: "error",
           error: error.message,
@@ -1161,10 +1332,10 @@ exports.processMailQueue = functions.firestore
         sentAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      console.log("✅ Email de cola enviado:", to);
+      console.log(" Email de cola enviado:", to);
       return true;
     } catch (error) {
-      console.error("❌ Error procesando cola de email:", error);
+      console.error(" Error procesando cola de email:", error);
       await snap.ref.update({
         status: "error",
         error: error.message,
@@ -1190,20 +1361,20 @@ exports.sendNotificationEmail = functions.https.onCall(
         );
       }
 
-      console.log("📧 Enviando notificación por email a:", email);
+      console.log(" Enviando notificación por email a:", email);
 
       // Colores según tipo
       const colors = {
         success: {
-          bg: "#10b981",
+          bg: "#2563eb",
           gradient: "linear-gradient(135deg, #10b981, #059669)",
         },
         error: {
           bg: "#ef4444",
-          gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
+          gradient: "#ef4444",
         },
         warning: {
-          bg: "#f59e0b",
+          bg: "#2563eb",
           gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
         },
         info: {
@@ -1229,13 +1400,13 @@ exports.sendNotificationEmail = functions.https.onCall(
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
             .header { background: ${
-              color.gradient
+              color.bg
             }; color: white; padding: 40px 30px; text-align: center; }
             .header h1 { margin: 0; font-size: 24px; }
             .content { padding: 40px 30px; }
             .message { font-size: 16px; color: #374151; }
             .button { display: inline-block; background: ${
-              color.gradient
+              color.bg
             }; color: white; padding: 14px 35px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 15px; margin-top: 25px; }
             .footer { text-align: center; padding: 25px; color: #6b7280; font-size: 13px; background: #f9fafb; }
             .footer a { color: #2563eb; text-decoration: none; }
@@ -1273,15 +1444,15 @@ exports.sendNotificationEmail = functions.https.onCall(
       });
 
       if (error) {
-        console.error("❌ Error Resend:", error);
+        console.error(" Error Resend:", error);
         throw new functions.https.HttpsError("internal", error.message);
       }
 
-      console.log("✅ Email de notificación enviado:", emailData);
+      console.log(" Email de notificación enviado:", emailData);
 
       return { success: true, emailId: emailData?.id };
     } catch (error) {
-      console.error("❌ Error al enviar notificación:", error);
+      console.error(" Error al enviar notificación:", error);
       throw new functions.https.HttpsError(
         "internal",
         error.message || "Error al enviar email"
@@ -1334,7 +1505,7 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
       timeZoneName: "short",
     });
 
-    console.log("📧 Enviando código de verificación a:", email);
+    console.log(" Enviando código de verificación a:", email);
 
     const { data: emailData, error } = await resend.emails.send({
       from: EMAIL_FROM,
@@ -1373,7 +1544,7 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
                   <td style="padding-bottom: 32px;">
                     <p style="margin: 0; font-size: 15px; line-height: 24px; color: #4a4a4a; text-align: center;">
                       Hola${userName ? ` ${userName}` : ""},<br><br>
-                      Usa el siguiente código para verificar tu identidad:
+                      Este es tu código para verificar tu identidad:
                     </p>
                   </td>
                 </tr>
@@ -1397,31 +1568,6 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
                     <p style="margin: 0; font-size: 13px; color: #888888;">
                       Este código expira en 10 minutos.
                     </p>
-                  </td>
-                </tr>
-
-                <!-- Información del dispositivo -->
-                <tr>
-                  <td style="padding-bottom: 32px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fafafa; border-radius: 8px;">
-                      <tr>
-                        <td style="padding: 20px;">
-                          <p style="margin: 0 0 8px 0; font-size: 13px; color: #666666;">
-                            <strong style="color: #333333;">Fecha:</strong> ${dateStr}
-                          </p>
-                          <p style="margin: 0 0 8px 0; font-size: 13px; color: #666666;">
-                            <strong style="color: #333333;">Dispositivo:</strong> ${
-                              deviceInfo?.browser || "Navegador"
-                            } ${deviceInfo?.os || ""}
-                          </p>
-                          <p style="margin: 0; font-size: 13px; color: #666666;">
-                            <strong style="color: #333333;">Ubicación:</strong> ${
-                              deviceInfo?.location || "República Dominicana"
-                            }
-                          </p>
-                        </td>
-                      </tr>
-                    </table>
                   </td>
                 </tr>
 
@@ -1462,15 +1608,15 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
     });
 
     if (error) {
-      console.error("❌ Error Resend:", error);
+      console.error(" Error Resend:", error);
       throw new functions.https.HttpsError("internal", error.message);
     }
 
-    console.log("✅ Código de verificación enviado:", emailData?.id);
+    console.log(" Código de verificación enviado:", emailData?.id);
 
     return { success: true, message: "Código enviado" };
   } catch (error) {
-    console.error("❌ Error al enviar código:", error);
+    console.error(" Error al enviar código:", error);
     throw new functions.https.HttpsError(
       "internal",
       error.message || "Error al enviar código"
@@ -1539,11 +1685,11 @@ exports.verifyCode = functions.https.onCall(async (data, context) => {
       usedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log("✅ Código verificado correctamente para:", email);
+    console.log(" Código verificado correctamente para:", email);
 
     return { success: true, message: "Código verificado correctamente" };
   } catch (error) {
-    console.error("❌ Error al verificar código:", error);
+    console.error(" Error al verificar código:", error);
     throw new functions.https.HttpsError(
       "internal",
       error.message || "Error al verificar"
@@ -1559,7 +1705,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
     const { email, newPassword, code } = data;
     const verificationCode = code || data.verificationCode;
 
-    console.log("🔐 resetUserPassword llamado para:", email);
+    console.log(" resetUserPassword llamado para:", email);
 
     if (!email || !newPassword) {
       throw new functions.https.HttpsError(
@@ -1622,7 +1768,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
 
     // Verificar que tenemos un código válido
     if (!codeDoc || !codeData || !codeData.used) {
-      console.log("❌ No se encontró código verificado para:", email);
+      console.log(" No se encontró código verificado para:", email);
       return {
         success: false,
         error: "Código no válido. Por favor verifica tu identidad nuevamente.",
@@ -1638,7 +1784,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
 
     if (usedAt < fifteenMinutesAgo) {
-      console.log("❌ Código expirado para:", email);
+      console.log(" Código expirado para:", email);
       return {
         success: false,
         error:
@@ -1664,7 +1810,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
       passwordResetAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log("✅ Contraseña actualizada para:", email);
+    console.log(" Contraseña actualizada para:", email);
 
     // Obtener información del usuario para el email al admin
     let userName = email;
@@ -1777,7 +1923,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
       await resend.emails.send({
         from: EMAIL_FROM,
         to: ADMIN_EMAIL,
-        subject: `🔐 Cambio de contraseña - ${userName}`,
+        subject: ` Cambio de contraseña - ${userName}`,
         html: `
         <!DOCTYPE html>
         <html lang="es">
@@ -1864,7 +2010,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
         </html>
       `,
       });
-      console.log("✅ Email de notificación enviado al admin");
+      console.log(" Email de notificación enviado al admin");
     } catch (adminEmailError) {
       console.error("Error enviando email al admin:", adminEmailError);
       // No fallar si el email no se envía
@@ -1872,7 +2018,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
 
     return { success: true, message: "Contraseña actualizada exitosamente" };
   } catch (error) {
-    console.error("❌ Error al restablecer contraseña:", error);
+    console.error(" Error al restablecer contraseña:", error);
 
     if (error.code === "auth/user-not-found") {
       return {
@@ -1904,7 +2050,7 @@ exports.notifyAdminPasswordChange = functions.https.onCall(
       }
 
       console.log(
-        "📧 Notificando al admin sobre cambio de contraseña:",
+        " Notificando al admin sobre cambio de contraseña:",
         userEmail
       );
 
@@ -1912,7 +2058,7 @@ exports.notifyAdminPasswordChange = functions.https.onCall(
       const { data: emailData, error } = await resend.emails.send({
         from: EMAIL_FROM,
         to: ADMIN_EMAIL,
-        subject: `🔐 Cambio de contraseña - ${userName || userEmail}`,
+        subject: ` Cambio de contraseña - ${userName || userEmail}`,
         html: `
         <!DOCTYPE html>
         <html lang="es">
@@ -2006,14 +2152,14 @@ exports.notifyAdminPasswordChange = functions.https.onCall(
       });
 
       if (error) {
-        console.error("❌ Error enviando email al admin:", error);
+        console.error(" Error enviando email al admin:", error);
         throw new functions.https.HttpsError("internal", error.message);
       }
 
-      console.log("✅ Email de notificación enviado al admin:", emailData);
+      console.log(" Email de notificación enviado al admin:", emailData);
       return { success: true, emailId: emailData?.id };
     } catch (error) {
-      console.error("❌ Error en notifyAdminPasswordChange:", error);
+      console.error(" Error en notifyAdminPasswordChange:", error);
       throw new functions.https.HttpsError(
         "internal",
         error.message || "Error al notificar al admin"
@@ -2032,7 +2178,15 @@ exports.onNewStoreRequest = functions.firestore
     const solicitudId = context.params.solicitudId;
 
     try {
-      console.log("📧 Nueva solicitud de tienda, notificando al admin...");
+      console.log(" Nueva solicitud de tienda, notificando al admin...");
+
+      // Idempotencia (solo para documento de notificación, no afecta email)
+      const existingNotifSnap = await db
+        .collection("notifications")
+        .where("metadata.solicitudId", "==", solicitudId)
+        .limit(1)
+        .get();
+      const notifExists = !existingNotifSnap.empty;
 
       const fechaSolicitud = solicitud.fechaSolicitud?.toDate
         ? solicitud.fechaSolicitud.toDate().toLocaleDateString("es-DO", {
@@ -2047,7 +2201,7 @@ exports.onNewStoreRequest = functions.firestore
       const { data: emailData, error } = await resend.emails.send({
         from: EMAIL_FROM,
         to: ADMIN_EMAIL,
-        subject: `🏪 Nueva solicitud de tienda: ${solicitud.tiendaNombre}`,
+        subject: `Nueva solicitud de tienda: ${solicitud.tiendaNombre}`,
         html: `
         <!DOCTYPE html>
         <html>
@@ -2058,7 +2212,7 @@ exports.onNewStoreRequest = functions.firestore
             body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 40px 30px; text-align: center; }
+            .header { background: #2563eb; color: white; padding: 40px 30px; text-align: center; }
             .header h1 { margin: 0; font-size: 24px; }
             .header p { margin: 10px 0 0; opacity: 0.9; }
             .content { padding: 30px; }
@@ -2067,9 +2221,9 @@ exports.onNewStoreRequest = functions.firestore
             .info-row:last-child { border-bottom: none; }
             .info-label { font-weight: 600; color: #374151; width: 140px; }
             .info-value { color: #6b7280; flex: 1; }
-            .store-name { background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; border-left: 4px solid #f59e0b; }
-            .store-name h2 { margin: 0; color: #92400e; font-size: 22px; }
-            .button { display: inline-block; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 16px 40px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; }
+            .store-name { background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; border-left: 4px solid #2563eb; }
+            .store-name h2 { margin: 0; color: #0f172a; font-size: 22px; }
+            .button { display: inline-block; background: #2563eb; color: white; padding: 16px 40px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; }
             .footer { text-align: center; padding: 25px; color: #6b7280; font-size: 13px; background: #f9fafb; }
           </style>
         </head>
@@ -2078,7 +2232,7 @@ exports.onNewStoreRequest = functions.firestore
             <div class="card">
               <div class="header">
                 <img src="${LOGO_URL}" alt="Playcenter Universal" style="height: 50px; margin-bottom: 15px;" />
-                <h1>🏪 Nueva Solicitud de Tienda</h1>
+                <h1>Nueva solicitud de tienda</h1>
                 <p>Alguien quiere vender en Playcenter</p>
               </div>
               <div class="content">
@@ -2088,37 +2242,37 @@ exports.onNewStoreRequest = functions.firestore
 
                 <div class="info-box">
                   <div class="info-row">
-                    <span class="info-label">👤 Solicitante:</span>
+                    <span class="info-label">Solicitante:</span>
                     <span class="info-value">${solicitud.nombreContacto}</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">📧 Email:</span>
+                    <span class="info-label">Email:</span>
                     <span class="info-value">${solicitud.email}</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">📱 Teléfono:</span>
+                    <span class="info-label">Teléfono:</span>
                     <span class="info-value">${
-                      solicitud.telefono || "No proporcionado"
+                      solicitud.tiendaTelefono ||
+                      solicitud.telefono ||
+                      solicitud.telefonoContacto ||
+                      "No proporcionado"
                     }</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">📍 Dirección:</span>
+                    <span class="info-label">Dirección:</span>
                     <span class="info-value">${
                       solicitud.tiendaDireccion || "No proporcionada"
                     }</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">📝 Descripción:</span>
+                    <span class="info-label">Descripción:</span>
                     <span class="info-value">${
                       solicitud.tiendaDescripcion || "Sin descripción"
                     }</span>
                   </div>
+                  <!-- Fecha removida para formato más conciso -->
                   <div class="info-row">
-                    <span class="info-label">📅 Fecha:</span>
-                    <span class="info-value">${fechaSolicitud}</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">🔗 ID Usuario:</span>
+                    <span class="info-label">ID Usuario:</span>
                     <span class="info-value">${
                       solicitud.userId || "No logueado"
                     }</span>
@@ -2146,37 +2300,41 @@ exports.onNewStoreRequest = functions.firestore
       });
 
       if (error) {
-        console.error("❌ Error enviando email al admin:", error);
+        console.error(" Error enviando email al admin:", error);
         return null;
       }
 
       console.log(
-        "✅ Email enviado al admin sobre nueva solicitud:",
+        " Email enviado al admin sobre nueva solicitud:",
         emailData?.id
       );
 
-      // También crear notificación in-app para el admin
-      await db.collection("notifications").add({
-        type: "solicitud_vendedor",
-        title: "Nueva solicitud de tienda",
-        message: `${solicitud.nombreContacto} quiere crear la tienda "${solicitud.tiendaNombre}"`,
-        targetUserId: null,
-        targetType: "admin",
-        actionUrl: "/admin?tab=solicitudes",
-        actionLabel: "Revisar solicitud",
-        metadata: {
-          solicitudId,
-          tiendaNombre: solicitud.tiendaNombre,
-          solicitante: solicitud.nombreContacto,
-          email: solicitud.email,
-        },
-        read: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      // Crear notificación in-app para el admin si no existe
+      if (!notifExists) {
+        await db.collection("notifications").add({
+          type: "solicitud_vendedor",
+          title: "Nueva solicitud de tienda",
+          message: `${solicitud.nombreContacto} quiere crear la tienda "${solicitud.tiendaNombre}"`,
+          targetUserId: null,
+          targetType: "admin",
+          actionUrl: "/admin?tab=solicitudes",
+          actionLabel: "Revisar solicitud",
+          metadata: {
+            solicitudId,
+            tiendaNombre: solicitud.tiendaNombre,
+            solicitante: solicitud.nombreContacto,
+            email: solicitud.email,
+          },
+          read: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      } else {
+        console.log(" Notificación ya registrada, no se duplica:", solicitudId);
+      }
 
       return true;
     } catch (error) {
-      console.error("❌ Error en onNewStoreRequest:", error);
+      console.error(" Error en onNewStoreRequest:", error);
       return null;
     }
   });

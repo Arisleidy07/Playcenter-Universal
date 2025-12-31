@@ -52,7 +52,7 @@ function generarCodigoUnico() {
 async function findUserByEmail(email) {
   try {
     const emailLower = email.toLowerCase().trim();
-    // console.log("🔍 Buscando usuario con email:", emailLower);
+    // console.log(" Buscando usuario con email:", emailLower);
 
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("email", "==", emailLower));
@@ -60,14 +60,14 @@ async function findUserByEmail(email) {
 
     if (!querySnapshot.empty) {
       const userDoc = querySnapshot.docs[0];
-      // console.log("✅ Usuario encontrado con ID:", userDoc.id);
+      // console.log(" Usuario encontrado con ID:", userDoc.id);
       return { id: userDoc.id, data: userDoc.data() };
     }
 
     // console.log("⚠️ No se encontró usuario con ese email");
     return null;
   } catch (error) {
-    // console.error("❌ Error buscando usuario:", error);
+    // console.error(" Error buscando usuario:", error);
     return null;
   }
 }
@@ -164,7 +164,7 @@ export function AuthProvider({ children }) {
           (snap) => {
             if (snap.exists()) {
               const data = snap.data() || {};
-              const userEmail = user.email || data.email || "";
+              const userEmail = data.email || user.email || "";
               const merged = {
                 uid: user.uid,
                 ...data,
@@ -172,7 +172,9 @@ export function AuthProvider({ children }) {
                 email: userEmail,
                 // CRÍTICO: Si fotoURL está explícitamente en Firestore (incluso si es ""), usarlo
                 // Solo usar user.photoURL si fotoURL no existe en Firestore
-                fotoURL: data.hasOwnProperty('fotoURL') ? data.fotoURL : (user.photoURL || ""),
+                fotoURL: data.hasOwnProperty("fotoURL")
+                  ? data.fotoURL
+                  : user.photoURL || "",
                 isAdmin: isAdminEmail(userEmail) || data.admin === true,
                 admin: isAdminEmail(userEmail) || data.admin === true,
                 role: data.role || "buyer",
@@ -225,7 +227,7 @@ export function AuthProvider({ children }) {
           const docRef = doc(db, "users", user.uid);
           const snap = await getDoc(docRef);
           const data = snap.exists() ? snap.data() : {};
-          const userEmail = user.email || data.email || "";
+          const userEmail = data.email || user.email || "";
           const merged = {
             uid: user.uid,
             ...data,
@@ -313,7 +315,7 @@ export function AuthProvider({ children }) {
       merge: true,
     });
 
-    // console.log("🔐 Nuevo usuario registrado - Admin:", isAdmin);
+    // console.log(" Nuevo usuario registrado - Admin:", isAdmin);
 
     setUsuario(auth.currentUser);
     setUsuarioInfo({
@@ -356,7 +358,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("lastLoginEmail");
       localStorage.removeItem("lastUserData");
 
-      // console.log("✅ Sesión cerrada y datos limpiados completamente");
+      // console.log(" Sesión cerrada y datos limpiados completamente");
     } catch (error) {
       // console.error("Error durante logout:", error);
       // Aunque falle, limpiar estados locales y localStorage
@@ -373,10 +375,10 @@ export function AuthProvider({ children }) {
   async function resetPassword(email) {
     try {
       await sendPasswordResetEmail(auth, email);
-      // console.log("✅ Email de recuperación enviado a:", email);
+      // console.log(" Email de recuperación enviado a:", email);
       return { success: true };
     } catch (error) {
-      // console.error("❌ Error al enviar email de recuperación:", error);
+      // console.error(" Error al enviar email de recuperación:", error);
       throw error;
     }
   }
@@ -384,17 +386,17 @@ export function AuthProvider({ children }) {
   async function checkSignInMethods(email) {
     try {
       // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      // console.log("🔍 VERIFICANDO MÉTODOS PARA:", email);
+      // console.log(" VERIFICANDO MÉTODOS PARA:", email);
       const methods = await fetchSignInMethodsForEmail(auth, email);
-      // console.log("✅ MÉTODOS ENCONTRADOS:", methods);
+      // console.log(" MÉTODOS ENCONTRADOS:", methods);
       // console.log("📊 Cantidad de métodos:", methods.length);
-      // console.log("🔍 ¿Incluye google.com?", methods.includes("google.com"));
+      // console.log(" ¿Incluye google.com?", methods.includes("google.com"));
       // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       return methods;
     } catch (error) {
       // console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      // console.error("❌ ERROR al verificar métodos para:", email);
-      // console.error("❌ Error:", error);
+      // console.error(" ERROR al verificar métodos para:", email);
+      // console.error(" Error:", error);
       // console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       return [];
     }
@@ -405,10 +407,10 @@ export function AuthProvider({ children }) {
     try {
       const credential = EmailAuthProvider.credential(usuario.email, password);
       await linkWithCredential(usuario, credential);
-      // console.log("✅ Contraseña vinculada exitosamente");
+      // console.log(" Contraseña vinculada exitosamente");
       return { success: true };
     } catch (error) {
-      // console.error("❌ Error al vincular contraseña:", error);
+      // console.error(" Error al vincular contraseña:", error);
       throw error;
     }
   }
@@ -431,7 +433,9 @@ export function AuthProvider({ children }) {
         email: usuario.email || updatedData.email || "",
         isAdmin: updatedData.admin === true,
         // CRÍTICO: Preservar fotoURL explícitamente (incluso si es string vacío)
-        fotoURL: updatedData.hasOwnProperty('fotoURL') ? updatedData.fotoURL : (usuario.photoURL || ""),
+        fotoURL: updatedData.hasOwnProperty("fotoURL")
+          ? updatedData.fotoURL
+          : usuario.photoURL || "",
       };
 
       // actualizar estado local — onSnapshot probablemente ya haga esto, pero lo hacemos para coherencia inmediata
@@ -446,7 +450,7 @@ export function AuthProvider({ children }) {
           // console.warn("Error actualizando displayName en auth:", err);
         }
       }
-      
+
       // si se envió fotoURL, actualizar también en auth
       if (data.fotoURL !== undefined) {
         try {
@@ -548,7 +552,7 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // console.log("🔐 LOGIN CON GOOGLE - Email:", user.email);
+      // console.log(" LOGIN CON GOOGLE - Email:", user.email);
 
       // Verificar si el usuario ya existe en Firestore
       const docRef = doc(db, "users", user.uid);
@@ -575,22 +579,33 @@ export function AuthProvider({ children }) {
           fotoURL: user.photoURL || "",
           createdAt: new Date(),
           loginMethod: "google",
+          provider_google: true,
         };
 
         await setDoc(docRef, payload, { merge: true });
-        // console.log("✅ Perfil creado");
+        // console.log(" Perfil creado");
       } else {
         // Actualizar admin si es necesario
         const userEmail = (user.email || "").toLowerCase().trim();
+        const updates = {};
         if (userEmail === "arisleidy0712@gmail.com" && !docSnap.data().admin) {
-          await setDoc(docRef, { admin: true, isAdmin: true }, { merge: true });
-          // console.log("✅ Admin actualizado");
+          updates.admin = true;
+          updates.isAdmin = true;
+        }
+        // Marcar proveedor de Google en el perfil
+        if (docSnap.data().provider_google !== true) {
+          updates.provider_google = true;
+          updates.loginMethod = "google";
+        }
+        if (Object.keys(updates).length > 0) {
+          await setDoc(docRef, updates, { merge: true });
+          // console.log(" Perfil actualizado (admin/provider_google)");
         }
       }
 
       return result;
     } catch (err) {
-      // console.error("❌ Error al iniciar sesión con Google:", err);
+      // console.error(" Error al iniciar sesión con Google:", err);
       throw err;
     }
   }

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { LogOut, Plus, Check, X, AlertCircle, Bell } from "lucide-react";
+import { LogOut, Plus, Check, AlertCircle, Bell, Trash2 } from "lucide-react";
 import { useMultiAccount } from "../../context/MultiAccountContext";
 import { useNotifications } from "../../hooks/useNotifications";
+import { createPortal } from "react-dom";
+// (Sin imports extra; mantener ligero)
 
 export default function AccountMenu({
   currentUser,
@@ -11,6 +13,8 @@ export default function AccountMenu({
   onSwitchAccount,
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [confirmUid, setConfirmUid] = useState(null);
   const ctx = useMultiAccount();
   const savedAccounts = ctx?.savedAccounts || [];
   const switchAccount = ctx?.switchAccount || (() => {});
@@ -20,9 +24,25 @@ export default function AccountMenu({
   return (
     <div className="w-full bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-600 overflow-hidden">
       <div className="p-3 max-h-[70vh] overflow-y-auto">
-        <p className="px-2 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-          Cambiar Cuentas
-        </p>
+        <div className="flex items-center justify-between px-2 py-2">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            Cambiar Cuentas
+          </p>
+          <button
+            onClick={() => {
+              setEditMode((v) => !v);
+              setConfirmUid(null);
+            }}
+            className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+              editMode
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+            }`}
+            aria-label={editMode ? "Salir de edición" : "Editar"}
+          >
+            {editMode ? "Listo" : "Editar"}
+          </button>
+        </div>
 
         <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30 mb-2 border border-gray-200 dark:border-gray-600">
           <div className="relative flex-shrink-0">
@@ -32,15 +52,20 @@ export default function AccountMenu({
                 className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm"
                 alt="Active"
                 onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "flex";
                 }}
               />
             ) : null}
-            <div 
-              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-lg sm:text-xl font-semibold shadow-sm border-2 border-white dark:border-slate-800 ${currentUser?.photoURL ? 'hidden' : 'flex'}`}
+            <div
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-lg sm:text-xl font-semibold shadow-sm border-2 border-white dark:border-slate-800 ${
+                currentUser?.photoURL ? "hidden" : "flex"
+              }`}
             >
-              {((currentUser?.displayName || currentUser?.email)?.charAt(0) || "U").toUpperCase()}
+              {(
+                (currentUser?.displayName || currentUser?.email)?.charAt(0) ||
+                "U"
+              ).toUpperCase()}
             </div>
             <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-3.5 sm:h-3.5 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full shadow-sm" />
             {/* Badge de notificaciones */}
@@ -73,7 +98,11 @@ export default function AccountMenu({
               {currentUser?.email}
             </p>
           </div>
-          <Check size={16} className="sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" title="Cuenta activa" />
+          <Check
+            size={16}
+            className="sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0"
+            title="Cuenta activa"
+          />
         </div>
 
         {savedAccounts
@@ -95,15 +124,19 @@ export default function AccountMenu({
                     className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border border-gray-200 dark:border-white/10 shadow-sm"
                     alt="Saved"
                     onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
                     }}
                   />
                 ) : null}
-                <div 
-                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-base sm:text-lg font-semibold shadow-sm border border-gray-200 dark:border-white/10 ${acc.photoURL ? 'hidden' : 'flex'}`}
+                <div
+                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex items-center justify-center text-white text-base sm:text-lg font-semibold shadow-sm border border-gray-200 dark:border-white/10 ${
+                    acc.photoURL ? "hidden" : "flex"
+                  }`}
                 >
-                  {((acc.displayName || acc.email)?.charAt(0) || "U").toUpperCase()}
+                  {(
+                    (acc.displayName || acc.email)?.charAt(0) || "U"
+                  ).toUpperCase()}
                 </div>
               </div>
               <div className="flex-1 text-left min-w-0 overflow-hidden">
@@ -114,19 +147,28 @@ export default function AccountMenu({
                   {acc.email}
                 </p>
               </div>
-              <button
-                className="p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeAccount(acc.uid);
-                }}
-                title="Eliminar de la lista"
-              >
-                <X size={16} />
-              </button>
+              {confirmUid === acc.uid ? null : (
+                <button
+                  className={`inline-flex items-center gap-1.5 px-2 py-1.5 rounded-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0 ${
+                    editMode
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmUid(acc.uid);
+                  }}
+                  title="Borrar cuenta"
+                  aria-label="Borrar cuenta"
+                >
+                  <Trash2 size={14} />
+                  {editMode ? (
+                    <span className="text-xs font-medium">Borrar</span>
+                  ) : null}
+                </button>
+              )}
             </div>
           ))}
-
         <button
           onClick={onAddAccount}
           className="w-full flex items-center gap-3 p-3 mt-1 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
@@ -175,6 +217,51 @@ export default function AccountMenu({
           </div>
         )}
       </div>
+
+      {confirmUid &&
+        createPortal(
+          <div className="fixed inset-0 z-[200000]">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setConfirmUid(null)}
+            />
+            <div className="relative z-[200001] flex items-center justify-center min-h-full p-4">
+              <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 flex items-center justify-center">
+                    <Trash2 size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Borrar cuenta
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      ¿Está seguro que quiere borrar esta cuenta?
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setConfirmUid(null)}
+                    className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-800 dark:text-white text-sm font-medium transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      removeAccount(confirmUid);
+                      setConfirmUid(null);
+                    }}
+                    className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors"
+                  >
+                    Sí, borrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

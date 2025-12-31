@@ -65,7 +65,7 @@ export default function BotonCardnet({ className, total, label, items }) {
         throw new Error("No se pudo crear la sesión de pago");
       }
 
-      // console.log('✅ Sesión creada:', result.data.session);
+      // console.log(' Sesión creada:', result.data.session);
 
       // Guardar sessionKey en sessionStorage para verificar después
       sessionStorage.setItem("cardnetSessionKey", result.data.sessionKey);
@@ -88,7 +88,7 @@ export default function BotonCardnet({ className, total, label, items }) {
       document.body.appendChild(form);
       form.submit();
     } catch (err) {
-      // console.error('❌ Error al iniciar pago:', err);
+      // console.error(' Error al iniciar pago:', err);
 
       let errorMessage = "Error al procesar el pago";
 
