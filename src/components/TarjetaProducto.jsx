@@ -168,15 +168,15 @@ function TarjetaProducto({ producto }) {
   return (
     <>
       {/* HORIZONTAL en móvil/tablet pequeño, VERTICAL en tablet grande/desktop */}
-      <article className="card h-100 border-2 shadow-sm hover-lift hover-shadow bg-white dark:bg-gray-800">
+      <article className="card h-100 border-2 shadow-sm hover-lift hover-shadow bg-white dark:bg-gray-800 d-flex d-xl-block align-items-stretch gap-3">
         {/* Imagen a la izquierda (móvil/tablet pequeño) o arriba (tablet grande/desktop) */}
         <div
           onClick={irADetalle}
-          className="d-flex d-lg-block position-relative overflow-hidden"
+          className="d-flex position-relative overflow-hidden flex-shrink-0"
           style={{
             cursor: "pointer",
-            minHeight: "128px",
-            width: "128px",
+            minHeight: "112px",
+            width: "112px",
           }}
         >
           <div className="d-flex align-items-center justify-content-center w-100 h-100 bg-white dark:bg-gray-700">
@@ -197,7 +197,7 @@ function TarjetaProducto({ producto }) {
         </div>
 
         {/* Información a la derecha (móvil/tablet pequeño) o abajo (tablet grande/desktop) */}
-        <div className="card-body d-flex flex-column justify-content-between flex-grow-1 p-3">
+        <div className="card-body d-flex flex-column justify-content-between flex-grow-1 p-2 p-md-3">
           <div>
             <h3
               onClick={irADetalle}
@@ -251,13 +251,15 @@ function TarjetaProducto({ producto }) {
           ) : (
             <button
               onClick={handleAgregar}
-              className="btn btn-primary w-100 rounded-3 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow"
+              className="w-100 w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-sm transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed h-9 sm:h-10 px-4"
+              style={{ backgroundColor: "#2563eb" }}
               disabled={!disponible}
+              aria-label="Agregar al carrito"
             >
-              <FaShoppingCart />
-              <span className="d-none d-sm-inline d-lg-none">Agregar</span>
-              <span className="d-none d-lg-inline">Agregar al Carrito</span>
-              <span className="d-sm-none">+</span>
+              <FaShoppingCart className="text-[13px] sm:text-sm" />
+              <span className="text-xs sm:text-sm font-medium leading-none tracking-wide">
+                Agregar al carrito
+              </span>
             </button>
           )}
         </div>

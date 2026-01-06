@@ -108,6 +108,33 @@
   background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
 }
 
+/* Forzar azul en tema oscuro también */
+.dark .modern-btn-categories {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+}
+
+.dark .modern-btn-categories:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+}
+
+/* Forzar azul en tema oscuro para botones de Agregar al carrito (VistaProducto) */
+.dark .bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+.dark .bg-blue-600:hover {
+  background-color: #1d4ed8 !important;
+}
+
+/* Forzar azul en tema oscuro para botón de TarjetaProducto */
+.dark .bg-\[\\#2563eb\] {
+  background-color: #2563eb !important;
+}
+
+.dark .hover\:bg-\[\\#1d4ed8\]:hover {
+  background-color: #1d4ed8 !important;
+}
+
 /* Botón filtros específico - VERDE AZULADO */
 .modern-btn-filters {
   background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
@@ -120,8 +147,8 @@
 
 /* Íconos modernos */
 .modern-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   stroke-width: 2.5;
   transition: transform 0.3s ease;
 }
@@ -270,5 +297,20 @@
 
   .modern-btn.floating {
     animation: none;
+  }
+}
+
+/* Compacto en móvil/tablet para la barra de categorías/filtros */
+@media (max-width: 1279px) {
+  .category-toolbar .modern-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 8px;
+    gap: 6px;
+  }
+  .category-toolbar .modern-btn .modern-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
   }
 }

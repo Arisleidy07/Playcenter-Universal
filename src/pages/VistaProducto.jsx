@@ -1043,7 +1043,7 @@ function VistaProducto() {
     if (mainImg) {
       result.push(mainImg);
     }
-    
+
     // Agregar imágenes de galería que NO son la principal
     result.push(...galleryImages);
 
@@ -2155,6 +2155,7 @@ function VistaProducto() {
                         ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600"
                         : ""
                     }`}
+                    style={{ backgroundColor: "#2563eb" }}
                     onClick={handleAgregar}
                     disabled={!disponible}
                     title={!disponible ? "No disponible" : "Agregar al carrito"}
@@ -2233,6 +2234,7 @@ function VistaProducto() {
                         ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600"
                         : ""
                     }`}
+                    style={{ backgroundColor: "#2563eb" }}
                     onClick={handleAgregar}
                     disabled={!disponible}
                     title={!disponible ? "No disponible" : "Agregar al carrito"}

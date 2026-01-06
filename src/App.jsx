@@ -24,6 +24,10 @@ function AppContent() {
   const [headerHeight, setHeaderHeight] = useState(0);
   const lastScrollY = useRef(0);
   const headerRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.innerWidth < 1280;
+  });
 
   // Medir altura del header dinámicamente
   useEffect(() => {
@@ -36,43 +40,17 @@ function AppContent() {
 
     measureHeader();
     window.addEventListener("resize", measureHeader);
+    // Actualizar flag de móvil/desktop en resize
+    const handleResize = () => setIsMobile(window.innerWidth < 1280);
+    window.addEventListener("resize", handleResize);
     // Medir después de un pequeño delay para asegurar que todo está renderizado
     const timer = setTimeout(measureHeader, 100);
 
     return () => {
       window.removeEventListener("resize", measureHeader);
+      window.removeEventListener("resize", handleResize);
       clearTimeout(timer);
     };
-  }, []);
-
-  // Scroll hide/show para el header
-  useEffect(() => {
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScroll = window.pageYOffset;
-          const lastScroll = lastScrollY.current;
-
-          // Si baja más de 50px: ocultar
-          if (currentScroll > lastScroll && currentScroll > 50) {
-            setHeaderVisible(false);
-          }
-          // Si sube aunque sea un poquito o está en el top: mostrar INMEDIATAMENTE
-          else if (currentScroll < lastScroll || currentScroll === 0) {
-            setHeaderVisible(true);
-          }
-
-          lastScrollY.current = currentScroll;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -84,26 +62,31 @@ function AppContent() {
         <div
           className={`min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300`}
         >
-          {/* HEADER FIXED - Siempre pegado arriba, se oculta/muestra con translateY */}
+          {/* HEADER: fijo solo en móvil (<1280px). En desktop es estático para evitar solapamientos. */}
           <div
             ref={headerRef}
-            className="fixed top-0 left-0 right-0 z-[900] w-full flex flex-col shadow-sm transition-transform duration-300 ease-in-out"
+            className="z-[900] w-full flex flex-col shadow-sm transition-transform duration-300 ease-in-out"
             style={{
-              transform: headerVisible ? "translateY(0)" : "translateY(-100%)",
+              position: isMobile ? "fixed" : "static",
+              top: isMobile ? 0 : "auto",
+              left: isMobile ? 0 : "auto",
+              right: isMobile ? 0 : "auto",
+              transform: "translateY(0)",
             }}
           >
             <Header />
-            <TopBar />
           </div>
 
-          {/* MAIN con padding-top dinámico: si el header está oculto, no dejar espacio */}
+          {/* MAIN: en móvil agregamos padding-top igual a la altura del header fijo; en desktop 0 */}
           <main
             className="flex-grow"
             style={{
-              paddingTop: headerVisible ? `${headerHeight}px` : "0px",
+              paddingTop: isMobile ? `${headerHeight}px` : "0px",
               "--app-header-height": `${headerHeight}px`,
             }}
           >
+            {/* TopBar debe desplazarse con el contenido en móvil */}
+            <TopBar />
             <ScrollToTop />
             <AnimatedRoutes />
           </main>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { FaThList } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import SidebarCategorias from "../components/SidebarCategorias";
-import SidebarFiltros from "../components/SidebarFiltros";
 import FiltroDrawerNuevo from "../components/FiltroDrawerNuevo";
 import BotonFiltro from "../components/BotonFiltro";
 import TarjetaProducto from "../components/TarjetaProducto";
@@ -37,10 +37,8 @@ function ProductosPage() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [mostrarCategorias, setMostrarCategorias] = useState(false);
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
-  const [topbarHeight, setTopbarHeight] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(0);
 
   useEffect(() => {
     const checkTheme = () => {
@@ -56,46 +54,6 @@ function ProductosPage() {
       attributeFilter: ["class"],
     });
     return () => observer.disconnect();
-  }, []);
-
-  // Medir alturas del topbar y header
-  useEffect(() => {
-    function measure() {
-      const topbarEl = document.querySelector(
-        ".shadow-md.px-4.py-2.flex.justify-between.items-center"
-      );
-      const headerEl = document.querySelector("header");
-
-      const topbarH = topbarEl
-        ? Math.ceil(topbarEl.getBoundingClientRect().height)
-        : 0;
-      const headerH = headerEl
-        ? Math.ceil(headerEl.getBoundingClientRect().height)
-        : 0;
-
-      setTopbarHeight(topbarH);
-      setHeaderHeight(headerH);
-      document.documentElement.style.setProperty(
-        "--topbar-height",
-        `${topbarH}px`
-      );
-      document.documentElement.style.setProperty(
-        "--header-height",
-        `${headerH}px`
-      );
-    }
-    measure();
-    window.addEventListener("resize", measure);
-    const observer = new MutationObserver(measure);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-    });
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer.disconnect();
-    };
   }, []);
 
   // Detectar scroll para animar botones
@@ -239,39 +197,29 @@ function ProductosPage() {
     >
       <div className="flex-1 flex flex-col w-full" style={{ margin: 0 }}>
         <main className="flex-1 p-0 relative pb-32">
-          {/* Botones flotando solos */}
+          {/* Botones categorías / filtros - barra compacta móvil */}
           <div
-            className={`flex justify-between items-start px-4 sm:px-6 py-3 transition-all duration-500 ease-in-out ${
+            className={`category-toolbar sticky top-0 flex justify-between items-center px-3 sm:px-4 py-1 z-[850] transition-all duration-300 ease-in-out ${
               isScrolled
-                ? "sticky top-0 z-[850] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg"
-                : "relative z-[850]"
+                ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-md"
+                : ""
             }`}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setMostrarCategorias(true)}
-                className={`modern-btn modern-btn-categories ${
-                  isScrolled ? "floating" : ""
-                }`}
+                onClick={() => {
+                  setMostrarCategorias(true);
+                  setFiltrosVisible(false);
+                }}
+                className={`modern-btn modern-btn-categories`}
                 aria-label="Abrir categorías"
               >
-                {/* Ícono delgado y bonito de categorías */}
-                <svg
-                  className="modern-icon"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.5"
-                >
-                  <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
+                <FaThList className="modern-icon" />
                 <span className="font-semibold tracking-wide">Categorías</span>
               </button>
 
               {/* Título a la derecha del botón */}
-              <h1 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
+              <h1 className="text-sm sm:text-base md:text-lg xl:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight max-w-[52vw] sm:max-w-none overflow-hidden text-ellipsis whitespace-nowrap">
                 {categoriaActiva === "Todos"
                   ? "Todos los productos"
                   : categoriaActiva}
@@ -279,17 +227,13 @@ function ProductosPage() {
             </div>
 
             <BotonFiltro
-              onClick={() => setFiltrosVisible(true)}
-              className={isScrolled ? "floating" : ""}
+              onClick={() => {
+                setFiltrosVisible(true);
+                setMostrarCategorias(false);
+              }}
+              className=""
             />
           </div>
-
-          {/* Spacer para compensar cuando los botones están fixed */}
-          {isScrolled && (
-            <div
-              style={{ height: "80px" }} // Altura ajustada para botones modernos
-            />
-          )}
 
           {/* Descripción debajo si no es "Todos" */}
           {categoriaActiva !== "Todos" && (
@@ -337,10 +281,26 @@ function ProductosPage() {
 
             <button
               onClick={() => setBrandFilter({ norm: "", display: "" })}
-              className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-2 sm:border-4 flex items-center justify-center text-base sm:text-lg md:text-xl font-bold bg-gradient-to-br from-red-100 to-red-300 text-red-700 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
+              type="button"
+              aria-label="Quitar filtro"
+              className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-2 sm:border-4 flex items-center justify-center bg-gradient-to-br from-red-100 to-red-300 border-red-600 shadow-lg hover:scale-110 transition-all duration-300"
               title="Quitar filtro"
             >
-              
+              <div className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-red-600 shadow-sm">
+                <svg
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M6 6l12 12M6 18L18 6" />
+                </svg>
+              </div>
             </button>
           </div>
 
@@ -358,15 +318,11 @@ function ProductosPage() {
         </main>
       </div>
 
-      {mostrarCategorias && (
-        <SidebarCategorias
-          categoriaActiva={categoriaActiva}
-          onCategoriaClick={handleCategoriaChange}
-          mostrarEnMovil={mostrarCategorias}
-          setMostrarEnMovil={setMostrarCategorias}
-          className="bg-transparent border-none shadow-none"
-        />
-      )}
+      <SidebarCategorias
+        categoriaActiva={categoriaActiva}
+        mostrarEnMovil={mostrarCategorias}
+        setMostrarEnMovil={setMostrarCategorias}
+      />
 
       <FiltroDrawerNuevo
         filtros={filtros}

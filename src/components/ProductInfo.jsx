@@ -244,7 +244,8 @@ const ProductInfo = ({
           <button
             onClick={handleAddToCart}
             disabled={currentStock === 0}
-            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            style={{ backgroundColor: "#2563eb" }}
           >
             <FaShoppingCart className="w-4 h-4" />
             Agregar al carrito
@@ -409,7 +410,8 @@ const ProductInfo = ({
           <button
             onClick={handleAddToCart}
             disabled={currentStock === 0}
-            className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-3 px-4 rounded-lg transition-colors disabled:bg-gray-300 flex items-center justify-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:bg-gray-300 flex items-center justify-center gap-2"
+            style={{ backgroundColor: "#2563eb" }}
           >
             <FaShoppingCart className="w-4 h-4" />
             Agregar
@@ -516,7 +518,8 @@ const ProductInfo = ({
         <button
           onClick={handleAddToCart}
           disabled={currentStock === 0}
-          className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-4 px-6 rounded-lg transition-colors disabled:bg-gray-300 flex items-center justify-center gap-2 text-lg"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-colors disabled:bg-gray-300 flex items-center justify-center gap-2 text-lg"
+          style={{ backgroundColor: "#2563eb" }}
         >
           <FaShoppingCart className="w-5 h-5" />
           Agregar al carrito

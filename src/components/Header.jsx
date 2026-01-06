@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { useTheme } from "../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaMapMarkerAlt } from "react-icons/fa";
+import { FaMapMarkerAlt, FaBars, FaThList } from "react-icons/fa";
 import Entrega from "./Entrega";
 import { notify } from "../utils/notificationBus";
 import NotificationsPanel, { NotificationBell } from "./NotificationsPanel";
@@ -130,7 +130,7 @@ const Header = () => {
               {/* Botón menú hamburguesa - responsive CON BADGE DE NOTIFICACIONES */}
               <button
                 onClick={() => setMenuOpen(true)}
-                className="navbar-toggler d-lg-none btn btn-outline-secondary rounded-3 position-relative"
+                className="navbar-toggler d-lg-none rounded-3 position-relative text-white"
                 type="button"
                 aria-label="Abrir menú"
                 style={{
@@ -139,23 +139,18 @@ const Header = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  backgroundColor: "#2563eb",
+                  border: "none",
+                  boxShadow: "0 2px 8px rgba(37, 99, 235, 0.35)",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#1d4ed8")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#2563eb")
+                }
               >
-                <svg
-                  className="hamburger-icon"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
+                <FaBars size={20} />
                 {/* Badge rojo pequeño a la izquierda */}
                 {unreadCount > 0 && (
                   <span
@@ -573,20 +568,7 @@ const Header = () => {
                       : "#374151";
                   }}
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                    />
-                  </svg>
+                  <FaThList size={18} />
                   Categorías
                 </Link>
 
@@ -1218,19 +1200,7 @@ const Header = () => {
                     className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
                     style={{ color: isDark ? "#f9fafb" : "#111827" }}
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                      />
-                    </svg>
+                    <FaThList size={18} />
                     Categorías
                   </Link>
 

@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { FaThList } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
 import TarjetaProducto from "../components/TarjetaProducto";
 import SidebarCategorias from "../components/SidebarCategorias";
-import SidebarFiltros from "../components/SidebarFiltros";
 import FiltroDrawerNuevo from "../components/FiltroDrawerNuevo";
 import BotonFiltro from "../components/BotonFiltro";
 import { useProducts } from "../hooks/useProducts";
@@ -208,55 +208,42 @@ function PaginaBusqueda() {
     >
       <div className="flex-1 flex flex-col w-full" style={{ margin: 0 }}>
         <main className="flex-1 p-0 relative pb-32">
-          {/* Botones flotando solos */}
+          {/* Botones categorías / filtros - barra compacta móvil */}
           <div
-            className={`flex justify-between items-start px-4 sm:px-6 py-3 transition-all duration-500 ease-in-out ${
+            className={`category-toolbar flex justify-between items-center px-3 sm:px-4 py-2 transition-all duration-300 ease-in-out ${
               isScrolled
-                ? "sticky top-0 z-[850] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg"
+                ? "sticky z-[850] bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-md"
                 : "relative z-[850]"
             }`}
+            style={{ top: isScrolled ? "var(--app-header-height)" : undefined }}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setMostrarCategorias(true)}
-                className={`modern-btn modern-btn-categories ${
-                  isScrolled ? "floating" : ""
-                }`}
+                onClick={() => {
+                  setMostrarCategorias(true);
+                  setFiltrosVisible(false);
+                }}
+                className={`modern-btn modern-btn-categories`}
                 aria-label="Abrir categorías"
               >
-                {/* Ícono delgado y bonito de categorías */}
-                <svg
-                  className="modern-icon"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.5"
-                >
-                  <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
+                <FaThList className="modern-icon" />
                 <span className="font-semibold tracking-wide">Categorías</span>
               </button>
 
               {/* Título a la derecha del botón */}
-              <h1 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
+              <h1 className="text-base sm:text-lg md:text-xl xl:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight max-w-[52vw] sm:max-w-none overflow-hidden text-ellipsis whitespace-nowrap">
                 Resultados de búsqueda
               </h1>
             </div>
 
             <BotonFiltro
-              onClick={() => setFiltrosVisible(true)}
-              className={isScrolled ? "floating" : ""}
+              onClick={() => {
+                setFiltrosVisible(true);
+                setMostrarCategorias(false);
+              }}
+              className=""
             />
           </div>
-
-          {/* Spacer para compensar cuando los botones están fixed */}
-          {isScrolled && (
-            <div
-              style={{ height: "80px" }} // Altura ajustada para botones modernos
-            />
-          )}
 
           {/* Información de búsqueda debajo */}
           {queryOriginal && (
@@ -300,14 +287,11 @@ function PaginaBusqueda() {
         </main>
       </div>
 
-      {mostrarCategorias && (
-        <SidebarCategorias
-          categoriaActiva={null}
-          mostrarEnMovil={mostrarCategorias}
-          setMostrarEnMovil={setMostrarCategorias}
-          className="bg-transparent border-none shadow-none"
-        />
-      )}
+      <SidebarCategorias
+        categoriaActiva={null}
+        mostrarEnMovil={mostrarCategorias}
+        setMostrarEnMovil={setMostrarCategorias}
+      />
 
       <FiltroDrawerNuevo
         filtros={filtros}

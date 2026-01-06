@@ -1281,42 +1281,72 @@ export default function TiendaIndividual() {
                   padding: "2px",
                 }}
               >
-                <div className="position-relative">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                  }}
+                  role="search"
+                  aria-label="Buscar productos"
+                  className="position-relative"
+                >
                   <Search
-                    className="position-absolute start-0 top-50 translate-middle-y text-muted ms-3"
+                    className="position-absolute start-0 top-50 translate-middle-y ms-3"
                     size={20}
+                    style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
                   />
                   <input
                     type="text"
                     placeholder="Buscar productos..."
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
-                    className="form-control form-control-lg rounded-pill ps-5 pe-5 shadow-sm border-2"
+                    className="form-control form-control-lg rounded-pill ps-5 pe-5 shadow-sm"
+                    autoComplete="off"
+                    aria-label="Campo de búsqueda"
                     style={{
                       paddingLeft: "3rem",
-                      paddingRight: busqueda ? "3rem" : "1rem",
-                      border: "none",
-                      backgroundColor: "#0b0c14",
-                      color: "#e5e7eb",
+                      paddingRight: busqueda ? "6rem" : "3.5rem",
+                      backgroundColor: isDark ? "#0b0c14" : "#ffffff",
+                      color: isDark ? "#e5e7eb" : "#111827",
+                      border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
                     }}
                   />
-                  {busqueda && (
+                  <div
+                    className="position-absolute end-0 top-50 translate-middle-y d-flex align-items-center gap-1 me-2"
+                    style={{ zIndex: 2 }}
+                  >
+                    {busqueda && (
+                      <button
+                        type="button"
+                        onClick={() => setBusqueda("")}
+                        aria-label="Limpiar búsqueda"
+                        className="d-flex align-items-center justify-content-center rounded-circle"
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          backgroundColor: isDark ? "#111827" : "#e5e7eb",
+                          color: isDark ? "#9ca3af" : "#374151",
+                          border: "none",
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
                     <button
-                      onClick={() => setBusqueda("")}
-                      aria-label="Limpiar búsqueda"
-                      className="position-absolute end-0 top-50 translate-middle-y d-flex align-items-center justify-content-center rounded-circle me-2"
+                      type="submit"
+                      aria-label="Buscar"
+                      className="d-flex align-items-center justify-content-center rounded-circle"
                       style={{
                         width: "32px",
                         height: "32px",
-                        backgroundColor: isDark ? "#111827" : "#e5e7eb",
-                        color: isDark ? "#9ca3af" : "#374151",
+                        backgroundColor: "#2563eb",
+                        color: "#ffffff",
                         border: "none",
                       }}
                     >
-                      <X size={16} />
+                      <Search size={16} />
                     </button>
-                  )}
-                </div>
+                  </div>
+                </form>
               </div>
 
               {/* Categorías */}
@@ -1328,11 +1358,12 @@ export default function TiendaIndividual() {
                 <select
                   value={categoriaSeleccionada}
                   onChange={(e) => handleCategoriaChange(e.target.value)}
-                  className="form-select border-0 bg-transparent fw-semibold"
+                  className="form-select bg-transparent fw-semibold"
                   style={{
                     minWidth: "200px",
-                    backgroundColor: "#0b0c14",
-                    color: "#e5e7eb",
+                    backgroundColor: isDark ? "#0b0c14" : "#ffffff",
+                    color: isDark ? "#e5e7eb" : "#111827",
+                    border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
                   }}
                 >
                   {categorias.map((categoria) => (
@@ -1349,10 +1380,18 @@ export default function TiendaIndividual() {
             {/* En Móvil y Tablet: Vertical apilado */}
             <div className="d-lg-none d-flex flex-column gap-3">
               {/* Búsqueda móvil */}
-              <div className="position-relative w-100">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                }}
+                role="search"
+                aria-label="Buscar productos"
+                className="position-relative w-100"
+              >
                 <Search
-                  className="position-absolute start-0 top-50 translate-middle-y text-muted ms-2"
+                  className="position-absolute start-0 top-50 translate-middle-y ms-2"
                   size={16}
+                  style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
                 />
                 <input
                   type="text"
@@ -1360,29 +1399,54 @@ export default function TiendaIndividual() {
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                   className="form-control form-control-sm rounded-2 ps-4 pe-4 shadow-sm"
+                  autoComplete="off"
+                  aria-label="Campo de búsqueda"
                   style={{
                     paddingLeft: "2.25rem",
-                    paddingRight: busqueda ? "2.25rem" : "0.75rem",
+                    paddingRight: busqueda ? "5rem" : "3rem",
                     fontSize: "0.875rem",
+                    backgroundColor: isDark ? "#0b0c14" : "#ffffff",
+                    color: isDark ? "#e5e7eb" : "#111827",
+                    border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
                   }}
                 />
-                {busqueda && (
+                <div
+                  className="position-absolute end-0 top-50 translate-middle-y d-flex align-items-center gap-1 me-1"
+                  style={{ zIndex: 2 }}
+                >
+                  {busqueda && (
+                    <button
+                      type="button"
+                      onClick={() => setBusqueda("")}
+                      aria-label="Limpiar búsqueda"
+                      className="d-flex align-items-center justify-content-center rounded-circle"
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        backgroundColor: isDark ? "#111827" : "#e5e7eb",
+                        color: isDark ? "#9ca3af" : "#374151",
+                        border: "none",
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
                   <button
-                    onClick={() => setBusqueda("")}
-                    aria-label="Limpiar búsqueda"
-                    className="position-absolute end-0 top-50 translate-middle-y d-flex align-items-center justify-content-center rounded-circle me-1"
+                    type="submit"
+                    aria-label="Buscar"
+                    className="d-flex align-items-center justify-content-center rounded-circle"
                     style={{
                       width: "28px",
                       height: "28px",
-                      backgroundColor: isDark ? "#111827" : "#e5e7eb",
-                      color: isDark ? "#9ca3af" : "#374151",
+                      backgroundColor: "#2563eb",
+                      color: "#ffffff",
                       border: "none",
                     }}
                   >
-                    <X size={16} />
+                    <Search size={14} />
                   </button>
-                )}
-              </div>
+                </div>
+              </form>
 
               {/* Botón para abrir modal de categorías móvil con borde animado */}
               <div
@@ -1395,9 +1459,9 @@ export default function TiendaIndividual() {
                   style={{
                     fontSize: "0.875rem",
                     padding: "0.5rem 0.75rem",
-                    backgroundColor: "#0b0c14",
-                    color: "#e5e7eb",
-                    border: "none",
+                    backgroundColor: isDark ? "#0b0c14" : "#ffffff",
+                    color: isDark ? "#e5e7eb" : "#111827",
+                    border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
                   }}
                 >
                   <span className="fw-medium">
@@ -2341,8 +2405,8 @@ export default function TiendaIndividual() {
                 {/* Instrucciones */}
                 <div className="text-center pt-2">
                   <p className="text-gray-400 text-xs leading-relaxed">
-                     Arrastra la imagen • Pellizca para zoom • Usa los
-                    controles para ajustar
+                    Arrastra la imagen • Pellizca para zoom • Usa los controles
+                    para ajustar
                   </p>
                 </div>
               </motion.div>
@@ -2641,89 +2705,75 @@ export default function TiendaIndividual() {
 
       {/* MODAL DE CATEGORÍAS - PANTALLA COMPLETA MÓVIL/TABLET */}
       {showCategoryModal && (
-        <div
-          className="lg:hidden fixed inset-0 z-[99999] flex flex-col"
-          style={{
-            backgroundColor: isDark
-              ? "rgba(15, 23, 42, 0.95) !important"
-              : "#ffffff !important",
-            backdropFilter: isDark ? "blur(10px)" : "none",
-            opacity: "1 !important",
-            width: "100vw",
-            height: "100vh",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-        >
-          {/* Header */}
+        <div className="lg:hidden fixed inset-0 z-[99999]">
+          {/* Overlay */}
           <div
-            className="flex-shrink-0 bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-600/30 px-3 py-2 flex items-center justify-between"
+            className="absolute inset-0"
             style={{
-              backgroundColor: isDark ? "transparent" : "#ffffff",
-              opacity: 1,
+              backgroundColor: isDark ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.25)",
+              backdropFilter: "blur(6px)",
             }}
-          >
-            <h2 className="text-base font-bold text-gray-900 dark:text-white">
-              Categorías
-            </h2>
-            <button
-              onClick={() => setShowCategoryModal(false)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
-            >
-              <X size={20} className="text-gray-500 dark:text-gray-400" />
-            </button>
-          </div>
-
-          {/* Lista de categorías */}
-          <div
-            className="flex-1 overflow-y-auto px-3 py-3"
-            style={{
-              backgroundColor: isDark ? "transparent" : "#ffffff",
-              opacity: 1,
-            }}
-          >
-            <div className="space-y-1.5">
-              {categorias.map((categoria, index) => (
+            onClick={() => setShowCategoryModal(false)}
+          />
+          {/* Centered Card */}
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-2xl flex flex-col max-h-[85vh]">
+              {/* Header minimal */}
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                    Categorías
+                  </h2>
+                </div>
                 <button
-                  key={categoria}
-                  onClick={() => {
-                    handleCategoriaChange(categoria);
-                    setShowCategoryModal(false);
-                  }}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-between ${
-                    categoriaSeleccionada === categoria
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
-                      : "bg-white dark:bg-transparent text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-white/5 shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-600/30"
-                  }`}
-                  style={{ opacity: 1 }}
+                  onClick={() => setShowCategoryModal(false)}
+                  className="p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors"
+                  aria-label="Cerrar"
                 >
-                  <span className="font-semibold text-sm">
-                    {categoria === "todas" ? "Todas" : categoria}
-                  </span>
-                  {categoriaSeleccionada === categoria && (
-                    <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
-                      <div className="w-2.5 h-2.5 bg-blue-600 rounded-full" />
-                    </div>
-                  )}
+                  <X size={16} className="text-white" />
                 </button>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Footer con información */}
-          <div
-            className="flex-shrink-0 bg-gray-50 dark:bg-transparent border-t border-gray-200 dark:border-gray-600/30 px-3 py-2"
-            style={{
-              backgroundColor: isDark ? "transparent" : "#f9fafb",
-              opacity: 1,
-            }}
-          >
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              {productos.length} productos
-            </p>
+              {/* Grid content */}
+              <div className="flex-1 overflow-y-auto p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {categorias.map((categoria) => (
+                    <button
+                      key={categoria}
+                      onClick={() => {
+                        handleCategoriaChange(categoria);
+                        setShowCategoryModal(false);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium text-center transition-all border ${
+                        categoriaSeleccionada === categoria
+                          ? "border-blue-500 bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200"
+                          : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-300 dark:hover:border-blue-600"
+                      }`}
+                    >
+                      {categoria === "todas" ? "Todas" : categoria}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer minimal */}
+              <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  {productos.length} productos
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

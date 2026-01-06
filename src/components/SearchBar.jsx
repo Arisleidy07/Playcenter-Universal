@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, forwardRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useProductSearch, useProducts } from "../hooks/useProducts";
 import { useTheme } from "../context/ThemeContext";
-import { FaSearch, FaClock, FaTimes } from "react-icons/fa";
+import { FaSearch, FaClock, FaTimes, FaArrowLeft } from "react-icons/fa";
 import "./SearchBar.css";
 
 // Normalizar texto para búsqueda sin acentos ni mayúsculas
@@ -123,10 +124,36 @@ const SearchBar = forwardRef(
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("todas");
     const [mostrarDropdownCategorias, setMostrarDropdownCategorias] =
       useState(false);
+    const [mobileOverlayOpen, setMobileOverlayOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(() => {
+      if (typeof window === "undefined") return false;
+      // Usar política responsive del proyecto: desktop solo desde xl (≥1280px)
+      // Abrir overlay en todo <1280px (móvil y tablets/laptops pequeñas)
+      return window.innerWidth < 1280;
+    });
     const wrapperRef = useRef(null);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
     const { isDark } = useTheme();
+
+    // Sync isMobile on resize
+    useEffect(() => {
+      const onResize = () => setIsMobile(window.innerWidth < 1280);
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }, []);
+
+    // Lock body scroll when overlay is open
+    useEffect(() => {
+      if (mobileOverlayOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }, [mobileOverlayOpen]);
 
     // Firestore-backed search (debounced inside the hook)
     const { results, loading } = useProductSearch(busqueda);
@@ -213,6 +240,9 @@ const SearchBar = forwardRef(
 
     useEffect(() => {
       const handleClickOutside = (event) => {
+        // En modo overlay móvil, ignorar cierres por clic afuera
+        if (mobileOverlayOpen) return;
+
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
           setMostrarResultados(false);
         }
@@ -226,7 +256,7 @@ const SearchBar = forwardRef(
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [mobileOverlayOpen]);
 
     const guardarEnHistorial = (termino) => {
       if (!termino.trim()) return;
@@ -261,6 +291,7 @@ const SearchBar = forwardRef(
         setResultados([]);
         setSugerencias([]);
         setMostrarResultados(false);
+        setMobileOverlayOpen(false);
         if (onClose) onClose();
       }
     };
@@ -277,6 +308,7 @@ const SearchBar = forwardRef(
       setResultados([]);
       setSugerencias([]);
       setMostrarResultados(false);
+      setMobileOverlayOpen(false);
       if (onClose) onClose();
     };
 
@@ -296,6 +328,7 @@ const SearchBar = forwardRef(
       setResultados([]);
       setSugerencias([]);
       setMostrarResultados(false);
+      setMobileOverlayOpen(false);
       if (onClose) onClose();
     };
 
@@ -585,7 +618,13 @@ const SearchBar = forwardRef(
               ref={ref}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              onFocus={() => setMostrarResultados(true)}
+              onFocus={() => {
+                if (isMobile) {
+                  setMobileOverlayOpen(true);
+                } else {
+                  setMostrarResultados(true);
+                }
+              }}
               placeholder={placeholder}
               className="w-full pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               style={{
@@ -630,7 +669,7 @@ const SearchBar = forwardRef(
           </button>
         </form>
 
-        {mostrarResultados && (
+        {mostrarResultados && !mobileOverlayOpen && (
           <div
             className="search-dropdown-scroll absolute z-[9999] w-full border border-gray-300 dark:border-gray-700 mt-1 rounded-md shadow-xl overflow-y-auto"
             style={{
@@ -779,6 +818,200 @@ const SearchBar = forwardRef(
             )}
           </div>
         )}
+        {mobileOverlayOpen &&
+          createPortal(
+            <div className="fixed inset-0 z-[100000] bg-white dark:bg-gray-900 flex flex-col">
+              <div className="flex items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
+                <button
+                  type="button"
+                  aria-label="Cerrar búsqueda"
+                  onClick={() => {
+                    setMobileOverlayOpen(false);
+                    setMostrarResultados(false);
+                  }}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <FaArrowLeft className="text-gray-700 dark:text-gray-200" />
+                </button>
+                <div className="flex-1 relative">
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    autoFocus
+                    placeholder={placeholder}
+                    className="w-full h-10 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pl-9 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                  {busqueda && (
+                    <button
+                      type="button"
+                      aria-label="Limpiar"
+                      onClick={() => setBusqueda("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (busqueda.trim()) {
+                      let queryFinal = busqueda.trim();
+                      if (categoriaSeleccionada !== "todas") {
+                        queryFinal = `${busqueda.trim()} en ${categoriaSeleccionada}`;
+                      }
+                      guardarEnHistorial(queryFinal);
+                      navigate(`/buscar?q=${encodeURIComponent(queryFinal)}`);
+                      setBusqueda("");
+                      setResultados([]);
+                      setSugerencias([]);
+                      setMostrarResultados(false);
+                      setMobileOverlayOpen(false);
+                      if (onClose) onClose();
+                    }
+                  }}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium"
+                >
+                  Buscar
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {loading && (
+                  <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    Buscando...
+                  </div>
+                )}
+
+                {!busqueda.trim() && historialBusquedas.length > 0 && (
+                  <div className="border-b border-gray-200 dark:border-gray-700">
+                    <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 bg-white dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-700">
+                      Búsquedas recientes
+                    </div>
+                    {historialBusquedas.map((termino, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleClickHistorial(termino)}
+                        className="px-4 py-3.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between group transition active:bg-gray-200 dark:active:bg-gray-600"
+                      >
+                        <div className="flex items-center gap-3">
+                          <FaClock className="text-gray-400 dark:text-gray-500 text-sm" />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {termino}
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => eliminarDeHistorial(termino, e)}
+                          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition"
+                        >
+                          <FaTimes className="text-xs" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {busqueda.trim() && categoriaSeleccionada !== "todas" && (
+                  <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900 border-b border-blue-200 dark:border-blue-700">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-blue-700 dark:text-blue-300 font-semibold">
+                        Buscando en: {categoriaSeleccionada}
+                      </span>
+                      <button
+                        onClick={() => setCategoriaSeleccionada("todas")}
+                        className="ml-auto text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium"
+                      >
+                        ✕ Todos
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {busqueda.trim() && sugerencias.length > 0 && (
+                  <div className="border-b border-gray-200 dark:border-gray-700">
+                    <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 bg-white dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-700">
+                      Sugerencias ({sugerencias.length})
+                    </div>
+                    {sugerencias.map((sugerencia, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleClickSugerencia(sugerencia)}
+                        className="px-4 py-3.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-3 transition group active:bg-gray-200 dark:active:bg-gray-600"
+                      >
+                        <FaSearch className="text-gray-400 dark:text-gray-500 text-sm flex-shrink-0" />
+                        <span className="text-sm text-gray-900 dark:text-gray-100 font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 break-words">
+                          {sugerencia}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {busqueda.trim() && !loading && resultados.length === 0 && (
+                  <div className="px-4 py-12 text-center">
+                    <p className="text-base font-medium text-gray-600 dark:text-gray-400">
+                      No encontramos resultados
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                      Intenta con otras palabras
+                    </p>
+                  </div>
+                )}
+
+                {busqueda.trim() && !loading && resultados.length > 0 && (
+                  <div>
+                    <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 bg-white dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-700">
+                      Productos ({resultados.length})
+                    </div>
+                    {resultados.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => handleClickResultado(item)}
+                        className="px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition active:bg-gray-200 dark:active:bg-gray-600"
+                      >
+                        <div className="flex items-center gap-3">
+                          {item.imagen && (
+                            <img
+                              src={item.imagen}
+                              alt={item.nombre}
+                              className="w-14 h-14 object-cover rounded border border-gray-200 dark:border-gray-600 flex-shrink-0"
+                              loading="lazy"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-base text-gray-900 dark:text-gray-100 line-clamp-2">
+                              {item.nombre}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              {item.empresa && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {item.empresa}
+                                </span>
+                              )}
+                              {item.categoria && (
+                                <span className="text-xs text-blue-600 dark:text-blue-400">
+                                  • {item.categoria}
+                                </span>
+                              )}
+                            </div>
+                            {item.precio && (
+                              <div className="text-base font-bold text-blue-600 dark:text-blue-400 mt-1.5">
+                                RD${item.precio.toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>,
+            document.body
+          )}
       </div>
     );
   }

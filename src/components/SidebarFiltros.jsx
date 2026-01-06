@@ -97,8 +97,10 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
       }}
       aria-label="Filtros"
     >
+      <div className="absolute left-0 top-0 h-full w-[2px] bg-gradient-to-b from-blue-500/70 via-blue-400/30 to-transparent rounded-full pointer-events-none"></div>
       <WaveBackground />
       <div
+        className="bg-white/40 dark:bg-gray-800/20 backdrop-blur-md border border-white/40 dark:border-gray-700/40 rounded-xl shadow-lg ring-1 ring-blue-500/10"
         style={{
           position: "relative",
           zIndex: 1,
@@ -111,7 +113,7 @@ function SidebarFiltros({ filtros, setFiltros, productosOriginales }) {
         }}
       >
         <motion.h2
-          className="text-lg font-semibold mb-4 text-blue-800 dark:text-blue-400"
+          className="text-lg font-semibold mb-4 text-blue-800 dark:text-blue-400 text-center tracking-wide select-none"
           variants={titleVariants}
           animate="animate"
         >
