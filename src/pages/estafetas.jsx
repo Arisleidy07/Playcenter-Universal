@@ -77,7 +77,7 @@ const estafetas = [
     nombre: "Estafeta Ensanche Bermúdez",
     descripcion: "St Electronics",
     direccion: "Calle 11, número 27, Ensanche Bermúdez",
-    telefono: "849-437-3100",
+    telefonos: ["849-437-3100", "+1 (829) 386-1212"],
     ubicacionLink:
       "https://www.google.com/maps/place/Espailla,+51000+Santiago+de+los+Caballeros/@19.4717075,-70.7148707,964m/data=!3m2!1e3!4b1!4m6!3m5!1s0x8eb1c5e2c3c79d7d:0x3a75c6d5f2312708!8m2!3d19.4717075!4d-70.7148707",
     imagen: "/estafetas/St electronics.png",
@@ -87,7 +87,7 @@ const estafetas = [
     nombre: "Estafeta Los Guandules",
     descripcion: "Mini Market El Vecino",
     direccion: "Estafeta de pago Los Guandules, próximo al puente",
-    telefono: "+1 829 218 1889",
+    telefono: "829-218-1889",
     ubicacionLink:
       "https://www.google.com/maps/place/19%C2%B026'15.3%22N+70%C2%B041'22.2%22W/@19.4381999,-70.6893169,526m/data=!3m1!1e3!4m4!3m3!8m2!3d19.437576!4d-70.689512?entry=ttu",
     imagen: "/estafetas/losguandules.png",
@@ -316,14 +316,26 @@ export default function Estafetas() {
                 <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base mb-1">
                   {punto.direccion}
                 </p>
-                {punto.telefono && (
-                  <p className="text-green-600 dark:text-green-400 text-sm md:text-base flex items-center gap-1 mb-1">
-                    <FaWhatsapp className="text-green-500 dark:text-green-300 text-sm md:text-base" />
-                    <span className="font-mono tabular-nums whitespace-nowrap">
-                      {punto.telefono}
-                    </span>
-                  </p>
-                )}
+                {Array.isArray(punto.telefonos)
+                  ? punto.telefonos.map((tel, idx) => (
+                      <p
+                        key={idx}
+                        className="text-green-600 dark:text-green-400 text-sm md:text-base flex items-center gap-1 mb-1"
+                      >
+                        <FaWhatsapp className="text-green-500 dark:text-green-300 text-sm md:text-base" />
+                        <span className="font-mono tabular-nums whitespace-nowrap">
+                          {tel}
+                        </span>
+                      </p>
+                    ))
+                  : punto.telefono && (
+                      <p className="text-green-600 dark:text-green-400 text-sm md:text-base flex items-center gap-1 mb-1">
+                        <FaWhatsapp className="text-green-500 dark:text-green-300 text-sm md:text-base" />
+                        <span className="font-mono tabular-nums whitespace-nowrap">
+                          {punto.telefono}
+                        </span>
+                      </p>
+                    )}
               </div>
               <a
                 href={punto.ubicacionLink}

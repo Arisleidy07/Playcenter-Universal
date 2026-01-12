@@ -23,6 +23,26 @@ export default function UserCard({ user, variant = "default" }) {
   const displayName =
     user.displayName || user.email?.split("@")[0] || "Usuario";
 
+  // Build Google Maps link from ubicacion or address text
+  const locationText =
+    user.ciudad || user.direccion || user.direccionCompleta || "";
+  const rawLocation = user.ubicacion || locationText;
+  let mapLink = null;
+  try {
+    const s =
+      typeof rawLocation === "string" ? rawLocation : String(rawLocation || "");
+    const coord = s.match(/(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+    if (coord) {
+      mapLink = `https://www.google.com/maps?q=${coord[1]},${coord[2]}`;
+    } else if (/^(https?:\/\/)|maps\.app|goo\.gl|google\.com\/maps/i.test(s)) {
+      mapLink = s.startsWith("http") ? s : `https://${s}`;
+    } else if (locationText) {
+      mapLink = `https://www.google.com/maps?q=${encodeURIComponent(
+        locationText
+      )}`;
+    }
+  } catch {}
+
   // ═══════════════════════════════════════════════════════════
   // VARIANT: COMPACT (Para listas)
   // ═══════════════════════════════════════════════════════════
@@ -135,7 +155,19 @@ export default function UserCard({ user, variant = "default" }) {
         {(user.direccion || user.ciudad) && (
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
             <MapPin size={14} />
-            <span>{user.ciudad || user.direccion}</span>
+            {mapLink ? (
+              <a
+                href={mapLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+                title="Abrir en Google Maps"
+              >
+                {user.ciudad || user.direccion}
+              </a>
+            ) : (
+              <span>{user.ciudad || user.direccion}</span>
+            )}
           </div>
         )}
 

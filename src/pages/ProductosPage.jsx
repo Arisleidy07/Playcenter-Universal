@@ -9,6 +9,7 @@ import { useCategories, useProductsByCategory } from "../hooks/useProducts";
 import { normalizar } from "../utils/normalizarCategoria";
 import "../styles/productosGrid.css";
 import "../styles/ModernButtons.css";
+import { recordCategory } from "../lib/history";
 
 function ProductosPage() {
   const { categoria = "Todos" } = useParams();
@@ -39,6 +40,9 @@ function ProductosPage() {
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [hasRecordedScroll, setHasRecordedScroll] = useState(false);
+  const [hasRecordedClick, setHasRecordedClick] = useState(false);
+  const [hasRecordedFilter, setHasRecordedFilter] = useState(false);
 
   useEffect(() => {
     const checkTheme = () => {
@@ -78,6 +82,51 @@ function ProductosPage() {
       setCategoriaActiva(encontrada ? encontrada.nombre : "Todos");
     }
   }, [categoria, categories]);
+
+  // Resetear flags cuando cambia categoría
+  useEffect(() => {
+    setHasRecordedScroll(false);
+    setHasRecordedClick(false);
+    setHasRecordedFilter(false);
+  }, [categoria]);
+
+  // Registrar intención por scroll real en la categoría
+  useEffect(() => {
+    const catSlug = (categoria || "").toLowerCase();
+    if (!catSlug || catSlug === "todos" || hasRecordedScroll) return;
+    const onScroll = () => {
+      if (window.scrollY > 360) {
+        try {
+          recordCategory(categoria);
+        } catch {}
+        setHasRecordedScroll(true);
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [categoria, hasRecordedScroll]);
+
+  // Registrar intención por "búsqueda interna" (cambios de filtros/marca)
+  useEffect(() => {
+    const catSlug = (categoria || "").toLowerCase();
+    if (!catSlug || catSlug === "todos" || hasRecordedFilter) return;
+    const defaultFilters =
+      (filtros?.precio?.min ?? 0) === 0 &&
+      (filtros?.precio?.max ?? 1000000) === 1000000 &&
+      !filtros?.estado?.nuevo &&
+      !filtros?.estado?.usado &&
+      !filtros?.estado?.usadoComoNuevo &&
+      !filtros?.estado?.reacondicionado &&
+      !filtros?.estado?.reparado &&
+      !brandFilter?.norm;
+    if (!defaultFilters) {
+      try {
+        recordCategory(categoria);
+      } catch {}
+      setHasRecordedFilter(true);
+    }
+  }, [categoria, filtros, brandFilter, hasRecordedFilter]);
 
   const productosOriginales = useMemo(() => {
     if (!products || products.length === 0) {
@@ -309,9 +358,22 @@ function ProductosPage() {
               No hay productos que coincidan con tus filtros.
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 px-2 sm:px-4 xl:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 px-2 sm:px-4 xl:px-6">
               {productosFiltrados.map((producto) => (
-                <TarjetaProducto key={producto.id} producto={producto} />
+                <div
+                  key={producto.id}
+                  onClick={() => {
+                    const catSlug = (categoria || "").toLowerCase();
+                    if (!hasRecordedClick && catSlug && catSlug !== "todos") {
+                      try {
+                        recordCategory(categoria);
+                      } catch {}
+                      setHasRecordedClick(true);
+                    }
+                  }}
+                >
+                  <TarjetaProducto producto={producto} />
+                </div>
               ))}
             </div>
           )}

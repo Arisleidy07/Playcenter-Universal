@@ -118,7 +118,7 @@ const Header = () => {
               {/* Buscador solo móvil/tablet - Más pequeño */}
               <div
                 id="search-bar-container"
-                className="flex-grow-1 px-0 d-lg-none"
+                className="flex-grow-1 px-0 d-xl-none"
               >
                 <SearchBar
                   onClose={() => {}}
@@ -130,7 +130,7 @@ const Header = () => {
               {/* Botón menú hamburguesa - responsive CON BADGE DE NOTIFICACIONES */}
               <button
                 onClick={() => setMenuOpen(true)}
-                className="navbar-toggler d-lg-none rounded-3 position-relative text-white"
+                className="navbar-toggler d-xl-none rounded-3 position-relative text-white"
                 type="button"
                 aria-label="Abrir menú"
                 style={{
@@ -175,7 +175,7 @@ const Header = () => {
               </button>
 
               {/* Header completo - responsive */}
-              <div className="navbar-collapse d-none d-lg-flex w-100 align-items-center justify-content-between">
+              <div className="navbar-collapse d-none d-xl-flex w-100 align-items-center justify-content-between">
                 <div className="header-grid w-100">
                   {/* Logo + Método de Entrega */}
                   <div
@@ -459,7 +459,7 @@ const Header = () => {
 
         {/* 2. SEGUNDO HEADER (BARRA DE NAVEGACIÓN PREMIUM CON ICONOS + TEMA) */}
         <div
-          className="d-none d-lg-block"
+          className="d-none d-xl-block"
           style={{
             background: isDark
               ? "linear-gradient(135deg, rgba(31, 41, 55, 0.98) 0%, rgba(17, 24, 39, 0.98) 100%)"

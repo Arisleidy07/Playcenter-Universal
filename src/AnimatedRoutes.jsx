@@ -12,7 +12,6 @@ import Contacto from "./pages/Contacto";
 import Vender from "./pages/Vender";
 import Tiendas from "./pages/Tiendas";
 import TiendaIndividual from "./pages/TiendaIndividual";
-import Historial from "./pages/Historial";
 import Nosotros from "./pages/Nosotros";
 import PaginaBusqueda from "./pages/PaginaBusqueda";
 import ProductosPage from "./pages/ProductosPage";
@@ -175,14 +174,7 @@ export default function AnimatedRoutes() {
             </PageTransition>
           }
         />
-        <Route
-          path="/historial"
-          element={
-            <PageTransition>
-              <Historial />
-            </PageTransition>
-          }
-        />
+
         <Route
           path="/payment/pending"
           element={

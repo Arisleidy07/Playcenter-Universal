@@ -8,6 +8,7 @@ import BotonFiltro from "../components/BotonFiltro";
 import { useProducts } from "../hooks/useProducts";
 import "../styles/productosGrid.css";
 import "../styles/ModernButtons.css";
+import { recordCategory } from "../lib/history";
 
 // Función para normalizar texto (quitar acentos, minúsculas, etc.)
 const normalizarTexto = (texto) => {
@@ -154,6 +155,17 @@ function PaginaBusqueda() {
     categoriaFiltro = partes[1].trim();
   }
 
+  // Registrar intención de categoría cuando la búsqueda especifica "en {Categoría}"
+  useEffect(() => {
+    try {
+      if (categoriaFiltro) {
+        recordCategory(categoriaFiltro);
+      }
+    } catch {}
+    // solo cuando cambia la categoría del query
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoriaFiltro]);
+
   // Filtra productos usando búsqueda ESTRICTA y PRECISA
   const productosFiltrados = useMemo(
     () =>
@@ -187,6 +199,34 @@ function PaginaBusqueda() {
       }),
     [productosFiltrados, filtros]
   );
+
+  // Registrar "última categoría vista" desde la búsqueda para que Inicio muestre
+  // "Seguir comprando" incluso si el usuario no abrió un producto.
+  useEffect(() => {
+    try {
+      // 1) Si el query incluye categoría explícita ("en {Categoría}") usarla
+      if (categoriaFiltro) {
+        localStorage.setItem("ultimaCategoriaVista", categoriaFiltro);
+        return;
+      }
+      // 2) Inferir categoría dominante de los resultados
+      const lista = Array.isArray(resultadosFiltrados)
+        ? resultadosFiltrados
+        : [];
+      if (lista.length === 0) return;
+      const counts = {};
+      for (const p of lista) {
+        const cat = (p.categoria || "").toString().trim();
+        if (!cat) continue;
+        counts[cat] = (counts[cat] || 0) + 1;
+      }
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      // Umbral: al menos 2 resultados de la misma categoría
+      if (top && top[1] >= 2) {
+        localStorage.setItem("ultimaCategoriaVista", top[0]);
+      }
+    } catch {}
+  }, [categoriaFiltro, resultadosFiltrados]);
 
   const handleResetFiltros = () => {
     setFiltros({

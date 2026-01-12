@@ -654,10 +654,10 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="flex-1">
                   <input
@@ -665,7 +665,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                     placeholder="Buscar productos..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -673,13 +673,13 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Categoría
             </label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">Todas las categorías</option>
               {categories.map((category) => (
@@ -693,14 +693,14 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           {/* Filtro por Tienda - Solo para Admin */}
           {isAdmin && storeOptions.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                 Filtrar por Tienda
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Filtrar por Tienda
               </label>
               <div className="flex gap-2">
                 <select
                   value={storeFilter}
                   onChange={(e) => setStoreFilter(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gradient-to-r from-blue-50 to-purple-50"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value=""> Todas las tiendas</option>
                   {storeOptions.map((store) => (
@@ -712,7 +712,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                 {storeFilter && (
                   <button
                     onClick={() => setStoreFilter("")}
-                    className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/40 transition-colors"
                     title="Limpiar filtro de tienda"
                   >
                     ✕
@@ -723,13 +723,13 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Ordenar por
             </label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="nombre">Nombre</option>
               <option value="precio">Precio</option>
@@ -739,13 +739,13 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Orden
             </label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="desc">Descendente</option>
               <option value="asc">Ascendente</option>
@@ -764,10 +764,10 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
               {/* Product Image (contain to avoid cropping) */}
-              <div className="relative h-48 bg-white rounded-t-lg overflow-hidden flex items-center justify-center">
+              <div className="relative h-48 bg-white dark:bg-gray-900 rounded-t-lg overflow-hidden flex items-center justify-center">
                 {(() => {
                   try {
                     const mainImage =
@@ -793,21 +793,21 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900">
                         <span className="text-sm">Sin imagen</span>
                       </div>
                     );
                   } catch (error) {
                     // Error silencioso
                     return (
-                      <div className="w-full h-full flex items-center justify-center text-red-400 bg-red-50">
+                      <div className="w-full h-full flex items-center justify-center text-red-400 dark:text-red-300 bg-red-50 dark:bg-red-900/30">
                         <span className="text-sm">Error en imagen</span>
                       </div>
                     );
                   }
                 })()}
                 <div
-                  className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50"
+                  className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900"
                   style={{ display: "none" }}
                 >
                   <div className="text-center">
@@ -833,8 +833,8 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       product.activo
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                        : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
                     }`}
                   >
                     {product.activo ? "Activo" : "Inactivo"}
@@ -854,7 +854,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
               {/* Product Info */}
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-gray-900 line-clamp-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
                     {product.nombre}
                   </h3>
                   <button
@@ -872,7 +872,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                   </button>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                   {getCategoryName(product.categoria)}
                 </p>
 
@@ -903,12 +903,12 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                           setEditingPrice(null);
                         }
                       }}
-                      className="text-lg font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded px-2 py-1 w-24"
+                      className="text-lg font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded px-2 py-1 w-24"
                       autoFocus
                     />
                   ) : (
                     <p
-                      className="text-lg font-bold text-blue-700 cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                      className="text-lg font-bold text-blue-700 dark:text-blue-300 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 rounded"
                       onClick={() => setEditingPrice(product.id)}
                       title="Click para editar precio"
                     >

@@ -925,7 +925,7 @@ export default function TiendaIndividual() {
           padding: 2.5px; /* grosor del aro */
           background:
             /* anillo base */
-            conic-gradient(from 0deg, #cf30aa 0%, #6a33ff 18%, #2563eb 55%, #6a33ff 82%, #cf30aa 100%),
+            conic-gradient(from 0deg, #0ea5e9 0%, #2563eb 25%, #1e40af 55%, #2563eb 82%, #0ea5e9 100%),
             /* brillo móvil muy fino */
             conic-gradient(from var(--sweep-angle, 0deg), transparent 0%, rgba(255,255,255,.9) 1.2%, transparent 5%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -943,8 +943,8 @@ export default function TiendaIndividual() {
           inset: -14px; /* extiende el glow */
           border-radius: inherit;
           background:
-            radial-gradient(40% 90% at 0% 50%, rgba(207,48,170,.42), transparent 70%),
-            radial-gradient(40% 90% at 100% 50%, rgba(37,99,235,.42), transparent 70%);
+            radial-gradient(40% 90% at 0% 50%, rgba(59,130,246,.36), transparent 70%),
+            radial-gradient(40% 90% at 100% 50%, rgba(14,165,233,.30), transparent 70%);
           filter: blur(22px);
           z-index: 0;
           pointer-events: none;

@@ -26,7 +26,7 @@ function AppContent() {
   const headerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return true;
-    return window.innerWidth < 1280;
+    return window.innerWidth < 1200;
   });
 
   // Medir altura del header dinámicamente
@@ -41,7 +41,7 @@ function AppContent() {
     measureHeader();
     window.addEventListener("resize", measureHeader);
     // Actualizar flag de móvil/desktop en resize
-    const handleResize = () => setIsMobile(window.innerWidth < 1280);
+    const handleResize = () => setIsMobile(window.innerWidth < 1200);
     window.addEventListener("resize", handleResize);
     // Medir después de un pequeño delay para asegurar que todo está renderizado
     const timer = setTimeout(measureHeader, 100);

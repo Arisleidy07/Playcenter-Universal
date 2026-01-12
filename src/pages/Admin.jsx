@@ -6,6 +6,7 @@ import {
   doc,
   where,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -120,6 +121,9 @@ function UsuarioFullView({ usuario, onClose }) {
   const [usuarioData, setUsuarioData] = useState(usuario);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const migrationRanRef = useRef(false);
+  const [storeInfo, setStoreInfo] = useState(null);
+  const [storeLoading, setStoreLoading] = useState(false);
+  const [storeProductsCount, setStoreProductsCount] = useState(0);
 
   // Suscripción en tiempo real al usuario
   useEffect(() => {
@@ -195,6 +199,117 @@ function UsuarioFullView({ usuario, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Cargar tienda del usuario y contar productos en tiempo real
+  useEffect(() => {
+    let unsubStore = null;
+    let unsubsProducts = [];
+    let cancelled = false;
+
+    const attachProductListeners = (storeId) => {
+      let last = [[], [], []];
+      const updateCount = () => {
+        const ids = new Set();
+        let c = 0;
+        last.forEach((arr) => {
+          arr.forEach((p) => {
+            if (p?.activo !== false && !ids.has(p.__id)) {
+              ids.add(p.__id);
+              c += 1;
+            }
+          });
+        });
+        setStoreProductsCount(c);
+      };
+      const makeCb = (idx) => (snap) => {
+        last[idx] = snap.docs.map((d) => ({ __id: d.id, ...d.data() }));
+        updateCount();
+      };
+      const qs = [
+        query(collection(db, "productos"), where("storeId", "==", storeId)),
+        query(collection(db, "productos"), where("tiendaId", "==", storeId)),
+        query(collection(db, "productos"), where("tienda_id", "==", storeId)),
+      ];
+      unsubsProducts = qs.map((q, i) => onSnapshot(q, makeCb(i)));
+    };
+
+    const run = async () => {
+      try {
+        setStoreLoading(true);
+        setStoreInfo(null);
+        setStoreProductsCount(0);
+
+        const sid =
+          usuarioData?.storeId ||
+          usuarioData?.tiendaId ||
+          usuarioData?.tienda_id ||
+          null;
+
+        const attachStore = (collectionName, id) => {
+          unsubStore = onSnapshot(doc(db, collectionName, id), (snap) => {
+            if (!cancelled) {
+              if (snap.exists()) {
+                setStoreInfo({
+                  id: snap.id,
+                  ...snap.data(),
+                  __col: collectionName,
+                });
+                // suscribir productos
+                unsubsProducts.forEach((u) => u && u());
+                attachProductListeners(id);
+              }
+              setStoreLoading(false);
+            }
+          });
+        };
+
+        if (sid) {
+          const t1 = await getDoc(doc(db, "tiendas", sid));
+          if (t1.exists()) {
+            attachStore("tiendas", sid);
+          } else {
+            const t2 = await getDoc(doc(db, "stores", sid));
+            if (t2.exists()) {
+              attachStore("stores", sid);
+            } else {
+              setStoreLoading(false);
+            }
+          }
+        } else {
+          const ownerFields = ["ownerUid", "ownerId", "owner_id", "createdBy"];
+          for (const colName of ["tiendas", "stores"]) {
+            for (const field of ownerFields) {
+              const q = query(
+                collection(db, colName),
+                where(field, "==", usuario?.id)
+              );
+              const snap = await getDocs(q);
+              if (!snap.empty) {
+                const d = snap.docs[0];
+                attachStore(colName, d.id);
+                return;
+              }
+            }
+          }
+          setStoreLoading(false);
+        }
+      } catch (e) {
+        setStoreLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+      if (unsubStore) unsubStore();
+      unsubsProducts.forEach((u) => u && u());
+    };
+  }, [
+    usuario?.id,
+    usuarioData?.storeId,
+    usuarioData?.tiendaId,
+    usuarioData?.tienda_id,
+  ]);
+
   const direccionTexto =
     usuarioData?.direccion || usuarioData?.direccionCompleta || "";
   const ubicacionLink =
@@ -210,7 +325,7 @@ function UsuarioFullView({ usuario, onClose }) {
       <div
         role="dialog"
         aria-modal="true"
-        className="fixed top-0 left-0 w-full h-full max-h-none !rounded-none !shadow-none bg-white overflow-y-auto flex flex-col"
+        className="fixed top-0 left-0 w-full h-full max-h-none !rounded-none !shadow-none bg-white dark:bg-gray-900 dark:text-gray-100 overflow-y-auto flex flex-col"
         style={{ zIndex: 10000 }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -219,8 +334,21 @@ function UsuarioFullView({ usuario, onClose }) {
           className={`flex justify-between items-center px-6 py-4 shadow ${COLOR_HEADER}`}
         >
           <div className="admin-user-header">
-            <div className="admin-user-avatar">
-              {getInitials(usuarioData?.displayName || usuarioData?.nombre)}
+            <div className="admin-user-avatar overflow-hidden">
+              {usuarioData?.photoURL ? (
+                <img
+                  src={usuarioData.photoURL}
+                  alt={
+                    usuarioData?.displayName || usuarioData?.nombre || "Usuario"
+                  }
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                getInitials(usuarioData?.displayName || usuarioData?.nombre)
+              )}
             </div>
             <div className="admin-user-info">
               <h2 className="admin-user-name">
@@ -245,14 +373,16 @@ function UsuarioFullView({ usuario, onClose }) {
           </button>
         </header>
         {/* CONTENIDO */}
-        <div className="flex-1 px-2 sm:px-8 py-4 sm:py-8 space-y-7 bg-gray-50">
+        <div className="flex-1 px-2 sm:px-8 py-4 sm:py-8 space-y-7 bg-gray-50 dark:bg-gray-900">
           {/* Información Personal */}
-          <section className="bg-white rounded-xl border shadow p-4 sm:p-8">
+          <section className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 shadow p-4 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700">
                 <FiUser />
               </div>
-              <h3 className={`text-xl font-bold ${COLOR_TEXTO}`}>
+              <h3
+                className={`text-xl font-bold ${COLOR_TEXTO} dark:text-gray-100`}
+              >
                 Información Personal
               </h3>
             </div>
@@ -289,16 +419,18 @@ function UsuarioFullView({ usuario, onClose }) {
           </section>
 
           {/* Dirección y Ubicación */}
-          <section className="bg-white rounded-xl border shadow p-4 sm:p-8">
+          <section className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 shadow p-4 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700">
                 <FiMapPin />
               </div>
-              <h3 className={`text-xl font-bold ${COLOR_TEXTO}`}>
+              <h3
+                className={`text-xl font-bold ${COLOR_TEXTO} dark:text-gray-100`}
+              >
                 Dirección y Ubicación
               </h3>
             </div>
-            <p className="text-base text-blue-900 mb-4">
+            <p className="text-base text-blue-900 dark:text-gray-300 mb-4">
               {ubicacionLink ? (
                 <a
                   href={ubicacionLink}
@@ -325,13 +457,106 @@ function UsuarioFullView({ usuario, onClose }) {
             )}
           </section>
 
+          {/* Tienda del Usuario */}
+          {(storeLoading ||
+            storeInfo ||
+            usuarioData?.isSeller ||
+            usuarioData?.storeId ||
+            usuarioData?.tiendaId ||
+            usuarioData?.tienda_id) && (
+            <section className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 shadow p-4 sm:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700">
+                  <FiShoppingBag />
+                </div>
+                <h3
+                  className={`text-xl font-bold ${COLOR_TEXTO} dark:text-gray-100`}
+                >
+                  Tienda del Usuario
+                </h3>
+              </div>
+              {storeLoading ? (
+                <div className="h-40 sm:h-48 md:h-56 bg-gray-100 dark:bg-gray-700 animate-pulse rounded-lg" />
+              ) : storeInfo ? (
+                <div>
+                  <div className="w-full h-40 sm:h-48 md:h-56 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    {(() => {
+                      const banner =
+                        storeInfo.banner ||
+                        storeInfo.bannerUrl ||
+                        storeInfo.portada ||
+                        storeInfo.cover ||
+                        null;
+                      if (banner) {
+                        return (
+                          <img
+                            src={banner}
+                            alt={
+                              storeInfo.nombre ||
+                              storeInfo.name ||
+                              storeInfo.storeName ||
+                              "Banner de tienda"
+                            }
+                            className="w-full h-full object-cover"
+                          />
+                        );
+                      }
+                      return (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          Sin banner
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <div className="p-4 sm:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
+                        <FiShoppingBag />
+                        <span className="font-semibold">
+                          Dueño de la tienda{" "}
+                          {storeInfo.nombre ||
+                            storeInfo.name ||
+                            storeInfo.storeName ||
+                            ""}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                          Vendedor
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                          {storeProductsCount} producto
+                          {storeProductsCount === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <a
+                        href={`/tiendas/${storeInfo.id}`}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+                      >
+                        <FiShoppingBag /> Ver tienda
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 text-gray-600 dark:text-gray-300">
+                  No se encontró una tienda asociada.
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Historial de Compras */}
-          <section className="bg-white rounded-xl border shadow p-4 sm:p-8">
+          <section className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 shadow p-4 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700">
                 <FiShoppingCart />
               </div>
-              <h3 className={`text-xl font-bold ${COLOR_TEXTO}`}>
+              <h3
+                className={`text-xl font-bold ${COLOR_TEXTO} dark:text-gray-100`}
+              >
                 Historial de Compras
               </h3>
               <span className="bg-blue-100 text-blue-900 px-3 py-1 rounded-full text-sm font-bold">
@@ -473,10 +698,37 @@ function UsuarioFullView({ usuario, onClose }) {
    COMPONENTE INFO ITEM
    ============================================================ */
 function InfoItem({ label, value }) {
+  const isEmail =
+    label === "Email" && typeof value === "string" && value.includes("@");
+  const isPhone =
+    label === "Teléfono" &&
+    typeof value === "string" &&
+    value.replace(/[^\d+]/g, "").length >= 7;
+  const cleanedPhone = isPhone ? value.replace(/[^\d+]/g, "") : "";
   return (
-    <div className="bg-blue-50 rounded-xl p-3">
-      <p className="font-semibold text-blue-700 text-xs mb-1">{label}</p>
-      <p className="text-base font-medium text-blue-900 break-all">{value}</p>
+    <div className="bg-blue-50 dark:bg-gray-800 rounded-xl p-3 border border-transparent dark:border-gray-700">
+      <p className="font-semibold text-blue-700 dark:text-gray-300 text-xs mb-1">
+        {label}
+      </p>
+      {isEmail ? (
+        <a
+          href={`mailto:${value}`}
+          className="text-base font-medium text-blue-700 dark:text-blue-300 break-all hover:underline"
+        >
+          {value}
+        </a>
+      ) : isPhone ? (
+        <a
+          href={`tel:${cleanedPhone}`}
+          className="text-base font-medium text-blue-700 dark:text-blue-300 break-all hover:underline"
+        >
+          {value}
+        </a>
+      ) : (
+        <p className="text-base font-medium text-blue-900 dark:text-gray-100 break-all">
+          {value}
+        </p>
+      )}
     </div>
   );
 }
@@ -1136,9 +1388,9 @@ export default function Admin() {
         return <CategoryManagement />;
       case "users":
         return (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Gestión de Usuarios
               </h2>
               <input
@@ -1146,69 +1398,206 @@ export default function Admin() {
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
                 placeholder="Buscar por nombre, email, teléfono, dirección o código"
-                className="w-full sm:w-80 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full sm:w-80 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
             {usuariosFiltrados.length === 0 ? (
-              <div className="text-gray-600">
+              <div className="text-gray-600 dark:text-gray-400">
                 No hay usuarios que coincidan con la búsqueda.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Nombre
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Email
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Teléfono
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Dirección
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Código
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Registrado
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Rol
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Tienda
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Acciones
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {usuariosFiltrados.map((u) => (
-                      <tr key={u.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-900 font-medium">
-                          {u.displayName || u.nombre || "Usuario"}
+                      <tr
+                        key={u.id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 font-medium">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={
+                                u.photoURL ||
+                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  u.displayName || u.nombre || "Usuario"
+                                )}&size=128&background=2563eb&color=fff&bold=true`
+                              }
+                              alt={u.displayName || u.nombre || "Usuario"}
+                              className="w-8 h-8 rounded-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  u.displayName || u.nombre || "Usuario"
+                                )}&size=128&background=2563eb&color=fff&bold=true`;
+                              }}
+                            />
+                            <span>
+                              {u.displayName || u.nombre || "Usuario"}
+                            </span>
+                          </div>
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-700">
-                          {u.email || "-"}
+                        <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                          {u.email ? (
+                            <a
+                              href={`mailto:${u.email}`}
+                              className="text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              {u.email}
+                            </a>
+                          ) : (
+                            "-"
+                          )}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-700">
-                          {u.telefono || "-"}
+                        <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                          {u.telefono ? (
+                            <a
+                              href={`tel:${(u.telefono || "").replace(
+                                /[^\d+]/g,
+                                ""
+                              )}`}
+                              className="text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              {u.telefono}
+                            </a>
+                          ) : (
+                            "-"
+                          )}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-700">
+                        <td className="px-4 py-2 text-sm">
+                          {(() => {
+                            const dirText =
+                              u.direccion ||
+                              u.direccionCompleta ||
+                              u.ciudad ||
+                              "";
+                            const raw = u.ubicacion || dirText;
+                            let link = null;
+                            try {
+                              const s =
+                                typeof raw === "string"
+                                  ? raw
+                                  : String(raw || "");
+                              const coord = s.match(
+                                /(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/
+                              );
+                              if (coord) {
+                                link = `https://www.google.com/maps?q=${coord[1]},${coord[2]}`;
+                              } else if (
+                                /^(https?:\/\/)|maps\.app|goo\.gl|google\.com\/maps/i.test(
+                                  s
+                                )
+                              ) {
+                                link = s.startsWith("http")
+                                  ? s
+                                  : `https://${s}`;
+                              } else if (dirText) {
+                                link = `https://www.google.com/maps?q=${encodeURIComponent(
+                                  dirText
+                                )}`;
+                              }
+                            } catch {}
+                            return link ? (
+                              <a
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
+                                title="Abrir en Google Maps"
+                              >
+                                <FiMapPin />
+                                <span className="truncate max-w-[220px] inline-block align-middle">
+                                  {dirText || "Ver en mapa"}
+                                </span>
+                              </a>
+                            ) : (
+                              <span className="text-gray-700 dark:text-gray-300">
+                                {dirText || "-"}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                           {u.codigo || "-"}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-700">
+                        <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                           {formatDate(u.createdAt) || "-"}
                         </td>
                         <td className="px-4 py-2 text-sm">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                               u.admin || u.isAdmin
-                                ? "bg-green-100 text-green-800"
-                                : "bg-blue-100 text-blue-800"
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
                             }`}
                           >
                             {u.admin || u.isAdmin ? "Admin" : "Usuario"}
                           </span>
+                        </td>
+                        <td className="px-4 py-2 text-sm">
+                          {(() => {
+                            const sid = u.storeId || u.tiendaId || u.tienda_id;
+                            const seller =
+                              u.isSeller ||
+                              u.role === "seller" ||
+                              u.rol === "seller" ||
+                              !!sid;
+                            if (!seller) {
+                              return (
+                                <span className="text-gray-700 dark:text-gray-300">
+                                  -
+                                </span>
+                              );
+                            }
+                            return (
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-1 inline-flex text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                  Vendedor
+                                </span>
+                                {sid && (
+                                  <a
+                                    href={`/tiendas/${sid}`}
+                                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                                    title="Visitar tienda"
+                                  >
+                                    {u.storeName ||
+                                      u.nombreTienda ||
+                                      "Visitar tienda"}
+                                  </a>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-4 py-2 text-sm">
                           <div className="flex gap-2">
@@ -1305,7 +1694,14 @@ export default function Admin() {
       case "solicitudes":
         return <SolicitudesVendedor />;
       default:
-        return <AdminDashboard />;
+        return (
+          <AdminDashboard
+            onViewUsers={() => setActiveTab("users")}
+            onViewProducts={() => setActiveTab("products")}
+            onViewOrders={() => setActiveTab("orders")}
+            onViewCategories={() => setActiveTab("categories")}
+          />
+        );
     }
   };
 

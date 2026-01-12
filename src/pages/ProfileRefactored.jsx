@@ -26,6 +26,19 @@ import { useNavigate } from "react-router-dom";
 import { useAuthModal } from "../context/AuthModalContext";
 import "../styles/Profile.css";
 import {
+  getHistory,
+  clearHistoryByType,
+  removeHistoryItem,
+  isProductHistoryPaused,
+  getProductHistoryPauseUntil,
+  pauseProductHistoryFor,
+  pauseProductHistoryUntil,
+  resumeProductHistory,
+  isSearchHistoryEnabled,
+  setSearchHistoryEnabled,
+} from "../lib/history";
+import { useProducts } from "../hooks/useProducts";
+import {
   User,
   ShoppingBag,
   MapPin,
@@ -40,6 +53,7 @@ import {
   ChevronDown,
   LogOut,
   Plus,
+  Clock,
 } from "lucide-react";
 import AccountMenu from "../components/profile/AccountMenu";
 
@@ -274,6 +288,7 @@ export default function Profile() {
     tiendas: "/logos/perfil/6.jpg",
     seguridad: "/logos/perfil/7.jpg",
     configuracion: "/logos/perfil/8.jpg",
+    historial: "/logos/perfil/9.jpg",
   };
 
   const mainMenuItems = [
@@ -288,6 +303,12 @@ export default function Profile() {
       title: "Mis Pedidos",
       description: "Rastrear envíos, devoluciones y compras pasadas.",
       icon: ShoppingBag,
+    },
+    {
+      id: "historial",
+      title: "Historial",
+      description: "Productos vistos recientemente.",
+      icon: Clock,
     },
     {
       id: "ubicaciones",
@@ -710,6 +731,59 @@ export default function Profile() {
     setActiveView(id);
   };
 
+  // Historial de productos vistos (solo type: 'product')
+  const [historyTick, setHistoryTick] = useState(0);
+  useEffect(() => {
+    const onHist = () => setHistoryTick((t) => t + 1);
+    if (typeof window !== "undefined") {
+      window.addEventListener("pcu-history-updated", onHist);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("pcu-history-updated", onHist);
+      }
+    };
+  }, []);
+
+  const historyProductIds = React.useMemo(() => {
+    const items = (getHistory() || []).filter((x) => x.type === "product");
+    items.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+    const seen = new Set();
+    const ids = [];
+    for (const it of items) {
+      const k = String(it.key);
+      if (!seen.has(k)) {
+        seen.add(k);
+        ids.push(k);
+      }
+    }
+    return ids;
+  }, [historyTick]);
+
+  const { products: allActiveProducts } = useProducts(false);
+  const productsById = React.useMemo(() => {
+    const m = new Map();
+    for (const p of allActiveProducts) m.set(String(p.id), p);
+    return m;
+  }, [allActiveProducts]);
+
+  const viewedProducts = React.useMemo(
+    () =>
+      historyProductIds
+        .map((id) => productsById.get(String(id)))
+        .filter(Boolean),
+    [historyProductIds, productsById]
+  );
+  const [historySettingsOpen, setHistorySettingsOpen] = useState(false);
+  const [moreInfoOpen, setMoreInfoOpen] = useState(false);
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [confirmingDisableProducts, setConfirmingDisableProducts] =
+    useState(false);
+  const [confirmSearchOpen, setConfirmSearchOpen] = useState(false);
+  const [pendingSearchEnable, setPendingSearchEnable] = useState(false);
+  const [confirmProductOpen, setConfirmProductOpen] = useState(false);
+  const [pendingProductEnable, setPendingProductEnable] = useState(false);
+
   // Renderizar vista según activeView
   const renderView = () => {
     switch (activeView) {
@@ -732,6 +806,118 @@ export default function Profile() {
                         className="text-slate-700 dark:text-slate-300"
                       />
                     </button>
+                  )}
+                  {confirmSearchOpen && (
+                    <div
+                      className="fixed inset-0 z-[130]"
+                      role="dialog"
+                      aria-modal="true"
+                    >
+                      <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setConfirmSearchOpen(false)}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center p-4">
+                        <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5">
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                            {pendingSearchEnable
+                              ? "¿Activar historial de búsqueda?"
+                              : "¿Desactivar historial de búsqueda?"}
+                          </h3>
+                          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                            {pendingSearchEnable
+                              ? "Al activarlo, podremos mostrarte búsquedas recientes y mejorar la personalización."
+                              : "Si lo desactivas, no mostraremos tus búsquedas recientes ni las usaremos para personalización."}
+                          </p>
+                          <div className="mt-5 flex items-center justify-end gap-2">
+                            <button
+                              className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                              onClick={() => setConfirmSearchOpen(false)}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                              onClick={() => {
+                                try {
+                                  setSearchHistoryEnabled(pendingSearchEnable);
+                                  notify({
+                                    type: "success",
+                                    message: `Historial de búsqueda ${
+                                      pendingSearchEnable
+                                        ? "activado"
+                                        : "desactivado"
+                                    }`,
+                                  });
+                                } catch {}
+                                setConfirmSearchOpen(false);
+                              }}
+                            >
+                              Confirmar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {confirmProductOpen && (
+                    <div
+                      className="fixed inset-0 z-[140]"
+                      role="dialog"
+                      aria-modal="true"
+                    >
+                      <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setConfirmProductOpen(false)}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center p-4">
+                        <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5">
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                            {pendingProductEnable
+                              ? "¿Activar historial de productos?"
+                              : "¿Desactivar historial de productos?"}
+                          </h3>
+                          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                            {pendingProductEnable
+                              ? "Al activarlo, volveremos a guardar los productos que veas para ayudarte a continuar comprando."
+                              : "Si lo desactivas, no agregaremos nuevos productos vistos a tu historial y algunas recomendaciones podrían ser menos relevantes."}
+                          </p>
+                          <div className="mt-5 flex items-center justify-end gap-2">
+                            <button
+                              className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                              onClick={() => setConfirmProductOpen(false)}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                              onClick={() => {
+                                try {
+                                  if (pendingProductEnable) {
+                                    resumeProductHistory();
+                                    notify({
+                                      type: "success",
+                                      message:
+                                        "Historial de productos activado",
+                                    });
+                                  } else {
+                                    pauseProductHistoryUntil(4102444800000);
+                                    notify({
+                                      type: "success",
+                                      message:
+                                        "Historial de productos desactivado",
+                                    });
+                                  }
+                                } catch {}
+                                setConfirmProductOpen(false);
+                              }}
+                            >
+                              Confirmar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
                   <h1 className="text-xl xl:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                     {activeView !== "menu" && (
@@ -817,7 +1003,7 @@ export default function Profile() {
                         className="fixed inset-0 z-40"
                         onClick={() => setAccountMenuOpen(false)}
                       />
-                      <div className="absolute right-0 mt-2 w-[380px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[80vh] overflow-y-auto backdrop-blur-sm">
+                      <div className="absolute right-0 mt-2 w-[380px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[80vh] overflow-y-auto">
                         <AccountMenu
                           currentUser={{
                             uid: usuario?.uid,
@@ -1057,6 +1243,501 @@ export default function Profile() {
         return <SettingsView />;
 
       default:
+        if (activeView === "historial") {
+          return (
+            <div className="w-full">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                  Historial de productos vistos
+                </h2>
+                <button
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                  onClick={() => setHistorySettingsOpen((v) => !v)}
+                >
+                  <Settings size={18} />
+                  <span className="text-sm font-semibold">Configuración</span>
+                </button>
+              </div>
+              {historySettingsOpen && (
+                <div
+                  className="fixed inset-0 z-[100]"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <div
+                    className="absolute inset-0 bg-black/40"
+                    onClick={() => setHistorySettingsOpen(false)}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl">
+                      <div className="p-4 sm:p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                            Configuración
+                          </h3>
+                          <button
+                            onClick={() => setHistorySettingsOpen(false)}
+                            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+                            aria-label="Cerrar"
+                          >
+                            ×
+                          </button>
+                        </div>
+
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            Eliminar todos los productos de la vista
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                            Si eliminas todos los productos de esta página,
+                            dejaremos de usarlos para la personalización. Esto
+                            puede provocar que algunas recomendaciones sean
+                            menos relevantes para ti. Seguiremos usando las
+                            compras para mostrarte productos relevantes.
+                          </p>
+                          <div className="mt-3">
+                            <button
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold"
+                              onClick={() => setConfirmClearOpen(true)}
+                            >
+                              Eliminar productos
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
+                            Pausar historial
+                          </h4>
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Los productos que veas mientras tu historial esté en
+                            pausa no se agregarán a esta página.
+                          </p>
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <button
+                              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
+                              onClick={() => {
+                                try {
+                                  const d = new Date();
+                                  d.setHours(23, 59, 59, 999);
+                                  pauseProductHistoryUntil(d.getTime());
+                                } catch {}
+                              }}
+                            >
+                              Hoy
+                            </button>
+                            <button
+                              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
+                              onClick={() => {
+                                try {
+                                  pauseProductHistoryFor(
+                                    3 * 24 * 60 * 60 * 1000
+                                  );
+                                } catch {}
+                              }}
+                            >
+                              3 días
+                            </button>
+                            <button
+                              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
+                              onClick={() => {
+                                try {
+                                  pauseProductHistoryFor(
+                                    7 * 24 * 60 * 60 * 1000
+                                  );
+                                } catch {}
+                              }}
+                            >
+                              1 semana
+                            </button>
+                            <button
+                              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
+                              onClick={() => {
+                                try {
+                                  pauseProductHistoryFor(
+                                    14 * 24 * 60 * 60 * 1000
+                                  );
+                                } catch {}
+                              }}
+                            >
+                              2 semanas
+                            </button>
+                            {isProductHistoryPaused() ? (
+                              <button
+                                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                                onClick={() => {
+                                  try {
+                                    resumeProductHistory();
+                                  } catch {}
+                                }}
+                              >
+                                Reanudar
+                              </button>
+                            ) : null}
+                          </div>
+                          {isProductHistoryPaused() && (
+                            <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                              Historial pausado hasta{" "}
+                              {new Date(
+                                getProductHistoryPauseUntil()
+                              ).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="pt-2">
+                          <button
+                            className="text-sm font-semibold text-blue-600 hover:underline"
+                            onClick={() => setMoreInfoOpen(true)}
+                          >
+                            Más información
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {viewedProducts.length === 0 ? (
+                <p className="text-slate-600 dark:text-slate-400">
+                  Aún no has visto productos.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                  {viewedProducts.map((p) => {
+                    const img =
+                      resolveProductImageFromDoc(p) ||
+                      "/placeholder-product.svg";
+                    return (
+                      <div
+                        key={p.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => navigate(`/producto/${p.id}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") navigate(`/producto/${p.id}`);
+                        }}
+                        className="group cursor-pointer select-none rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition p-3"
+                        title={p.nombre}
+                      >
+                        <div
+                          className="rounded-xl overflow-hidden d-flex align-items-center justify-content-center w-full aspect-square"
+                          style={{
+                            backgroundColor: "rgba(0,0,0,0.03)",
+                            border: "1px solid rgba(0,0,0,0.06)",
+                          }}
+                        >
+                          <img
+                            src={img}
+                            alt={p.nombre}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "/placeholder-product.svg";
+                            }}
+                          />
+                        </div>
+                        <div className="mt-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 line-clamp-2">
+                          {p.nombre}
+                        </div>
+                        <div className="mt-1">
+                          <button
+                            className="text-[11px] sm:text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              try {
+                                removeHistoryItem("product", String(p.id));
+                                notify({
+                                  type: "info",
+                                  message: "Eliminado de la lista",
+                                });
+                              } catch {}
+                            }}
+                          >
+                            Eliminar de la lista
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {confirmClearOpen && (
+                <div
+                  className="fixed inset-0 z-[110]"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <div
+                    className="absolute inset-0 bg-black/50"
+                    onClick={() => setConfirmClearOpen(false)}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                        ¿Estás seguro que quieres eliminar todos los productos?
+                      </h3>
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        Al eliminar tu historial de productos, dejaremos de usar
+                        estos elementos recientes para personalizar tu
+                        experiencia. Esto puede reducir la relevancia de algunas
+                        recomendaciones.
+                      </p>
+                      <div className="mt-5 flex items-center justify-end gap-2">
+                        <button
+                          className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                          onClick={() => setConfirmClearOpen(false)}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold"
+                          onClick={() => {
+                            try {
+                              clearHistoryByType("product");
+                              notify({
+                                type: "success",
+                                message: "Historial de productos eliminado",
+                              });
+                            } catch {}
+                            setConfirmClearOpen(false);
+                            setHistorySettingsOpen(false);
+                          }}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {moreInfoOpen && (
+                <div
+                  className="fixed inset-0 z-[120]"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <div
+                    className="absolute inset-0 bg-black/50"
+                    onClick={() => {
+                      setMoreInfoOpen(false);
+                      setConfirmingDisableProducts(false);
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-end md:items-center justify-center p-0 md:p-4">
+                    <div className="w-full md:max-w-lg md:rounded-2xl rounded-t-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-4 sm:p-5 space-y-4 max-h-[85vh] overflow-y-auto mt-auto md:mt-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                          Más información
+                        </h3>
+                        <button
+                          onClick={() => {
+                            setMoreInfoOpen(false);
+                            setConfirmingDisableProducts(false);
+                          }}
+                          className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+                          aria-label="Cerrar"
+                        >
+                          ×
+                        </button>
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
+                          Controles de historial
+                        </h4>
+                        <div className="mt-2 space-y-3">
+                          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                            <div>
+                              <div className="text-sm md:text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                Historial de búsqueda
+                              </div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400">
+                                Mostrar búsquedas recientes y personalización
+                                basada en tus búsquedas.
+                              </div>
+                            </div>
+                            <button
+                              role="switch"
+                              aria-checked={isSearchHistoryEnabled()}
+                              onClick={() => {
+                                setPendingSearchEnable(
+                                  !isSearchHistoryEnabled()
+                                );
+                                setConfirmSearchOpen(true);
+                              }}
+                              className={`relative inline-flex h-7 w-12 md:h-6 md:w-11 items-center rounded-full transition ${
+                                isSearchHistoryEnabled()
+                                  ? "bg-blue-600"
+                                  : "bg-slate-300 dark:bg-slate-600"
+                              }`}
+                            >
+                              <span
+                                className={`inline-block md:h-5 md:w-5 h-6 w-6 transform rounded-full bg-white shadow transition ${
+                                  isSearchHistoryEnabled()
+                                    ? "md:translate-x-5 translate-x-6"
+                                    : "translate-x-1"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                            <div>
+                              <div className="text-sm md:text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                Historial de productos
+                              </div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400">
+                                Guardar productos vistos para continuar
+                                comprando más tarde.
+                              </div>
+                            </div>
+                            <button
+                              role="switch"
+                              aria-checked={!isProductHistoryPaused()}
+                              onClick={() => {
+                                setPendingProductEnable(
+                                  isProductHistoryPaused()
+                                );
+                                setConfirmProductOpen(true);
+                              }}
+                              className={`relative inline-flex h-7 w-12 md:h-6 md:w-11 items-center rounded-full transition ${
+                                !isProductHistoryPaused()
+                                  ? "bg-blue-600"
+                                  : "bg-slate-300 dark:bg-slate-600"
+                              }`}
+                            >
+                              <span
+                                className={`inline-block md:h-5 md:w-5 h-6 w-6 transform rounded-full bg-white shadow transition ${
+                                  !isProductHistoryPaused()
+                                    ? "md:translate-x-5 translate-x-6"
+                                    : "translate-x-1"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-200 dark:border-slate-700"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {confirmSearchOpen && (
+                <div
+                  className="fixed inset-0 z-[130]"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <div
+                    className="absolute inset-0 bg-black/50"
+                    onClick={() => setConfirmSearchOpen(false)}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                        {pendingSearchEnable
+                          ? "¿Activar historial de búsqueda?"
+                          : "¿Desactivar historial de búsqueda?"}
+                      </h3>
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        {pendingSearchEnable
+                          ? "Al activarlo, podremos mostrarte búsquedas recientes y mejorar la personalización."
+                          : "Si lo desactivas, no mostraremos tus búsquedas recientes ni las usaremos para personalización."}
+                      </p>
+                      <div className="mt-5 flex items-center justify-end gap-2">
+                        <button
+                          className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                          onClick={() => setConfirmSearchOpen(false)}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                          onClick={() => {
+                            try {
+                              setSearchHistoryEnabled(pendingSearchEnable);
+                              notify({
+                                type: "success",
+                                message: `Historial de búsqueda ${
+                                  pendingSearchEnable
+                                    ? "activado"
+                                    : "desactivado"
+                                }`,
+                              });
+                            } catch {}
+                            setConfirmSearchOpen(false);
+                          }}
+                        >
+                          Confirmar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {confirmProductOpen && (
+                <div
+                  className="fixed inset-0 z-[140]"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <div
+                    className="absolute inset-0 bg-black/50"
+                    onClick={() => setConfirmProductOpen(false)}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                        {pendingProductEnable
+                          ? "¿Activar historial de productos?"
+                          : "¿Desactivar historial de productos?"}
+                      </h3>
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        {pendingProductEnable
+                          ? "Al activarlo, volveremos a guardar los productos que veas para ayudarte a continuar comprando."
+                          : "Si lo desactivas, no agregaremos nuevos productos vistos a tu historial y algunas recomendaciones podrían ser menos relevantes."}
+                      </p>
+                      <div className="mt-5 flex items-center justify-end gap-2">
+                        <button
+                          className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                          onClick={() => setConfirmProductOpen(false)}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                          onClick={() => {
+                            try {
+                              if (pendingProductEnable) {
+                                resumeProductHistory();
+                                notify({
+                                  type: "success",
+                                  message: "Historial de productos activado",
+                                });
+                              } else {
+                                pauseProductHistoryUntil(4102444800000);
+                                notify({
+                                  type: "success",
+                                  message: "Historial de productos desactivado",
+                                });
+                              }
+                            } catch {}
+                            setConfirmProductOpen(false);
+                          }}
+                        >
+                          Confirmar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
         return null;
     }
   };
@@ -1080,7 +1761,7 @@ export default function Profile() {
 
       <div className="relative z-10 isolate pb-0">
         {/* Header flotante solo para móvil/tablet */}
-        <div className="lg:hidden sticky top-0 z-40 bg-white/95 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-transparent shadow-sm dark:shadow-none backdrop-blur">
+        <div className="lg:hidden sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-none">
           <div className="max-w-7xl mx-auto px-3 sm:px-4">
             <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
               {/* Título y botón volver */}
@@ -1175,7 +1856,7 @@ export default function Profile() {
                       className="fixed inset-0 z-40"
                       onClick={() => setAccountMenuOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-[360px] sm:w-[380px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto backdrop-blur-sm">
+                    <div className="absolute right-0 mt-2 w-[360px] sm:w-[380px] bg-white dark:bg-slate-900 rounded-xl shadow-2xl z-50 border border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto">
                       <AccountMenu
                         currentUser={{
                           uid: usuario?.uid,

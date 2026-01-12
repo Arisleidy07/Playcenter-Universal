@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   collection,
   query,
@@ -26,6 +26,9 @@ const AdminDashboard = ({
   });
   const [recentProducts, setRecentProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Refs para mantener conjuntos de IDs y evitar duplicados entre colecciones
+  const usersPrimaryIdsRef = useRef(new Set());
+  const usersLegacyIdsRef = useRef(new Set());
 
   useEffect(() => {
     // TIEMPO REAL para productos - Se actualiza cuando se eliminan/agregan
@@ -47,14 +50,33 @@ const AdminDashboard = ({
       (error) => {}
     );
 
-    // TIEMPO REAL para usuarios
-    const unsubscribeUsers = onSnapshot(
+    // TIEMPO REAL para usuarios: contar unión de 'users' y legacy 'usuarios'
+    const calcUsersUnion = () => {
+      const union = new Set([
+        ...Array.from(usersPrimaryIdsRef.current),
+        ...Array.from(usersLegacyIdsRef.current),
+      ]);
+      setStats((prevStats) => ({ ...prevStats, usuarios: union.size }));
+    };
+
+    const unsubscribeUsersPrimary = onSnapshot(
+      query(collection(db, "users")),
+      (snapshot) => {
+        const ids = new Set();
+        snapshot.docs.forEach((d) => ids.add(d.id));
+        usersPrimaryIdsRef.current = ids;
+        calcUsersUnion();
+      },
+      (error) => {}
+    );
+
+    const unsubscribeUsersLegacy = onSnapshot(
       query(collection(db, "usuarios")),
       (snapshot) => {
-        setStats((prevStats) => ({
-          ...prevStats,
-          usuarios: snapshot.size,
-        }));
+        const ids = new Set();
+        snapshot.docs.forEach((d) => ids.add(d.id));
+        usersLegacyIdsRef.current = ids;
+        calcUsersUnion();
       },
       (error) => {}
     );
@@ -127,7 +149,8 @@ const AdminDashboard = ({
     return () => {
       // Limpiar todos los listeners
       if (unsubscribeProducts) unsubscribeProducts();
-      if (unsubscribeUsers) unsubscribeUsers();
+      if (unsubscribeUsersPrimary) unsubscribeUsersPrimary();
+      if (unsubscribeUsersLegacy) unsubscribeUsersLegacy();
       if (unsubscribeCategories) unsubscribeCategories();
       if (unsubscribeOrders) unsubscribeOrders();
       if (unsubscribeRecentProducts) unsubscribeRecentProducts();
@@ -138,10 +161,10 @@ const AdminDashboard = ({
     <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900 dark:text-blue-300">
             Dashboard
           </h2>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Bienvenido al panel de administración
           </p>
         </div>
@@ -176,9 +199,9 @@ const AdminDashboard = ({
       </div>
 
       {/* Recent Products */}
-      <div className="w-full bg-white p-6 rounded-lg shadow-sm border">
+      <div className="w-full bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             Productos Recientes
           </h3>
         </div>
@@ -189,24 +212,24 @@ const AdminDashboard = ({
           </div>
         ) : recentProducts.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Producto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Precio
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {recentProducts.map((product) => (
                   <tr key={product.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -247,37 +270,37 @@ const AdminDashboard = ({
                                   }}
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                                <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 text-xs">
                                   N/A
                                 </div>
                               );
                             } catch (error) {
                               return (
-                                <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs">
+                                <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500 dark:text-red-300 text-xs">
                                   Error
                                 </div>
                               );
                             }
                           })()}
                           <div
-                            className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs"
+                            className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 text-xs"
                             style={{ display: "none" }}
                           >
                             N/A
                           </div>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {product.nombre || "Sin nombre"}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-300">
                             ID: {product.id.substring(0, 8)}...
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-gray-900 dark:text-gray-100">
                         {new Intl.NumberFormat("es-DO", {
                           style: "currency",
                           currency: "DOP",
@@ -288,8 +311,8 @@ const AdminDashboard = ({
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           product.activo
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
                         }`}
                       >
                         {product.activo ? "Activo" : "Inactivo"}
@@ -318,7 +341,9 @@ const AdminDashboard = ({
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500">No hay productos recientes</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              No hay productos recientes
+            </p>
           </div>
         )}
 
@@ -343,13 +368,17 @@ const StatsCard = ({ title, count, icon, onClick }) => {
         boxShadow:
           "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
       }}
-      className="bg-white p-6 rounded-lg shadow-sm border transition-all cursor-pointer"
+      className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-all cursor-pointer"
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{count}</p>
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            {title}
+          </p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+            {count}
+          </p>
         </div>
         <div>{icon}</div>
       </div>

@@ -3,8 +3,15 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useProductSearch, useProducts } from "../hooks/useProducts";
 import { useTheme } from "../context/ThemeContext";
-import { FaSearch, FaClock, FaTimes, FaArrowLeft } from "react-icons/fa";
+import {
+  FaSearch,
+  FaClock,
+  FaTimes,
+  FaArrowLeft,
+  FaPencilAlt,
+} from "react-icons/fa";
 import "./SearchBar.css";
+import { recordSearch, isSearchHistoryEnabled } from "../lib/history";
 
 // Normalizar texto para búsqueda sin acentos ni mayúsculas
 const normalizarTexto = (texto) => {
@@ -135,6 +142,8 @@ const SearchBar = forwardRef(
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
     const { isDark } = useTheme();
+    const [editRecents, setEditRecents] = useState(false);
+    const [prefsTick, setPrefsTick] = useState(0);
 
     // Sync isMobile on resize
     useEffect(() => {
@@ -170,13 +179,37 @@ const SearchBar = forwardRef(
       return Array.from(cats).sort();
     }, [todosLosProductos]);
 
-    // Cargar historial de búsquedas desde localStorage
+    // Reaccionar a cambios de preferencias (historial unificado)
     useEffect(() => {
-      const historial = JSON.parse(
-        localStorage.getItem("historialBusquedas") || "[]"
-      );
-      setHistorialBusquedas(historial.slice(0, 5)); // Solo las últimas 5
+      const onPrefs = () => setPrefsTick((t) => t + 1);
+      if (typeof window !== "undefined") {
+        window.addEventListener("pcu-history-updated", onPrefs);
+      }
+      return () => {
+        if (typeof window !== "undefined") {
+          window.removeEventListener("pcu-history-updated", onPrefs);
+        }
+      };
     }, []);
+
+    const searchHistoryEnabled = useMemo(
+      () => isSearchHistoryEnabled(),
+      [prefsTick]
+    );
+
+    // Cargar historial de búsquedas desde localStorage cuando está permitido
+    useEffect(() => {
+      try {
+        if (!searchHistoryEnabled) {
+          setHistorialBusquedas([]);
+          return;
+        }
+        const historial = JSON.parse(
+          localStorage.getItem("historialBusquedas") || "[]"
+        );
+        setHistorialBusquedas(historial.slice(0, 5)); // Solo las últimas 5
+      } catch (_) {}
+    }, [searchHistoryEnabled, prefsTick]);
 
     useEffect(() => {
       if (!busqueda.trim()) {
@@ -260,6 +293,9 @@ const SearchBar = forwardRef(
 
     const guardarEnHistorial = (termino) => {
       if (!termino.trim()) return;
+      try {
+        if (!isSearchHistoryEnabled()) return; // Respetar preferencia global
+      } catch (_) {}
 
       const historial = JSON.parse(
         localStorage.getItem("historialBusquedas") || "[]"
@@ -286,6 +322,9 @@ const SearchBar = forwardRef(
         }
 
         guardarEnHistorial(queryFinal);
+        try {
+          recordSearch(queryFinal);
+        } catch {}
         navigate(`/buscar?q=${encodeURIComponent(queryFinal)}`);
         setBusqueda("");
         setResultados([]);
@@ -298,7 +337,11 @@ const SearchBar = forwardRef(
 
     const handleClickResultado = (item) => {
       // Guardar en historial
-      guardarEnHistorial(item.nombre.trim());
+      const term = item.nombre.trim();
+      guardarEnHistorial(term);
+      try {
+        recordSearch(term);
+      } catch {}
 
       // IR DIRECTAMENTE A LA VISTA DEL PRODUCTO
       navigate(`/producto/${item.id}`);
@@ -314,6 +357,9 @@ const SearchBar = forwardRef(
 
     const handleClickSugerencia = (sugerencia) => {
       guardarEnHistorial(sugerencia);
+      try {
+        recordSearch(sugerencia);
+      } catch {}
 
       // Si la sugerencia es de categoría (contiene "en"), buscar correctamente
       if (sugerencia.includes(" en ")) {
@@ -690,33 +736,47 @@ const SearchBar = forwardRef(
             )}
 
             {/* HISTORIAL DE BÚSQUEDAS */}
-            {!busqueda.trim() && historialBusquedas.length > 0 && (
-              <div className="border-b border-gray-200 dark:border-gray-700">
-                <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 bg-white dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-700">
-                  Búsquedas recientes
-                </div>
-                {historialBusquedas.map((termino, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => handleClickHistorial(termino)}
-                    className="px-4 py-3.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between group transition active:bg-gray-200 dark:active:bg-gray-600"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FaClock className="text-gray-400 dark:text-gray-500 text-sm" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {termino}
-                      </span>
-                    </div>
+            {!busqueda.trim() &&
+              searchHistoryEnabled &&
+              historialBusquedas.length > 0 && (
+                <div className="border-b border-gray-200 dark:border-gray-700">
+                  <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 bg-white dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <span>Búsquedas recientes</span>
                     <button
-                      onClick={(e) => eliminarDeHistorial(termino, e)}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition"
+                      type="button"
+                      onClick={() => setEditRecents((v) => !v)}
+                      className="text-black dark:text-white hover:opacity-80"
+                      title={editRecents ? "Hecho" : "Editar"}
                     >
-                      <FaTimes className="text-xs" />
+                      <FaPencilAlt size={18} className="align-middle" />
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
+                  {historialBusquedas.map((termino, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleClickHistorial(termino)}
+                      className="px-4 py-3.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between group transition active:bg-gray-200 dark:active:bg-gray-600"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FaClock className="text-gray-400 dark:text-gray-500 text-sm" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          {termino}
+                        </span>
+                      </div>
+                      <button
+                        onClick={(e) => eliminarDeHistorial(termino, e)}
+                        className={`transition ${
+                          editRecents
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100"
+                        } text-gray-400 hover:text-red-500`}
+                      >
+                        <FaTimes className="text-xs" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
             {/* INDICADOR DE CATEGORÍA SELECCIONADA */}
             {busqueda.trim() && categoriaSeleccionada !== "todas" && (
@@ -886,33 +946,47 @@ const SearchBar = forwardRef(
                   </div>
                 )}
 
-                {!busqueda.trim() && historialBusquedas.length > 0 && (
-                  <div className="border-b border-gray-200 dark:border-gray-700">
-                    <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 bg-white dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-700">
-                      Búsquedas recientes
-                    </div>
-                    {historialBusquedas.map((termino, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => handleClickHistorial(termino)}
-                        className="px-4 py-3.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between group transition active:bg-gray-200 dark:active:bg-gray-600"
-                      >
-                        <div className="flex items-center gap-3">
-                          <FaClock className="text-gray-400 dark:text-gray-500 text-sm" />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {termino}
-                          </span>
-                        </div>
+                {!busqueda.trim() &&
+                  searchHistoryEnabled &&
+                  historialBusquedas.length > 0 && (
+                    <div className="border-b border-gray-200 dark:border-gray-700">
+                      <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase sticky top-0 bg-white dark:bg-gray-900 z-10 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                        <span>Búsquedas recientes</span>
                         <button
-                          onClick={(e) => eliminarDeHistorial(termino, e)}
-                          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition"
+                          type="button"
+                          onClick={() => setEditRecents((v) => !v)}
+                          className="text-black dark:text-white hover:opacity-80"
+                          title={editRecents ? "Hecho" : "Editar"}
                         >
-                          <FaTimes className="text-xs" />
+                          <FaPencilAlt size={18} className="align-middle" />
                         </button>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      {historialBusquedas.map((termino, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => handleClickHistorial(termino)}
+                          className="px-4 py-3.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between group transition active:bg-gray-200 dark:active:bg-gray-600"
+                        >
+                          <div className="flex items-center gap-3">
+                            <FaClock className="text-gray-400 dark:text-gray-500 text-sm" />
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              {termino}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => eliminarDeHistorial(termino, e)}
+                            className={`transition ${
+                              editRecents
+                                ? "opacity-100"
+                                : "opacity-0 group-hover:opacity-100"
+                            } text-gray-400 hover:text-red-500`}
+                          >
+                            <FaTimes className="text-xs" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                 {busqueda.trim() && categoriaSeleccionada !== "todas" && (
                   <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900 border-b border-blue-200 dark:border-blue-700">

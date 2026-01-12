@@ -12,6 +12,7 @@ import { useAuthModal } from "../context/AuthModalContext";
 import BotonCardnet from "../components/BotonCardnet";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { recordProduct } from "../lib/history";
 
 // Components necesarios
 import VisualVariantSelector from "../components/VisualVariantSelector";
@@ -789,6 +790,42 @@ function VistaProducto() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Registrar vista del producto en historial local (recentProducts)
+  useEffect(() => {
+    try {
+      if (!id) return;
+      const key = "recentProducts";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      const next = [id, ...prev.filter((x) => x !== id)].slice(0, 20);
+      localStorage.setItem(key, JSON.stringify(next));
+    } catch {}
+  }, [id]);
+
+  // Registrar en historial unificado: producto visto (+ categoría si existe)
+  useEffect(() => {
+    try {
+      if (!producto?.id) return; // esperar a tener el id real
+      const cat =
+        (producto?.categoria && String(producto.categoria)) ||
+        (producto?.categoriaId && String(producto.categoriaId)) ||
+        undefined;
+      recordProduct(producto.id, cat);
+    } catch {}
+  }, [producto?.id, producto?.categoria, producto?.categoriaId]);
+
+  // Intentar registrar última categoría vista basada en el producto
+  useEffect(() => {
+    try {
+      const rutaCat =
+        (producto?.categoria && String(producto.categoria)) ||
+        (producto?.categoriaId && String(producto.categoriaId)) ||
+        "";
+      if (rutaCat) {
+        localStorage.setItem("ultimaCategoriaVista", rutaCat);
+      }
+    } catch {}
+  }, [producto?.categoria, producto?.categoriaId]);
 
   // Update cart quantity when carrito changes
   useEffect(() => {
