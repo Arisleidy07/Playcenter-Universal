@@ -764,6 +764,8 @@
   flex-shrink: 0;
   width: 100px;
   padding: 12px 0 12px 0;
+  scroll-padding-top: 80px;
+  scroll-padding-bottom: 80px;
   margin-top: 0;
   margin-bottom: 0;
   background: transparent;
@@ -791,6 +793,20 @@
 /* Cuando hay overflow, activar scroll */
 .amazon-thumbs-sidebar.has-overflow {
   overflow-y: auto;
+}
+
+.amazon-thumbs-sidebar::before,
+.amazon-thumbs-sidebar::after {
+  content: "";
+  display: block;
+  height: 0;
+  flex: 0 0 0;
+}
+
+.amazon-thumbs-sidebar.has-overflow::before,
+.amazon-thumbs-sidebar.has-overflow::after {
+  height: 80px;
+  flex: 0 0 80px;
 }
 
 /* Flechas CIRCULARES estilo imagen - Solo visibles en hover */

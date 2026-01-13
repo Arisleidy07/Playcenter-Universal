@@ -142,8 +142,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         product?.imagenPrincipal ||
         (product?.imagen ? [{ url: product.imagen }] : []),
       galeriaImagenes: product?.galeriaImagenes || product?.imagenes || [],
-      tresArchivosExtras:
-        product?.tresArchivosExtras || product?.imagenesExtra || [],
+      tresArchivosExtras: product?.tresArchivosExtras || [],
       productStatus: product?.productStatus || "draft",
       validationScore: product?.validationScore || 0,
       lastValidated: product?.lastValidated || null,
@@ -277,50 +276,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
   // Sistema simplificado sin monitoreo de conexión
 
-  // Inicializar formData cuando product cambie - SIN restaurar archivos borrados NI sobrescribir valores del usuario
-  useEffect(() => {
-    if (product) {
-      // SOLO inicializar si el formulario está vacío para evitar sobrescribir cambios
-      if (!formData.nombre && !formData.descripcion) {
-        setFormData({
-          ...formData,
-          // Campos básicos - PRESERVAR valores del usuario si ya existen
-          nombre: formData.nombre || product.nombre || "",
-          empresa: formData.empresa || product.empresa || "",
-          precio: formData.precio || product.precio || "",
-          cantidad: formData.cantidad || product.cantidad || 0,
-          descripcion: formData.descripcion || product.descripcion || "",
-          categoria: formData.categoria || product.categoria || "",
-          acerca: formData.acerca || product.acerca || [""],
-          etiquetas: formData.etiquetas || product.etiquetas || [""],
-          variantes: formData.variantes || product.variantes || [],
-          oferta: formData.oferta || product.oferta || false,
-          precioOferta: formData.precioOferta || product.precioOferta || "",
-          estado: formData.estado || product.estado || "Nuevo",
-          activo:
-            formData.activo !== undefined
-              ? formData.activo
-              : product.activo !== undefined
-              ? product.activo
-              : true,
-
-          // ARCHIVOS - NO restaurar automáticamente para evitar duplicaciones
-          imagen: "",
-          imagenes: [],
-          videoUrls: [],
-          imagenesExtra: [],
-          videoUrl: "",
-          videoAcercaArticulo: [],
-          varianteImagenPrincipal: "",
-
-          // Enhanced fields - VACÍOS para evitar duplicaciones
-          imagenPrincipal: [],
-          galeriaImagenes: [],
-          tresArchivosExtras: [],
-        });
-      }
-    }
-  }, [product]);
+  // Eliminado: Efecto que reescribía el formulario y causaba que categoría/marca se borraran
 
   // Sincronizar currentId cuando product.id llegue de forma asíncrona (evita crear borradores al editar)
   useEffect(() => {
@@ -401,14 +357,15 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           nombre: data.nombre ?? prev.nombre,
           descripcion: data.descripcion ?? prev.descripcion,
           // CRÍTICO: NO sobrescribir empresa/categoria si el usuario las está editando
+          // NO sobreescribir si el usuario ya tiene un valor local no vacío
           empresa:
-            data.empresa !== undefined && data.empresa !== prev.empresa
-              ? data.empresa
-              : prev.empresa,
+            prev.empresa && String(prev.empresa).trim() !== ""
+              ? prev.empresa
+              : data.empresa ?? prev.empresa,
           categoria:
-            data.categoria !== undefined && data.categoria !== prev.categoria
-              ? data.categoria
-              : prev.categoria,
+            prev.categoria && String(prev.categoria).trim() !== ""
+              ? prev.categoria
+              : data.categoria ?? prev.categoria,
           precio:
             (data.precio ?? prev.precio)?.toString?.() ||
             String(data.precio ?? prev.precio ?? ""),
@@ -915,8 +872,14 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   // Enhanced image processing handler
   const handleImageProcessing = async (files, field) => {
     if (!files?.length) return;
-    // Simplemente usar handleImageUpload en lugar de procesamiento complejo
-    handleImageUpload(files, field);
+    // Mapear nombres legacy a campos canónicos
+    const mappedField =
+      field === "imagenPrincipal"
+        ? "imagen"
+        : field === "galeriaImagenes"
+        ? "imagenes"
+        : field;
+    handleImageUpload(files, mappedField);
   };
 
   const handleArrayChange = (field, index, value) => {
@@ -1281,19 +1244,25 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     });
   };
 
-  // Set main image handler - ARREGLADO para no duplicar
+  // Set main image handler - usa 'imagenes' como fuente canónica y evita duplicados
   const setMainImage = (field, index) => {
-    if (field === "galeriaImagenes") {
-      const selectedImage = formData.galeriaImagenes[index];
+    if (field === "imagenes") {
+      const selectedImage = formData.imagenes[index];
       if (selectedImage) {
         setFormData((prev) => {
-          // Crear nueva galería SIN la imagen seleccionada
-          const newGallery = prev.galeriaImagenes.filter((_, i) => i !== index);
-
+          const newGallery = prev.imagenes.filter((_, i) => i !== index);
           return {
             ...prev,
-            imagenPrincipal: [selectedImage],
-            galeriaImagenes: newGallery,
+            imagen:
+              typeof selectedImage === "string"
+                ? selectedImage
+                : selectedImage?.url || "",
+            imagenPrincipal: [
+              typeof selectedImage === "string"
+                ? { url: selectedImage }
+                : selectedImage,
+            ],
+            imagenes: newGallery,
           };
         });
       }
@@ -1456,38 +1425,59 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         if (variantIndex !== null) {
           // Functional set to avoid races and also update Firestore immediately when editing
           setFormData((prev) => {
+            const normalize = (u) =>
+              typeof u === "string"
+                ? u.split("?")[0].split("#")[0].trim().toLowerCase()
+                : String(u || "");
             if (field === "imagen") {
-              const newVariants = prev.variantes.map((v, i) =>
-                i === variantIndex ? { ...v, imagen: url } : v
-              );
+              const newVariants = prev.variantes.map((v, i) => {
+                if (i !== variantIndex) return v;
+                const main = url;
+                const imgs = Array.isArray(v?.imagenes) ? v.imagenes : [];
+                const mainKey = normalize(main);
+                const filtered = imgs.filter((u) => normalize(u) !== mainKey);
+                return { ...v, imagen: main, imagenes: filtered };
+              });
               updateDoc(doc(db, "productos", targetId), {
                 variantes: newVariants,
                 fechaActualizacion: new Date(),
               }).catch(() => {});
               return { ...prev, variantes: newVariants };
             } else if (field === "imagenes") {
-              const current = Array.isArray(
-                prev.variantes[variantIndex]?.imagenes
-              )
-                ? prev.variantes[variantIndex].imagenes
-                : [];
-              const newVariants = prev.variantes.map((v, i) =>
-                i === variantIndex ? { ...v, imagenes: [...current, url] } : v
-              );
+              const newVariants = prev.variantes.map((v, i) => {
+                if (i !== variantIndex) return v;
+                const imgs = Array.isArray(v?.imagenes) ? v.imagenes : [];
+                const mainKey = normalize(v?.imagen || "");
+                const merged = [...imgs, url];
+                // unique by normalized URL and exclude main
+                const map = new Map();
+                merged.forEach((u) => {
+                  const key = normalize(u);
+                  if (key && key !== mainKey && !map.has(key)) map.set(key, u);
+                });
+                return { ...v, imagenes: Array.from(map.values()) };
+              });
               updateDoc(doc(db, "productos", targetId), {
                 variantes: newVariants,
                 fechaActualizacion: new Date(),
               }).catch(() => {});
               return { ...prev, variantes: newVariants };
             } else {
-              const current = Array.isArray(
-                prev.variantes[variantIndex]?.[field]
-              )
-                ? prev.variantes[variantIndex][field]
-                : [];
-              const newVariants = prev.variantes.map((v, i) =>
-                i === variantIndex ? { ...v, [field]: [...current, url] } : v
-              );
+              const newVariants = prev.variantes.map((v, i) => {
+                if (i !== variantIndex) return v;
+                const cur = Array.isArray(v?.[field]) ? v[field] : [];
+                const merged = [...cur, url];
+                const normalize = (u) =>
+                  typeof u === "string"
+                    ? u.split("?")[0].split("#")[0].trim().toLowerCase()
+                    : String(u || "");
+                const map = new Map();
+                merged.forEach((u) => {
+                  const key = normalize(u);
+                  if (key && !map.has(key)) map.set(key, u);
+                });
+                return { ...v, [field]: Array.from(map.values()) };
+              });
               updateDoc(doc(db, "productos", targetId), {
                 variantes: newVariants,
                 fechaActualizacion: new Date(),
@@ -1506,9 +1496,25 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           });
         } else {
           setFormData((prev) => {
-            const next = { ...prev, [field]: [...prev[field], url] };
+            const normalize = (u) =>
+              typeof u === "string"
+                ? u.split("?")[0].split("#")[0].trim().toLowerCase()
+                : String(u || "");
+            const cur = Array.isArray(prev[field]) ? prev[field] : [];
+            const merged = [...cur, url];
+            const mainKey =
+              field === "imagenes" ? normalize(prev?.imagen || "") : null;
+            const map = new Map();
+            merged.forEach((u) => {
+              const key = normalize(u);
+              if (!key) return;
+              if (mainKey && key === mainKey) return; // exclude main image from gallery
+              if (!map.has(key)) map.set(key, u);
+            });
+            const arr = Array.from(map.values());
+            const next = { ...prev, [field]: arr };
             updateDoc(doc(db, "productos", targetId), {
-              [field]: next[field],
+              [field]: arr,
               fechaActualizacion: new Date(),
             }).catch(() => {});
             return next;
@@ -1941,6 +1947,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         ];
         const uniqueVideoUrls = [...new Set(allVideoUrls)];
 
+        const normalizeForCompare = (url) => {
+          if (!url || typeof url !== "string") return "";
+          try {
+            return decodeURIComponent(
+              url.split("?")[0].split("#")[0].trim().toLowerCase()
+            );
+          } catch {
+            return url.split("?")[0].split("#")[0].trim().toLowerCase();
+          }
+        };
+
         const shouldSetMain = !prev.imagen && uniqueImageUrls.length > 0;
         const mainImage = shouldSetMain ? uniqueImageUrls[0] : prev.imagen;
         const mainImageObj = shouldSetMain
@@ -1952,12 +1969,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             }
           : prev.imagenPrincipal?.[0] || {};
 
-        // CRÍTICO: Si establecemos una imagen de galería como principal,
-        // removerla del array imagenes para evitar duplicados
-        let finalImages = uniqueImageUrls;
-        if (shouldSetMain && uniqueImageUrls.length > 0) {
-          finalImages = uniqueImageUrls.slice(1);
-        }
+        // Excluir SIEMPRE la imagen principal de la galería
+        const mainKey = normalizeForCompare(mainImage);
+        let finalImages = uniqueImageUrls.filter(
+          (u) => normalizeForCompare(u) !== mainKey
+        );
 
         const next = {
           ...prev,
@@ -2253,8 +2269,34 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           },
         }));
 
-        // Actualizar formData SIN duplicar - IGUAL que la parte de arriba
-        handleVariantChange(variantIndex, "imagen", remoteUrl);
+        // Actualizar formData SIN duplicar (imagen principal reemplaza y se remueve de galería)
+        setFormData((prev) => {
+          const variantes = [...(prev.variantes || [])];
+          const v = { ...(variantes[variantIndex] || {}) };
+          const normalizeForCompare = (url) => {
+            if (!url || typeof url !== "string") return "";
+            try {
+              return decodeURIComponent(
+                url.split("?")[0].split("#")[0].trim().toLowerCase()
+              );
+            } catch {
+              return url.split("?")[0].split("#")[0].trim().toLowerCase();
+            }
+          };
+          v.imagen = remoteUrl;
+          const mainKey = normalizeForCompare(remoteUrl);
+          const imgs = Array.isArray(v.imagenes) ? v.imagenes : [];
+          v.imagenes = imgs.filter((u) => normalizeForCompare(u) !== mainKey);
+          variantes[variantIndex] = v;
+          const id = currentId || product?.id;
+          if (id) {
+            updateDoc(doc(db, "productos", id), {
+              variantes,
+              fechaActualizacion: new Date(),
+            }).catch(() => {});
+          }
+          return { ...prev, variantes };
+        });
       } else if (first?.url && !first.url.startsWith("blob:")) {
         handleVariantChange(variantIndex, "imagen", first.url);
         // clear preview temp
@@ -2341,13 +2383,25 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const allImages = [...existingImages, ...uploadedImageUrls];
       const uniqueImages = [...new Set(allImages)];
 
-      // Actualizar estado UNA SOLA VEZ con el array final - IGUAL que la parte de arriba
+      // Actualizar estado UNA SOLA VEZ con el array final, excluyendo la imagen principal
       setFormData((prev) => {
         const variantes = [...(prev.variantes || [])];
-        variantes[variantIndex] = {
-          ...(variantes[variantIndex] || {}),
-          imagenes: uniqueImages,
+        const current = { ...(variantes[variantIndex] || {}) };
+        const normalizeForCompare = (url) => {
+          if (!url || typeof url !== "string") return "";
+          try {
+            return decodeURIComponent(
+              url.split("?")[0].split("#")[0].trim().toLowerCase()
+            );
+          } catch {
+            return url.split("?")[0].split("#")[0].trim().toLowerCase();
+          }
         };
+        const mainKey = normalizeForCompare(current.imagen || "");
+        const filtered = uniqueImages.filter(
+          (u) => normalizeForCompare(u) !== mainKey
+        );
+        variantes[variantIndex] = { ...current, imagenes: filtered };
         const next = { ...prev, variantes };
         const id = currentId || product?.id;
         if (id) {
