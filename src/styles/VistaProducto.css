@@ -759,7 +759,10 @@
   max-height: calc(100vh - 100px);
   overflow-y: auto; /* Scroll si es necesario */
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  /* Ocultar scrollbar en Firefox */
+  scrollbar-width: none;
+  /* Ocultar scrollbar en IE/Edge */
+  -ms-overflow-style: none;
   scrollbar-color: #d1d5db transparent;
   flex-shrink: 0;
   width: 100px;
@@ -774,7 +777,9 @@
 }
 
 .amazon-thumbs-sidebar::-webkit-scrollbar {
-  width: 4px;
+  width: 0; /* Ocultar scrollbar en Chrome/Safari/Opera */
+  height: 0;
+  display: none;
 }
 
 .amazon-thumbs-sidebar::-webkit-scrollbar-track {
@@ -814,7 +819,7 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1;
+  z-index: 3; /* Asegurar que quede por encima de cualquier contenido */
   width: 40px;
   height: 40px;
   background: rgba(255, 255, 255, 0.98);
@@ -1152,6 +1157,43 @@
     border-radius: 0; /* Sin bordes */
     box-shadow: none;
     padding: 0;
+  }
+}
+
+/* Tablet: centrar y limitar tamaño de la imagen principal (evitar gigante) */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .amazon-gallery-layout {
+    width: 100%;
+    margin-left: 0; /* sin desplazamiento negativo */
+    padding-left: var(--screen-padding, 16px) !important;
+    padding-right: var(--screen-padding, 16px) !important;
+  }
+
+  .amazon-main-image-container {
+    width: 100%;
+    max-width: 680px; /* contenedor más contenido en tablet */
+    margin: 0 auto 8px; /* centrar */
+    overflow: visible; /* sin scroll interno */
+    scroll-snap-type: none; /* sin snap en tablet */
+  }
+
+  .amazon-main-image-wrap {
+    max-width: 680px; /* limitar ancho */
+    margin: 0 auto; /* centrar */
+    aspect-ratio: 1 / 1; /* cuadrado pero contenido */
+    border: 1px solid #e5e7eb; /* marco sutil */
+    border-radius: 8px; /* bordes suaves */
+  }
+
+  /* Controles de cantidad más grandes en tablet */
+  .vp-qty-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+  .vp-qty {
+    min-width: 32px;
+    font-size: 1.125rem; /* 18px */
   }
 }
 

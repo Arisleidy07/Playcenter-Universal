@@ -165,6 +165,10 @@ function TarjetaProducto({ producto }) {
 
   const imagen = getProductImage();
 
+  const ratingAverage = Number(producto?.ratingAverage) || 0;
+  const ratingCount = Number(producto?.ratingCount) || 0;
+  const ratingStars = Math.max(0, Math.min(5, Math.round(ratingAverage)));
+
   return (
     <>
       {/* HORIZONTAL en móvil/tablet pequeño, VERTICAL en tablet grande/desktop */}
@@ -215,6 +219,34 @@ function TarjetaProducto({ producto }) {
             >
               {producto.nombre}
             </h3>
+
+            {ratingCount > 0 && (
+              <div
+                className="d-flex align-items-center gap-2 mb-2"
+                style={{ lineHeight: 1 }}
+              >
+                <div className="d-flex align-items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={
+                        i < ratingStars ? "text-blue-500" : "text-gray-300"
+                      }
+                      style={{ fontSize: "0.9rem" }}
+                      aria-hidden="true"
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <span
+                  className="small text-blue-600"
+                  style={{ fontSize: "0.8rem" }}
+                >
+                  ({ratingCount.toLocaleString("es-DO")})
+                </span>
+              </div>
+            )}
 
             <div className="d-flex align-items-baseline gap-1 mb-2">
               <span className="small text-gray-600 dark:text-gray-400">

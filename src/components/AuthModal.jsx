@@ -43,6 +43,7 @@ export default function AuthModal() {
     login,
     signup,
     usuario,
+    logout,
     loginWithGoogle,
     loginWithApple,
     resetPassword,
@@ -747,7 +748,15 @@ export default function AuthModal() {
 
           {/* Botón X a la DERECHA - AZUL */}
           <motion.button
-            onClick={() => setModalAbierto(false)}
+            onClick={() => {
+              try {
+                localStorage.removeItem("pcu_adding_account_from");
+                localStorage.removeItem("pcu_adding_account_email");
+                localStorage.removeItem("pcu_add_account_intent");
+                localStorage.removeItem("pcu_adding_account_ts");
+              } catch (_) {}
+              setModalAbierto(false);
+            }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
@@ -1339,6 +1348,45 @@ export default function AuthModal() {
                 </>
               )}
             </motion.button>
+
+            {/* Enlace: Continuar como invitado (cierra el modal sin autenticar) */}
+            <div className="text-center mb-3">
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Si hay sesión activa, cerrar sesión para navegar como invitado
+                  if (usuario) {
+                    Promise.resolve()
+                      .then(() => logout())
+                      .finally(() => {
+                        try {
+                          localStorage.removeItem("pcu_adding_account_from");
+                          localStorage.removeItem("pcu_adding_account_email");
+                          localStorage.removeItem("pcu_add_account_intent");
+                          localStorage.removeItem("pcu_adding_account_ts");
+                        } catch (_) {}
+                        setModalAbierto(false);
+                      });
+                  } else {
+                    try {
+                      localStorage.removeItem("pcu_adding_account_from");
+                      localStorage.removeItem("pcu_adding_account_email");
+                      localStorage.removeItem("pcu_add_account_intent");
+                      localStorage.removeItem("pcu_adding_account_ts");
+                    } catch (_) {}
+                    setModalAbierto(false);
+                  }
+                }}
+                className="fw-semibold"
+                style={{
+                  color: "#2563eb",
+                  textDecoration: "underline",
+                }}
+              >
+                Continuar como invitado
+              </a>
+            </div>
 
             {/* Enlace de recuperación de contraseña */}
             {modo === "login" && !forgotPasswordMode && (

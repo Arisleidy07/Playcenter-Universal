@@ -64,8 +64,8 @@ export default function ModalLoginAlert({ isOpen, onClose, onIniciarSesion }) {
             Necesitas iniciar sesión para acceder a esta función
           </p>
 
-          {/* Botones */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          {/* Acción principal + enlace de invitado */}
+          <div className="flex flex-col items-stretch gap-3">
             <motion.button
               onClick={() => {
                 onClose();
@@ -73,20 +73,23 @@ export default function ModalLoginAlert({ isOpen, onClose, onIniciarSesion }) {
               }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex-1 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 transition-all duration-200"
+              className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 transition-all duration-200"
               style={{ minHeight: "48px" }}
             >
               Iniciar sesión
             </motion.button>
-            <motion.button
-              onClick={onClose}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="flex-1 px-6 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl font-semibold transition-all duration-200"
-              style={{ minHeight: "48px" }}
-            >
-              Cancelar
-            </motion.button>
+            <div className="text-center">
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onClose();
+                }}
+                className="text-blue-600 hover:text-blue-700 underline font-semibold"
+              >
+                Continuar como invitado
+              </a>
+            </div>
           </div>
         </div>
       </motion.div>

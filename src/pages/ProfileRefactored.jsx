@@ -142,6 +142,9 @@ export default function Profile() {
       try {
         localStorage.setItem("pcu_adding_account_from", usuario.uid);
         localStorage.setItem("pcu_adding_account_email", usuario.email || "");
+        // Señal explícita de intención de agregar cuenta + timestamp reciente
+        localStorage.setItem("pcu_add_account_intent", "1");
+        localStorage.setItem("pcu_adding_account_ts", String(Date.now()));
       } catch (_) {}
     }
     abrirModal("login");

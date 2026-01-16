@@ -188,6 +188,12 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
               const imgSrc = rel?.imagen || rel?.imagenes?.[0] || "";
               const name = rel?.nombre || "Producto";
               const price = Number(rel?.precio) || 0;
+              const ratingAverage = Number(rel?.ratingAverage) || 0;
+              const ratingCount = Number(rel?.ratingCount) || 0;
+              const ratingStars = Math.max(
+                0,
+                Math.min(5, Math.round(ratingAverage))
+              );
               return (
                 <article
                   key={rel?.id}
@@ -214,6 +220,29 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
                     <h3 className="prl-name" title={name}>
                       {name}
                     </h3>
+
+                    {ratingCount > 0 && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-0.5 text-[12px] leading-none">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span
+                              key={i}
+                              className={
+                                i < ratingStars
+                                  ? "text-blue-500"
+                                  : "text-gray-300"
+                              }
+                              aria-hidden="true"
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                        <span className="text-[12px] text-blue-600 leading-none">
+                          ({ratingCount.toLocaleString("es-DO")})
+                        </span>
+                      </div>
+                    )}
 
                     {/* Precio */}
                     <div className="prl-price-mobile">
@@ -269,6 +298,12 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
                 const imgSrc = rel?.imagen || rel?.imagenes?.[0] || "";
                 const name = rel?.nombre || "Producto";
                 const price = Number(rel?.precio) || 0;
+                const ratingAverage = Number(rel?.ratingAverage) || 0;
+                const ratingCount = Number(rel?.ratingCount) || 0;
+                const ratingStars = Math.max(
+                  0,
+                  Math.min(5, Math.round(ratingAverage))
+                );
                 return (
                   <article
                     key={rel?.id}
@@ -295,6 +330,29 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
                       <h3 className="prl-name" title={name}>
                         {name}
                       </h3>
+
+                      {ratingCount > 0 && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-0.5 text-[12px] leading-none">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <span
+                                key={i}
+                                className={
+                                  i < ratingStars
+                                    ? "text-blue-500"
+                                    : "text-gray-300"
+                                }
+                                aria-hidden="true"
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                          <span className="text-[12px] text-blue-600 leading-none">
+                            ({ratingCount.toLocaleString("es-DO")})
+                          </span>
+                        </div>
+                      )}
 
                       {/* Precio */}
                       <div className="prl-price-desktop">

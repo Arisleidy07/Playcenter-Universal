@@ -196,8 +196,18 @@ export function MultiAccountProvider({ children }) {
           const previousAccountEmail = localStorage.getItem(
             "pcu_adding_account_email"
           );
+          const addIntent = localStorage.getItem("pcu_add_account_intent");
+          const tsRaw = localStorage.getItem("pcu_adding_account_ts");
+          const ts = tsRaw ? parseInt(tsRaw, 10) : 0;
+          const recent =
+            Number.isFinite(ts) && Date.now() - ts < 15 * 60 * 1000; // 15 min
 
-          if (previousAccountUid && previousAccountUid !== usuario.uid) {
+          if (
+            previousAccountUid &&
+            previousAccountUid !== usuario.uid &&
+            addIntent === "1" &&
+            recent
+          ) {
             // Guardar la cuenta actual en la lista de la cuenta anterior (cuenta principal)
             const previousAccountDocRef = doc(
               db,
@@ -230,11 +240,14 @@ export function MultiAccountProvider({ children }) {
               setIsSwitching(false);
             }
 
-            // Limpiar los valores de localStorage y notificar
-            localStorage.removeItem("pcu_adding_account_from");
-            localStorage.removeItem("pcu_adding_account_email");
             notify("Cuenta agregada exitosamente", "success");
           }
+
+          // Limpieza SIEMPRE de flags para evitar cambios automáticos no deseados
+          localStorage.removeItem("pcu_adding_account_from");
+          localStorage.removeItem("pcu_adding_account_email");
+          localStorage.removeItem("pcu_add_account_intent");
+          localStorage.removeItem("pcu_adding_account_ts");
         } catch (saveError) {
           console.error(
             "Error guardando cuenta en cuenta anterior:",
@@ -243,6 +256,8 @@ export function MultiAccountProvider({ children }) {
           // Limpiar de todas formas
           localStorage.removeItem("pcu_adding_account_from");
           localStorage.removeItem("pcu_adding_account_email");
+          localStorage.removeItem("pcu_add_account_intent");
+          localStorage.removeItem("pcu_adding_account_ts");
         }
       } catch (error) {
         console.error("Error guardando cuenta actual:", error);

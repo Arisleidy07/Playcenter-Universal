@@ -1,8 +1,20 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaTimes, FaTrash, FaShareSquare } from "react-icons/fa";
+import {
+  FaTimes,
+  FaTrash,
+  FaShareSquare,
+  FaChevronDown,
+  FaVideo,
+} from "react-icons/fa";
 import { useProduct } from "../hooks/useProducts";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
@@ -10,15 +22,38 @@ import { useTheme } from "../context/ThemeContext";
 import ModalLoginAlert from "../components/ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext";
 import BotonCardnet from "../components/BotonCardnet";
-import { doc, getDoc } from "firebase/firestore";
+import useDeviceDetection from "../hooks/useDeviceDetection";
+import {
+  doc,
+  getDoc,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+  serverTimestamp,
+  runTransaction,
+  where,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { recordProduct } from "../lib/history";
+import { uploadFileFast } from "../utils/uploadFast";
 
 // Components necesarios
 import VisualVariantSelector from "../components/VisualVariantSelector";
 import ToastNotification from "../components/ToastNotification";
 const VP_DEBUG = false;
 import ProductosRelacionados from "../components/ProductosRelacionados";
+
+// Componentes de reseñas estilo Amazon
+import ReviewsSummary from "../components/reviews/ReviewsSummary";
+import ReviewCard from "../components/reviews/ReviewCard";
+import ReviewMediaModal from "../components/reviews/ReviewMediaModal";
 
 // Sistema simple directo
 
@@ -219,7 +254,7 @@ function AcercaDeEsteArticulo({ producto }) {
           {acercaItems.map((detalle, i) => (
             <li
               key={i}
-              className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
+              className="flex items-start gap-3 text-sm md:text-base xl:text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
             >
               <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
               <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">
@@ -234,7 +269,7 @@ function AcercaDeEsteArticulo({ producto }) {
           {itemsVisibles.map((detalle, i) => (
             <li
               key={i}
-              className="flex items-start gap-3 text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
+              className="flex items-start gap-3 text-sm md:text-base xl:text-sm leading-relaxed group hover:translate-x-1 transition-all duration-200 mb-3"
             >
               <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 mt-1.5 flex-shrink-0 shadow-sm group-hover:scale-125 group-hover:shadow-md transition-all duration-200" />
               <span className="flex-1 text-gray-800 dark:text-gray-200 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">
@@ -651,6 +686,76 @@ function VistaProducto() {
 
   const { product: producto, loading, error } = useProduct(id);
 
+  const reviewsRef = useRef(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState(null);
+  const [reviewOrder, setReviewOrder] = useState("recent");
+  const [reviewStarsFilter, setReviewStarsFilter] = useState(null);
+  const [reviewHasMedia, setReviewHasMedia] = useState(false);
+  const [newRating, setNewRating] = useState(0);
+  const [newComment, setNewComment] = useState("");
+  const [newMediaFiles, setNewMediaFiles] = useState([]);
+  const [submitBusy, setSubmitBusy] = useState(false);
+  const [reviewOverlayOpen, setReviewOverlayOpen] = useState(false);
+  const [reviewOverlayItems, setReviewOverlayItems] = useState([]);
+  const [reviewOverlayIndex, setReviewOverlayIndex] = useState(0);
+
+  // Inline ratings popover + delete state
+  const [ratingPopoverOpen, setRatingPopoverOpen] = useState(false);
+  const ratingPopoverRef = useRef(null);
+  const ratingPopoverCardRef = useRef(null);
+  const [deleteBusyId, setDeleteBusyId] = useState(null);
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteTargetReview, setDeleteTargetReview] = useState(null);
+
+  // Estados para nuevo sistema de reseñas Amazon
+  const [reviewMediaModalOpen, setReviewMediaModalOpen] = useState(false);
+  const [selectedReviewIndex, setSelectedReviewIndex] = useState(0);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
+  const [reviewFilters, setReviewFilters] = useState({
+    stars: null,
+    hasMedia: false,
+    verifiedOnly: false,
+    sortBy: "newest",
+  });
+  const [writeReviewOpen, setWriteReviewOpen] = useState(false);
+  const [photosGridOpen, setPhotosGridOpen] = useState(false);
+  const { isMobile, isTablet } = useDeviceDetection();
+  const isTouch = isMobile || isTablet;
+
+  const closeDeleteConfirm = () => {
+    if (deleteBusyId) return;
+    setDeleteConfirmOpen(false);
+    setDeleteTargetReview(null);
+  };
+
+  useEffect(() => {
+    if (!ratingPopoverOpen) return;
+    const onDocClick = (e) => {
+      if (
+        ratingPopoverRef.current &&
+        ratingPopoverCardRef.current &&
+        !ratingPopoverRef.current.contains(e.target) &&
+        !ratingPopoverCardRef.current.contains(e.target)
+      ) {
+        setRatingPopoverOpen(false);
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setRatingPopoverOpen(false);
+    };
+    document.addEventListener("pointerdown", onDocClick);
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDocClick);
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [ratingPopoverOpen]);
+
   // Sistema de notificaciones
   const [notifications, setNotifications] = useState([]);
 
@@ -670,6 +775,45 @@ function VistaProducto() {
   const variantesConColor = allVariantes.filter(
     (v) => v && typeof v.color === "string" && v.color.trim()
   );
+
+  const computedBreakdown = (() => {
+    const base = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach((r) => {
+      const rr = Math.max(1, Math.min(5, Math.round(Number(r?.rating) || 0)));
+      base[rr] = (base[rr] || 0) + 1;
+    });
+    return base;
+  })();
+  const ratingCount = Number(producto?.ratingCount) || reviews.length || 0;
+  const ratingAverage = Number(
+    producto?.ratingAverage ||
+      (reviews.length
+        ? (
+            reviews.reduce((s, r) => s + (Number(r?.rating) || 0), 0) /
+            reviews.length
+          ).toFixed(2)
+        : 0)
+  );
+  const ratingBreakdown = producto?.ratingBreakdown || computedBreakdown;
+
+  const filteredReviews = reviews.filter((r) => {
+    const starOk = reviewStarsFilter
+      ? Math.round(Number(r?.rating) || 0) === reviewStarsFilter
+      : true;
+    const mediaOk = reviewHasMedia
+      ? (Array.isArray(r?.images) && r.images.length > 0) ||
+        (Array.isArray(r?.videos) && r.videos.length > 0)
+      : true;
+    return starOk && mediaOk;
+  });
+  const orderedReviews = [...filteredReviews].sort((a, b) => {
+    if (reviewOrder === "rating") {
+      return (Number(b?.rating) || 0) - (Number(a?.rating) || 0);
+    }
+    const ta = a?.createdAt?.seconds || 0;
+    const tb = b?.createdAt?.seconds || 0;
+    return tb - ta;
+  });
 
   // Helper functions for media processing - available throughout component
   // ARREGLADO: Solo detectar videos REALES (URLs válidas con extensión de video)
@@ -826,6 +970,339 @@ function VistaProducto() {
       }
     } catch {}
   }, [producto?.categoria, producto?.categoriaId]);
+
+  useEffect(() => {
+    if (!id) return;
+    setReviewsLoading(true);
+    const col = collection(db, "productos", id, "reviews");
+    const q = query(col, orderBy("createdAt", "desc"), limit(50));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setReviews(arr);
+        setReviewsLoading(false);
+      },
+      () => {
+        setReviewsError("Error cargando reseñas");
+        setReviewsLoading(false);
+      }
+    );
+    return () => unsub && unsub();
+  }, [id]);
+
+  const checkVerifiedPurchase = async (uid, productId) => {
+    try {
+      const q = query(
+        collection(db, "orders"),
+        where("userId", "==", uid),
+        orderBy("fecha", "desc"),
+        limit(20)
+      );
+      const snap = await getDocs(q);
+      for (const ds of snap.docs) {
+        const items = ds.data()?.productos || [];
+        if (items.some((p) => p?.id === productId)) return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleMediaFilesChange = (e) => {
+    const files = Array.from(e.target.files || []).slice(0, 10);
+    setNewMediaFiles(files);
+  };
+
+  const publishReview = async () => {
+    if (!usuario) {
+      try {
+        abrirModal();
+      } catch {}
+      return;
+    }
+    if (!id) return;
+    if (!(newRating > 0) || !newComment.trim()) {
+      showNotification("Calificación y comentario son obligatorios", "error");
+      return;
+    }
+    setSubmitBusy(true);
+    try {
+      let images = [];
+      let videos = [];
+      for (const file of newMediaFiles) {
+        const res = await uploadFileFast(file, id);
+        if (res?.type === "image") images.push(res.url);
+        else if (res?.type === "video") videos.push(res.url);
+      }
+      const verified = await checkVerifiedPurchase(usuario.uid, id);
+      const payload = {
+        userId: usuario.uid,
+        userName:
+          usuario.displayName || usuario.email?.split("@")[0] || "Usuario",
+        userPhoto: usuario.photoURL || null,
+        productId: id,
+        rating: Number(newRating),
+        comment: newComment.trim(),
+        images,
+        videos,
+        verifiedPurchase: !!verified,
+        createdAt: serverTimestamp(),
+      };
+      await addDoc(collection(db, "productos", id, "reviews"), payload);
+      await runTransaction(db, async (tx) => {
+        const pRef = doc(db, "productos", id);
+        const snap = await tx.get(pRef);
+        const data = snap.exists() ? snap.data() : {};
+        const prevCount = Number(data?.ratingCount) || 0;
+        const prevSum = Number(data?.ratingSum) || 0;
+        const prevBreak = data?.ratingBreakdown || {
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0,
+        };
+        const r = Math.max(1, Math.min(5, Math.round(Number(newRating) || 0)));
+        const nextBreak = { ...prevBreak, [r]: (prevBreak[r] || 0) + 1 };
+        const nextCount = prevCount + 1;
+        const nextSum = prevSum + Number(newRating);
+        const nextAvg =
+          nextCount > 0 ? Number((nextSum / nextCount).toFixed(2)) : 0;
+        tx.update(pRef, {
+          ratingCount: nextCount,
+          ratingAverage: nextAvg,
+          ratingSum: nextSum,
+          ratingBreakdown: nextBreak,
+        });
+      });
+      setNewRating(0);
+      setNewComment("");
+      setNewMediaFiles([]);
+      showNotification("Tu opinión fue publicada", "success");
+    } catch (e) {
+      showNotification("No se pudo publicar la opinión", "error");
+    } finally {
+      setSubmitBusy(false);
+    }
+  };
+
+  const handleDeleteReview = async (rev) => {
+    if (!rev) return;
+    if (!usuario || usuario.uid !== rev?.userId) {
+      showNotification("No autorizado", "error");
+      return;
+    }
+    if (!id || !rev?.id) return;
+    setDeleteBusyId(rev.id);
+    try {
+      await runTransaction(db, async (tx) => {
+        const pRef = doc(db, "productos", id);
+        const rRef = doc(db, "productos", id, "reviews", rev.id);
+        const pSnap = await tx.get(pRef);
+
+        // Si el producto no existe, no hacer nada
+        if (!pSnap.exists()) {
+          throw new Error("Producto no encontrado");
+        }
+
+        const pData = pSnap.data();
+        const prevCount = Number(pData?.ratingCount) || 0;
+        const prevSum = Number(pData?.ratingSum) || 0;
+        const prevBreak = pData?.ratingBreakdown || {
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0,
+        };
+        const r = Math.max(
+          1,
+          Math.min(5, Math.round(Number(rev?.rating) || 0))
+        );
+        const nextBreak = {
+          ...prevBreak,
+          [r]: Math.max((prevBreak[r] || 0) - 1, 0),
+        };
+        const nextCount = Math.max(prevCount - 1, 0);
+        const nextSum = prevSum - Number(rev?.rating || 0);
+        const nextAvg =
+          nextCount > 0 ? Number((nextSum / nextCount).toFixed(2)) : 0;
+
+        // Primero borrar la reseña
+        tx.delete(rRef);
+
+        // Luego actualizar SOLO los campos de rating, NUNCA usar set()
+        tx.update(pRef, {
+          ratingCount: nextCount,
+          ratingAverage: nextAvg,
+          ratingSum: nextSum,
+          ratingBreakdown: nextBreak,
+        });
+      });
+      showNotification("Tu opinión fue eliminada", "success");
+    } catch (e) {
+      console.error("Error en transacción principal:", e);
+      try {
+        // Fallback más seguro: solo borrar la reseña y actualizar ratings
+        const rRef = doc(db, "productos", id, "reviews", rev.id);
+        await deleteDoc(rRef);
+
+        // Actualizar ratings de forma segura
+        await runTransaction(db, async (tx) => {
+          const pRef = doc(db, "productos", id);
+          const pSnap = await tx.get(pRef);
+
+          if (!pSnap.exists()) {
+            throw new Error("Producto no encontrado en fallback");
+          }
+
+          const pData = pSnap.data();
+          const prevCount = Number(pData?.ratingCount) || 0;
+          const prevSum = Number(pData?.ratingSum) || 0;
+          const prevBreak = pData?.ratingBreakdown || {
+            1: 0,
+            2: 0,
+            3: 0,
+            4: 0,
+            5: 0,
+          };
+          const r = Math.max(
+            1,
+            Math.min(5, Math.round(Number(rev?.rating) || 0))
+          );
+          const nextBreak = {
+            ...prevBreak,
+            [r]: Math.max((prevBreak[r] || 0) - 1, 0),
+          };
+          const nextCount = Math.max(prevCount - 1, 0);
+          const nextSum = prevSum - Number(rev?.rating || 0);
+          const nextAvg =
+            nextCount > 0 ? Number((nextSum / nextCount).toFixed(2)) : 0;
+
+          // SOLO update(), NUNCA set()
+          tx.update(pRef, {
+            ratingCount: nextCount,
+            ratingAverage: nextAvg,
+            ratingSum: nextSum,
+            ratingBreakdown: nextBreak,
+          });
+        });
+        showNotification("Tu opinión fue eliminada", "success");
+      } catch (e2) {
+        console.error("Error en fallback:", e2);
+        showNotification("No se pudo eliminar la opinión", "error");
+      }
+    } finally {
+      setDeleteBusyId(null);
+      setDeleteConfirmOpen(false);
+      setDeleteTargetReview(null);
+    }
+  };
+
+  const openDeleteConfirm = (rev) => {
+    if (!rev?.id) return;
+    if (!usuario || usuario.uid !== rev?.userId) {
+      showNotification("No autorizado", "error");
+      return;
+    }
+    if (deleteBusyId) return;
+    setDeleteTargetReview(rev);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleImageClick = (review, mediaIndex) => {
+    const reviewIndex = reviews.findIndex((r) => r.id === review.id);
+    setSelectedReviewIndex(reviewIndex);
+    setSelectedMediaIndex(mediaIndex);
+    setReviewMediaModalOpen(true);
+  };
+
+  const closeReviewMediaModal = () => {
+    setReviewMediaModalOpen(false);
+    setSelectedReviewIndex(0);
+    setSelectedMediaIndex(0);
+  };
+
+  const scrollToReviews = () => {
+    reviewsRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Filtrar y ordenar reseñas según filtros
+  const getFilteredAndSortedReviews = () => {
+    let filtered = [...reviews];
+
+    // Aplicar filtros
+    if (reviewFilters.stars) {
+      filtered = filtered.filter(
+        (review) => review.rating === reviewFilters.stars
+      );
+    }
+
+    if (reviewFilters.hasMedia) {
+      filtered = filtered.filter(
+        (review) => review.images?.length > 0 || review.videos?.length > 0
+      );
+    }
+
+    if (reviewFilters.verifiedOnly) {
+      filtered = filtered.filter((review) => review.verifiedPurchase);
+    }
+
+    // Aplicar ordenamiento
+    switch (reviewFilters.sortBy) {
+      case "oldest":
+        filtered.sort((a, b) => {
+          const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return dateA - dateB;
+        });
+        break;
+      case "highest":
+        filtered.sort((a, b) => b.rating - a.rating);
+        break;
+      case "lowest":
+        filtered.sort((a, b) => a.rating - b.rating);
+        break;
+      case "newest":
+      default:
+        filtered.sort((a, b) => {
+          const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return dateB - dateA;
+        });
+        break;
+    }
+
+    return filtered;
+  };
+
+  const openWriteReview = () => {
+    if (!usuario) {
+      setModalAbierto(true);
+      return;
+    }
+    setWriteReviewOpen(true);
+  };
+
+  const closeWriteReview = () => {
+    if (submitBusy) return;
+    setWriteReviewOpen(false);
+  };
+
+  // Todas las fotos de reseñas (para fila horizontal y modal de grid)
+  const reviewPhotoItems = useMemo(() => {
+    const items = [];
+    for (const r of reviews || []) {
+      if (Array.isArray(r?.images)) {
+        r.images.forEach((url, idx) =>
+          items.push({ review: r, url, index: idx })
+        );
+      }
+    }
+    return items;
+  }, [reviews]);
 
   // Update cart quantity when carrito changes
   useEffect(() => {
@@ -2060,7 +2537,118 @@ function VistaProducto() {
           <div className="flex flex-col gap-4 sm:gap-5 w-full xl:col-span-4">
             {/* Título, descripción y precio - PRIMERO (orden correcto) */}
             <h1 className="vp-title">{producto.nombre}</h1>
+            {/* Resumen compacto tipo Amazon con popover (oculto aquí; se renderiza debajo del link de tienda) */}
+            <div
+              className="relative inline-block hidden"
+              onMouseEnter={() => setRatingPopoverOpen(true)}
+              onMouseLeave={() => setRatingPopoverOpen(false)}
+            >
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                onClick={() => setRatingPopoverOpen((v) => !v)}
+                aria-haspopup="dialog"
+                aria-expanded={ratingPopoverOpen ? "true" : "false"}
+              >
+                <span className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={
+                        i < Math.round(ratingAverage || 0)
+                          ? "text-blue-500"
+                          : "text-gray-300"
+                      }
+                    >
+                      ★
+                    </span>
+                  ))}
+                </span>
+                <span className="font-semibold text-gray-900">
+                  {Number(ratingAverage || 0).toFixed(1)} de 5
+                </span>
+                <span className="text-blue-600">
+                  ({(Number(ratingCount) || 0).toLocaleString("es-DO")})
+                </span>
+                <FaChevronDown className="ml-0.5" size={12} />
+              </button>
 
+              {ratingPopoverOpen && (
+                <div
+                  ref={ratingPopoverCardRef}
+                  className="absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+                  role="dialog"
+                >
+                  <button
+                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                    onClick={() => setRatingPopoverOpen(false)}
+                    aria-label="Cerrar"
+                  >
+                    <FaTimes size={14} />
+                  </button>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-0.5 text-blue-500">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <span
+                            key={i}
+                            className={
+                              i < Math.round(ratingAverage || 0)
+                                ? ""
+                                : "text-gray-300"
+                            }
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {Number(ratingAverage || 0).toFixed(1)} de 5
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {(Number(ratingCount) || 0).toLocaleString("es-DO")}{" "}
+                      calificaciones globales
+                    </div>
+                    <div className="space-y-2">
+                      {[5, 4, 3, 2, 1].map((s) => {
+                        const total = Number(ratingCount) || 0;
+                        const count = Number(ratingBreakdown?.[s]) || 0;
+                        const pct = total
+                          ? Math.round((count / total) * 100)
+                          : 0;
+                        return (
+                          <div key={s} className="flex items-center gap-2">
+                            <span className="w-20 text-sm text-gray-700">
+                              {s} estrellas
+                            </span>
+                            <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className="h-3 bg-blue-500 rounded-full"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-10 text-right text-sm text-gray-700">
+                              {pct}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRatingPopoverOpen(false);
+                        scrollToReviews();
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+                    >
+                      Ver las opiniones de los clientes ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Enlace Visitar Tienda */}
             {(producto.storeId || producto.tienda_id) && tiendaNombreReal ? (
               <Link
@@ -2078,7 +2666,123 @@ function VistaProducto() {
                 </div>
               )
             )}
+            {/* Resumen compacto tipo Amazon con popover - debajo del link de tienda */}
+            <div
+              className="relative inline-block mb-2"
+              ref={ratingPopoverRef}
+              onMouseEnter={
+                isTouch ? undefined : () => setRatingPopoverOpen(true)
+              }
+              onMouseLeave={
+                isTouch ? undefined : () => setRatingPopoverOpen(false)
+              }
+            >
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                onClick={() => setRatingPopoverOpen((v) => !v)}
+                aria-haspopup="dialog"
+                aria-expanded={ratingPopoverOpen ? "true" : "false"}
+              >
+                <span className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={
+                        i < Math.round(ratingAverage || 0)
+                          ? "text-blue-500"
+                          : "text-gray-300"
+                      }
+                    >
+                      ★
+                    </span>
+                  ))}
+                </span>
+                <span className="font-semibold text-gray-900">
+                  {Number(ratingAverage || 0).toFixed(1)} de 5
+                </span>
+                <span className="text-blue-600">
+                  ({(Number(ratingCount) || 0).toLocaleString("es-DO")})
+                </span>
+                <FaChevronDown className="ml-0.5" size={12} />
+              </button>
 
+              {ratingPopoverOpen && (
+                <div
+                  ref={ratingPopoverCardRef}
+                  className="absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+                  role="dialog"
+                >
+                  <button
+                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                    onClick={() => setRatingPopoverOpen(false)}
+                    aria-label="Cerrar"
+                  >
+                    <FaTimes size={14} />
+                  </button>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-0.5 text-blue-500">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <span
+                            key={i}
+                            className={
+                              i < Math.round(ratingAverage || 0)
+                                ? ""
+                                : "text-gray-300"
+                            }
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {Number(ratingAverage || 0).toFixed(1)} de 5
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {(Number(ratingCount) || 0).toLocaleString("es-DO")}{" "}
+                      calificaciones globales
+                    </div>
+                    <div className="space-y-2">
+                      {[5, 4, 3, 2, 1].map((s) => {
+                        const total = Number(ratingCount) || 0;
+                        const count = Number(ratingBreakdown?.[s]) || 0;
+                        const pct = total
+                          ? Math.round((count / total) * 100)
+                          : 0;
+                        return (
+                          <div key={s} className="flex items-center gap-2">
+                            <span className="w-20 text-sm text-gray-700">
+                              {s} estrellas
+                            </span>
+                            <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className="h-3 bg-blue-500 rounded-full"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-10 text-right text-sm text-gray-700">
+                              {pct}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRatingPopoverOpen(false);
+                        scrollToReviews();
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+                    >
+                      Ver las opiniones de los clientes ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div
               className="vp-desc prose max-w-none"
               dangerouslySetInnerHTML={{
@@ -2099,7 +2803,6 @@ function VistaProducto() {
                 </div>
               </div>
             </div>
-
             {/* SELECTOR DE VARIANTES - SOLO SI HAY VARIANTES REALES */}
             {hasVariantsUI && (
               <div className="-mt-2">
@@ -2138,12 +2841,10 @@ function VistaProducto() {
                 />
               </div>
             )}
-
             {/* Acerca de este artículo - DESPUÉS DEL SELECTOR DE VARIANTES */}
             <div>
               <AcercaDeEsteArticulo producto={producto} />
             </div>
-
             {/* DISPONIBILIDAD + BOTONES SOLO EN MÓVIL/TABLET (restaurado) */}
             <div className="xl:hidden flex flex-col gap-3 overflow-visible">
               <div
@@ -2187,7 +2888,7 @@ function VistaProducto() {
                   </div>
                 ) : (
                   <button
-                    className={`w-full sm:w-1/2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl ${
+                    className={`w-full sm:w-1/2 px-8 md:px-10 py-3 md:py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold md:font-bold md:text-base rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl ${
                       !disponible
                         ? "opacity-60 cursor-not-allowed hover:scale-100 hover:bg-blue-600"
                         : ""
@@ -2357,6 +3058,133 @@ function VistaProducto() {
           producto={producto}
           allVariantes={allVariantes}
         />
+
+        {/* 📋 SISTEMA DE RESEÑAS ESTILO AMAZON - ESTRUCTURA EXACTA */}
+        <section
+          ref={reviewsRef}
+          id="reviews"
+          className="w-full mt-10 xl:mt-12"
+          style={{ scrollMarginTop: "90px" }}
+        >
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Opiniones de clientes
+          </h2>
+          <div className="xl:grid xl:grid-cols-12 xl:gap-8">
+            <div className="xl:col-span-3">
+              {/* NIVEL 1 - RESUMEN (ARRIBA) - Solo promedio, total, distribución */}
+              <ReviewsSummary
+                ratingAverage={ratingAverage}
+                ratingCount={ratingCount}
+                ratingBreakdown={ratingBreakdown}
+                onScrollToReviews={scrollToReviews}
+                onOpenWriteReview={openWriteReview}
+                loading={reviewsLoading}
+              />
+              <button
+                type="button"
+                onClick={openWriteReview}
+                className="mt-3 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Escribir una opinión
+              </button>
+            </div>
+            <div className="xl:col-span-9">
+              {/* Opiniones con imágenes - fila horizontal */}
+              <section className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Opiniones con imágenes
+                  </h3>
+                  {reviewPhotoItems.length > 0 && (
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                      onClick={() => setPhotosGridOpen(true)}
+                    >
+                      Ver todas las fotos
+                    </button>
+                  )}
+                </div>
+
+                {reviewPhotoItems.length > 0 ? (
+                  <div className="-mx-2 px-2">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {reviewPhotoItems.slice(0, 12).map((item, i) => (
+                        <button
+                          key={`${item.review.id}-${item.index}-${i}`}
+                          type="button"
+                          onClick={() =>
+                            handleImageClick(item.review, item.index)
+                          }
+                          className="flex-shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                          aria-label="Abrir foto de reseña"
+                        >
+                          <img
+                            src={item.url}
+                            alt="foto de reseña"
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Aún no hay fotos de clientes
+                  </p>
+                )}
+              </section>
+
+              {/* NIVEL 2 - LISTA DE RESEÑAS (ABAJO) - Bloques independientes */}
+              <div className="py-6">
+                {reviewsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+                          </div>
+                        </div>
+                        <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
+                        <div className="flex gap-2">
+                          <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {getFilteredAndSortedReviews().map((review) => (
+                      <ReviewCard
+                        key={review.id}
+                        review={review}
+                        canDelete={usuario?.uid === review.userId}
+                        onDelete={openDeleteConfirm}
+                        onImageClick={handleImageClick}
+                        isDeleting={deleteBusyId === review.id}
+                      />
+                    ))}
+
+                    {getFilteredAndSortedReviews().length === 0 && (
+                      <div className="text-center py-12">
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {reviews.length === 0
+                            ? "Aún no hay opiniones. ¡Sé el primero en opinar!"
+                            : "No hay reseñas que coincidan con los filtros seleccionados."}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Modal de galería fullscreen - ESTILO AMAZON EXACTO */}
@@ -2845,6 +3673,7 @@ function VistaProducto() {
         onClose={() => setModalAbierto(false)}
         onIniciarSesion={() => {
           try {
+            setModalAbierto(false);
             abrirModal();
           } catch {
             /* noop */
@@ -3160,6 +3989,424 @@ function VistaProducto() {
       <ToastNotification
         notifications={notifications}
         onRemove={removeNotification}
+      />
+
+      {deleteConfirmOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <motion.div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeDeleteConfirm}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+            <motion.div
+              className="relative w-full max-w-sm mx-auto sm:max-w-md rounded-2xl bg-gray-900 dark:bg-gray-900 shadow-2xl border border-gray-700 dark:border-gray-700 overflow-hidden"
+              initial={{ scale: 0.96, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.98, opacity: 0, y: 10 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-5 border-b border-gray-700 dark:border-gray-700">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-white dark:text-white leading-tight">
+                      ¿Eliminar tu opinión?
+                    </h3>
+                    <p className="text-sm text-blue-300 dark:text-blue-300 mt-1 leading-relaxed">
+                      Esta acción no se puede deshacer.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeDeleteConfirm}
+                    disabled={!!deleteBusyId}
+                    className="p-2 rounded-full hover:bg-gray-800 dark:hover:bg-gray-800 text-blue-400 dark:text-blue-400 hover:text-blue-300 dark:hover:text-blue-300 transition-all duration-200"
+                    aria-label="Cerrar"
+                  >
+                    <FaTimes size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-6 py-5">
+                <div className="flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={closeDeleteConfirm}
+                    disabled={!!deleteBusyId}
+                    className="px-5 py-2.5 rounded-lg border border-blue-300 bg-blue-600 text-white hover:bg-blue-700 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteReview(deleteTargetReview)}
+                    disabled={!!deleteBusyId}
+                    className={`px-5 py-2.5 rounded-lg text-white font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      deleteBusyId
+                        ? "!bg-red-400 hover:!bg-red-400"
+                        : "!bg-red-600 hover:!bg-red-700"
+                    }`}
+                  >
+                    {deleteBusyId ? "Eliminando..." : "Eliminar"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>,
+          document.body
+        )}
+
+      {reviewOverlayOpen && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 flex flex-col"
+          onClick={() => setReviewOverlayOpen(false)}
+        >
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              className="bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-colors"
+              onClick={() => setReviewOverlayOpen(false)}
+              aria-label="Cerrar"
+            >
+              <FaTimes size={20} />
+            </button>
+          </div>
+          <div
+            className="flex-1 flex items-center justify-center p-4 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(() => {
+              const item = reviewOverlayItems[reviewOverlayIndex];
+              if (!item) return null;
+              if (item.type === "video") {
+                return (
+                  <video
+                    src={item.url}
+                    controls
+                    className="max-w-full max-h-full object-contain"
+                  />
+                );
+              }
+              return (
+                <img
+                  src={item.url}
+                  alt="adjunto"
+                  className="max-w-full max-h-full object-contain"
+                />
+              );
+            })()}
+            {reviewOverlayItems.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="hidden xl:flex absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 text-gray-700 hover:text-gray-900"
+                  onClick={() =>
+                    setReviewOverlayIndex(
+                      (i) =>
+                        (i - 1 + reviewOverlayItems.length) %
+                        reviewOverlayItems.length
+                    )
+                  }
+                  aria-label="Anterior"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="hidden xl:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 text-gray-700 hover:text-gray-900"
+                  onClick={() =>
+                    setReviewOverlayIndex(
+                      (i) => (i + 1) % reviewOverlayItems.length
+                    )
+                  }
+                  aria-label="Siguiente"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
+          {reviewOverlayItems.length > 1 && (
+            <div className="p-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-2 justify-center overflow-x-auto pb-2 scrollbar-hide">
+                {reviewOverlayItems.map((m, i) => (
+                  <button
+                    key={i}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      i === reviewOverlayIndex
+                        ? "border-white"
+                        : "border-gray-600"
+                    }`}
+                    onClick={() => setReviewOverlayIndex(i)}
+                    aria-label={`Miniatura ${i + 1}`}
+                  >
+                    {m.type === "image" ? (
+                      <img
+                        src={m.url}
+                        alt="miniatura"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={m.url}
+                        className="w-full h-full object-cover"
+                        muted
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL: Escribir opinión */}
+      {writeReviewOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <motion.div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeWriteReview}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+            <motion.div
+              className="relative w-full max-w-lg mx-auto rounded-2xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+              initial={{ scale: 0.96, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.98, opacity: 0, y: 10 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                      Escribir opinión
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                      Comparte tu experiencia con este producto.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeWriteReview}
+                    disabled={!!submitBusy}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-all duration-200"
+                    aria-label="Cerrar"
+                  >
+                    <FaTimes size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-6 py-5 space-y-5">
+                {/* Estrellas */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Calificación:
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setNewRating(i + 1)}
+                        className={`text-2xl transition-colors duration-200 ${
+                          i < newRating
+                            ? "text-blue-500"
+                            : "text-gray-300 hover:text-gray-400"
+                        }`}
+                        aria-label={`Dar ${i + 1} estrellas`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Comentario */}
+                <div>
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    rows={4}
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Escribe tu opinión (obligatorio)"
+                  />
+                </div>
+
+                {/* Medios */}
+                <div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleMediaFilesChange}
+                    className="text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-300"
+                  />
+                </div>
+
+                {/* Preview de medios */}
+                {newMediaFiles?.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {newMediaFiles.map((file, i) => (
+                      <div
+                        key={i}
+                        className="flex-shrink-0 w-20 h-20 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden bg-gray-50 dark:bg-gray-800"
+                        title={file.name}
+                      >
+                        {file.type.startsWith("image/") ? (
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <FaVideo className="text-gray-400" size={20} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Acciones */}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={closeWriteReview}
+                    disabled={!!submitBusy}
+                    className="px-5 py-2.5 rounded-lg border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/40 font-semibold transition-all duration-200 disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={publishReview}
+                    disabled={
+                      submitBusy || !(newRating > 0) || !newComment.trim()
+                    }
+                    className={`px-5 py-2.5 rounded-lg text-white font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      submitBusy || !(newRating > 0) || !newComment.trim()
+                        ? "bg-blue-400"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    {submitBusy ? "Publicando..." : "Publicar opinión"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>,
+          document.body
+        )}
+
+      {/* MODAL: Todas las fotos de clientes */}
+      {photosGridOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <motion.div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPhotosGridOpen(false)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+            <motion.div
+              className="relative w-full max-w-6xl mx-auto rounded-2xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+              initial={{ scale: 0.96, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.98, opacity: 0, y: 10 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Todas las fotos
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setPhotosGridOpen(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition"
+                  aria-label="Cerrar"
+                >
+                  <FaTimes size={16} />
+                </button>
+              </div>
+              <div className="p-4 max-h-[80vh] overflow-y-auto">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                  {reviewPhotoItems.map((item, i) => (
+                    <button
+                      key={`${item.review.id}-${item.index}-${i}`}
+                      type="button"
+                      onClick={() => {
+                        handleImageClick(item.review, item.index);
+                        setPhotosGridOpen(false);
+                      }}
+                      className="relative w-full aspect-square rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                    >
+                      <img
+                        src={item.url}
+                        alt="foto de reseña"
+                        className="absolute inset-0 w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>,
+          document.body
+        )}
+
+      {/* NIVEL 3 - MODAL DE MEDIOS DE RESEÑAS (ESTRUCTURA EXACTA AMAZON) */}
+      <ReviewMediaModal
+        isOpen={reviewMediaModalOpen}
+        onClose={closeReviewMediaModal}
+        reviews={reviews}
+        initialReviewIndex={selectedReviewIndex}
+        initialMediaIndex={selectedMediaIndex}
       />
     </>
   );

@@ -523,6 +523,7 @@
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
+    padding: 0 var(--screen-padding, 16px) !important;
   }
 
   .prl-nav-btn {
@@ -533,6 +534,14 @@
     width: 200px; /* Igual que móvil - más grande */
     min-width: 200px;
     max-width: 200px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .prl-card-desktop {
+    width: 210px;
+    min-width: 210px;
+    max-width: 210px;
   }
 }
 
