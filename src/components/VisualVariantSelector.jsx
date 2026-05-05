@@ -1,4 +1,5 @@
 import React from "react";
+import { fixBucket } from "../utils/imageUtils";
 
 /**
  * VisualVariantSelector - Selector visual de variantes con imágenes estilo Amazon
@@ -19,7 +20,7 @@ const VisualVariantSelector = ({
 
   // Filtrar variantes que tienen color definido
   const variantesConColor = variantes.filter(
-    (v) => v && typeof v.color === "string" && v.color.trim()
+    (v) => v && typeof v.color === "string" && v.color.trim(),
   );
 
   if (variantesConColor.length === 0) {
@@ -41,11 +42,14 @@ const VisualVariantSelector = ({
   };
 
   const Card = ({ variante, index, isSelected, isOutOfStock, onClick }) => {
-    const imagenVariante =
+    const imagenVarianteRaw =
       variante.imagenPrincipal?.[0]?.url ||
       variante.imagen ||
       variante.imagenes?.[0] ||
       null;
+    const imagenVariante = imagenVarianteRaw
+      ? fixBucket(imagenVarianteRaw)
+      : null;
 
     return (
       <button

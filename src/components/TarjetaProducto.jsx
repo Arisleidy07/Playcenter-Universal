@@ -7,6 +7,7 @@ import ModalLoginAlert from "./ModalLoginAlert";
 import { useAuthModal } from "../context/AuthModalContext";
 import { useTheme } from "../context/ThemeContext";
 import "../styles/TarjetaProducto.css";
+import { fixBucket } from "../utils/imageUtils";
 // (sin imports extra)
 
 function formatPriceRD(value) {
@@ -143,9 +144,9 @@ function TarjetaProducto({ producto }) {
   const pickUrl = (u) => {
     try {
       if (!u) return "";
-      if (typeof u === "string") return u;
-      if (typeof u === "object" && u !== null) return u.url || "";
-      return String(u || "");
+      if (typeof u === "string") return fixBucket(u);
+      if (typeof u === "object" && u !== null) return fixBucket(u.url || "");
+      return fixBucket(String(u || ""));
     } catch {
       return "";
     }

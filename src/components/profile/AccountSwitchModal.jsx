@@ -5,6 +5,7 @@ import { useMultiAccount } from "../../context/MultiAccountContext";
 import { useAuth } from "../../context/AuthContext";
 import { functions } from "../../firebase";
 import { httpsCallable } from "firebase/functions";
+import { fixBucket } from "../../utils/imageUtils";
 
 export default function AccountSwitchModal({
   isOpen,
@@ -44,7 +45,11 @@ export default function AccountSwitchModal({
         usuarioInfo?.displayName ||
         usuario?.displayName ||
         (usuario?.email ? usuario.email.split("@")[0] : "Usuario"),
-      photoURL: usuarioInfo?.fotoURL || usuario?.photoURL || null,
+      photoURL: (() => {
+        const raw = usuarioInfo?.fotoURL || usuario?.photoURL || "";
+        const fixed = raw ? fixBucket(String(raw)) : "";
+        return fixed || null;
+      })(),
       role: usuarioInfo?.role || (usuarioInfo?.admin ? "admin" : "user"),
     };
   }, [usuario, usuarioInfo]);
@@ -65,7 +70,7 @@ export default function AccountSwitchModal({
 
     // Si ya está en la lista
     const exists = (savedAccounts || []).some(
-      (a) => (a.email || "").toLowerCase() === emailClean
+      (a) => (a.email || "").toLowerCase() === emailClean,
     );
     if (exists) {
       setAddSuccess("Ya estaba agregada");
@@ -116,9 +121,28 @@ export default function AccountSwitchModal({
     });
   }, [savedAccounts]);
 
+  const getAccountPhotoUrl = (acc) => {
+    try {
+      const raw = acc?.photoURL || "";
+      const fixed = raw ? fixBucket(String(raw)) : "";
+      return fixed || null;
+    } catch {
+      return null;
+    }
+  };
+
   const handleSwitch = (acc) => {
+    console.log("�️ CLICK EN BOTÓN DETECTADO - handleSwitch called");
+    console.log("�🔄 [AccountSwitchModal] handleSwitch called with:", acc);
+    console.log(
+      "🔄 [AccountSwitchModal] switchAccount function:",
+      switchAccount,
+    );
     onClose?.();
-    setTimeout(() => switchAccount?.(acc), 60);
+    setTimeout(() => {
+      console.log("🔄 [AccountSwitchModal] Calling switchAccount with:", acc);
+      switchAccount?.(acc);
+    }, 60);
   };
 
   return (
@@ -226,9 +250,9 @@ export default function AccountSwitchModal({
                               className="flex items-center gap-3 flex-1 text-left"
                             >
                               <div className="relative flex-shrink-0">
-                                {acc.photoURL ? (
+                                {getAccountPhotoUrl(acc) ? (
                                   <img
-                                    src={acc.photoURL}
+                                    src={getAccountPhotoUrl(acc)}
                                     alt="Avatar"
                                     className="w-11 h-11 rounded-full object-cover border border-slate-200 dark:border-slate-700"
                                     onError={(e) => {

@@ -54,6 +54,7 @@ import {
   LogOut,
   Plus,
   Clock,
+  Star,
 } from "lucide-react";
 import AccountMenu from "../components/profile/AccountMenu";
 
@@ -63,6 +64,7 @@ import ProfileHeader from "../components/profile/ProfileHeader";
 import LogoutModal from "../components/profile/LogoutModal";
 import { Loader } from "../components/ui/Loader";
 import Entrega from "../components/Entrega";
+import { fixBucket } from "../utils/imageUtils";
 
 // Views
 import OverviewView from "../components/profile/views/OverviewView";
@@ -74,6 +76,7 @@ import SecurityView from "../components/profile/views/SecurityView";
 import PaymentsView from "../components/profile/views/PaymentsView";
 import StoreView from "../components/profile/views/StoreView";
 import CustomerServiceView from "../components/profile/views/CustomerServiceView";
+import MyReviewsView from "../components/profile/views/MyReviewsView";
 import EditProfileModal from "../components/profile/EditProfileModal";
 import OrderDetailsSheet from "../components/profile/OrderDetailsSheet";
 import FollowersModal from "../components/FollowersModal";
@@ -170,8 +173,8 @@ export default function Profile() {
   const pickUrl = (u) => {
     try {
       if (!u) return "";
-      if (typeof u === "string") return u;
-      if (typeof u === "object") return u.url || u.src || "";
+      if (typeof u === "string") return fixBucket(u);
+      if (typeof u === "object") return fixBucket(u.url || u.src || "");
       return String(u || "");
     } catch {
       return "";
@@ -201,7 +204,7 @@ export default function Profile() {
         for (const v of vars) {
           const url =
             pickUrl(
-              Array.isArray(v?.imagenPrincipal) && v.imagenPrincipal[0]
+              Array.isArray(v?.imagenPrincipal) && v.imagenPrincipal[0],
             ) ||
             pickUrl(v?.imagen) ||
             firstImageFromMedia(v?.media);
@@ -292,6 +295,7 @@ export default function Profile() {
     seguridad: "/logos/perfil/7.jpg",
     configuracion: "/logos/perfil/8.jpg",
     historial: "/logos/perfil/9.jpg",
+    opiniones: "/logos/perfil/10.jpg",
   };
 
   const mainMenuItems = [
@@ -312,6 +316,12 @@ export default function Profile() {
       title: "Historial",
       description: "Productos vistos recientemente.",
       icon: Clock,
+    },
+    {
+      id: "opiniones",
+      title: "Mis Opiniones",
+      description: "Reseñas que has publicado en productos.",
+      icon: Star,
     },
     {
       id: "ubicaciones",
@@ -361,7 +371,7 @@ export default function Profile() {
         // Pedidos del usuario
         const qOrders = query(
           collection(db, "orders"),
-          where("userId", "==", usuario.uid)
+          where("userId", "==", usuario.uid),
         );
         const snapOrders = await getDocs(qOrders);
         setHistorial(snapOrders.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -376,11 +386,11 @@ export default function Profile() {
         setLoadingAddresses(true);
         const qAddress = query(
           collection(db, "direcciones"),
-          where("usuarioId", "==", usuario.uid)
+          where("usuarioId", "==", usuario.uid),
         );
         const snapAddress = await getDocs(qAddress);
         setDirecciones(
-          snapAddress.docs.map((d) => ({ id: d.id, ...d.data() }))
+          snapAddress.docs.map((d) => ({ id: d.id, ...d.data() })),
         );
       } catch (e) {
         // console.error("ProfileRefactored loadAddresses:", e);
@@ -444,7 +454,7 @@ export default function Profile() {
         const tryField = async (field) => {
           const q = query(
             collection(db, "tiendas"),
-            where(field, "==", usuario.uid)
+            where(field, "==", usuario.uid),
           );
           const snap = await getDocs(q);
           if (!snap.empty) {
@@ -477,7 +487,7 @@ export default function Profile() {
           for (const f of fields) {
             const qStores = query(
               collection(db, "stores"),
-              where(f, "==", usuario.uid)
+              where(f, "==", usuario.uid),
             );
             const snapStores = await getDocs(qStores);
             if (!snapStores.empty) {
@@ -495,7 +505,7 @@ export default function Profile() {
                     role: "seller",
                     isSeller: true,
                   },
-                  { merge: true }
+                  { merge: true },
                 );
               } catch (_) {}
               return true;
@@ -507,7 +517,7 @@ export default function Profile() {
               const email = (usuario.email || "").toLowerCase().trim();
               const qEmail = query(
                 collection(db, "stores"),
-                where("ownerEmail", "==", email)
+                where("ownerEmail", "==", email),
               );
               const snapEmail = await getDocs(qEmail);
               if (!snapEmail.empty) {
@@ -572,7 +582,7 @@ export default function Profile() {
             // Contar seguidores reales
             const followersRef = collection(
               db,
-              `users/${usuario.uid}/followers`
+              `users/${usuario.uid}/followers`,
             );
             const followersSnap = await getDocs(followersRef);
             const realSeguidores = followersSnap.size;
@@ -580,7 +590,7 @@ export default function Profile() {
             // Contar seguidos reales
             const followingRef = collection(
               db,
-              `users/${usuario.uid}/following`
+              `users/${usuario.uid}/following`,
             );
             const followingSnap = await getDocs(followingRef);
             const realSeguidos = followingSnap.size;
@@ -619,7 +629,7 @@ export default function Profile() {
         // Buscar por creadoPor (usuario que creó el producto)
         const qCreadoPor = query(
           collection(db, "productos"),
-          where("creadoPor", "==", usuario.uid)
+          where("creadoPor", "==", usuario.uid),
         );
         const snapCreadoPor = await getDocs(qCreadoPor);
         snapCreadoPor.docs.forEach((doc) => {
@@ -629,7 +639,7 @@ export default function Profile() {
         // Buscar por ownerUid
         const qOwnerUid = query(
           collection(db, "productos"),
-          where("ownerUid", "==", usuario.uid)
+          where("ownerUid", "==", usuario.uid),
         );
         const snapOwnerUid = await getDocs(qOwnerUid);
         snapOwnerUid.docs.forEach((doc) => {
@@ -640,7 +650,7 @@ export default function Profile() {
         if (storeId) {
           const qStoreId = query(
             collection(db, "productos"),
-            where("storeId", "==", storeId)
+            where("storeId", "==", storeId),
           );
           const snapStoreId = await getDocs(qStoreId);
           snapStoreId.docs.forEach((doc) => {
@@ -650,7 +660,7 @@ export default function Profile() {
           // Buscar por tiendaId
           const qTiendaId = query(
             collection(db, "productos"),
-            where("tiendaId", "==", storeId)
+            where("tiendaId", "==", storeId),
           );
           const snapTiendaId = await getDocs(qTiendaId);
           snapTiendaId.docs.forEach((doc) => {
@@ -660,7 +670,7 @@ export default function Profile() {
           // Buscar por tienda_id (legacy)
           const qTiendaIdLegacy = query(
             collection(db, "productos"),
-            where("tienda_id", "==", storeId)
+            where("tienda_id", "==", storeId),
           );
           const snapTiendaIdLegacy = await getDocs(qTiendaIdLegacy);
           snapTiendaIdLegacy.docs.forEach((doc) => {
@@ -775,7 +785,7 @@ export default function Profile() {
       historyProductIds
         .map((id) => productsById.get(String(id)))
         .filter(Boolean),
-    [historyProductIds, productsById]
+    [historyProductIds, productsById],
   );
   const [historySettingsOpen, setHistorySettingsOpen] = useState(false);
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
@@ -953,12 +963,12 @@ export default function Profile() {
                             ? usuarioInfo.fotoURL
                             : null
                           : usuario?.photoURL && usuario.photoURL !== ""
-                          ? usuario.photoURL
-                          : null;
+                            ? usuario.photoURL
+                            : null;
 
                         return fotoURL ? (
                           <img
-                            src={fotoURL}
+                            src={fixBucket(fotoURL)}
                             className="w-8 h-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-600 shadow-sm"
                             alt="Usuario"
                             onError={(e) => {
@@ -977,8 +987,8 @@ export default function Profile() {
                               ? usuarioInfo.fotoURL
                               : null
                             : usuario?.photoURL && usuario.photoURL !== ""
-                            ? usuario.photoURL
-                            : null;
+                              ? usuario.photoURL
+                              : null;
                           return fotoURL ? "hidden" : "flex";
                         })()}`}
                       >
@@ -1245,6 +1255,9 @@ export default function Profile() {
       case "configuracion":
         return <SettingsView />;
 
+      case "opiniones":
+        return <MyReviewsView />;
+
       default:
         if (activeView === "historial") {
           return (
@@ -1334,7 +1347,7 @@ export default function Profile() {
                               onClick={() => {
                                 try {
                                   pauseProductHistoryFor(
-                                    3 * 24 * 60 * 60 * 1000
+                                    3 * 24 * 60 * 60 * 1000,
                                   );
                                 } catch {}
                               }}
@@ -1346,7 +1359,7 @@ export default function Profile() {
                               onClick={() => {
                                 try {
                                   pauseProductHistoryFor(
-                                    7 * 24 * 60 * 60 * 1000
+                                    7 * 24 * 60 * 60 * 1000,
                                   );
                                 } catch {}
                               }}
@@ -1358,7 +1371,7 @@ export default function Profile() {
                               onClick={() => {
                                 try {
                                   pauseProductHistoryFor(
-                                    14 * 24 * 60 * 60 * 1000
+                                    14 * 24 * 60 * 60 * 1000,
                                   );
                                 } catch {}
                               }}
@@ -1382,7 +1395,7 @@ export default function Profile() {
                             <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
                               Historial pausado hasta{" "}
                               {new Date(
-                                getProductHistoryPauseUntil()
+                                getProductHistoryPauseUntil(),
                               ).toLocaleString()}
                             </p>
                           )}
@@ -1567,7 +1580,7 @@ export default function Profile() {
                               aria-checked={isSearchHistoryEnabled()}
                               onClick={() => {
                                 setPendingSearchEnable(
-                                  !isSearchHistoryEnabled()
+                                  !isSearchHistoryEnabled(),
                                 );
                                 setConfirmSearchOpen(true);
                               }}
@@ -1601,7 +1614,7 @@ export default function Profile() {
                               aria-checked={!isProductHistoryPaused()}
                               onClick={() => {
                                 setPendingProductEnable(
-                                  isProductHistoryPaused()
+                                  isProductHistoryPaused(),
                                 );
                                 setConfirmProductOpen(true);
                               }}
@@ -1804,12 +1817,12 @@ export default function Profile() {
                           ? usuarioInfo.fotoURL
                           : null
                         : usuario?.photoURL && usuario.photoURL !== ""
-                        ? usuario.photoURL
-                        : null;
+                          ? usuario.photoURL
+                          : null;
 
                       return fotoURL ? (
                         <img
-                          src={fotoURL}
+                          src={fixBucket(fotoURL)}
                           className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-slate-200 dark:border-slate-600 shadow-sm"
                           alt="Usuario"
                           onError={(e) => {
@@ -1828,8 +1841,8 @@ export default function Profile() {
                             ? usuarioInfo.fotoURL
                             : null
                           : usuario?.photoURL && usuario.photoURL !== ""
-                          ? usuario.photoURL
-                          : null;
+                            ? usuario.photoURL
+                            : null;
                         return fotoURL ? "hidden" : "flex";
                       })()}`}
                     >
@@ -1967,13 +1980,13 @@ export default function Profile() {
                   try {
                     const oldPhotoRef = ref(
                       storage,
-                      `usuarios/${usuario.uid}/perfil.jpg`
+                      `usuarios/${usuario.uid}/perfil.jpg`,
                     );
                     await deleteObject(oldPhotoRef);
                   } catch (storageError) {
                     // Si no existe en storage, no es un error crítico
                     console.warn(
-                      "Foto no encontrada en storage o ya eliminada"
+                      "Foto no encontrada en storage o ya eliminada",
                     );
                   }
                 } catch (error) {
@@ -2008,7 +2021,7 @@ export default function Profile() {
                 } catch (error) {
                   console.warn(
                     "Error al actualizar displayName en auth:",
-                    error
+                    error,
                   );
                 }
               }

@@ -7,6 +7,7 @@ import BotonCardnet from "../components/BotonCardnet";
 import "../styles/Carrito.css";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
+import { fixBucket } from "../utils/imageUtils";
 
 function formatPriceRD(value) {
   const pesos = Math.round(Number(value) || 0);
@@ -19,7 +20,7 @@ function getLiveMaxStock(item, productDoc) {
   // Si hay variantes y color seleccionado, buscar esa variante
   if (Array.isArray(productDoc.variantes) && item.colorSeleccionado) {
     const v = productDoc.variantes.find(
-      (va) => va.color === item.colorSeleccionado
+      (va) => va.color === item.colorSeleccionado,
     );
     if (v && v.cantidad !== undefined) return Number(v.cantidad) || 0;
   }
@@ -38,7 +39,7 @@ function getStockMaximo(itemCarrito) {
   // Si no existe maxStock, intentar por variante seleccionada
   if (Array.isArray(itemCarrito.variantes) && itemCarrito.colorSeleccionado) {
     const v = itemCarrito.variantes.find(
-      (va) => va.color === itemCarrito.colorSeleccionado
+      (va) => va.color === itemCarrito.colorSeleccionado,
     );
     if (v && v.cantidad !== undefined) return Number(v.cantidad) || 0;
   }
@@ -101,7 +102,7 @@ export default function Carrito() {
 
   const total = carrito.reduce(
     (acc, item) => acc + (Number(item.precio) || 0) * item.cantidad,
-    0
+    0,
   );
 
   const cartItemsForPayload = carrito.map((item) => {
@@ -109,9 +110,9 @@ export default function Carrito() {
     const pickUrl = (u) => {
       try {
         if (!u) return "";
-        if (typeof u === "string") return u;
-        if (typeof u === "object" && u !== null) return u.url || "";
-        return String(u || "");
+        if (typeof u === "string") return fixBucket(u);
+        if (typeof u === "object" && u !== null) return fixBucket(u.url || "");
+        return fixBucket(String(u || ""));
       } catch {
         return "";
       }
@@ -164,7 +165,7 @@ export default function Carrito() {
     });
     const displayImage =
       pickUrl(p?.imagenPrincipal?.[0]) ||
-      p?.imagen ||
+      fixBucket(p?.imagen || "") ||
       (mediaImg ? pickUrl(mediaImg) : "") ||
       pickUrl(Array.isArray(p?.galeriaImagenes) && p.galeriaImagenes[0]) ||
       pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
@@ -176,7 +177,7 @@ export default function Carrito() {
       nombre: item.nombre,
       precio: Number(item.precio) || 0,
       cantidad: item.cantidad,
-      imagen: displayImage,
+      imagen: fixBucket(displayImage),
     };
   });
 
@@ -232,10 +233,10 @@ export default function Carrito() {
                       const pickUrl = (u) => {
                         try {
                           if (!u) return "";
-                          if (typeof u === "string") return u;
+                          if (typeof u === "string") return fixBucket(u);
                           if (typeof u === "object" && u !== null)
-                            return u.url || "";
-                          return String(u || "");
+                            return fixBucket(u.url || "");
+                          return fixBucket(String(u || ""));
                         } catch {
                           return "";
                         }
@@ -279,18 +280,18 @@ export default function Carrito() {
                       });
                       const displayImage =
                         pickUrl(p?.imagenPrincipal?.[0]) ||
-                        p?.imagen ||
+                        fixBucket(p?.imagen || "") ||
                         (mediaImg ? pickUrl(mediaImg) : "") ||
                         pickUrl(
                           Array.isArray(p?.galeriaImagenes) &&
-                            p.galeriaImagenes[0]
+                            p.galeriaImagenes[0],
                         ) ||
                         pickUrl(Array.isArray(p?.imagenes) && p.imagenes[0]) ||
                         fromVariant() ||
                         "";
                       return (
                         <img
-                          src={displayImage}
+                          src={fixBucket(displayImage)}
                           alt={item.nombre}
                           className="carrito-img"
                         />
@@ -303,7 +304,7 @@ export default function Carrito() {
                       <div className="carrito-subtotal">
                         RD${" "}
                         {formatPriceRD(
-                          (Number(item.precio) || 0) * item.cantidad
+                          (Number(item.precio) || 0) * item.cantidad,
                         )}
                       </div>
 
@@ -312,17 +313,17 @@ export default function Carrito() {
                           restante === 0
                             ? "stock-out"
                             : Number.isFinite(restante) && restante <= 2
-                            ? "stock-low"
-                            : "stock-ok"
+                              ? "stock-low"
+                              : "stock-ok"
                         }`}
                       >
                         {restante === 0
                           ? "No disponible"
                           : Number.isFinite(restante) && restante <= 2
-                          ? `Solo quedan ${restante}`
-                          : Number.isFinite(restante)
-                          ? `${restante} disponibles`
-                          : "Disponible"}
+                            ? `Solo quedan ${restante}`
+                            : Number.isFinite(restante)
+                              ? `${restante} disponibles`
+                              : "Disponible"}
                       </p>
 
                       <div className="carrito-actions">
@@ -338,7 +339,7 @@ export default function Carrito() {
                               e.stopPropagation();
                               eliminarUnidadDelCarrito(
                                 item.id,
-                                item.colorSeleccionado ?? null
+                                item.colorSeleccionado ?? null,
                               );
                             }}
                             className="vp-qty-btn"
@@ -361,7 +362,7 @@ export default function Carrito() {
                                   productosLive[item.id] || item;
                                 agregarAlCarrito(
                                   productoCompleto,
-                                  item.colorSeleccionado ?? null
+                                  item.colorSeleccionado ?? null,
                                 );
                               }
                             }}
@@ -496,7 +497,7 @@ export default function Carrito() {
                   onClick={() => {
                     quitarDelCarrito(
                       productoAEliminar.id,
-                      productoAEliminar.colorSeleccionado ?? null
+                      productoAEliminar.colorSeleccionado ?? null,
                     );
                     setProductoAEliminar(null);
                   }}
@@ -506,7 +507,7 @@ export default function Carrito() {
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );

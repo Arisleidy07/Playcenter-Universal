@@ -1,4 +1,5 @@
 import React from "react";
+import { fixBucket } from "../../../utils/imageUtils";
 import { Package, ChevronRight, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CardSkeleton } from "../../ui/Skeleton";
@@ -9,8 +10,8 @@ import { doc, getDoc } from "firebase/firestore";
 const pickUrl = (u) => {
   try {
     if (!u) return "";
-    if (typeof u === "string") return u;
-    if (typeof u === "object") return u.url || u.src || "";
+    if (typeof u === "string") return fixBucket(u);
+    if (typeof u === "object") return fixBucket(u.url || u.src || "");
     return String(u || "");
   } catch {
     return "";
@@ -154,7 +155,7 @@ export default function OrdersView({
   }
 
   const sortedOrders = [...orders].sort(
-    (a, b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0)
+    (a, b) => (b.fecha?.seconds || 0) - (a.fecha?.seconds || 0),
   );
 
   const containerVariants = {
@@ -282,7 +283,7 @@ export default function OrdersView({
                             {
                               dateStyle: "medium",
                               timeStyle: "short",
-                            }
+                            },
                           )
                         : "Fecha desconocida"}
                     </p>
@@ -291,7 +292,7 @@ export default function OrdersView({
                     </div>
                     <span
                       className={`mt-1 inline-flex px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyles(
-                        order.estado
+                        order.estado,
                       )}`}
                     >
                       {String(order.estado || "")

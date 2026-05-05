@@ -10,13 +10,13 @@ service cloud.firestore {
     
     // Usuarios
     match /usuarios/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
     
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
     
     // Productos - Lectura pública, escritura y eliminación por admin o dueño
@@ -27,6 +27,22 @@ service cloud.firestore {
       allow delete: if request.auth != null && 
                       (isAdmin() || 
                        (resource.data.ownerUid != null && resource.data.ownerUid == request.auth.uid));
+
+      // Reseñas de productos - Lectura pública, escritura por autor, borrado por autor/admin
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if request.auth != null &&
+                        request.resource.data.userId == request.auth.uid;
+        allow update: if request.auth != null &&
+                        (resource.data.userId == request.auth.uid || isAdmin());
+        allow delete: if request.auth != null &&
+                        (resource.data.userId == request.auth.uid || isAdmin());
+      }
+    }
+
+    // CollectionGroup de reviews - permitir consulta por userId (para "Mis Opiniones")
+    match /{path=**}/reviews/{reviewId} {
+      allow read: if true;
     }
     
     // Categorías - Lectura pública, escritura autenticados

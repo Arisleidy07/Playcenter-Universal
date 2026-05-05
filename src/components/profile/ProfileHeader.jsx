@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import AccountMenuWrapper from "./AccountMenuWrapper";
+import { fixBucket } from "../../utils/imageUtils";
 
 export default function ProfileHeader({
   user,
@@ -15,16 +16,21 @@ export default function ProfileHeader({
   const currentName =
     userInfo?.displayName || user?.displayName || user?.email || "Usuario";
   // CRÍTICO: Priorizar fotoURL de Firestore. Si es "" (string vacío), significa que se eliminó intencionalmente
-  const currentAvatar = userInfo?.hasOwnProperty('fotoURL') 
-    ? (userInfo.fotoURL && userInfo.fotoURL !== "" ? userInfo.fotoURL : null)
-    : (user?.photoURL && user.photoURL !== "" ? user.photoURL : null);
+  const currentAvatar = userInfo?.hasOwnProperty("fotoURL")
+    ? userInfo.fotoURL && userInfo.fotoURL !== ""
+      ? userInfo.fotoURL
+      : null
+    : user?.photoURL && user.photoURL !== ""
+      ? user.photoURL
+      : null;
+  const currentAvatarFixed = currentAvatar ? fixBucket(currentAvatar) : null;
 
   // Datos actuales para el menú
   const currentUser = {
     uid: user?.uid,
     email: user?.email,
     displayName: currentName,
-    photoURL: currentAvatar,
+    photoURL: currentAvatarFixed,
   };
 
   // Versión simple (sidebar) con flechita y menú reutilizable
@@ -42,9 +48,9 @@ export default function ProfileHeader({
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-700 dark:bg-slate-600 flex-shrink-0">
-                {currentAvatar ? (
+                {currentAvatarFixed ? (
                   <img
-                    src={currentAvatar}
+                    src={currentAvatarFixed}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                   />
@@ -100,9 +106,9 @@ export default function ProfileHeader({
             }`}
           >
             <div className="w-8 h-8 rounded-full bg-slate-700 dark:bg-slate-600 p-[2px] flex-shrink-0 overflow-hidden">
-              {currentAvatar ? (
+              {currentAvatarFixed ? (
                 <img
-                  src={currentAvatar}
+                  src={currentAvatarFixed}
                   alt="Avatar"
                   className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-800"
                 />

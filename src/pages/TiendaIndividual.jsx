@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase";
+import { fixBucket } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useAuthModal } from "../context/AuthModalContext";
@@ -111,40 +112,83 @@ export default function TiendaIndividual() {
     let unsubscribe = null;
 
     const buscarTienda = async () => {
+      const attach = (collName, docId, data) => {
+        setTienda({ id: docId, ...data });
+        setTiendaCollection(collName);
+        setLoading(false);
+        unsubscribe = onSnapshot(doc(db, collName, docId), (docSnap) => {
+          if (docSnap.exists()) {
+            setTienda({ id: docSnap.id, ...docSnap.data() });
+          }
+        });
+      };
+
       try {
-        // PRIMERO: Intentar en "tiendas" (colección principal)
+        // 1) Lookup directo por id en "tiendas"
         const tiendaDoc = await getDoc(doc(db, "tiendas", id));
-
         if (tiendaDoc.exists()) {
-          setTienda({ id: tiendaDoc.id, ...tiendaDoc.data() });
-          setTiendaCollection("tiendas");
-          setLoading(false);
-
-          // Escuchar cambios en tiempo real
-          unsubscribe = onSnapshot(doc(db, "tiendas", id), (docSnap) => {
-            if (docSnap.exists()) {
-              setTienda({ id: docSnap.id, ...docSnap.data() });
-            }
-          });
+          attach("tiendas", tiendaDoc.id, tiendaDoc.data());
           return;
         }
 
-        // SEGUNDO: Intentar en "stores" (colección legacy)
+        // 2) Lookup directo por id en "stores"
         const storeDoc = await getDoc(doc(db, "stores", id));
-
         if (storeDoc.exists()) {
-          setTienda({ id: storeDoc.id, ...storeDoc.data() });
-          setTiendaCollection("stores");
-          setLoading(false);
-
-          // Escuchar cambios en tiempo real
-          unsubscribe = onSnapshot(doc(db, "stores", id), (docSnap) => {
-            if (docSnap.exists()) {
-              setTienda({ id: docSnap.id, ...docSnap.data() });
-            }
-          });
+          attach("stores", storeDoc.id, storeDoc.data());
           return;
         }
+
+        // 3) Fallbacks: el id de la URL puede no ser el docId real.
+        //    Puede ser: un slug/handle, un ownerUid, o un storeId viejo que
+        //    quedó guardado en productos pero la tienda se recreó con otro id.
+        const tryQuery = async (collName, field, value) => {
+          if (!value) return false;
+          try {
+            const snap = await getDocs(
+              query(collection(db, collName), where(field, "==", value)),
+            );
+            if (!snap.empty) {
+              const d = snap.docs[0];
+              attach(collName, d.id, d.data());
+              return true;
+            }
+          } catch (_) {}
+          return false;
+        };
+
+        // Por slug/handle/nombre en ambas colecciones
+        for (const coll of ["stores", "tiendas"]) {
+          for (const field of ["slug", "handle", "nombre", "name"]) {
+            if (await tryQuery(coll, field, id)) return;
+          }
+        }
+
+        // Por ownerUid (por si el link accidentalmente lleva el uid)
+        for (const field of ["ownerUid", "ownerId", "owner_id"]) {
+          if (await tryQuery("stores", field, id)) return;
+        }
+
+        // 4) Último recurso: buscar un producto cuyo storeId == id y usar su
+        //    storeName/ownerUid para localizar la tienda actual del dueño.
+        try {
+          const prodSnap = await getDocs(
+            query(collection(db, "productos"), where("storeId", "==", id)),
+          );
+          if (!prodSnap.empty) {
+            const prod = prodSnap.docs[0].data();
+            // a) Buscar por storeName
+            if (prod.storeName) {
+              for (const coll of ["stores", "tiendas"]) {
+                if (await tryQuery(coll, "nombre", prod.storeName)) return;
+                if (await tryQuery(coll, "name", prod.storeName)) return;
+              }
+            }
+            // b) Buscar por ownerUid del producto
+            if (prod.ownerUid) {
+              if (await tryQuery("stores", "ownerUid", prod.ownerUid)) return;
+            }
+          }
+        } catch (_) {}
 
         // No existe en ninguna colección
         setLoading(false);
@@ -152,7 +196,7 @@ export default function TiendaIndividual() {
         notify(
           "Error al cargar la tienda. Por favor intenta de nuevo.",
           "error",
-          "Error de carga"
+          "Error de carga",
         );
         setLoading(false);
       }
@@ -218,7 +262,7 @@ export default function TiendaIndividual() {
       },
       (error) => {
         // Error silencioso
-      }
+      },
     );
 
     // Verificar si el usuario actual sigue esta tienda EN TIEMPO REAL
@@ -229,7 +273,7 @@ export default function TiendaIndividual() {
         tiendaCollection,
         id,
         "seguidores",
-        usuario.uid
+        usuario.uid,
       );
       unsubscribeSeguidor = onSnapshot(
         seguidorRef,
@@ -238,7 +282,7 @@ export default function TiendaIndividual() {
         },
         (error) => {
           // Error silencioso
-        }
+        },
       );
     }
 
@@ -269,19 +313,19 @@ export default function TiendaIndividual() {
 
       ownerCandidates.forEach((owner) => {
         consultas.push(
-          query(collection(db, "productos"), where("ownerUid", "==", owner))
+          query(collection(db, "productos"), where("ownerUid", "==", owner)),
         );
         consultas.push(
-          query(collection(db, "productos"), where("ownerId", "==", owner))
+          query(collection(db, "productos"), where("ownerId", "==", owner)),
         );
         consultas.push(
-          query(collection(db, "productos"), where("owner_id", "==", owner))
+          query(collection(db, "productos"), where("owner_id", "==", owner)),
         );
         consultas.push(
-          query(collection(db, "productos"), where("creadoPor", "==", owner))
+          query(collection(db, "productos"), where("creadoPor", "==", owner)),
         );
         consultas.push(
-          query(collection(db, "productos"), where("createdBy", "==", owner))
+          query(collection(db, "productos"), where("createdBy", "==", owner)),
         );
       });
 
@@ -293,10 +337,10 @@ export default function TiendaIndividual() {
       ].filter(Boolean);
       nameCandidates.forEach((n) => {
         consultas.push(
-          query(collection(db, "productos"), where("tienda_nombre", "==", n))
+          query(collection(db, "productos"), where("tienda_nombre", "==", n)),
         );
         consultas.push(
-          query(collection(db, "productos"), where("storeName", "==", n))
+          query(collection(db, "productos"), where("storeName", "==", n)),
         );
       });
 
@@ -375,7 +419,7 @@ export default function TiendaIndividual() {
         notify(
           `${type === "banner" ? "Banner" : "Logo"} actualizado correctamente`,
           "success",
-          "Actualizado"
+          "Actualizado",
         );
       } catch (error) {
         let mensajeError = `No se pudo actualizar el ${
@@ -415,7 +459,7 @@ export default function TiendaIndividual() {
       const croppedBlob = await getCroppedImg(
         originalImage,
         croppedAreaPixels,
-        rotation
+        rotation,
       );
 
       // Actualizar directamente en Firestore (tiempo real)
@@ -450,7 +494,7 @@ export default function TiendaIndividual() {
     ctx.drawImage(
       image,
       safeArea / 2 - image.width * 0.5,
-      safeArea / 2 - image.height * 0.5
+      safeArea / 2 - image.height * 0.5,
     );
 
     const data = ctx.getImageData(0, 0, safeArea, safeArea);
@@ -461,7 +505,7 @@ export default function TiendaIndividual() {
     ctx.putImageData(
       data,
       0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x,
-      0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y
+      0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y,
     );
 
     return new Promise((resolve) => {
@@ -470,7 +514,7 @@ export default function TiendaIndividual() {
           resolve(blob);
         },
         "image/jpeg",
-        0.95
+        0.95,
       );
     });
   };
@@ -563,7 +607,7 @@ export default function TiendaIndividual() {
       if (bannerFile) {
         const bannerUrl = await uploadFile(
           bannerFile,
-          `tiendas/${id}/banner-${Date.now()}`
+          `tiendas/${id}/banner-${Date.now()}`,
         );
         updates.banner = bannerUrl;
       }
@@ -572,7 +616,7 @@ export default function TiendaIndividual() {
       if (logoFile) {
         const logoUrl = await uploadFile(
           logoFile,
-          `tiendas/${id}/logo-${Date.now()}`
+          `tiendas/${id}/logo-${Date.now()}`,
         );
         updates.logo = logoUrl;
       }
@@ -599,7 +643,7 @@ export default function TiendaIndividual() {
       notify(
         "Error al actualizar la tienda. Por favor intenta de nuevo.",
         "error",
-        "Error"
+        "Error",
       );
     } finally {
       setUploading(false);
@@ -633,7 +677,7 @@ export default function TiendaIndividual() {
         tiendaCollection,
         id,
         "seguidores",
-        usuario.uid
+        usuario.uid,
       );
       const usuarioRef = doc(db, "usuarios", usuario.uid);
 
@@ -680,7 +724,7 @@ export default function TiendaIndividual() {
             {
               tiendasSeguidas: [id],
             },
-            { merge: true }
+            { merge: true },
           );
         }
 
@@ -691,7 +735,7 @@ export default function TiendaIndividual() {
       notify(
         "Error al procesar la acción. Intenta de nuevo.",
         "error",
-        "Error"
+        "Error",
       );
     } finally {
       setLoadingSeguir(false);
@@ -792,7 +836,7 @@ export default function TiendaIndividual() {
         setTimeout(() => setShowCategoryLoading(false), 120);
       }
     },
-    [productos, busqueda]
+    [productos, busqueda],
   );
   const getLinkHref = (enlace) => {
     if (enlace?.tipo === "whatsapp" || enlace?.tipo === "whatsapp2") {
@@ -976,7 +1020,7 @@ export default function TiendaIndividual() {
       >
         {tienda.banner ? (
           <img
-            src={tienda.banner}
+            src={fixBucket(tienda.banner)}
             alt={`Banner de ${tienda.nombre}`}
             className="w-100 h-auto"
             style={{
@@ -1020,7 +1064,7 @@ export default function TiendaIndividual() {
               className="position-relative flex-shrink-0"
             >
               <img
-                src={tienda.logo || ""}
+                src={fixBucket(tienda.logo || "")}
                 alt={`Logo de ${tienda.nombre}`}
                 className="rounded-circle shadow-lg"
                 style={{
@@ -2033,7 +2077,7 @@ export default function TiendaIndividual() {
                                       const raw = e.target.value || "";
                                       const cleaned = String(raw).replace(
                                         /\D/g,
-                                        ""
+                                        "",
                                       );
                                       const newEnlaces = [...editData.enlaces];
                                       newEnlaces[index].url = cleaned;
@@ -2093,11 +2137,11 @@ export default function TiendaIndividual() {
                                     Previsualización:
                                     <span className="ms-1 fw-semibold text-primary">
                                       {`https://wa.me/${String(
-                                        enlace.url || ""
+                                        enlace.url || "",
                                       ).replace(/\D/g, "")}${
                                         enlace.mensaje
                                           ? `?text=${encodeURIComponent(
-                                              enlace.mensaje
+                                              enlace.mensaje,
                                             )}`
                                           : ""
                                       }`}
@@ -2149,7 +2193,7 @@ export default function TiendaIndividual() {
                                 type="button"
                                 onClick={() => {
                                   const newEnlaces = editData.enlaces.filter(
-                                    (_, i) => i !== index
+                                    (_, i) => i !== index,
                                   );
                                   setEditData((prev) => ({
                                     ...prev,
@@ -2214,7 +2258,7 @@ export default function TiendaIndividual() {
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
 
       {/* MODAL CROP PROFESIONAL CON REACT-EASY-CROP */}
@@ -2613,14 +2657,14 @@ export default function TiendaIndividual() {
                           ) {
                             return `https://wa.me/${enlace.url.replace(
                               /\D/g,
-                              ""
+                              "",
                             )}`;
                           } else if (enlace.tipo === "email") {
                             return `mailto:${enlace.url}`;
                           } else if (enlace.tipo === "telegram") {
                             return `https://t.me/${enlace.url.replace(
                               "@",
-                              ""
+                              "",
                             )}`;
                           } else {
                             return enlace.url;
@@ -2688,7 +2732,7 @@ export default function TiendaIndividual() {
                       notify(
                         "Enlace copiado al portapapeles",
                         "success",
-                        "¡Copiado!"
+                        "¡Copiado!",
                       );
                     }
                   }}

@@ -4,6 +4,7 @@ import { useAuth } from "./AuthContext";
 import { httpsCallable } from "firebase/functions";
 import { signInWithCustomToken } from "firebase/auth";
 import { notify } from "../utils/notificationBus";
+import { fixBucket } from "../utils/imageUtils";
 import {
   collection,
   doc,
@@ -28,6 +29,16 @@ export function MultiAccountProvider({ children }) {
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const { usuario, usuarioInfo } = useAuth();
 
+  const normalizePhotoUrl = (u) => {
+    try {
+      if (!u) return null;
+      const fixed = fixBucket(String(u));
+      return fixed || null;
+    } catch {
+      return null;
+    }
+  };
+
   // Cargar cuentas guardadas desde Firestore cuando el usuario inicia sesión
   useEffect(() => {
     if (!usuario?.uid) {
@@ -40,7 +51,7 @@ export function MultiAccountProvider({ children }) {
       db,
       "users",
       usuario.uid,
-      "savedAccounts"
+      "savedAccounts",
     );
     const q = query(savedAccountsRef, orderBy("lastActive", "desc"));
 
@@ -61,14 +72,16 @@ export function MultiAccountProvider({ children }) {
             usuarioInfo?.displayName ||
             usuario?.displayName ||
             (usuario?.email ? usuario.email.split("@")[0] : "Usuario"),
-          photoURL: usuarioInfo?.fotoURL || usuario?.photoURL || null,
+          photoURL: normalizePhotoUrl(
+            usuarioInfo?.fotoURL || usuario?.photoURL,
+          ),
           role: usuarioInfo?.role || "user",
           lastActive: new Date().toISOString(),
         };
 
         // Si la cuenta actual no está en la lista, agregarla
         const hasCurrentAccount = accounts.some(
-          (acc) => acc.uid === usuario.uid
+          (acc) => acc.uid === usuario.uid,
         );
         if (!hasCurrentAccount) {
           accounts.unshift(currentAccountData);
@@ -90,7 +103,7 @@ export function MultiAccountProvider({ children }) {
           if (stored) {
             const local = JSON.parse(stored);
             const seenKeys = new Set(
-              merged.map((a) => (a.email || a.uid || a.id || "").toLowerCase())
+              merged.map((a) => (a.email || a.uid || a.id || "").toLowerCase()),
             );
             local.forEach((a) => {
               const key = String(a.email || a.uid || a.id || "").toLowerCase();
@@ -119,7 +132,7 @@ export function MultiAccountProvider({ children }) {
                 "users",
                 usuario.uid,
                 "savedAccounts",
-                acc.email || acc.uid || acc.id
+                acc.email || acc.uid || acc.id,
               );
               await setDoc(
                 docRef,
@@ -129,17 +142,17 @@ export function MultiAccountProvider({ children }) {
                   displayName:
                     acc.displayName ||
                     (acc.email ? acc.email.split("@")[0] : "Usuario"),
-                  photoURL: acc.photoURL || null,
+                  photoURL: normalizePhotoUrl(acc.photoURL),
                   role: acc.role || "user",
                   lastActive: acc.lastActive || new Date().toISOString(),
                   savedAt: acc.savedAt || new Date().toISOString(),
                 },
-                { merge: true }
+                { merge: true },
               );
             } catch (e) {
               console.warn("No se pudo migrar cuenta local a Firestore:", e);
             }
-          })
+          }),
         ).finally(() => setLoadingAccounts(false));
       },
       (error) => {
@@ -152,7 +165,7 @@ export function MultiAccountProvider({ children }) {
           }
         } catch (_) {}
         setLoadingAccounts(false);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -171,7 +184,9 @@ export function MultiAccountProvider({ children }) {
             usuarioInfo?.displayName ||
             usuario?.displayName ||
             (usuario?.email ? usuario.email.split("@")[0] : "Usuario"),
-          photoURL: usuarioInfo?.fotoURL || usuario?.photoURL || null,
+          photoURL: normalizePhotoUrl(
+            usuarioInfo?.fotoURL || usuario?.photoURL,
+          ),
           role: usuarioInfo?.role || "user",
           lastActive: new Date().toISOString(),
           savedAt: new Date().toISOString(),
@@ -183,7 +198,7 @@ export function MultiAccountProvider({ children }) {
           "users",
           usuario.uid,
           "savedAccounts",
-          usuario.email || usuario.uid
+          usuario.email || usuario.uid,
         );
         await setDoc(accountDocRef, currentAccountData, { merge: true });
 
@@ -191,22 +206,28 @@ export function MultiAccountProvider({ children }) {
         // Guardar esta cuenta nueva en la lista de la cuenta anterior
         try {
           const previousAccountUid = localStorage.getItem(
-            "pcu_adding_account_from"
+            "pcu_adding_account_from",
           );
           const previousAccountEmail = localStorage.getItem(
-            "pcu_adding_account_email"
+            "pcu_adding_account_email",
           );
           const addIntent = localStorage.getItem("pcu_add_account_intent");
           const tsRaw = localStorage.getItem("pcu_adding_account_ts");
           const ts = tsRaw ? parseInt(tsRaw, 10) : 0;
           const recent =
             Number.isFinite(ts) && Date.now() - ts < 15 * 60 * 1000; // 15 min
+          const manualSwitch = localStorage.getItem("pcu_manual_switch");
+          const mTsRaw = localStorage.getItem("pcu_manual_switch_ts");
+          const mTs = mTsRaw ? parseInt(mTsRaw, 10) : 0;
+          const manualRecent =
+            Number.isFinite(mTs) && Date.now() - mTs < 5 * 60 * 1000; // 5 min
 
           if (
             previousAccountUid &&
             previousAccountUid !== usuario.uid &&
             addIntent === "1" &&
-            recent
+            recent &&
+            !(manualSwitch === "1" && manualRecent)
           ) {
             // Guardar la cuenta actual en la lista de la cuenta anterior (cuenta principal)
             const previousAccountDocRef = doc(
@@ -214,7 +235,7 @@ export function MultiAccountProvider({ children }) {
               "users",
               previousAccountUid,
               "savedAccounts",
-              usuario.email || usuario.uid
+              usuario.email || usuario.uid,
             );
             await setDoc(previousAccountDocRef, currentAccountData, {
               merge: true,
@@ -234,7 +255,7 @@ export function MultiAccountProvider({ children }) {
             } catch (switchBackError) {
               console.warn(
                 "No se pudo volver a la cuenta anterior automáticamente:",
-                switchBackError
+                switchBackError,
               );
             } finally {
               setIsSwitching(false);
@@ -248,16 +269,20 @@ export function MultiAccountProvider({ children }) {
           localStorage.removeItem("pcu_adding_account_email");
           localStorage.removeItem("pcu_add_account_intent");
           localStorage.removeItem("pcu_adding_account_ts");
+          localStorage.removeItem("pcu_manual_switch");
+          localStorage.removeItem("pcu_manual_switch_ts");
         } catch (saveError) {
           console.error(
             "Error guardando cuenta en cuenta anterior:",
-            saveError
+            saveError,
           );
           // Limpiar de todas formas
           localStorage.removeItem("pcu_adding_account_from");
           localStorage.removeItem("pcu_adding_account_email");
           localStorage.removeItem("pcu_add_account_intent");
           localStorage.removeItem("pcu_adding_account_ts");
+          localStorage.removeItem("pcu_manual_switch");
+          localStorage.removeItem("pcu_manual_switch_ts");
         }
       } catch (error) {
         console.error("Error guardando cuenta actual:", error);
@@ -282,7 +307,7 @@ export function MultiAccountProvider({ children }) {
           "users",
           usuario.uid,
           "savedAccounts",
-          accountToRemove.email || accountToRemove.id || uid
+          accountToRemove.email || accountToRemove.id || uid,
         );
         await deleteDoc(accountDocRef);
       } catch (firestoreError) {
@@ -314,7 +339,7 @@ export function MultiAccountProvider({ children }) {
         displayName:
           accountData.displayName ||
           (accountData.email ? accountData.email.split("@")[0] : "Usuario"),
-        photoURL: accountData.photoURL || null,
+        photoURL: normalizePhotoUrl(accountData.photoURL),
         role: accountData.role || "user",
         lastActive: new Date().toISOString(),
         savedAt: new Date().toISOString(),
@@ -326,7 +351,7 @@ export function MultiAccountProvider({ children }) {
         "users",
         usuario.uid,
         "savedAccounts",
-        accountData.email || accountData.uid
+        accountData.email || accountData.uid,
       );
       await setDoc(accountDocRef, accountToSave, { merge: true });
 
@@ -339,67 +364,106 @@ export function MultiAccountProvider({ children }) {
   const clearTarget = () => setTargetAccount(null);
 
   const switchAccount = async (account) => {
+    const targetEmail = String(account?.email || account?.id || "")
+      .trim()
+      .toLowerCase();
+    const currentEmail = String(usuario?.email || "")
+      .trim()
+      .toLowerCase();
+
+    if (!targetEmail) {
+      notify("Cuenta inválida", "error");
+      return;
+    }
+    if (
+      usuario &&
+      (account.uid === usuario.uid || targetEmail === currentEmail)
+    ) {
+      // Misma cuenta, no hacer nada
+      return;
+    }
+
+    const currentAccountUid = usuario?.uid;
+    const currentAccountEmail = usuario?.email;
+
+    setIsSwitching(true);
     try {
-      if (!account?.email) return;
-      if (usuario && account.uid === usuario.uid) return;
+      localStorage.setItem("pcu_manual_switch", "1");
+      localStorage.setItem("pcu_manual_switch_ts", String(Date.now()));
+    } catch (_) {}
 
-      // Guardar el UID de la cuenta actual (desde la que se cambia)
-      const currentAccountUid = usuario?.uid;
-      const currentAccountEmail = usuario?.email;
-
-      // 🚀 MOSTRAR LOADER FULLSCREEN
-      setIsSwitching(true);
-
-      // 1. Guardar la cuenta a la que se cambia en la lista de la cuenta actual (cuenta principal)
+    try {
+      // 1. Guardar la cuenta destino en la lista de la cuenta actual
       if (currentAccountUid && account.uid !== currentAccountUid) {
         try {
           const accountToSave = {
             uid: account.uid,
-            email: account.email,
+            email: targetEmail,
             displayName:
-              account.displayName || account.email?.split("@")[0] || "Usuario",
-            photoURL: account.photoURL || null,
+              account.displayName ||
+              (account.email ? account.email.split("@")[0] : "Usuario"),
+            photoURL: normalizePhotoUrl(account.photoURL),
             role: account.role || "user",
             lastActive: new Date().toISOString(),
             savedAt: new Date().toISOString(),
-            savedBy: currentAccountUid, // Guardar quién la agregó
+            savedBy: currentAccountUid,
           };
-
-          // Guardar en la subcolección de la cuenta actual (cuenta principal)
           const accountDocRef = doc(
             db,
             "users",
             currentAccountUid,
             "savedAccounts",
-            account.email || account.uid
+            account.email || account.uid,
           );
           await setDoc(accountDocRef, accountToSave, { merge: true });
-        } catch (saveError) {
-          console.error("Error guardando cuenta en Firestore:", saveError);
-          // Continuar aunque falle el guardado
+        } catch (_) {
+          // no bloquear el switch si falla el guardado
         }
       }
 
       // 2. Solicitar Custom Token del backend
-      const issueToken = httpsCallable(functions, "issueSwitchToken");
-      const response = await issueToken({ email: account.email });
-      const { customToken } = response.data;
-
+      const issueSwitchToken = httpsCallable(functions, "issueSwitchToken");
+      const result = await issueSwitchToken({
+        email: targetEmail,
+        uid: account.uid,
+      });
+      const customToken = result?.data?.customToken;
       if (!customToken) {
-        setIsSwitching(false);
-        notify("Error al obtener token de autenticación", "error");
-        return;
+        throw new Error("El servidor no devolvió un token válido");
       }
 
-      // 3. Cerrar sesión actual
+      // 3. Cerrar sesión y entrar con el Custom Token
       try {
         await auth.signOut();
       } catch (_) {}
-
-      // 4. CAMBIO INSTANTÁNEO con Custom Token
       await signInWithCustomToken(auth, customToken);
 
-      // 5. Guardar la cuenta anterior en la lista de la nueva cuenta (para sincronización bidireccional)
+      // 4. Esperar a que auth.currentUser refleje el cambio (~6s max)
+      for (let i = 0; i < 60; i++) {
+        const curr = auth.currentUser;
+        const currEmail = (curr?.email || "").trim().toLowerCase();
+        if (
+          currEmail === targetEmail ||
+          (account?.uid && curr?.uid === account.uid)
+        ) {
+          break;
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((r) => setTimeout(r, 100));
+      }
+
+      const finalUser = auth.currentUser;
+      const finalEmail = (finalUser?.email || "").trim().toLowerCase();
+      const finalUid = finalUser?.uid || "";
+      const targetUid = account?.uid || "";
+      if (
+        finalEmail !== targetEmail &&
+        (!targetUid || finalUid !== targetUid)
+      ) {
+        throw new Error("Cambio de cuenta no aplicado");
+      }
+
+      // 5. Guardado bidireccional: cuenta anterior en la lista de la nueva cuenta
       if (currentAccountUid && currentAccountEmail && account.uid) {
         try {
           const previousAccountData = {
@@ -411,42 +475,46 @@ export function MultiAccountProvider({ children }) {
               (currentAccountEmail
                 ? currentAccountEmail.split("@")[0]
                 : "Usuario"),
-            photoURL: usuarioInfo?.fotoURL || usuario?.photoURL || null,
+            photoURL: normalizePhotoUrl(
+              usuarioInfo?.fotoURL || usuario?.photoURL,
+            ),
             role: usuarioInfo?.role || "user",
             lastActive: new Date().toISOString(),
             savedAt: new Date().toISOString(),
             savedBy: account.uid,
           };
-
           const previousAccountDocRef = doc(
             db,
             "users",
             account.uid,
             "savedAccounts",
-            currentAccountEmail || currentAccountUid
+            currentAccountEmail || currentAccountUid,
           );
           await setDoc(previousAccountDocRef, previousAccountData, {
             merge: true,
           });
-        } catch (saveError) {
-          console.error("Error guardando cuenta anterior:", saveError);
-          // Continuar aunque falle
-        }
+        } catch (_) {}
       }
 
-      // Pequeño delay para que se vea el loader
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      //  OCULTAR LOADER
-      setIsSwitching(false);
+      notify(`Cuenta activa: ${account.displayName || targetEmail}`, "success");
     } catch (e) {
-      console.error(" Error en switchAccount:", e);
+      console.error("[switchAccount] error:", e);
+      const code = e?.code || "";
+      const msg =
+        code === "functions/not-found"
+          ? "La cuenta destino no existe."
+          : code === "functions/unauthenticated"
+            ? "Debes iniciar sesión primero."
+            : code === "functions/internal" || code.startsWith("functions/")
+              ? "No se pudo generar el token. Verifica que la Cloud Function esté desplegada."
+              : "Error al cambiar de cuenta.";
+      notify(msg, "error");
+    } finally {
       setIsSwitching(false);
-      notify(
-        "Error al cambiar de cuenta. Por favor intenta de nuevo.",
-        "error",
-        "Error"
-      );
+      try {
+        localStorage.removeItem("pcu_manual_switch");
+        localStorage.removeItem("pcu_manual_switch_ts");
+      } catch (_) {}
     }
   };
 

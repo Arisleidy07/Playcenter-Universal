@@ -1,4 +1,5 @@
 import React from "react";
+import { fixBucket } from "../../../utils/imageUtils";
 import { Store, Settings, ExternalLink, Plus } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -80,7 +81,7 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
             try {
               const qRef = query(
                 collection(db, col),
-                where(field, "==", value)
+                where(field, "==", value),
               );
               const snap = await getDocs(qRef);
               if (!snap.empty) {
@@ -130,7 +131,7 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
             const fromTiendas = await searchByField(
               "tiendas",
               tiendaFields,
-              uid
+              uid,
             );
             if (fromTiendas) {
               foundId = fromTiendas.id;
@@ -149,7 +150,7 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
             const byEmail = await searchByField(
               "stores",
               ["ownerEmail"],
-              email
+              email,
             );
             if (byEmail) {
               foundId = byEmail.id;
@@ -285,7 +286,7 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/10 to-slate-900/20 dark:via-slate-900/35 dark:to-slate-900/55" />
             {bannerSrc && (
               <img
-                src={bannerSrc}
+                src={fixBucket(bannerSrc)}
                 alt="Portada"
                 className="relative z-10 w-full h-full object-cover"
                 onError={(e) => {
@@ -312,7 +313,7 @@ export default function StoreView({ stats, user, userInfo, store, storeId }) {
                   </div>
                   {logoSrc && (
                     <img
-                      src={logoSrc}
+                      src={fixBucket(logoSrc)}
                       alt="Logo"
                       className="w-full h-full rounded-lg md:rounded-xl object-contain bg-slate-50 dark:bg-slate-800/70"
                       onLoad={(e) => {

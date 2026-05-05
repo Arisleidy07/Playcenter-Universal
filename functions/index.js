@@ -38,7 +38,7 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     if (!amount || amount <= 0) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Monto inválido"
+        "Monto inválido",
       );
     }
 
@@ -95,7 +95,7 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
         validateStatus: function (status) {
           return status < 500; // Resolver si no es error de servidor
         },
-      }
+      },
     );
 
     // Verificar respuesta de Cardnet
@@ -125,21 +125,21 @@ exports.createCardnetSession = functions.https.onCall(async (data, context) => {
     if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
       throw new functions.https.HttpsError(
         "deadline-exceeded",
-        "Cardnet tardó demasiado en responder. Intenta de nuevo."
+        "Cardnet tardó demasiado en responder. Intenta de nuevo.",
       );
     }
 
     if (error.response?.status === 405) {
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "Método HTTP no permitido por Cardnet"
+        "Método HTTP no permitido por Cardnet",
       );
     }
 
     throw new functions.https.HttpsError(
       "internal",
       error.message || "Error al crear sesión de pago",
-      error.response?.data || { code: error.code }
+      error.response?.data || { code: error.code },
     );
   }
 });
@@ -154,7 +154,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
     if (!session || !sessionKey) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Sesión o clave inválida"
+        "Sesión o clave inválida",
       );
     }
 
@@ -166,7 +166,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
       {
         params: { sk: sessionKey },
         timeout: 30000,
-      }
+      },
     );
 
     console.log(" Resultado Cardnet:", response.data);
@@ -178,7 +178,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
   } catch (error) {
     console.error(
       " Error verificando transacción:",
-      error.response?.data || error.message
+      error.response?.data || error.message,
     );
 
     // Si la sesión no se encuentra (404), retornar info útil
@@ -194,7 +194,7 @@ exports.verifyCardnetTransaction = functions.https.onCall(async (data) => {
     throw new functions.https.HttpsError(
       "internal",
       "Error al verificar transacción",
-      error.response?.data || error.message
+      error.response?.data || error.message,
     );
   }
 });
@@ -258,7 +258,7 @@ exports.onOrderCreated = functions.firestore
                   <div class="item">
                     <span>Fecha:</span>
                     <span>${new Date(
-                      order.createdAt?.toDate() || Date.now()
+                      order.createdAt?.toDate() || Date.now(),
                     ).toLocaleDateString("es-DO")}</span>
                   </div>
                   <div class="item">
@@ -278,10 +278,10 @@ exports.onOrderCreated = functions.firestore
                       <span>${item.name} x${item.quantity}</span>
                       <span>RD$${(item.price * item.quantity).toLocaleString(
                         "es-DO",
-                        { minimumFractionDigits: 2 }
+                        { minimumFractionDigits: 2 },
                       )}</span>
                     </div>
-                  `
+                  `,
                           )
                           .join("")
                       : ""
@@ -422,14 +422,14 @@ exports.onOrderStatusChanged = functions.firestore
 
       // Eliminar tokens inválidos
       const removePromises = tokensToRemove.map((token) =>
-        db.doc(`users/${userId}/fcmTokens/${token}`).delete()
+        db.doc(`users/${userId}/fcmTokens/${token}`).delete(),
       );
       await Promise.all(removePromises);
 
       console.log(
         " Push notification enviada:",
         response.successCount,
-        "exitosas"
+        "exitosas",
       );
 
       return true;
@@ -508,7 +508,7 @@ exports.sendEmailCampaign = functions.https.onRequest(async (req, res) => {
         totalSent += batch.length;
 
         console.log(
-          ` Batch ${i / batchSize + 1} enviado: ${batch.length} emails`
+          ` Batch ${i / batchSize + 1} enviado: ${batch.length} emails`,
         );
 
         // Pequeña pausa entre batches
@@ -613,49 +613,78 @@ exports.unsubscribe = functions.https.onRequest(async (req, res) => {
 // ============================================
 exports.issueSwitchToken = functions.https.onCall(async (data, context) => {
   try {
-    const { email } = data;
+    const { email, uid } = data || {};
 
-    if (!email) {
+    if (!email && !uid) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Email requerido"
+        "Email o UID requerido",
       );
     }
 
-    console.log("🔄 Solicitando custom token para:", email);
+    const emailLower = email ? String(email).trim().toLowerCase() : "";
+    console.log("🔄 Solicitando custom token para:", emailLower || uid);
 
-    // Buscar usuario por email
-    const usersSnap = await db
-      .collection("users")
-      .where("email", "==", email.toLowerCase())
-      .limit(1)
-      .get();
+    let resolvedUid = uid ? String(uid).trim() : "";
+    let resolvedEmail = emailLower;
 
-    if (usersSnap.empty) {
-      console.log(" Usuario no encontrado:", email);
+    // Si no viene UID, resolverlo por email (users -> usuarios)
+    if (!resolvedUid && emailLower) {
+      // Buscar usuario por email en 'users'
+      const usersSnap = await db
+        .collection("users")
+        .where("email", "==", emailLower)
+        .limit(1)
+        .get();
+
+      if (!usersSnap.empty) {
+        resolvedUid = usersSnap.docs[0].id;
+        resolvedEmail = (usersSnap.docs[0].data()?.email || emailLower)
+          .toString()
+          .trim()
+          .toLowerCase();
+      } else {
+        // Fallback: buscar usuario por email en 'usuarios'
+        const usuariosSnap = await db
+          .collection("usuarios")
+          .where("email", "==", emailLower)
+          .limit(1)
+          .get();
+
+        if (!usuariosSnap.empty) {
+          resolvedUid = usuariosSnap.docs[0].id;
+          resolvedEmail = (usuariosSnap.docs[0].data()?.email || emailLower)
+            .toString()
+            .trim()
+            .toLowerCase();
+        }
+      }
+    }
+
+    if (!resolvedUid) {
+      console.log(" Usuario no encontrado:", emailLower || uid);
       throw new functions.https.HttpsError(
         "not-found",
-        "Usuario no encontrado"
+        "Usuario no encontrado",
       );
     }
 
-    const uid = usersSnap.docs[0].id;
-    console.log(" Usuario encontrado:", uid);
+    console.log(" Usuario encontrado:", resolvedUid);
 
     // Generar Custom Token
-    const customToken = await admin.auth().createCustomToken(uid);
+    const customToken = await admin.auth().createCustomToken(resolvedUid);
     console.log(" Custom token generado exitosamente");
 
     return {
       customToken,
-      uid,
-      email: email.toLowerCase(),
+      uid: resolvedUid,
+      email: resolvedEmail,
     };
   } catch (error) {
     console.error(" Error generando custom token:", error);
     throw new functions.https.HttpsError(
       "internal",
-      error.message || "Error al generar token"
+      error.message || "Error al generar token",
     );
   }
 });
@@ -704,7 +733,7 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
       if (!email) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "Email requerido"
+          "Email requerido",
         );
       }
 
@@ -872,7 +901,7 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
       } catch (adminEmailError) {
         console.error(
           "⚠️ Error enviando email al admin (no crítico):",
-          adminEmailError
+          adminEmailError,
         );
       }
 
@@ -881,10 +910,10 @@ exports.sendStoreApprovedEmail = functions.https.onCall(
       console.error(" Error al enviar email de aprobación:", error);
       throw new functions.https.HttpsError(
         "internal",
-        error.message || "Error al enviar email"
+        error.message || "Error al enviar email",
       );
     }
-  }
+  },
 );
 
 // ============================================
@@ -988,7 +1017,7 @@ exports.resetOrders = functions.https.onRequest(async (req, res) => {
     const chunk = (arr, size) =>
       arr.reduce(
         (acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]),
-        []
+        [],
       );
     const chunks = chunk(candidates, 200);
 
@@ -1075,7 +1104,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
       if (!email) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "Email requerido"
+          "Email requerido",
         );
       }
 
@@ -1241,7 +1270,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
                       <span class="info-label">Fecha:</span>
                       <span class="info-value">${new Date().toLocaleString(
                         "es-DO",
-                        { dateStyle: "long", timeStyle: "short" }
+                        { dateStyle: "long", timeStyle: "short" },
                       )}</span>
                     </div>
                   </div>
@@ -1263,7 +1292,7 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
       } catch (adminEmailError) {
         console.error(
           "⚠️ Error enviando email al admin (no crítico):",
-          adminEmailError
+          adminEmailError,
         );
       }
 
@@ -1272,10 +1301,10 @@ exports.sendStoreRejectedEmail = functions.https.onCall(
       console.error(" Error al enviar email de rechazo:", error);
       throw new functions.https.HttpsError(
         "internal",
-        error.message || "Error al enviar email"
+        error.message || "Error al enviar email",
       );
     }
-  }
+  },
 );
 
 // ============================================
@@ -1357,7 +1386,7 @@ exports.sendNotificationEmail = functions.https.onCall(
       if (!email || !subject) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "Email y subject requeridos"
+          "Email y subject requeridos",
         );
       }
 
@@ -1426,8 +1455,8 @@ exports.sendNotificationEmail = functions.https.onCall(
                     ? `
                 <center>
                   <a href="${actionUrl}" class="button">${
-                        actionLabel || "Ver más"
-                      }</a>
+                    actionLabel || "Ver más"
+                  }</a>
                 </center>
                 `
                     : ""
@@ -1455,10 +1484,10 @@ exports.sendNotificationEmail = functions.https.onCall(
       console.error(" Error al enviar notificación:", error);
       throw new functions.https.HttpsError(
         "internal",
-        error.message || "Error al enviar email"
+        error.message || "Error al enviar email",
       );
     }
-  }
+  },
 );
 
 // ============================================
@@ -1471,18 +1500,18 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
     if (!email) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Email requerido"
+        "Email requerido",
       );
     }
 
     // Generar código de 6 dígitos
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
 
     // Guardar código en Firestore con expiración de 30 minutos
     const expiresAt = admin.firestore.Timestamp.fromDate(
-      new Date(Date.now() + 30 * 60 * 1000)
+      new Date(Date.now() + 30 * 60 * 1000),
     );
 
     await db.collection("verification_codes").add({
@@ -1619,7 +1648,7 @@ exports.sendVerificationCode = functions.https.onCall(async (data, context) => {
     console.error(" Error al enviar código:", error);
     throw new functions.https.HttpsError(
       "internal",
-      error.message || "Error al enviar código"
+      error.message || "Error al enviar código",
     );
   }
 });
@@ -1634,7 +1663,7 @@ exports.verifyCode = functions.https.onCall(async (data, context) => {
     if (!email || !code) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Email y código requeridos"
+        "Email y código requeridos",
       );
     }
 
@@ -1669,7 +1698,7 @@ exports.verifyCode = functions.https.onCall(async (data, context) => {
       "⏰ Verificando expiración - Ahora:",
       new Date(),
       "Expira:",
-      expiresAtDate
+      expiresAtDate,
     );
 
     if (new Date() > expiresAtDate) {
@@ -1692,7 +1721,7 @@ exports.verifyCode = functions.https.onCall(async (data, context) => {
     console.error(" Error al verificar código:", error);
     throw new functions.https.HttpsError(
       "internal",
-      error.message || "Error al verificar"
+      error.message || "Error al verificar",
     );
   }
 });
@@ -1710,7 +1739,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
     if (!email || !newPassword) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Email y nueva contraseña requeridos"
+        "Email y nueva contraseña requeridos",
       );
     }
 
@@ -1779,8 +1808,8 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
     const usedAt = codeData.usedAt?.toDate
       ? codeData.usedAt.toDate()
       : codeData.usedAt?.toMillis
-      ? new Date(codeData.usedAt.toMillis())
-      : new Date();
+        ? new Date(codeData.usedAt.toMillis())
+        : new Date();
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
 
     if (usedAt < fifteenMinutesAgo) {
@@ -1976,7 +2005,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
                             <p style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #666666;">
                               <strong style="color: #333333;">Fecha:</strong> ${new Date().toLocaleString(
                                 "es-DO",
-                                { dateStyle: "long", timeStyle: "short" }
+                                { dateStyle: "long", timeStyle: "short" },
                               )}
                             </p>
                           </td>
@@ -2029,7 +2058,7 @@ exports.resetUserPassword = functions.https.onCall(async (data, _context) => {
 
     throw new functions.https.HttpsError(
       "internal",
-      error.message || "Error al restablecer contraseña"
+      error.message || "Error al restablecer contraseña",
     );
   }
 });
@@ -2045,13 +2074,13 @@ exports.notifyAdminPasswordChange = functions.https.onCall(
       if (!userEmail) {
         throw new functions.https.HttpsError(
           "invalid-argument",
-          "Email requerido"
+          "Email requerido",
         );
       }
 
       console.log(
         " Notificando al admin sobre cambio de contraseña:",
-        userEmail
+        userEmail,
       );
 
       // Enviar email de notificación al admin
@@ -2113,7 +2142,7 @@ exports.notifyAdminPasswordChange = functions.https.onCall(
                             <p style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #666666;">
                               <strong style="color: #333333;">Fecha:</strong> ${new Date().toLocaleString(
                                 "es-DO",
-                                { dateStyle: "long", timeStyle: "short" }
+                                { dateStyle: "long", timeStyle: "short" },
                               )}
                             </p>
                             <p style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #666666;">
@@ -2162,10 +2191,10 @@ exports.notifyAdminPasswordChange = functions.https.onCall(
       console.error(" Error en notifyAdminPasswordChange:", error);
       throw new functions.https.HttpsError(
         "internal",
-        error.message || "Error al notificar al admin"
+        error.message || "Error al notificar al admin",
       );
     }
-  }
+  },
 );
 
 // ============================================
@@ -2306,7 +2335,7 @@ exports.onNewStoreRequest = functions.firestore
 
       console.log(
         " Email enviado al admin sobre nueva solicitud:",
-        emailData?.id
+        emailData?.id,
       );
 
       // Crear notificación in-app para el admin si no existe

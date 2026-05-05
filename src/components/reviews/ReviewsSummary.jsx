@@ -77,7 +77,7 @@ const ReviewsSummary = ({
                 key={i}
                 className={
                   i < Math.round(ratingAverage)
-                    ? "text-blue-500"
+                    ? "text-amber-400"
                     : "text-gray-300"
                 }
               >
@@ -104,18 +104,18 @@ const ReviewsSummary = ({
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 {stars}
               </span>
-              <span className="text-blue-500 text-sm">★</span>
+              <span className="text-amber-400 text-sm">★</span>
             </div>
             <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
               <div className="relative w-full h-full">
                 {/* Base visible siempre */}
                 <div
-                  className="absolute inset-y-0 left-0 bg-blue-500/60 rounded-full"
+                  className="absolute inset-y-0 left-0 bg-amber-400/70 rounded-full"
                   style={{ width: `${percentage}%` }}
                 />
                 {/* Capa animada en hover */}
                 <motion.div
-                  className="absolute inset-y-0 left-0 bg-blue-500 rounded-full"
+                  className="absolute inset-y-0 left-0 bg-amber-500 rounded-full"
                   style={{ width: `${percentage}%` }}
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: hoverBars ? 1 : 0 }}

@@ -20,6 +20,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase";
 import ToastNotification from "../components/ToastNotification";
+import { NotificationHelpers } from "../hooks/useNotifications";
 
 export default function SolicitarVender() {
   const navigate = useNavigate();
@@ -178,7 +179,7 @@ export default function SolicitarVender() {
       showNotification(
         "La imagen no debe superar 5MB. Por favor elige una imagen más pequeña.",
         "warning",
-        "Imagen muy grande"
+        "Imagen muy grande",
       );
       return;
     }
@@ -257,21 +258,34 @@ export default function SolicitarVender() {
 
       const docRef = await addDoc(
         collection(db, "solicitudes_vendedor"),
-        solicitudData
+        solicitudData,
       );
+
+      // 2.5 Notificar al admin (in-app)
+      try {
+        await NotificationHelpers.newSellerRequest({
+          id: docRef.id,
+          tiendaNombre: formData.nombre,
+          nombreContacto: formData.nombreContacto,
+          email: formData.email,
+        });
+      } catch (notifErr) {
+        // No crítico — la solicitud se creó igual
+        console.warn("No se pudo crear notificación al admin:", notifErr);
+      }
 
       // 3. Mostrar mensaje de éxito
       showNotification(
         "¡Solicitud enviada exitosamente!",
         "success",
-        "¡Éxito!"
+        "¡Éxito!",
       );
       setTimeout(() => setEnviado(true), 500);
     } catch (error) {
       showNotification(
         "Hubo un error al enviar tu solicitud. Por favor intenta de nuevo.",
         "error",
-        "Error al enviar"
+        "Error al enviar",
       );
     } finally {
       setLoading(false);

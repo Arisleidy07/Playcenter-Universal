@@ -85,9 +85,14 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Listener de auth; además creamos un listener en tiempo real al doc correcto del usuario
     let unsubscribeDoc = null;
+    let authTimeout = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      // limpiar listener anterior si existía
+      // Limpiar timeout si se ejecuta onAuthStateChanged
+      if (authTimeout) {
+        clearTimeout(authTimeout);
+        authTimeout = null;
+      }
       if (unsubscribeDoc) {
         try {
           unsubscribeDoc();
@@ -218,7 +223,7 @@ export function AuthProvider({ children }) {
           (err) => {
             // console.error("onSnapshot usuario error:", err);
             setLoading(false);
-          }
+          },
         );
       } catch (err) {
         // console.error("Error inicializando listener de usuario:", err);
@@ -264,6 +269,12 @@ export function AuthProvider({ children }) {
       }
     });
 
+    // TIMEOUT DE 10 SEGUNDOS: Si onAuthStateChanged no se ejecuta, forzar loading=false
+    authTimeout = setTimeout(() => {
+      setLoading(false);
+      authTimeout = null;
+    }, 10000);
+
     // cleanup completo al desmontar provider
     return () => {
       try {
@@ -278,6 +289,10 @@ export function AuthProvider({ children }) {
           /* ignore */
         }
       }
+      if (authTimeout) {
+        clearTimeout(authTimeout);
+        authTimeout = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -286,7 +301,7 @@ export function AuthProvider({ children }) {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     await updateProfile(userCredential.user, { displayName: name });
 
@@ -480,7 +495,7 @@ export function AuthProvider({ children }) {
       await setDoc(
         doc(db, "users", usuario.uid),
         { fotoURL: photoURL },
-        { merge: true }
+        { merge: true },
       );
       setUsuarioInfo((prev) => ({ ...prev, fotoURL: photoURL }));
     } catch (err) {

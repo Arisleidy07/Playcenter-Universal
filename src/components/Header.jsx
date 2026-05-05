@@ -12,6 +12,7 @@ import { notify } from "../utils/notificationBus";
 import NotificationsPanel, { NotificationBell } from "./NotificationsPanel";
 import { useNotifications } from "../hooks/useNotifications";
 import "./Header.css";
+import { fixBucket } from "../utils/imageUtils";
 
 const Header = () => {
   const { usuario, usuarioInfo, logout, actualizarUsuarioInfo } = useAuth();
@@ -369,7 +370,7 @@ const Header = () => {
                                 // Get the photo URL - prioritize Firestore's fotoURL, fall back to auth's photoURL
                                 // If fotoURL is an empty string, it means the user explicitly removed their photo
                                 const fotoURL = usuarioInfo?.hasOwnProperty(
-                                  "fotoURL"
+                                  "fotoURL",
                                 )
                                   ? usuarioInfo.fotoURL !== ""
                                     ? usuarioInfo.fotoURL
@@ -380,7 +381,7 @@ const Header = () => {
                                 if (fotoURL) {
                                   return (
                                     <img
-                                      src={fotoURL}
+                                      src={fixBucket(fotoURL)}
                                       alt="Perfil"
                                       className="w-full h-full object-cover"
                                       onError={(e) => {
@@ -1052,12 +1053,12 @@ const Header = () => {
                               ? usuarioInfo.fotoURL
                               : null
                             : usuario?.photoURL && usuario.photoURL !== ""
-                            ? usuario.photoURL
-                            : null;
+                              ? usuario.photoURL
+                              : null;
 
                           return fotoURL ? (
                             <img
-                              src={fotoURL}
+                              src={fixBucket(fotoURL)}
                               alt="Perfil"
                               className="w-100 h-100"
                               style={{ objectFit: "cover" }}
@@ -1077,15 +1078,15 @@ const Header = () => {
                             color: "#ffffff",
                             display: (() => {
                               const fotoURL = usuarioInfo?.hasOwnProperty(
-                                "fotoURL"
+                                "fotoURL",
                               )
                                 ? usuarioInfo.fotoURL &&
                                   usuarioInfo.fotoURL !== ""
                                   ? usuarioInfo.fotoURL
                                   : null
                                 : usuario?.photoURL && usuario.photoURL !== ""
-                                ? usuario.photoURL
-                                : null;
+                                  ? usuario.photoURL
+                                  : null;
                               return fotoURL ? "none" : "flex";
                             })(),
                           }}
@@ -1582,7 +1583,7 @@ const Header = () => {
             </>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
 
       {/* MODAL DE ALERTA - DEBES INICIAR SESIÓN */}

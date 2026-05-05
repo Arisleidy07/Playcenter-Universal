@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
+import { fixBucket } from "../../utils/imageUtils";
 import {
   FaTimes,
   FaChevronLeft,
@@ -40,15 +41,21 @@ const ReviewMediaModal = ({
 
   // Filtrar solo reseñas con imágenes/videos
   const reviewsWithMedia = reviews.filter(
-    (review) => review.images?.length > 0 || review.videos?.length > 0
+    (review) => review.images?.length > 0 || review.videos?.length > 0,
   );
 
   const currentReview = reviewsWithMedia[currentReviewIndex];
 
   // Combinar imágenes y videos de la reseña actual
   const currentMedia = [
-    ...(currentReview?.images || []).map((url) => ({ type: "image", url })),
-    ...(currentReview?.videos || []).map((url) => ({ type: "video", url })),
+    ...(currentReview?.images || []).map((url) => ({
+      type: "image",
+      url: fixBucket(url),
+    })),
+    ...(currentReview?.videos || []).map((url) => ({
+      type: "video",
+      url: fixBucket(url),
+    })),
   ];
 
   const currentMediaItem = currentMedia[currentMediaIndex];
@@ -68,20 +75,34 @@ const ReviewMediaModal = ({
     }
   }, [currentReviewIndex, reviewsWithMedia.length]);
 
-  // Cerrar con Escape
+  // Cerrar con Escape + preservar scroll SOLO cuando el modal está abierto
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleEscape = (e) => {
       if (e.key === "Escape") onClose();
     };
+    document.addEventListener("keydown", handleEscape);
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-    }
+    // Guardar scroll actual y fijar body sin perder posición
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
+      // Restaurar estilos y scroll a la posición previa
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen, onClose]);
 
@@ -144,21 +165,21 @@ const ReviewMediaModal = ({
           </>
         )}
 
-        {/* Imagen/Video centrado */}
-        <div className="max-w-full max-h-full flex items-center justify-center p-8">
+        {/* Imagen/Video centrado - se adapta al contenedor */}
+        <div className="absolute inset-0 flex items-center justify-center p-8">
           {currentMediaItem.type === "image" ? (
             <img
-              src={currentMediaItem.url}
+              src={fixBucket(currentMediaItem.url)}
               alt="Imagen de reseña"
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-contain"
               onLoad={() => setIsImageLoading(false)}
               onError={() => setIsImageLoading(false)}
             />
           ) : (
             <video
-              src={currentMediaItem.url}
+              src={fixBucket(currentMediaItem.url)}
               controls
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-contain"
               autoPlay
             />
           )}
@@ -177,7 +198,7 @@ const ReviewMediaModal = ({
           <div className="flex items-center gap-3 mb-4">
             {currentReview.userPhoto ? (
               <img
-                src={currentReview.userPhoto}
+                src={fixBucket(currentReview.userPhoto)}
                 alt={currentReview.userName}
                 className="w-10 h-10 rounded-full object-cover"
               />
@@ -237,22 +258,22 @@ const ReviewMediaModal = ({
 
       {/* Imagen/Video principal */}
       <div
-        className="flex-1 flex items-center justify-center relative bg-white dark:bg-gray-900"
+        className="flex-1 flex items-center justify-center relative bg-white dark:bg-gray-900 overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {currentMediaItem.type === "image" ? (
           <img
-            src={currentMediaItem.url}
+            src={fixBucket(currentMediaItem.url)}
             alt="Imagen de reseña"
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-contain p-2"
           />
         ) : (
           <video
-            src={currentMediaItem.url}
+            src={fixBucket(currentMediaItem.url)}
             controls
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-contain p-2"
           />
         )}
 
@@ -322,22 +343,22 @@ const ReviewMediaModal = ({
 
       {/* Imagen arriba */}
       <div
-        className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800 relative"
+        className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800 relative overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {currentMediaItem.type === "image" ? (
           <img
-            src={currentMediaItem.url}
+            src={fixBucket(currentMediaItem.url)}
             alt="Imagen de reseña"
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-contain p-4"
           />
         ) : (
           <video
-            src={currentMediaItem.url}
+            src={fixBucket(currentMediaItem.url)}
             controls
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-contain p-4"
           />
         )}
 
@@ -367,7 +388,7 @@ const ReviewMediaModal = ({
         <div className="flex items-center gap-3 mb-3">
           {currentReview.userPhoto ? (
             <img
-              src={currentReview.userPhoto}
+              src={fixBucket(currentReview.userPhoto)}
               alt={currentReview.userName}
               className="w-8 h-8 rounded-full object-cover"
             />
@@ -450,7 +471,7 @@ const ReviewMediaModal = ({
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 };
 

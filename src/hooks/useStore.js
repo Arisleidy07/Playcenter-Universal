@@ -86,11 +86,14 @@ export function useStore() {
         // console.error("Error al cargar tienda:", error);
         setTienda(null);
         setLoadingTienda(false);
-      }
+      },
     );
 
     return () => unsubscribe();
-  }, [usuario, usuarioInfo]);
+    // Solo re-suscribirse cuando cambia el UID del usuario; usuarioInfo se lee
+    // dentro del callback sin necesidad de recrear la suscripción.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario?.uid]);
 
   // Función para cambiar entre modo personal y modo tienda
   const cambiarModo = (nuevoModo) => {
@@ -150,7 +153,7 @@ export function useStoreProducts(storeId) {
         // console.error("Error al cargar productos de la tienda:", error);
         setProductos([]);
         setLoading(false);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -197,7 +200,7 @@ export function useStoreOrders(storeId) {
         // console.error("Error al cargar órdenes de la tienda:", error);
         setOrdenes([]);
         setLoading(false);
-      }
+      },
     );
 
     return () => unsubscribe();

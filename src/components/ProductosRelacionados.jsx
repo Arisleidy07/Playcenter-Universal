@@ -8,6 +8,7 @@ import React, {
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useProducts } from "../hooks/useProducts";
 import "../styles/ProductosRelacionados.css";
+import { fixBucket } from "../utils/imageUtils";
 
 function ProductosRelacionados({ productoActual, onProductoClick }) {
   // Obtener TODOS los productos activos para filtrar mejor
@@ -43,7 +44,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
           p.etiquetas.length > 0
         ) {
           const hasMatchingTag = p.etiquetas.some((tag) =>
-            productoEtiquetas.includes(tag)
+            productoEtiquetas.includes(tag),
           );
           if (hasMatchingTag) return true;
         }
@@ -107,7 +108,7 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
         behavior: "smooth",
       });
     },
-    [getVisibleCount]
+    [getVisibleCount],
   );
 
   useEffect(() => {
@@ -185,14 +186,14 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
         <div className="prl-grid-mobile">
           {productosAMostrar.length > 0 ? (
             productosAMostrar.map((rel) => {
-              const imgSrc = rel?.imagen || rel?.imagenes?.[0] || "";
+              const imgSrc = fixBucket(rel?.imagen || rel?.imagenes?.[0] || "");
               const name = rel?.nombre || "Producto";
               const price = Number(rel?.precio) || 0;
               const ratingAverage = Number(rel?.ratingAverage) || 0;
               const ratingCount = Number(rel?.ratingCount) || 0;
               const ratingStars = Math.max(
                 0,
-                Math.min(5, Math.round(ratingAverage))
+                Math.min(5, Math.round(ratingAverage)),
               );
               return (
                 <article
@@ -295,14 +296,16 @@ function ProductosRelacionados({ productoActual, onProductoClick }) {
           <div ref={railRef} className="prl-rail-desktop">
             {relacionados.length > 0 ? (
               relacionados.map((rel) => {
-                const imgSrc = rel?.imagen || rel?.imagenes?.[0] || "";
+                const imgSrc = fixBucket(
+                  rel?.imagen || rel?.imagenes?.[0] || "",
+                );
                 const name = rel?.nombre || "Producto";
                 const price = Number(rel?.precio) || 0;
                 const ratingAverage = Number(rel?.ratingAverage) || 0;
                 const ratingCount = Number(rel?.ratingCount) || 0;
                 const ratingStars = Math.max(
                   0,
-                  Math.min(5, Math.round(ratingAverage))
+                  Math.min(5, Math.round(ratingAverage)),
                 );
                 return (
                   <article

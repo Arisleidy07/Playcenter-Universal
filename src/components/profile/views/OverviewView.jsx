@@ -1,4 +1,5 @@
 import React from "react";
+import { fixBucket } from "../../../utils/imageUtils";
 import { Edit2 } from "lucide-react";
 
 export default function OverviewView({
@@ -25,12 +26,12 @@ export default function OverviewView({
                   ? info.fotoURL
                   : null
                 : user?.photoURL && user.photoURL !== ""
-                ? user.photoURL
-                : null;
+                  ? user.photoURL
+                  : null;
 
               return fotoURL ? (
                 <img
-                  src={fotoURL}
+                  src={fixBucket(fotoURL)}
                   alt={name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -218,7 +219,7 @@ export default function OverviewView({
                     {info?.direccion ? (
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          info.direccion
+                          info.direccion,
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"

@@ -110,11 +110,13 @@ export default function AccountMenu({
           .map((acc) => (
             <div
               key={acc.uid}
-              onClick={() =>
-                onSwitchAccount
-                  ? onSwitchAccount(() => switchAccount(acc))
-                  : switchAccount(acc)
-              }
+              onClick={() => {
+                if (onSwitchAccount) {
+                  onSwitchAccount(() => switchAccount(acc));
+                } else {
+                  switchAccount(acc);
+                }
+              }}
               className="group relative flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
             >
               <div className="relative flex-shrink-0">
@@ -260,7 +262,7 @@ export default function AccountMenu({
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

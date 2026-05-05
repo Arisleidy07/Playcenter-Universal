@@ -76,7 +76,7 @@ function extractFirstUrl(text = "") {
   if (httpMatch) return httpMatch[1];
   // 2) Dominios de Google Maps sin esquema (maps.app, goo.gl, google.com/maps)
   const mapsMatch = text.match(
-    /(?:^|\s)(maps\.app\.[^\s]+|goo\.gl\/[^\s]+|(?:www\.)?google\.com\/maps[^\s]*)/i
+    /(?:^|\s)(maps\.app\.[^\s]+|goo\.gl\/[^\s]+|(?:www\.)?google\.com\/maps[^\s]*)/i,
   );
   if (mapsMatch) {
     const candidate = mapsMatch[1] || mapsMatch[0];
@@ -134,7 +134,7 @@ function UsuarioFullView({ usuario, onClose }) {
         if (docSnap.exists()) {
           setUsuarioData((prev) => ({ ...prev, ...docSnap.data() }));
         }
-      }
+      },
     );
     const unsubscribeUsuarios = onSnapshot(
       doc(db, "usuarios", usuario.id),
@@ -142,7 +142,7 @@ function UsuarioFullView({ usuario, onClose }) {
         if (docSnap.exists()) {
           setUsuarioData((prev) => ({ ...prev, ...docSnap.data() }));
         }
-      }
+      },
     );
     return () => {
       unsubscribeUsers();
@@ -165,14 +165,14 @@ function UsuarioFullView({ usuario, onClose }) {
             const dateA = a.fecha?.seconds || 0;
             const dateB = b.fecha?.seconds || 0;
             return dateB - dateA;
-          })
+          }),
         );
         setLoadingCompras(false);
       },
       () => {
         setCompras([]);
         setLoadingCompras(false);
-      }
+      },
     );
     return () => unsubscribe();
   }, [usuario]);
@@ -280,7 +280,7 @@ function UsuarioFullView({ usuario, onClose }) {
             for (const field of ownerFields) {
               const q = query(
                 collection(db, colName),
-                where(field, "==", usuario?.id)
+                where(field, "==", usuario?.id || usuario?.uid),
               );
               const snap = await getDocs(q);
               if (!snap.empty) {
@@ -602,8 +602,8 @@ function UsuarioFullView({ usuario, onClose }) {
                           {order.estado === "completado"
                             ? "✓ Completado"
                             : order.estado === "cancelado"
-                            ? "✗ Cancelado"
-                            : " Pendiente"}
+                              ? "✗ Cancelado"
+                              : " Pendiente"}
                         </span>
                         <div className="order-total">
                           {new Intl.NumberFormat("es-DO", {
@@ -748,7 +748,7 @@ function OrdersList() {
         setOrders(data);
         setLoading(false);
       },
-      () => setLoading(false)
+      () => setLoading(false),
     );
     return () => unsub();
   }, []);
@@ -791,8 +791,8 @@ function OrdersList() {
                 o.estado === "completado"
                   ? "bg-green-100 text-green-800"
                   : o.estado === "pendiente"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-gray-100 text-gray-800"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-gray-100 text-gray-800"
               }`}
             >
               {o.estado || "Pendiente"}
@@ -821,27 +821,69 @@ function SellerAdminPanel() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // Usar storeId del usuario O del hook useStore como fallback
-  const effectiveStoreId = usuarioInfo?.storeId || tienda?.id;
+  // Preferir tienda?.id (fuente en vivo de useStore, sincronizada con la
+  // colección "stores") sobre usuarioInfo?.storeId (que puede estar desfasado
+  // si la tienda se renombró/recreó). Caer en usuarioInfo?.storeId como fallback.
+  const effectiveStoreId = tienda?.id || usuarioInfo?.storeId;
   const effectiveStoreName =
-    usuarioInfo?.storeName || tienda?.nombre || tienda?.name || "Mi Tienda";
+    tienda?.nombre || tienda?.name || usuarioInfo?.storeName || "Mi Tienda";
 
   // Cargar estadísticas y pedidos de la tienda del vendedor
   useEffect(() => {
-    if (!effectiveStoreId) return;
+    const ownerUid = usuario?.uid || null;
+    if (!effectiveStoreId && !ownerUid) return;
 
-    // Productos de mi tienda
-    const unsubProducts = onSnapshot(
-      query(
-        collection(db, "productos"),
-        where("storeId", "==", effectiveStoreId)
-      ),
-      (snapshot) => {
-        setStats((prev) => ({ ...prev, productos: snapshot.size }));
-      }
+    // Productos de mi tienda: unión de varios listeners para cubrir productos
+    // con distintos nombres de campo (storeId/tiendaId/tienda_id) o sin
+    // storeId sincronizado (fallback por ownerUid). Mismo patrón que
+    // ProductManagement para que dashboard y lista coincidan.
+    const productsPerTag = {
+      storeId: new Set(),
+      tiendaId: new Set(),
+      tienda_id: new Set(),
+      ownerUid: new Set(),
+    };
+    const recomputeProductos = () => {
+      const unionIds = new Set();
+      Object.values(productsPerTag).forEach((set) =>
+        set.forEach((id) => unionIds.add(id)),
+      );
+      setStats((prev) => ({ ...prev, productos: unionIds.size }));
+    };
+    const subscribeProductsBy = (field, value) => {
+      if (!value) return () => {};
+      const q = query(collection(db, "productos"), where(field, "==", value));
+      return onSnapshot(
+        q,
+        (snapshot) => {
+          const set = new Set();
+          snapshot.docs.forEach((d) => set.add(d.id));
+          productsPerTag[field] = set;
+          recomputeProductos();
+        },
+        (error) => {
+          console.error(
+            `[SellerAdminPanel] Error cargando productos (${field}):`,
+            error,
+          );
+        },
+      );
+    };
+    const unsubStoreId = subscribeProductsBy("storeId", effectiveStoreId);
+    const unsubTiendaId = subscribeProductsBy("tiendaId", effectiveStoreId);
+    const unsubTiendaUnderscore = subscribeProductsBy(
+      "tienda_id",
+      effectiveStoreId,
     );
+    const unsubOwnerUid = subscribeProductsBy("ownerUid", ownerUid);
+    const unsubProducts = () => {
+      unsubStoreId && unsubStoreId();
+      unsubTiendaId && unsubTiendaId();
+      unsubTiendaUnderscore && unsubTiendaUnderscore();
+      unsubOwnerUid && unsubOwnerUid();
+    };
 
-    // Pedidos de mi tienda
+    // Pedidos de mi tienda: match por storeId en items + fallback por ownerUid
     const unsubOrders = onSnapshot(
       query(collection(db, "orders")),
       (snapshot) => {
@@ -850,25 +892,48 @@ function SellerAdminPanel() {
           ...doc.data(),
         }));
 
-        // Filtrar pedidos que contengan productos de mi tienda
+        const matchItem = (item) =>
+          (effectiveStoreId &&
+            (item?.storeId === effectiveStoreId ||
+              item?.tiendaId === effectiveStoreId ||
+              item?.tienda_id === effectiveStoreId)) ||
+          (ownerUid && item?.ownerUid === ownerUid);
+
         const myOrders = allOrders.filter((order) =>
-          order.items?.some((item) => item.storeId === effectiveStoreId)
+          order.items?.some(matchItem),
         );
+
+        // Sumar solo los items de mi tienda (no el total del pedido completo
+        // que puede incluir productos de otras tiendas)
+        const ventas = myOrders.reduce((sum, order) => {
+          const itemsMios = (order.items || []).filter(matchItem);
+          return (
+            sum +
+            itemsMios.reduce(
+              (s, it) =>
+                s + (parseFloat(it.precio) || 0) * (parseInt(it.cantidad) || 0),
+              0,
+            )
+          );
+        }, 0);
 
         setOrders(myOrders);
         setStats((prev) => ({
           ...prev,
           pedidos: myOrders.length,
-          ventas: myOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+          ventas,
         }));
-      }
+      },
+      (error) => {
+        console.error("[SellerAdminPanel] Error cargando pedidos:", error);
+      },
     );
 
     return () => {
       unsubProducts();
       unsubOrders();
     };
-  }, [effectiveStoreId]);
+  }, [effectiveStoreId, usuario?.uid]);
 
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: FiHome },
@@ -1041,7 +1106,7 @@ function SellerAdminPanel() {
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             {
                               order.items?.filter(
-                                (item) => item.storeId === effectiveStoreId
+                                (item) => item.storeId === effectiveStoreId,
                               ).length
                             }{" "}
                             productos
@@ -1052,12 +1117,12 @@ function SellerAdminPanel() {
                             $
                             {order.items
                               ?.filter(
-                                (item) => item.storeId === effectiveStoreId
+                                (item) => item.storeId === effectiveStoreId,
                               )
                               .reduce(
                                 (sum, item) =>
                                   sum + item.precio * item.cantidad,
-                                0
+                                0,
                               )
                               .toFixed(2)}
                           </p>
@@ -1066,8 +1131,8 @@ function SellerAdminPanel() {
                               order.estado === "entregado"
                                 ? "bg-green-100 text-green-800"
                                 : order.estado === "en camino"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
                             {order.estado || "Pendiente"}
@@ -1176,6 +1241,7 @@ function SellerAdminPanel() {
    ============================================================ */
 export default function Admin() {
   const { usuario, usuarioInfo } = useAuth();
+  const { tienda, tieneTienda, loadingTienda } = useStore();
   const [usuarios, setUsuarios] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
@@ -1266,7 +1332,7 @@ export default function Admin() {
           });
           return merged;
         });
-      }
+      },
     );
 
     // Escuchar colección "usuarios"
@@ -1303,7 +1369,7 @@ export default function Admin() {
           });
           return merged;
         });
-      }
+      },
     );
 
     return () => {
@@ -1321,10 +1387,23 @@ export default function Admin() {
 
   const isGlobalAdmin = usuarioInfo?.isAdmin === true;
   const isSeller = Boolean(
-    usuarioInfo?.isSeller || usuarioInfo?.empresa || usuarioInfo?.empresaId
+    usuarioInfo?.isSeller ||
+    usuarioInfo?.role === "seller" ||
+    usuarioInfo?.empresa ||
+    usuarioInfo?.empresaId ||
+    usuarioInfo?.storeId ||
+    tieneTienda ||
+    tienda?.id,
   );
 
-  // Acceso vendedor: panel simplificado
+  if (!isGlobalAdmin && loadingTienda) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-blue-50">
+        <LoadingSpinner size="large" color="blue" variant="pulse" />
+      </div>
+    );
+  }
+
   if (!isGlobalAdmin && isSeller) {
     return <SellerAdminPanel />;
   }
@@ -1451,14 +1530,14 @@ export default function Admin() {
                               src={
                                 u.photoURL ||
                                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  u.displayName || u.nombre || "Usuario"
+                                  u.displayName || u.nombre || "Usuario",
                                 )}&size=128&background=2563eb&color=fff&bold=true`
                               }
                               alt={u.displayName || u.nombre || "Usuario"}
                               className="w-8 h-8 rounded-full object-cover"
                               onError={(e) => {
                                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  u.displayName || u.nombre || "Usuario"
+                                  u.displayName || u.nombre || "Usuario",
                                 )}&size=128&background=2563eb&color=fff&bold=true`;
                               }}
                             />
@@ -1484,7 +1563,7 @@ export default function Admin() {
                             <a
                               href={`tel:${(u.telefono || "").replace(
                                 /[^\d+]/g,
-                                ""
+                                "",
                               )}`}
                               className="text-blue-600 dark:text-blue-400 hover:underline"
                             >
@@ -1509,13 +1588,13 @@ export default function Admin() {
                                   ? raw
                                   : String(raw || "");
                               const coord = s.match(
-                                /(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/
+                                /(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/,
                               );
                               if (coord) {
                                 link = `https://www.google.com/maps?q=${coord[1]},${coord[2]}`;
                               } else if (
                                 /^(https?:\/\/)|maps\.app|goo\.gl|google\.com\/maps/i.test(
-                                  s
+                                  s,
                                 )
                               ) {
                                 link = s.startsWith("http")
@@ -1523,7 +1602,7 @@ export default function Admin() {
                                   : `https://${s}`;
                               } else if (dirText) {
                                 link = `https://www.google.com/maps?q=${encodeURIComponent(
-                                  dirText
+                                  dirText,
                                 )}`;
                               }
                             } catch {}
@@ -1628,7 +1707,7 @@ export default function Admin() {
                                           {
                                             admin: true,
                                             isAdmin: true,
-                                          }
+                                          },
                                         );
                                       } catch (err) {
                                         // Error silencioso
@@ -1636,13 +1715,13 @@ export default function Admin() {
                                       notify(
                                         " ¡Ahora eres Admin! Refresca la página.",
                                         "success",
-                                        "Admin asignado"
+                                        "Admin asignado",
                                       );
                                     } catch (error) {
                                       notify(
                                         "Error: " + error.message,
                                         "error",
-                                        "Error"
+                                        "Error",
                                       );
                                     }
                                   }}
@@ -1912,7 +1991,7 @@ export default function Admin() {
                         const usuarioDocRef = doc(
                           db,
                           "usuarios",
-                          userToDelete.id
+                          userToDelete.id,
                         );
                         await deleteDoc(usuarioDocRef);
                       } catch (err) {
@@ -1922,13 +2001,13 @@ export default function Admin() {
                       notify(
                         "Usuario eliminado exitosamente",
                         "success",
-                        "Eliminado"
+                        "Eliminado",
                       );
                     } catch (error) {
                       notify(
                         "Error al eliminar usuario: " + error.message,
                         "error",
-                        "Error"
+                        "Error",
                       );
                     } finally {
                       setShowDeleteUserModal(false);
@@ -2077,7 +2156,7 @@ function OrderDetailsModal({ order, onClose }) {
                         Subtotal:{" "}
                         {formatCurrency(
                           producto.subtotal ||
-                            producto.precio * producto.cantidad
+                            producto.precio * producto.cantidad,
                         )}
                       </span>
                     </div>

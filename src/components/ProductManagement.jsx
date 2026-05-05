@@ -110,69 +110,142 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
   const loadProducts = () => {
     try {
-      let qRef;
-
-      // CASO 1: Super Admin - Ve TODOS los productos
+      // CASO 1: Super Admin - Ve TODOS los productos con un único listener
       if (isAdmin) {
-        qRef = query(
+        const qRef = query(
           collection(db, "productos"),
-          orderBy("fechaCreacion", "desc")
+          orderBy("fechaCreacion", "desc"),
         );
-      }
-      // CASO 2: Vendedor con storeId - Solo ve sus productos (filtrado por storeId)
-      // Usar storeId del usuario O del hook useStore como fallback
-      else if (usuarioInfo?.storeId || tienda?.id) {
-        const effectiveStoreId = usuarioInfo?.storeId || tienda?.id;
-        qRef = query(
-          collection(db, "productos"),
-          where("storeId", "==", effectiveStoreId),
-          orderBy("fechaCreacion", "desc")
+        const unsubscribe = onSnapshot(
+          qRef,
+          (snapshot) => applyProductsSnapshot(snapshot.docs),
+          (error) => {
+            console.error(
+              "[ProductManagement] Error cargando productos (admin):",
+              error,
+            );
+            setLoading(false);
+          },
         );
+        return unsubscribe;
       }
-      // CASO 3: Vendedor SIN storeId - No muestra nada
-      else {
-        // No cargar productos, mostrar mensaje vacío
+
+      // CASO 2: Vendedor - unión de varios listeners para cubrir productos
+      // guardados con distintos nombres de campo o sin storeId sincronizado.
+      // Priorizamos tienda?.id (fuente en vivo de useStore) sobre
+      // usuarioInfo?.storeId (que puede estar desfasado).
+      const effectiveStoreId = tienda?.id || usuarioInfo?.storeId || null;
+      const ownerUid = usuario?.uid || null;
+
+      if (!effectiveStoreId && !ownerUid) {
         setProducts([]);
         setLoading(false);
-        return () => {}; // Retornar función vacía
+        return () => {};
       }
 
-      const unsubscribe = onSnapshot(
-        qRef,
-        (snapshot) => {
-          // USAR ESTADO LOCAL en lugar de localStorage para evitar race conditions
-          setPhantomProductIds((currentPhantoms) => {
-            // Filtrar productos: excluir fantasmas y verificar que existan
-            const productsData = [];
+      // Mantenemos un mapa por id para deduplicar resultados de múltiples queries
+      const byId = new Map();
+      const unsubs = [];
 
-            snapshot.docs.forEach((doc) => {
-              const isPhantom = currentPhantoms.includes(doc.id);
-
-              if (!isPhantom && doc.exists()) {
-                productsData.push({
-                  id: doc.id,
-                  ...doc.data(),
-                });
-              }
-            });
-
-            setProducts(productsData);
-            setLoading(false);
-
-            // Retornar el estado sin cambios
-            return currentPhantoms;
+      const emit = () => {
+        setPhantomProductIds((currentPhantoms) => {
+          const productsData = Array.from(byId.values()).filter(
+            (p) => !currentPhantoms.includes(p.id),
+          );
+          productsData.sort((a, b) => {
+            const toMs = (v) => {
+              if (!v) return 0;
+              if (typeof v?.toMillis === "function") return v.toMillis();
+              if (v?.seconds) return v.seconds * 1000;
+              const t = new Date(v).getTime();
+              return isNaN(t) ? 0 : t;
+            };
+            return toMs(b.fechaCreacion) - toMs(a.fechaCreacion);
           });
-        },
-        (error) => {
+          setProducts(productsData);
           setLoading(false);
-        }
-      );
+          return currentPhantoms;
+        });
+      };
 
-      return unsubscribe;
+      const subscribeBy = (field, value, tag) => {
+        if (!value) return;
+        try {
+          const q = query(
+            collection(db, "productos"),
+            where(field, "==", value),
+          );
+          const unsub = onSnapshot(
+            q,
+            (snapshot) => {
+              snapshot.docChanges().forEach((change) => {
+                if (change.type === "removed") {
+                  byId.delete(change.doc.id);
+                } else {
+                  byId.set(change.doc.id, {
+                    id: change.doc.id,
+                    ...change.doc.data(),
+                  });
+                }
+              });
+              emit();
+            },
+            (error) => {
+              console.error(
+                `[ProductManagement] Error cargando productos (${tag}):`,
+                error,
+              );
+              setLoading(false);
+            },
+          );
+          unsubs.push(unsub);
+        } catch (err) {
+          console.error(
+            `[ProductManagement] No se pudo suscribir por ${field}:`,
+            err,
+          );
+        }
+      };
+
+      // Cubrir los 3 nombres de campo posibles para la tienda
+      subscribeBy("storeId", effectiveStoreId, "storeId");
+      subscribeBy("tiendaId", effectiveStoreId, "tiendaId");
+      subscribeBy("tienda_id", effectiveStoreId, "tienda_id");
+      // Fallback por propietario (productos antiguos sin storeId)
+      subscribeBy("ownerUid", ownerUid, "ownerUid");
+
+      return () => unsubs.forEach((u) => u && u());
     } catch (error) {
+      console.error("[ProductManagement] Error en loadProducts:", error);
       setLoading(false);
       return null;
     }
+  };
+
+  // Helper único para el caso admin (snapshot directo)
+  const applyProductsSnapshot = (docs) => {
+    setPhantomProductIds((currentPhantoms) => {
+      const productsData = [];
+      docs.forEach((doc) => {
+        const isPhantom = currentPhantoms.includes(doc.id);
+        if (!isPhantom && doc.exists()) {
+          productsData.push({ id: doc.id, ...doc.data() });
+        }
+      });
+      productsData.sort((a, b) => {
+        const toMs = (v) => {
+          if (!v) return 0;
+          if (typeof v?.toMillis === "function") return v.toMillis();
+          if (v?.seconds) return v.seconds * 1000;
+          const t = new Date(v).getTime();
+          return isNaN(t) ? 0 : t;
+        };
+        return toMs(b.fechaCreacion) - toMs(a.fechaCreacion);
+      });
+      setProducts(productsData);
+      setLoading(false);
+      return currentPhantoms;
+    });
   };
 
   // Opciones de empresas (solo admin): a partir de ownerName/empresa presentes
@@ -206,7 +279,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       if (Array.isArray(p?.variantes) && p.variantes.length) {
         return p.variantes.reduce(
           (acc, v) => acc + (parseInt(v?.cantidad) || 0),
-          0
+          0,
         );
       }
       return Number.POSITIVE_INFINITY; // si no está definido, considerar disponible
@@ -225,12 +298,12 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       if (!productSnap.exists()) {
         // Eliminar del estado local si no existe en Firebase
         setProducts((prevProducts) =>
-          prevProducts.filter((p) => p.id !== productId)
+          prevProducts.filter((p) => p.id !== productId),
         );
         notify(
           "Este producto no existe en la base de datos y ha sido eliminado de la lista.",
           "info",
-          "Producto eliminado"
+          "Producto eliminado",
         );
         return;
       }
@@ -243,7 +316,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       notify(
         `Error al actualizar el estado del producto: ${error.message}`,
         "error",
-        "Error"
+        "Error",
       );
     }
   };
@@ -257,12 +330,12 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       if (!productSnap.exists()) {
         // Eliminar del estado local si no existe en Firebase
         setProducts((prevProducts) =>
-          prevProducts.filter((p) => p.id !== product.id)
+          prevProducts.filter((p) => p.id !== product.id),
         );
         notify(
           "Este producto no existe en la base de datos y ha sido eliminado de la lista. No se puede duplicar.",
           "warning",
-          "Producto no encontrado"
+          "Producto no encontrado",
         );
         return;
       }
@@ -360,13 +433,13 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       notify(
         `Producto duplicado exitosamente con ID: ${newProductId}`,
         "success",
-        "Producto duplicado"
+        "Producto duplicado",
       );
     } catch (error) {
       notify(
         `Error al duplicar el producto: ${error.message}`,
         "error",
-        "Error"
+        "Error",
       );
     }
   };
@@ -381,12 +454,12 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       if (!productSnap.exists()) {
         // Eliminar del estado local si no existe en Firebase
         setProducts((prevProducts) =>
-          prevProducts.filter((p) => p.id !== productId)
+          prevProducts.filter((p) => p.id !== productId),
         );
         notify(
           "Este producto no existe en la base de datos y ha sido eliminado de la lista.",
           "info",
-          "Producto eliminado"
+          "Producto eliminado",
         );
         return;
       }
@@ -399,7 +472,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
       notify(
         `Error al actualizar ${field}: ${error.message}`,
         "error",
-        "Error"
+        "Error",
       );
     }
   };
@@ -427,7 +500,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
             const newPhantoms = [...prevPhantoms, productId];
             localStorage.setItem(
               "phantomProducts",
-              JSON.stringify(newPhantoms)
+              JSON.stringify(newPhantoms),
             );
             return newPhantoms;
           }
@@ -436,7 +509,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
 
         // IMPORTANTE: Forzar actualización inmediata del estado de productos
         setProducts((prevProducts) =>
-          prevProducts.filter((p) => p.id !== productId)
+          prevProducts.filter((p) => p.id !== productId),
         );
 
         const toast = document.createElement("div");
@@ -467,14 +540,14 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         notify(
           "Error: No se pudo eliminar de Firebase. Verifica los permisos.",
           "error",
-          "Error al eliminar"
+          "Error al eliminar",
         );
         return;
       }
 
       // Eliminar del estado local
       setProducts((prevProducts) =>
-        prevProducts.filter((p) => p.id !== productId)
+        prevProducts.filter((p) => p.id !== productId),
       );
 
       // Toast de confirmación
@@ -523,8 +596,8 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
           ? totalStock <= 0
             ? "agotado"
             : totalStock <= 5
-            ? "bajo"
-            : "disponible"
+              ? "bajo"
+              : "disponible"
           : "disponible";
         const matchesStock = !stockFilter || stockStatus === stockFilter;
 
@@ -536,8 +609,8 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
         const createdAtMs = product?.fechaCreacion?.seconds
           ? product.fechaCreacion.seconds * 1000
           : product?.fechaCreacion
-          ? new Date(product.fechaCreacion).getTime()
-          : null;
+            ? new Date(product.fechaCreacion).getTime()
+            : null;
         const fromOk =
           !dateFrom ||
           (createdAtMs &&
@@ -886,7 +959,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                         updateProductField(
                           product.id,
                           "precio",
-                          parseFloat(e.target.value) || 0
+                          parseFloat(e.target.value) || 0,
                         );
                         setEditingPrice(null);
                       }}
@@ -895,7 +968,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                           updateProductField(
                             product.id,
                             "precio",
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
                           );
                           setEditingPrice(null);
                         }
@@ -927,7 +1000,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                             updateProductField(
                               product.id,
                               "cantidad",
-                              parseInt(e.target.value) || 0
+                              parseInt(e.target.value) || 0,
                             );
                             setEditingQuantity(null);
                           }}
@@ -936,7 +1009,7 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                               updateProductField(
                                 product.id,
                                 "cantidad",
-                                parseInt(e.target.value) || 0
+                                parseInt(e.target.value) || 0,
                               );
                               setEditingQuantity(null);
                             }
@@ -953,8 +1026,8 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
                             product.cantidad <= 5
                               ? "text-red-600 font-semibold"
                               : product.cantidad <= 20
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                                ? "text-yellow-600"
+                                : "text-green-600"
                           }`}
                           onClick={() => setEditingQuantity(product.id)}
                           title="Click para editar cantidad"
@@ -1013,15 +1086,15 @@ const ProductManagement = ({ onAddProduct, onEditProduct }) => {
             {searchTerm || selectedCategory
               ? "No se encontraron productos"
               : isAdmin
-              ? "No hay productos en el sistema"
-              : "No tienes productos todavía"}
+                ? "No hay productos en el sistema"
+                : "No tienes productos todavía"}
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             {searchTerm || selectedCategory
               ? "Intenta ajustar los filtros de búsqueda"
               : isAdmin
-              ? "Los productos aparecerán aquí cuando los vendedores los creen"
-              : "Comienza agregando tu primer producto para vender"}
+                ? "Los productos aparecerán aquí cuando los vendedores los creen"
+                : "Comienza agregando tu primer producto para vender"}
           </p>
           {!searchTerm && !selectedCategory && !isAdmin && (
             <button

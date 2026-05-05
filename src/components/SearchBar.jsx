@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import "./SearchBar.css";
 import { recordSearch, isSearchHistoryEnabled } from "../lib/history";
+import { fixBucket } from "../utils/imageUtils";
 
 // Normalizar texto para búsqueda sin acentos ni mayúsculas
 const normalizarTexto = (texto) => {
@@ -194,7 +195,7 @@ const SearchBar = forwardRef(
 
     const searchHistoryEnabled = useMemo(
       () => isSearchHistoryEnabled(),
-      [prefsTick]
+      [prefsTick],
     );
 
     // Cargar historial de búsquedas desde localStorage cuando está permitido
@@ -205,7 +206,7 @@ const SearchBar = forwardRef(
           return;
         }
         const historial = JSON.parse(
-          localStorage.getItem("historialBusquedas") || "[]"
+          localStorage.getItem("historialBusquedas") || "[]",
         );
         setHistorialBusquedas(historial.slice(0, 5)); // Solo las últimas 5
       } catch (_) {}
@@ -233,7 +234,7 @@ const SearchBar = forwardRef(
         resultadosConScore = resultadosConScore.filter(
           (p) =>
             normalizarTexto(p.categoria || "") ===
-            normalizarTexto(categoriaSeleccionada)
+            normalizarTexto(categoriaSeleccionada),
         );
       }
 
@@ -298,7 +299,7 @@ const SearchBar = forwardRef(
       } catch (_) {}
 
       const historial = JSON.parse(
-        localStorage.getItem("historialBusquedas") || "[]"
+        localStorage.getItem("historialBusquedas") || "[]",
       );
       const nuevoHistorial = [
         termino,
@@ -306,7 +307,7 @@ const SearchBar = forwardRef(
       ].slice(0, 10);
       localStorage.setItem(
         "historialBusquedas",
-        JSON.stringify(nuevoHistorial)
+        JSON.stringify(nuevoHistorial),
       );
       setHistorialBusquedas(nuevoHistorial.slice(0, 5));
     };
@@ -385,12 +386,12 @@ const SearchBar = forwardRef(
     const eliminarDeHistorial = (termino, e) => {
       e.stopPropagation();
       const historial = JSON.parse(
-        localStorage.getItem("historialBusquedas") || "[]"
+        localStorage.getItem("historialBusquedas") || "[]",
       );
       const nuevoHistorial = historial.filter((h) => h !== termino);
       localStorage.setItem(
         "historialBusquedas",
-        JSON.stringify(nuevoHistorial)
+        JSON.stringify(nuevoHistorial),
       );
       setHistorialBusquedas(nuevoHistorial.slice(0, 5));
     };
@@ -529,8 +530,8 @@ const SearchBar = forwardRef(
                             ? "#93c5fd"
                             : "#1d4ed8"
                           : isDark
-                          ? "#d1d5db"
-                          : "#374151",
+                            ? "#d1d5db"
+                            : "#374151",
                       borderLeft:
                         categoriaSeleccionada === "todas"
                           ? "4px solid #2563eb"
@@ -600,8 +601,8 @@ const SearchBar = forwardRef(
                               ? "#93c5fd"
                               : "#1d4ed8"
                             : isDark
-                            ? "#d1d5db"
-                            : "#374151",
+                              ? "#d1d5db"
+                              : "#374151",
                         borderLeft:
                           categoriaSeleccionada === cat
                             ? "4px solid #2563eb"
@@ -843,7 +844,7 @@ const SearchBar = forwardRef(
                     <div className="flex items-center gap-3">
                       {item.imagen && (
                         <img
-                          src={item.imagen}
+                          src={fixBucket(item.imagen)}
                           alt={item.nombre}
                           className="w-14 h-14 object-cover rounded border border-gray-200 dark:border-gray-600 flex-shrink-0"
                           loading="lazy"
@@ -1084,11 +1085,11 @@ const SearchBar = forwardRef(
                 )}
               </div>
             </div>,
-            document.body
+            document.body,
           )}
       </div>
     );
-  }
+  },
 );
 
 export default SearchBar;

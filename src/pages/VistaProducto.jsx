@@ -43,6 +43,7 @@ import {
 import { db } from "../firebase";
 import { recordProduct } from "../lib/history";
 import { uploadFileFast } from "../utils/uploadFast";
+import { fixBucket } from "../utils/imageUtils";
 
 // Components necesarios
 import VisualVariantSelector from "../components/VisualVariantSelector";
@@ -54,6 +55,7 @@ import ProductosRelacionados from "../components/ProductosRelacionados";
 import ReviewsSummary from "../components/reviews/ReviewsSummary";
 import ReviewCard from "../components/reviews/ReviewCard";
 import ReviewMediaModal from "../components/reviews/ReviewMediaModal";
+import WriteReviewModal from "../components/reviews/WriteReviewModal";
 
 // Sistema simple directo
 
@@ -773,7 +775,7 @@ function VistaProducto() {
     ? producto.variantes
     : [];
   const variantesConColor = allVariantes.filter(
-    (v) => v && typeof v.color === "string" && v.color.trim()
+    (v) => v && typeof v.color === "string" && v.color.trim(),
   );
 
   const computedBreakdown = (() => {
@@ -792,7 +794,7 @@ function VistaProducto() {
             reviews.reduce((s, r) => s + (Number(r?.rating) || 0), 0) /
             reviews.length
           ).toFixed(2)
-        : 0)
+        : 0),
   );
   const ratingBreakdown = producto?.ratingBreakdown || computedBreakdown;
 
@@ -986,7 +988,7 @@ function VistaProducto() {
       () => {
         setReviewsError("Error cargando reseñas");
         setReviewsLoading(false);
-      }
+      },
     );
     return () => unsub && unsub();
   }, [id]);
@@ -997,7 +999,7 @@ function VistaProducto() {
         collection(db, "orders"),
         where("userId", "==", uid),
         orderBy("fecha", "desc"),
-        limit(20)
+        limit(20),
       );
       const snap = await getDocs(q);
       for (const ds of snap.docs) {
@@ -1015,7 +1017,7 @@ function VistaProducto() {
     setNewMediaFiles(files);
   };
 
-  const publishReview = async () => {
+  const publishReview = async (payloadFromModal) => {
     if (!usuario) {
       try {
         abrirModal();
@@ -1023,7 +1025,21 @@ function VistaProducto() {
       return;
     }
     if (!id) return;
-    if (!(newRating > 0) || !newComment.trim()) {
+
+    // Compatibilidad: soporta payload nuevo del WriteReviewModal o fallback al estado legacy
+    const data = payloadFromModal || {
+      rating: newRating,
+      title: "",
+      comment: newComment,
+      recommend: null,
+      files: newMediaFiles,
+    };
+    const ratingVal = Number(data.rating) || 0;
+    const commentVal = (data.comment || "").trim();
+    const titleVal = (data.title || "").trim();
+    const filesList = Array.isArray(data.files) ? data.files : [];
+
+    if (!(ratingVal > 0) || !commentVal) {
       showNotification("Calificación y comentario son obligatorios", "error");
       return;
     }
@@ -1031,7 +1047,7 @@ function VistaProducto() {
     try {
       let images = [];
       let videos = [];
-      for (const file of newMediaFiles) {
+      for (const file of filesList) {
         const res = await uploadFileFast(file, id);
         if (res?.type === "image") images.push(res.url);
         else if (res?.type === "video") videos.push(res.url);
@@ -1043,46 +1059,64 @@ function VistaProducto() {
           usuario.displayName || usuario.email?.split("@")[0] || "Usuario",
         userPhoto: usuario.photoURL || null,
         productId: id,
-        rating: Number(newRating),
-        comment: newComment.trim(),
+        rating: ratingVal,
+        title: titleVal,
+        comment: commentVal,
+        recommend:
+          data.recommend === true || data.recommend === false
+            ? data.recommend
+            : null,
         images,
         videos,
         verifiedPurchase: !!verified,
+        helpfulCount: 0,
+        helpfulBy: [],
         createdAt: serverTimestamp(),
       };
       await addDoc(collection(db, "productos", id, "reviews"), payload);
-      await runTransaction(db, async (tx) => {
-        const pRef = doc(db, "productos", id);
-        const snap = await tx.get(pRef);
-        const data = snap.exists() ? snap.data() : {};
-        const prevCount = Number(data?.ratingCount) || 0;
-        const prevSum = Number(data?.ratingSum) || 0;
-        const prevBreak = data?.ratingBreakdown || {
-          1: 0,
-          2: 0,
-          3: 0,
-          4: 0,
-          5: 0,
-        };
-        const r = Math.max(1, Math.min(5, Math.round(Number(newRating) || 0)));
-        const nextBreak = { ...prevBreak, [r]: (prevBreak[r] || 0) + 1 };
-        const nextCount = prevCount + 1;
-        const nextSum = prevSum + Number(newRating);
-        const nextAvg =
-          nextCount > 0 ? Number((nextSum / nextCount).toFixed(2)) : 0;
-        tx.update(pRef, {
-          ratingCount: nextCount,
-          ratingAverage: nextAvg,
-          ratingSum: nextSum,
-          ratingBreakdown: nextBreak,
+      // La reseña YA está guardada. Si la actualización del agregado falla,
+      // NO lo consideramos un error del publicar (se reconciliará después).
+      try {
+        await runTransaction(db, async (tx) => {
+          const pRef = doc(db, "productos", id);
+          const snap = await tx.get(pRef);
+          const pdata = snap.exists() ? snap.data() : {};
+          const prevCount = Number(pdata?.ratingCount) || 0;
+          const prevSum = Number(pdata?.ratingSum) || 0;
+          const prevBreak = pdata?.ratingBreakdown || {
+            1: 0,
+            2: 0,
+            3: 0,
+            4: 0,
+            5: 0,
+          };
+          const r = Math.max(1, Math.min(5, Math.round(ratingVal)));
+          const nextBreak = { ...prevBreak, [r]: (prevBreak[r] || 0) + 1 };
+          const nextCount = prevCount + 1;
+          const nextSum = prevSum + ratingVal;
+          const nextAvg =
+            nextCount > 0 ? Number((nextSum / nextCount).toFixed(2)) : 0;
+          tx.update(pRef, {
+            ratingCount: nextCount,
+            ratingAverage: nextAvg,
+            ratingSum: nextSum,
+            ratingBreakdown: nextBreak,
+          });
         });
-      });
+      } catch (aggErr) {
+        console.warn(
+          "Reseña publicada pero no se pudo actualizar el agregado:",
+          aggErr,
+        );
+      }
       setNewRating(0);
       setNewComment("");
       setNewMediaFiles([]);
+      setWriteReviewOpen(false);
       showNotification("Tu opinión fue publicada", "success");
     } catch (e) {
       showNotification("No se pudo publicar la opinión", "error");
+      throw e;
     } finally {
       setSubmitBusy(false);
     }
@@ -1119,7 +1153,7 @@ function VistaProducto() {
         };
         const r = Math.max(
           1,
-          Math.min(5, Math.round(Number(rev?.rating) || 0))
+          Math.min(5, Math.round(Number(rev?.rating) || 0)),
         );
         const nextBreak = {
           ...prevBreak,
@@ -1170,7 +1204,7 @@ function VistaProducto() {
           };
           const r = Math.max(
             1,
-            Math.min(5, Math.round(Number(rev?.rating) || 0))
+            Math.min(5, Math.round(Number(rev?.rating) || 0)),
           );
           const nextBreak = {
             ...prevBreak,
@@ -1229,6 +1263,20 @@ function VistaProducto() {
     reviewsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Auto-scroll a reviews si la URL tiene hash #reviews (ej. desde "Mis Opiniones")
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#reviews") return;
+    if (reviewsLoading) return;
+    const t = setTimeout(() => {
+      reviewsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 150);
+    return () => clearTimeout(t);
+  }, [reviewsLoading]);
+
   // Filtrar y ordenar reseñas según filtros
   const getFilteredAndSortedReviews = () => {
     let filtered = [...reviews];
@@ -1236,13 +1284,13 @@ function VistaProducto() {
     // Aplicar filtros
     if (reviewFilters.stars) {
       filtered = filtered.filter(
-        (review) => review.rating === reviewFilters.stars
+        (review) => review.rating === reviewFilters.stars,
       );
     }
 
     if (reviewFilters.hasMedia) {
       filtered = filtered.filter(
-        (review) => review.images?.length > 0 || review.videos?.length > 0
+        (review) => review.images?.length > 0 || review.videos?.length > 0,
       );
     }
 
@@ -1297,7 +1345,7 @@ function VistaProducto() {
     for (const r of reviews || []) {
       if (Array.isArray(r?.images)) {
         r.images.forEach((url, idx) =>
-          items.push({ review: r, url, index: idx })
+          items.push({ review: r, url, index: idx }),
         );
       }
     }
@@ -1313,7 +1361,7 @@ function VistaProducto() {
         (item) =>
           item.id === producto.id &&
           (!varianteActivaUI ||
-            item.variante?.color === varianteActivaUI?.color)
+            item.variante?.color === varianteActivaUI?.color),
       );
       setCartQuantity(currentInCart?.cantidad || 0);
     }
@@ -1362,7 +1410,7 @@ function VistaProducto() {
     const adjustThumbnailHeight = () => {
       const mainImage = mainImageRef.current;
       const thumbnailContainer = document.querySelector(
-        ".amazon-thumbs-sidebar"
+        ".amazon-thumbs-sidebar",
       );
 
       if (mainImage && thumbnailContainer) {
@@ -1481,11 +1529,14 @@ function VistaProducto() {
     // PRIORIDAD 1: Si hay variante seleccionada, usar su imagen
     if (varianteSeleccionada >= 0 && variantesConColor[varianteSeleccionada]) {
       const variante = variantesConColor[varianteSeleccionada];
-      return variante?.imagenPrincipal?.[0]?.url || variante?.imagen || "";
+      const u = variante?.imagenPrincipal?.[0]?.url || variante?.imagen || "";
+      return fixBucket(u);
     }
 
     // PRIORIDAD 2: Imagen principal del producto (la que subí)
-    return producto?.imagenPrincipal?.[0]?.url || producto?.imagen || "";
+    return fixBucket(
+      producto?.imagenPrincipal?.[0]?.url || producto?.imagen || "",
+    );
   };
 
   // ARREGLADO: Obtener imágenes de galería - SIN DUPLICADOS
@@ -1515,15 +1566,15 @@ function VistaProducto() {
         Array.isArray(variante?.imagenes) && variante.imagenes.length > 0
           ? variante.imagenes
           : Array.isArray(variante?.galeriaImagenes)
-          ? variante.galeriaImagenes
-          : [];
+            ? variante.galeriaImagenes
+            : [];
     } else {
       gallerySource =
         Array.isArray(producto?.imagenes) && producto.imagenes.length > 0
           ? producto.imagenes
           : Array.isArray(producto?.galeriaImagenes)
-          ? producto.galeriaImagenes
-          : [];
+            ? producto.galeriaImagenes
+            : [];
     }
 
     // PASO 3: Filtrar imágenes de galería (excluir principal, duplicados y videos)
@@ -1540,14 +1591,15 @@ function VistaProducto() {
       if (type === "video") return;
 
       // Excluir videos por extensión
-      const ext = imgUrl.split(".").pop()?.split("?")[0]?.toLowerCase() || "";
+      const fixed = fixBucket(imgUrl);
+      const ext = fixed.split(".").pop()?.split("?")[0]?.toLowerCase() || "";
       if (["mp4", "mov", "webm", "avi", "mkv", "m4v"].includes(ext)) return;
 
       // Verificar duplicados
-      const key = normalizeUrl(imgUrl);
+      const key = normalizeUrl(fixed);
       if (!key || seen.has(key)) return;
       seen.add(key);
-      galleryImages.push(imgUrl);
+      galleryImages.push(fixed);
     });
 
     // PASO 4: Construir resultado final
@@ -1609,7 +1661,7 @@ function VistaProducto() {
   // Calculate safe desktop index
   const safeDesktopIndex = Math.max(
     0,
-    Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1))
+    Math.min(desktopMediaIndex, Math.max(0, desktopMediaItems.length - 1)),
   );
 
   // Display index (hover has priority over selection on desktop)
@@ -1630,7 +1682,7 @@ function VistaProducto() {
     const currentInCart = carrito.find(
       (item) =>
         item.id === product.id &&
-        (!variantToUse || item.variante?.color === variantToUse?.color)
+        (!variantToUse || item.variante?.color === variantToUse?.color),
     );
     setCartQuantity((currentInCart?.cantidad || 0) + quantity);
   };
@@ -1686,7 +1738,7 @@ function VistaProducto() {
   const enCarrito = carrito.find(
     (item) =>
       item.id === producto.id &&
-      normalizeColor(item.colorSeleccionado) === colorKey
+      normalizeColor(item.colorSeleccionado) === colorKey,
   );
   const cantidadEnCarrito = enCarrito?.cantidad || 0;
 
@@ -1748,8 +1800,8 @@ function VistaProducto() {
     varianteActivaUI?.cantidad !== undefined
       ? Number(varianteActivaUI.cantidad) || 0
       : producto.cantidad !== undefined
-      ? Number(producto.cantidad) || 0
-      : Infinity;
+        ? Number(producto.cantidad) || 0
+        : Infinity;
   const activo = producto?.activo !== false;
   const disponible = activo && stockDisponible > 0;
   const restante = Number.isFinite(stockDisponible)
@@ -1795,7 +1847,7 @@ function VistaProducto() {
   const hasImageGallery = imagenes.length > 0;
   // ARREGLADO: Solo mostrar selector de variantes si hay variantes REALES (no solo el producto principal)
   const hasVariantsUI = Boolean(
-    variantesConColor && variantesConColor.length > 0
+    variantesConColor && variantesConColor.length > 0,
   );
   const showLeftColumn = hasImageGallery;
   const isSingleImage = imagenes.length === 1;
@@ -1827,7 +1879,7 @@ function VistaProducto() {
   // Índice seguro para compatibilidad con estados previos
   const mainIndex = Math.min(
     Math.max(imagenActualIndex, 0),
-    Math.max(0, (imagenesValidas.length || 1) - 1)
+    Math.max(0, (imagenesValidas.length || 1) - 1),
   );
   // NO mostrar archivos extras ni videos - SOLO IMÁGENES (CON FILTRO)
   const imagenesModal = [...imagenesValidas];
@@ -1841,13 +1893,13 @@ function VistaProducto() {
 
   const siguienteImagen = () => {
     setImagenActualIndex((prev) =>
-      prev === imagenesModal.length - 1 ? 0 : prev + 1
+      prev === imagenesModal.length - 1 ? 0 : prev + 1,
     );
   };
 
   const anteriorImagen = () => {
     setImagenActualIndex((prev) =>
-      prev === 0 ? imagenesModal.length - 1 : prev - 1
+      prev === 0 ? imagenesModal.length - 1 : prev - 1,
     );
   };
 
@@ -1876,11 +1928,11 @@ function VistaProducto() {
     if (rect && e) {
       const x = Math.max(
         0,
-        Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)
+        Math.min(100, ((e.clientX - rect.left) / rect.width) * 100),
       );
       const y = Math.max(
         0,
-        Math.min(100, ((e.clientY - rect.top) / rect.height) * 100)
+        Math.min(100, ((e.clientY - rect.top) / rect.height) * 100),
       );
       lastPosRef.current = { x, y };
     } else {
@@ -1912,11 +1964,11 @@ function VistaProducto() {
 
     const x = Math.max(
       0,
-      Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)
+      Math.min(100, ((e.clientX - rect.left) / rect.width) * 100),
     );
     const y = Math.max(
       0,
-      Math.min(100, ((e.clientY - rect.top) / rect.height) * 100)
+      Math.min(100, ((e.clientY - rect.top) / rect.height) * 100),
     );
     lastPosRef.current = { x, y };
     if (!rafPendingRef.current) {
@@ -1978,7 +2030,7 @@ function VistaProducto() {
   const getDistance = (touch1, touch2) => {
     return Math.sqrt(
       Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
+        Math.pow(touch2.clientY - touch1.clientY, 2),
     );
   };
 
@@ -2171,7 +2223,7 @@ function VistaProducto() {
         if (touchDeltaX.current > 0) {
           // Swipe derecha = anterior
           setProductInfoImageIndex(
-            (prev) => (prev - 1 + extraImages.length) % extraImages.length
+            (prev) => (prev - 1 + extraImages.length) % extraImages.length,
           );
         } else {
           // Swipe izquierda = siguiente
@@ -2205,7 +2257,7 @@ function VistaProducto() {
         showNotification(
           "Enlace copiado al portapapeles",
           "success",
-          "¡Copiado!"
+          "¡Copiado!",
         );
       }
     } catch (error) {
@@ -2308,7 +2360,7 @@ function VistaProducto() {
                                     .toLowerCase()
                                 : "";
                             const idx = imagenes.findIndex(
-                              (u) => norm(u) === norm(item.url)
+                              (u) => norm(u) === norm(item.url),
                             );
                             if (idx >= 0) setImagenActualIndex(idx);
                           }}
@@ -2357,7 +2409,7 @@ function VistaProducto() {
                           className="ebay-arrow-overlay ebay-arrow-up"
                           onClick={() => {
                             const container = document.querySelector(
-                              ".amazon-thumbs-sidebar"
+                              ".amazon-thumbs-sidebar",
                             );
                             if (container)
                               container.scrollBy({
@@ -2386,7 +2438,7 @@ function VistaProducto() {
                           className="ebay-arrow-overlay ebay-arrow-down"
                           onClick={() => {
                             const container = document.querySelector(
-                              ".amazon-thumbs-sidebar"
+                              ".amazon-thumbs-sidebar",
                             );
                             if (container)
                               container.scrollBy({
@@ -2431,7 +2483,7 @@ function VistaProducto() {
                         const current = desktopMediaItems[displayDesktopIndex];
                         if (current?.type === "video") {
                           const vidIdx = (galleryVideosList || []).findIndex(
-                            (u) => u === current.url
+                            (u) => u === current.url,
                           );
                           openMediaOverlay("videos", Math.max(0, vidIdx));
                         } else {
@@ -2476,7 +2528,7 @@ function VistaProducto() {
                                 const mainImage = mainImageRef.current;
                                 const thumbnailContainer =
                                   document.querySelector(
-                                    ".amazon-thumbs-sidebar"
+                                    ".amazon-thumbs-sidebar",
                                   );
 
                                 if (mainImage && thumbnailContainer) {
@@ -2788,7 +2840,7 @@ function VistaProducto() {
               dangerouslySetInnerHTML={{
                 __html: sanitizeBasic(
                   producto.descripcion ||
-                    "<p>Contáctanos para más detalles.</p>"
+                    "<p>Contáctanos para más detalles.</p>",
                 ),
               }}
             />
@@ -2852,15 +2904,15 @@ function VistaProducto() {
                   restante === 0
                     ? "vp-stock-out"
                     : restante <= 2
-                    ? "vp-stock-low"
-                    : "vp-stock-ok"
+                      ? "vp-stock-low"
+                      : "vp-stock-ok"
                 }`}
               >
                 {restante === 0
                   ? "No disponible"
                   : Number.isFinite(restante)
-                  ? `Quedan ${restante} disponibles`
-                  : "Disponible"}
+                    ? `Quedan ${restante} disponibles`
+                    : "Disponible"}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 overflow-visible">
@@ -2931,15 +2983,15 @@ function VistaProducto() {
                   restante === 0
                     ? "vp-stock-out"
                     : restante <= 2
-                    ? "vp-stock-low"
-                    : "vp-stock-ok"
+                      ? "vp-stock-low"
+                      : "vp-stock-ok"
                 }`}
               >
                 {restante === 0
                   ? "No disponible"
                   : Number.isFinite(restante)
-                  ? `Quedan ${restante} disponibles`
-                  : "Disponible"}
+                    ? `Quedan ${restante} disponibles`
+                    : "Disponible"}
               </div>
 
               <div className="flex flex-col gap-3">
@@ -3006,7 +3058,7 @@ function VistaProducto() {
               className="vp-zoom-float vp-zoom-stage"
               style={zoomOverlayStyle}
             />,
-            document.body
+            document.body,
           )}
 
         {/* Productos relacionados - ARRIBA */}
@@ -3059,89 +3111,154 @@ function VistaProducto() {
           allVariantes={allVariantes}
         />
 
-        {/* 📋 SISTEMA DE RESEÑAS ESTILO AMAZON - ESTRUCTURA EXACTA */}
+        {/* 📋 OPINIONES DE CLIENTES - DISEÑO PREMIUM */}
         <section
           ref={reviewsRef}
           id="reviews"
           className="w-full mt-10 xl:mt-12"
           style={{ scrollMarginTop: "90px" }}
         >
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Opiniones de clientes
-          </h2>
-          <div className="xl:grid xl:grid-cols-12 xl:gap-8">
-            <div className="xl:col-span-3">
-              {/* NIVEL 1 - RESUMEN (ARRIBA) - Solo promedio, total, distribución */}
-              <ReviewsSummary
-                ratingAverage={ratingAverage}
-                ratingCount={ratingCount}
-                ratingBreakdown={ratingBreakdown}
-                onScrollToReviews={scrollToReviews}
-                onOpenWriteReview={openWriteReview}
-                loading={reviewsLoading}
-              />
-              <button
-                type="button"
-                onClick={openWriteReview}
-                className="mt-3 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-              >
-                Escribir una opinión
-              </button>
+          {/* Header de sección */}
+          <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                Opiniones de clientes
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Reseñas reales verificadas por la comunidad
+              </p>
             </div>
-            <div className="xl:col-span-9">
-              {/* Opiniones con imágenes - fila horizontal */}
-              <section className="mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Opiniones con imágenes
-                  </h3>
+          </div>
+
+          {/* GRID PRINCIPAL: stats (left) + lista (right) en desktop, apilado en móvil */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+            {/* COLUMNA IZQUIERDA: stats + CTA (flat estilo Amazon) */}
+            <aside className="lg:col-span-4 xl:col-span-3">
+              <div className="lg:sticky lg:top-24">
+                <ReviewsSummary
+                  ratingAverage={ratingAverage}
+                  ratingCount={ratingCount}
+                  ratingBreakdown={ratingBreakdown}
+                  onScrollToReviews={scrollToReviews}
+                  onOpenWriteReview={openWriteReview}
+                  loading={reviewsLoading}
+                />
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                    Comparte tu experiencia
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Si tienes este producto, tu opinión ayudará a otros
+                    compradores.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={openWriteReview}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold rounded-full border border-gray-300 dark:border-gray-600 shadow-sm transition-all active:scale-[0.98]"
+                  >
+                    Escribir una opinión
+                  </button>
+                </div>
+              </div>
+            </aside>
+
+            {/* COLUMNA DERECHA: fotos + lista de reseñas */}
+            <div className="lg:col-span-8 xl:col-span-9 min-w-0">
+              {/* OPINIONES CON IMÁGENES */}
+              <section className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                      Opiniones con imágenes
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Las fotos de otros clientes te ayudan a decidir
+                    </p>
+                  </div>
                   {reviewPhotoItems.length > 0 && (
                     <button
                       type="button"
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-semibold whitespace-nowrap"
                       onClick={() => setPhotosGridOpen(true)}
                     >
-                      Ver todas las fotos
+                      Ver todas ({reviewPhotoItems.length})
                     </button>
                   )}
                 </div>
 
                 {reviewPhotoItems.length > 0 ? (
-                  <div className="-mx-2 px-2">
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                      {reviewPhotoItems.slice(0, 12).map((item, i) => (
-                        <button
-                          key={`${item.review.id}-${item.index}-${i}`}
-                          type="button"
-                          onClick={() =>
-                            handleImageClick(item.review, item.index)
-                          }
-                          className="flex-shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                          aria-label="Abrir foto de reseña"
-                        >
-                          <img
-                            src={item.url}
-                            alt="foto de reseña"
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                          />
-                        </button>
-                      ))}
-                    </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
+                    {reviewPhotoItems.slice(0, 12).map((item, i) => (
+                      <button
+                        key={`${item.review.id}-${item.index}-${i}`}
+                        type="button"
+                        onClick={() =>
+                          handleImageClick(item.review, item.index)
+                        }
+                        className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:scale-[1.03] hover:shadow-lg hover:border-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        aria-label="Abrir foto de reseña"
+                      >
+                        <img
+                          src={item.url}
+                          alt="foto de reseña"
+                          className="w-full h-full object-contain bg-gray-100 dark:bg-gray-800"
+                          loading="lazy"
+                        />
+                        {i === 11 && reviewPhotoItems.length > 12 && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-bold">
+                            +{reviewPhotoItems.length - 12}
+                          </div>
+                        )}
+                      </button>
+                    ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Aún no hay fotos de clientes
-                  </p>
+                  <div className="rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-8 text-center">
+                    <div className="mx-auto w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-3">
+                      <svg
+                        className="w-7 h-7 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                      Aún no hay fotos de clientes
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Sé el primero en compartir tus fotos del producto
+                    </p>
+                  </div>
                 )}
               </section>
 
-              {/* NIVEL 2 - LISTA DE RESEÑAS (ABAJO) - Bloques independientes */}
-              <div className="py-6">
+              {/* LISTA DE RESEÑAS */}
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                    Todas las opiniones{" "}
+                    {reviews.length > 0 && (
+                      <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-1">
+                        ({reviews.length})
+                      </span>
+                    )}
+                  </h3>
+                </div>
+
                 {reviewsLoading ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="animate-pulse">
+                      <div
+                        key={i}
+                        className="animate-pulse rounded-2xl border border-gray-200 dark:border-gray-700 p-5"
+                      >
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                           <div className="flex-1">
@@ -3157,31 +3274,60 @@ function VistaProducto() {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="space-y-4">
+                ) : getFilteredAndSortedReviews().length > 0 ? (
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     {getFilteredAndSortedReviews().map((review) => (
-                      <ReviewCard
-                        key={review.id}
-                        review={review}
-                        canDelete={usuario?.uid === review.userId}
-                        onDelete={openDeleteConfirm}
-                        onImageClick={handleImageClick}
-                        isDeleting={deleteBusyId === review.id}
-                      />
-                    ))}
-
-                    {getFilteredAndSortedReviews().length === 0 && (
-                      <div className="text-center py-12">
-                        <p className="text-gray-600 dark:text-gray-400">
-                          {reviews.length === 0
-                            ? "Aún no hay opiniones. ¡Sé el primero en opinar!"
-                            : "No hay reseñas que coincidan con los filtros seleccionados."}
-                        </p>
+                      <div key={review.id} className="py-5 first:pt-0">
+                        <ReviewCard
+                          review={review}
+                          canDelete={usuario?.uid === review.userId}
+                          onDelete={openDeleteConfirm}
+                          onImageClick={handleImageClick}
+                          isDeleting={deleteBusyId === review.id}
+                        />
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Empty state premium
+                  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-blue-50/40 dark:from-gray-900 dark:to-blue-950/20 p-10 text-center">
+                    {reviews.length === 0 ? (
+                      <>
+                        <div className="mx-auto w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4">
+                          <svg
+                            className="w-8 h-8 text-blue-500"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                          </svg>
+                        </div>
+                        <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                          Aún no hay opiniones
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5 max-w-md mx-auto">
+                          Sé el primero en compartir tu experiencia con este
+                          producto. Tu opinión ayuda a otros compradores.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={openWriteReview}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                        >
+                          Escribir la primera opinión
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          No hay reseñas que coincidan con los filtros
+                          seleccionados.
+                        </p>
+                      </>
                     )}
                   </div>
                 )}
-              </div>
+              </section>
             </div>
           </div>
         </section>
@@ -3205,7 +3351,7 @@ function VistaProducto() {
           // Asegurar que el índice esté dentro del rango
           const safeMediaIndex = Math.min(
             mediaOverlayIndex,
-            Math.max(0, currentMediaItems.length - 1)
+            Math.max(0, currentMediaItems.length - 1),
           );
 
           return (
@@ -3232,8 +3378,8 @@ function VistaProducto() {
                           ? "text-blue-400 border-b-2 border-blue-400 bg-gray-700"
                           : "text-[#007185] border-b-2 border-[#007185] bg-gray-50"
                         : isDark
-                        ? "text-gray-300 hover:text-white hover:bg-gray-700"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          ? "text-gray-300 hover:text-white hover:bg-gray-700"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                     onClick={() => {
                       setMediaOverlayTab("images");
@@ -3253,8 +3399,8 @@ function VistaProducto() {
                             ? "text-blue-400 border-b-2 border-blue-400 bg-gray-700"
                             : "text-[#007185] border-b-2 border-[#007185] bg-gray-50"
                           : isDark
-                          ? "text-gray-300 hover:text-white hover:bg-gray-700"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                            ? "text-gray-300 hover:text-white hover:bg-gray-700"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                       }`}
                       onClick={() => {
                         setMediaOverlayTab("videos");
@@ -3459,7 +3605,7 @@ function VistaProducto() {
                             setMediaOverlayIndex(
                               (prev) =>
                                 (prev - 1 + currentMediaItems.length) %
-                                currentMediaItems.length
+                                currentMediaItems.length,
                             );
                           }}
                         >
@@ -3484,7 +3630,7 @@ function VistaProducto() {
                           onClick={(e) => {
                             e.stopPropagation();
                             setMediaOverlayIndex(
-                              (prev) => (prev + 1) % currentMediaItems.length
+                              (prev) => (prev + 1) % currentMediaItems.length,
                             );
                           }}
                         >
@@ -3848,7 +3994,7 @@ function VistaProducto() {
                           setProductInfoImageIndex(
                             (prev) =>
                               (prev - 1 + extraImages.length) %
-                              extraImages.length
+                              extraImages.length,
                           );
                           setProductInfoZoom(1);
                           setProductInfoPan({ x: 50, y: 50 });
@@ -3874,7 +4020,7 @@ function VistaProducto() {
                         aria-label="Siguiente"
                         onClick={() => {
                           setProductInfoImageIndex(
-                            (prev) => (prev + 1) % extraImages.length
+                            (prev) => (prev + 1) % extraImages.length,
                           );
                           setProductInfoZoom(1);
                           setProductInfoPan({ x: 50, y: 50 });
@@ -4060,7 +4206,7 @@ function VistaProducto() {
               </div>
             </motion.div>
           </motion.div>,
-          document.body
+          document.body,
         )}
 
       {reviewOverlayOpen && (
@@ -4110,7 +4256,7 @@ function VistaProducto() {
                     setReviewOverlayIndex(
                       (i) =>
                         (i - 1 + reviewOverlayItems.length) %
-                        reviewOverlayItems.length
+                        reviewOverlayItems.length,
                     )
                   }
                   aria-label="Anterior"
@@ -4134,7 +4280,7 @@ function VistaProducto() {
                   className="hidden xl:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 text-gray-700 hover:text-gray-900"
                   onClick={() =>
                     setReviewOverlayIndex(
-                      (i) => (i + 1) % reviewOverlayItems.length
+                      (i) => (i + 1) % reviewOverlayItems.length,
                     )
                   }
                   aria-label="Siguiente"
@@ -4191,152 +4337,30 @@ function VistaProducto() {
         </div>
       )}
 
-      {/* MODAL: Escribir opinión */}
-      {writeReviewOpen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <motion.div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeWriteReview}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-            <motion.div
-              className="relative w-full max-w-lg mx-auto rounded-2xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
-              initial={{ scale: 0.96, opacity: 0, y: 10 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.98, opacity: 0, y: 10 }}
-              transition={{ type: "spring", stiffness: 380, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-                      Escribir opinión
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                      Comparte tu experiencia con este producto.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={closeWriteReview}
-                    disabled={!!submitBusy}
-                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-all duration-200"
-                    aria-label="Cerrar"
-                  >
-                    <FaTimes size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="px-6 py-5 space-y-5">
-                {/* Estrellas */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Calificación:
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setNewRating(i + 1)}
-                        className={`text-2xl transition-colors duration-200 ${
-                          i < newRating
-                            ? "text-blue-500"
-                            : "text-gray-300 hover:text-gray-400"
-                        }`}
-                        aria-label={`Dar ${i + 1} estrellas`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Comentario */}
-                <div>
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    rows={4}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Escribe tu opinión (obligatorio)"
-                  />
-                </div>
-
-                {/* Medios */}
-                <div>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    onChange={handleMediaFilesChange}
-                    className="text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-300"
-                  />
-                </div>
-
-                {/* Preview de medios */}
-                {newMediaFiles?.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    {newMediaFiles.map((file, i) => (
-                      <div
-                        key={i}
-                        className="flex-shrink-0 w-20 h-20 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden bg-gray-50 dark:bg-gray-800"
-                        title={file.name}
-                      >
-                        {file.type.startsWith("image/") ? (
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <FaVideo className="text-gray-400" size={20} />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Acciones */}
-                <div className="flex items-center justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={closeWriteReview}
-                    disabled={!!submitBusy}
-                    className="px-5 py-2.5 rounded-lg border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/40 font-semibold transition-all duration-200 disabled:opacity-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={publishReview}
-                    disabled={
-                      submitBusy || !(newRating > 0) || !newComment.trim()
-                    }
-                    className={`px-5 py-2.5 rounded-lg text-white font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      submitBusy || !(newRating > 0) || !newComment.trim()
-                        ? "bg-blue-400"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    }`}
-                  >
-                    {submitBusy ? "Publicando..." : "Publicar opinión"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>,
-          document.body
-        )}
+      {/* MODAL PREMIUM: Escribir opinión (estilo Amazon/eBay) */}
+      <WriteReviewModal
+        isOpen={writeReviewOpen}
+        onClose={closeWriteReview}
+        onSubmit={publishReview}
+        submitting={submitBusy}
+        productName={producto?.nombre || ""}
+        productImage={
+          producto?.imagen ||
+          producto?.imagenPrincipal?.[0]?.url ||
+          (Array.isArray(producto?.imagenes) ? producto.imagenes[0] : "")
+        }
+        user={
+          usuario
+            ? {
+                displayName:
+                  usuario.displayName ||
+                  usuario.email?.split("@")[0] ||
+                  "Usuario",
+                photoURL: usuario.photoURL || null,
+              }
+            : null
+        }
+      />
 
       {/* MODAL: Todas las fotos de clientes */}
       {photosGridOpen &&
@@ -4397,7 +4421,7 @@ function VistaProducto() {
               </div>
             </motion.div>
           </motion.div>,
-          document.body
+          document.body,
         )}
 
       {/* NIVEL 3 - MODAL DE MEDIOS DE RESEÑAS (ESTRUCTURA EXACTA AMAZON) */}

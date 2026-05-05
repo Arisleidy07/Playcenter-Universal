@@ -18,6 +18,7 @@ import { useTheme } from "../context/ThemeContext";
 import Anim from "../components/anim";
 import "../styles/Inicio.css";
 import { getHistory, recordProduct } from "../lib/history";
+import { fixBucket } from "../utils/imageUtils";
 
 // Animación sutil para bloques y banners
 const fadeIn = {
@@ -27,7 +28,7 @@ const fadeIn = {
 
 const trailImages = Array.from(
   { length: 17 },
-  (_, i) => `/animacion/${i + 1}.png`
+  (_, i) => `/animacion/${i + 1}.png`,
 );
 
 function Inicio() {
@@ -159,7 +160,7 @@ function Inicio() {
 
   const allProductsFlat = React.useMemo(
     () => Object.values(productsByCategory).flat(),
-    [productsByCategory]
+    [productsByCategory],
   );
 
   const productosRecientes = React.useMemo(() => {
@@ -244,7 +245,7 @@ function Inicio() {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .trim(),
-    []
+    [],
   );
 
   const groupedBlocks = React.useMemo(() => {
@@ -297,7 +298,7 @@ function Inicio() {
 
     // Rule: don't show single product interaction only
     const totalProductCount = historyItems.filter(
-      (h) => h.type === "product"
+      (h) => h.type === "product",
     ).length;
 
     const pick = [];
@@ -339,7 +340,7 @@ function Inicio() {
         }
       } else if (g.type === "product") {
         const prod = allProductsFlat.find(
-          (p) => String(p.id) === String(g.key)
+          (p) => String(p.id) === String(g.key),
         );
         const catName = prod?.categoria || prod?.categoriaId || "";
         const catObj = catName ? findCat(catName) : null;
@@ -385,22 +386,22 @@ function Inicio() {
 
   const searchIds = React.useMemo(
     () => new Set(productosBusqueda.map((p) => p.id)),
-    [productosBusqueda]
+    [productosBusqueda],
   );
   const seguirComprandoFiltered = React.useMemo(
     () => (seguirComprando || []).filter((p) => !searchIds.has(p.id)),
-    [seguirComprando, searchIds]
+    [seguirComprando, searchIds],
   );
   const catIds = React.useMemo(
     () => new Set(seguirComprandoFiltered.map((p) => p.id)),
-    [seguirComprandoFiltered]
+    [seguirComprandoFiltered],
   );
   const productosRecientesFiltered = React.useMemo(
     () =>
       (productosRecientes || []).filter(
-        (p) => !searchIds.has(p.id) && !catIds.has(p.id)
+        (p) => !searchIds.has(p.id) && !catIds.has(p.id),
       ),
-    [productosRecientes, searchIds, catIds]
+    [productosRecientes, searchIds, catIds],
   );
 
   // Logging para debug - mostrar categorías disponibles (DESACTIVADO)
@@ -448,9 +449,9 @@ function Inicio() {
   const pickUrl = (u) => {
     try {
       if (!u) return "";
-      if (typeof u === "string") return u;
-      if (typeof u === "object" && u !== null) return u.url || "";
-      return String(u || "");
+      if (typeof u === "string") return fixBucket(u);
+      if (typeof u === "object" && u !== null) return fixBucket(u.url || "");
+      return fixBucket(String(u || ""));
     } catch {
       return "";
     }
@@ -719,8 +720,8 @@ function Inicio() {
                 cat1CanRight && !cat1CanLeft
                   ? "right-2"
                   : cat1CanLeft && !cat1CanRight
-                  ? "left-2"
-                  : "right-2"
+                    ? "left-2"
+                    : "right-2"
               } top-1/2 -translate-y-1/2 opacity-90`}
               aria-hidden="true"
             >
@@ -1070,8 +1071,8 @@ function Inicio() {
                   ? setDescubreCount((c) =>
                       Math.min(
                         c + 2,
-                        Object.values(productsByCategory).flat().length
-                      )
+                        Object.values(productsByCategory).flat().length,
+                      ),
                     )
                   : setDescubreCount(4)
               }
@@ -1237,8 +1238,8 @@ function Inicio() {
                   ? setHogarCount((c) =>
                       Math.min(
                         c + 2,
-                        getProductsByRoute("hogar-inteligente").length
-                      )
+                        getProductsByRoute("hogar-inteligente").length,
+                      ),
                     )
                   : setHogarCount(4)
               }
@@ -1402,8 +1403,8 @@ function Inicio() {
                   ? setRinconCount((c) =>
                       Math.min(
                         c + 2,
-                        getProductsByRoute("tu-rincon-variado").length
-                      )
+                        getProductsByRoute("tu-rincon-variado").length,
+                      ),
                     )
                   : setRinconCount(4)
               }
@@ -1760,8 +1761,8 @@ function Inicio() {
               cat2CanRight && !cat2CanLeft
                 ? "right-2"
                 : cat2CanLeft && !cat2CanRight
-                ? "left-2"
-                : "right-2"
+                  ? "left-2"
+                  : "right-2"
             } top-1/2 -translate-y-1/2 opacity-90`}
             aria-hidden="true"
           >
