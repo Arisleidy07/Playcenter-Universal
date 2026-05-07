@@ -300,7 +300,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   useEffect(() => {
     const handler = (e) => {
       const hasUploading = uploadQueue?.some?.(
-        (q) => q?.status === "uploading"
+        (q) => q?.status === "uploading",
       );
       if (hasUploading) {
         e.preventDefault();
@@ -324,32 +324,42 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       // UNA SOLA actualización consolidada que preserve TODOS los campos
       // IMPORTANTE: Solo actualizar si realmente hay un cambio, no sobrescribir con undefined
       setFormData((prev) => {
+        // Determinar la imagen principal actual (desde Firestore o estado previo)
         const mainUrl =
           data.imagenPrincipal?.[0]?.url ||
           data.imagen ||
           prev.imagenPrincipal?.[0]?.url ||
-          prev.imagen;
+          prev.imagen ||
+          "";
 
-        const cleanStrings = (arr = []) =>
-          Array.isArray(arr)
-            ? arr.filter(
-                (url) =>
-                  url &&
-                  typeof url === "string" &&
-                  url.trim() !== "" &&
-                  url !== mainUrl
-              )
-            : [];
+        // Helper para normalizar URL para comparación
+        const normalizeUrl = (url) => {
+          if (!url || typeof url !== "string") return "";
+          return url.split("?")[0].split("#")[0].trim().toLowerCase();
+        };
 
-        const cleanedImagenes =
-          Array.isArray(data.imagenes) && data.imagenes.length > 0
-            ? cleanStrings(data.imagenes)
-            : prev.imagenes || [];
+        const mainKey = normalizeUrl(mainUrl);
 
-        const cleanedGaleria =
-          Array.isArray(data.galeriaImagenes) && data.galeriaImagenes.length > 0
-            ? cleanStrings(data.galeriaImagenes)
-            : prev.galeriaImagenes || [];
+        // Limpiar array de imágenes: quitar vacíos, duplicados, y la imagen principal
+        const cleanImages = (arr = []) => {
+          if (!Array.isArray(arr)) return [];
+          const seen = new Set();
+          return arr.filter((item) => {
+            const url = typeof item === "string" ? item : item?.url;
+            if (!url || typeof url !== "string" || url.trim() === "")
+              return false;
+            const key = normalizeUrl(url);
+            // Excluir si es la imagen principal
+            if (key && mainKey && key === mainKey) return false;
+            // Excluir duplicados
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        };
+
+        const cleanedImagenes = cleanImages(data.imagenes);
+        const cleanedGaleria = cleanImages(data.galeriaImagenes);
 
         return {
           ...prev,
@@ -361,11 +371,11 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           empresa:
             prev.empresa && String(prev.empresa).trim() !== ""
               ? prev.empresa
-              : data.empresa ?? prev.empresa,
+              : (data.empresa ?? prev.empresa),
           categoria:
             prev.categoria && String(prev.categoria).trim() !== ""
               ? prev.categoria
-              : data.categoria ?? prev.categoria,
+              : (data.categoria ?? prev.categoria),
           precio:
             (data.precio ?? prev.precio)?.toString?.() ||
             String(data.precio ?? prev.precio ?? ""),
@@ -388,14 +398,14 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           imagenesExtra:
             Array.isArray(data.imagenesExtra) && data.imagenesExtra.length > 0
               ? data.imagenesExtra.filter(
-                  (url) => url && typeof url === "string" && url.trim() !== ""
+                  (url) => url && typeof url === "string" && url.trim() !== "",
                 )
               : prev.imagenesExtra || [],
           videoUrl: data.videoUrl || data.video || prev.videoUrl,
           videoUrls:
             Array.isArray(data.videoUrls) && data.videoUrls.length > 0
               ? data.videoUrls.filter(
-                  (url) => url && typeof url === "string" && url.trim() !== ""
+                  (url) => url && typeof url === "string" && url.trim() !== "",
                 )
               : prev.videoUrls || [],
           videoAcercaArticulo: Array.isArray(data.videoAcercaArticulo)
@@ -450,8 +460,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           typeof summary.errorCount === "number"
             ? Math.max(0, 100 - summary.errorCount * 20)
             : summary.isReady
-            ? 100
-            : 0;
+              ? 100
+              : 0;
         setFormData((prev) => ({
           ...prev,
           validationScore: score,
@@ -693,8 +703,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         e.code === "permission-denied"
           ? "No tienes permisos para guardar este producto"
           : e.code === "network-request-failed"
-          ? "Error de conexión. Verifica tu internet"
-          : `Error al guardar: ${e.message}`;
+            ? "Error de conexión. Verifica tu internet"
+            : `Error al guardar: ${e.message}`;
       showNotification(errorMessage, "error", "Error al guardar borrador");
     }
   };
@@ -776,7 +786,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       showNotification(
         "Error al subir la imagen. Intenta nuevamente.",
         "error",
-        "Error de subida"
+        "Error de subida",
       );
       return null;
     }
@@ -830,7 +840,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             ? prev.variantes[variantIndex].videoUrls
             : [];
           const newVariants = prev.variantes.map((v, i) =>
-            i === variantIndex ? { ...v, videoUrls: [...current, url] } : v
+            i === variantIndex ? { ...v, videoUrls: [...current, url] } : v,
           );
           updateDoc(doc(db, "productos", targetId), {
             variantes: newVariants,
@@ -853,7 +863,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const snap = await getDocs(collection(db, "productos"));
       const all = snap.docs.map((d) => d.data()?.empresa).filter(Boolean);
       const unique = Array.from(new Set(all)).sort((a, b) =>
-        a.localeCompare(b)
+        a.localeCompare(b),
       );
       setBrands(unique);
     } catch (e) {
@@ -877,15 +887,15 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       field === "imagenPrincipal"
         ? "imagen"
         : field === "galeriaImagenes"
-        ? "imagenes"
-        : field;
+          ? "imagenes"
+          : field;
     handleImageUpload(files, mappedField);
   };
 
   const handleArrayChange = (field, index, value) => {
     setFormData((prev) => {
       const nextArr = (prev[field] || []).map((item, i) =>
-        i === index ? value : item
+        i === index ? value : item,
       );
       const next = { ...prev, [field]: nextArr };
       // NO persistir automáticamente
@@ -929,7 +939,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
   const handleVariantChange = (index, field, value) => {
     setFormData((prev) => {
       const nextVariants = prev.variantes.map((variant, i) =>
-        i === index ? { ...variant, [field]: value } : variant
+        i === index ? { ...variant, [field]: value } : variant,
       );
       const next = { ...prev, variantes: nextVariants };
       persistVariantsDebounced(nextVariants);
@@ -1033,17 +1043,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         const task = uploadBytesResumable(imageRef, file);
         // attach task to queue item
         setUploadQueue((prev) =>
-          prev.map((q) => (q.id === queueId ? { ...q, task } : q))
+          prev.map((q) => (q.id === queueId ? { ...q, task } : q)),
         );
         task.on(
           "state_changed",
           (snap) => {
             const pct = Math.round(
-              (snap.bytesTransferred / snap.totalBytes) * 100
+              (snap.bytesTransferred / snap.totalBytes) * 100,
             );
             setUploadProgress(pct);
             setUploadQueue((prev) =>
-              prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q))
+              prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q)),
             );
             // Watchdog: si sigue en 0% tras 6s, cancelar para reintentar
             setTimeout(() => {
@@ -1059,7 +1069,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                     item.task.cancel();
                   } catch {}
                   return prev.map((q) =>
-                    q.id === queueId ? { ...q, status: "error" } : q
+                    q.id === queueId ? { ...q, status: "error" } : q,
                   );
                 }
                 return prev;
@@ -1069,22 +1079,24 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           (err) => {
             setUploadQueue((prev) =>
               prev.map((q) =>
-                q.id === queueId ? { ...q, status: "error" } : q
-              )
+                q.id === queueId ? { ...q, status: "error" } : q,
+              ),
             );
             reject(err);
           },
           async () => {
             const url = await getDownloadURL(task.snapshot.ref);
             setUploadQueue((prev) =>
-              prev.map((q) => (q.id === queueId ? { ...q, status: "done" } : q))
+              prev.map((q) =>
+                q.id === queueId ? { ...q, status: "done" } : q,
+              ),
             );
             resolve(url);
-          }
+          },
         );
       } catch (e) {
         setUploadQueue((prev) =>
-          prev.map((q) => (q.id === queueId ? { ...q, status: "error" } : q))
+          prev.map((q) => (q.id === queueId ? { ...q, status: "error" } : q)),
         );
         reject(e);
       }
@@ -1097,38 +1109,40 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         const videoRef = ref(storage, destPath);
         const task = uploadBytesResumable(videoRef, file);
         setUploadQueue((prev) =>
-          prev.map((q) => (q.id === queueId ? { ...q, task } : q))
+          prev.map((q) => (q.id === queueId ? { ...q, task } : q)),
         );
         task.on(
           "state_changed",
           (snap) => {
             const pct = Math.round(
-              (snap.bytesTransferred / snap.totalBytes) * 100
+              (snap.bytesTransferred / snap.totalBytes) * 100,
             );
             setUploadProgress(pct);
             setUploadQueue((prev) =>
-              prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q))
+              prev.map((q) => (q.id === queueId ? { ...q, progress: pct } : q)),
             );
           },
           (err) => {
             setUploadQueue((prev) =>
               prev.map((q) =>
-                q.id === queueId ? { ...q, status: "error" } : q
-              )
+                q.id === queueId ? { ...q, status: "error" } : q,
+              ),
             );
             reject(err);
           },
           async () => {
             const url = await getDownloadURL(task.snapshot.ref);
             setUploadQueue((prev) =>
-              prev.map((q) => (q.id === queueId ? { ...q, status: "done" } : q))
+              prev.map((q) =>
+                q.id === queueId ? { ...q, status: "done" } : q,
+              ),
             );
             resolve(url);
-          }
+          },
         );
       } catch (e) {
         setUploadQueue((prev) =>
-          prev.map((q) => (q.id === queueId ? { ...q, status: "error" } : q))
+          prev.map((q) => (q.id === queueId ? { ...q, status: "error" } : q)),
         );
         reject(e);
       }
@@ -1141,7 +1155,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
     file,
     pathKey,
     queueId,
-    maxRetries = 2
+    maxRetries = 2,
   ) => {
     let lastErr;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -1768,7 +1782,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           uploadImage,
           first.file,
           destPath,
-          queueId
+          queueId,
         );
         // Limpiar preview temporal INMEDIATAMENTE antes de actualizar formData
         setTempPreviews((prev) => ({ ...prev, imagen: "" }));
@@ -1837,10 +1851,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
       // Separar por tipo: nuevos archivos vs URLs existentes
       const newImageFiles = arr.filter(
-        (f) => f?.file && f.file.type?.startsWith?.("image/")
+        (f) => f?.file && f.file.type?.startsWith?.("image/"),
       );
       const newVideoFiles = arr.filter(
-        (f) => f?.file && f.file.type?.startsWith?.("video/")
+        (f) => f?.file && f.file.type?.startsWith?.("video/"),
       );
       const existingUrls = arr
         .filter((f) => !f?.file && f?.url && !f.url.startsWith("blob:"))
@@ -1848,10 +1862,10 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
       // Separar URLs existentes por tipo
       const existingImages = existingUrls.filter(
-        (u) => detectTypeFromUrl(u) === "image"
+        (u) => detectTypeFromUrl(u) === "image",
       );
       const existingVideos = existingUrls.filter(
-        (u) => detectTypeFromUrl(u) === "video"
+        (u) => detectTypeFromUrl(u) === "video",
       );
 
       // Subir nuevas imágenes
@@ -1868,7 +1882,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             uploadImage,
             fileItem.file,
             destPath,
-            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           );
 
           // Guardar URL con nombre original
@@ -1893,7 +1907,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             uploadVideo,
             fileItem.file,
             destPath,
-            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           );
 
           // Guardar URL con nombre original
@@ -1919,7 +1933,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
         const validUploadedImages = uploadedImages.filter(
           (item) =>
-            item?.url && typeof item.url === "string" && item.url.trim() !== ""
+            item?.url && typeof item.url === "string" && item.url.trim() !== "",
         );
 
         const validExistingVideos = existingVideos
@@ -1931,7 +1945,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
         const validUploadedVideos = uploadedVideos.filter(
           (item) =>
-            item?.url && typeof item.url === "string" && item.url.trim() !== ""
+            item?.url && typeof item.url === "string" && item.url.trim() !== "",
         );
 
         // Combinar URLs (solo strings, sin duplicados)
@@ -1951,45 +1965,34 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           if (!url || typeof url !== "string") return "";
           try {
             return decodeURIComponent(
-              url.split("?")[0].split("#")[0].trim().toLowerCase()
+              url.split("?")[0].split("#")[0].trim().toLowerCase(),
             );
           } catch {
             return url.split("?")[0].split("#")[0].trim().toLowerCase();
           }
         };
 
-        const shouldSetMain = !prev.imagen && uniqueImageUrls.length > 0;
-        const mainImage = shouldSetMain ? uniqueImageUrls[0] : prev.imagen;
-        const mainImageObj = shouldSetMain
-          ? {
-              url: uniqueImageUrls[0],
-              nombreOriginal:
-                validUploadedImages[0]?.nombreOriginal ||
-                uniqueImageUrls[0].split("/").pop().split("?")[0],
-            }
-          : prev.imagenPrincipal?.[0] || {};
+        // Obtener la imagen principal actual (si existe)
+        const mainImage = prev.imagen || "";
+        const mainImageObj = prev.imagenPrincipal?.[0] || {};
 
         // Excluir SIEMPRE la imagen principal de la galería
         const mainKey = normalizeForCompare(mainImage);
         let finalImages = uniqueImageUrls.filter(
-          (u) => normalizeForCompare(u) !== mainKey
+          (u) => normalizeForCompare(u) !== mainKey,
         );
 
+        // IMPORTANTE: NO establecer automáticamente imagen principal desde la galería
+        // La imagen principal solo se establece explícitamente mediante handleMainImageUFU
         const next = {
           ...prev,
           imagenes: finalImages, // Array de strings
           videoUrls: uniqueVideoUrls, // Array de strings
-          ...(shouldSetMain
-            ? { imagen: mainImage, imagenPrincipal: [mainImageObj] }
-            : {}),
         };
 
         const updatePayload = {
           imagenes: finalImages,
           videoUrls: uniqueVideoUrls,
-          ...(shouldSetMain
-            ? { imagen: mainImage, imagenPrincipal: [mainImageObj] }
-            : {}),
         };
 
         safeUpdateDoc(targetId, updatePayload)
@@ -2034,7 +2037,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         .map((f) => f.url);
 
       const newVideoFiles = arr.filter(
-        (f) => f?.file && f.file.type?.startsWith?.("video/")
+        (f) => f?.file && f.file.type?.startsWith?.("video/"),
       );
 
       // Obtener ID del producto
@@ -2057,7 +2060,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             uploadVideo,
             item.file,
             destPath,
-            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           );
           uploadedVideoUrls.push(remoteUrl);
         } catch (e) {}
@@ -2136,7 +2139,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             uploadImage,
             fileItem.file,
             destPath,
-            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           );
 
           uploadedUrls.push(remoteUrl);
@@ -2148,17 +2151,17 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         // NO usar prevExtras porque ignora eliminaciones del usuario
         //  FILTRO ESTRICTO: Solo URLs válidas
         const validExisting = existingUrls.filter(
-          (url) => url && typeof url === "string" && url.trim() !== ""
+          (url) => url && typeof url === "string" && url.trim() !== "",
         );
         const validUploaded = uploadedUrls.filter(
-          (url) => url && typeof url === "string" && url.trim() !== ""
+          (url) => url && typeof url === "string" && url.trim() !== "",
         );
 
         const merged = Array.from(
           new Set([
             ...validExisting, // URLs VÁLIDAS que el UFU dice que están
             ...validUploaded, // URLs VÁLIDAS recién subidas
-          ])
+          ]),
         );
 
         const next = { ...prev, imagenesExtra: merged };
@@ -2253,7 +2256,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           uploadImage,
           first.file,
           destPath,
-          `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+          `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         );
 
         // Limpiar preview temporal INMEDIATAMENTE después de subir
@@ -2277,7 +2280,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             if (!url || typeof url !== "string") return "";
             try {
               return decodeURIComponent(
-                url.split("?")[0].split("#")[0].trim().toLowerCase()
+                url.split("?")[0].split("#")[0].trim().toLowerCase(),
               );
             } catch {
               return url.split("?")[0].split("#")[0].trim().toLowerCase();
@@ -2341,12 +2344,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             !f?.file &&
             f?.url &&
             !f.url.startsWith("blob:") &&
-            f.type === "image"
+            f.type === "image",
         )
         .map((f) => f.url);
 
       const newImageFiles = arr.filter(
-        (f) => f?.file && f.file.type?.startsWith?.("image/")
+        (f) => f?.file && f.file.type?.startsWith?.("image/"),
       );
 
       // Obtener ID del producto
@@ -2373,7 +2376,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             uploadImage,
             fileItem.file,
             destPath,
-            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           );
           uploadedImageUrls.push(remoteUrl);
         } catch (e) {}
@@ -2391,7 +2394,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
           if (!url || typeof url !== "string") return "";
           try {
             return decodeURIComponent(
-              url.split("?")[0].split("#")[0].trim().toLowerCase()
+              url.split("?")[0].split("#")[0].trim().toLowerCase(),
             );
           } catch {
             return url.split("?")[0].split("#")[0].trim().toLowerCase();
@@ -2399,7 +2402,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         };
         const mainKey = normalizeForCompare(current.imagen || "");
         const filtered = uniqueImages.filter(
-          (u) => normalizeForCompare(u) !== mainKey
+          (u) => normalizeForCompare(u) !== mainKey,
         );
         variantes[variantIndex] = { ...current, imagenes: filtered };
         const next = { ...prev, variantes };
@@ -2453,7 +2456,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         .map((f) => f.url);
 
       const newVideoFiles = arr.filter(
-        (f) => f?.file && f.file.type?.startsWith?.("video/")
+        (f) => f?.file && f.file.type?.startsWith?.("video/"),
       );
 
       // Obtener ID del producto
@@ -2479,7 +2482,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             uploadVideo,
             fileItem.file,
             destPath,
-            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+            `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           );
           uploadedVideoUrls.push(remoteUrl);
         } catch (e) {}
@@ -2551,8 +2554,8 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       prev.map((q) =>
         q.id === id
           ? { ...q, id: newId, progress: 0, status: "uploading", task: null }
-          : q
-      )
+          : q,
+      ),
     );
     try {
       if (item.type === "image") {
@@ -2635,7 +2638,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       }
     } catch (e) {
       setUploadQueue((prev) =>
-        prev.map((q) => (q.id === newId ? { ...q, status: "error" } : q))
+        prev.map((q) => (q.id === newId ? { ...q, status: "error" } : q)),
       );
     }
   };
@@ -2763,7 +2766,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
 
     if (!hasCategoria && !hasNuevaCategoria) {
       errors.push(
-        "Debes seleccionar o crear una categoría para que el producto aparezca"
+        "Debes seleccionar o crear una categoría para que el producto aparezca",
       );
     }
 
@@ -2771,7 +2774,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       showNotification(
         "Corrige los siguientes campos:\n- " + errors.join("\n- "),
         "warning",
-        "Campos requeridos"
+        "Campos requeridos",
       );
       return;
     }
@@ -2784,7 +2787,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       // Create new category if needed
       if (showNewCategoryInput && formData.nuevaCategoria.trim()) {
         finalCategoryId = await createNewCategory(
-          formData.nuevaCategoria.trim()
+          formData.nuevaCategoria.trim(),
         );
       }
 
@@ -2794,7 +2797,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         precio: Number.isFinite(precioNum) ? precioNum : 0,
         fechaActualizacion: new Date(),
         acerca: (Array.isArray(formData.acerca) ? formData.acerca : []).filter(
-          (item) => String(item || "").trim()
+          (item) => String(item || "").trim(),
         ),
         etiquetas: (Array.isArray(formData.etiquetas)
           ? formData.etiquetas
@@ -2860,7 +2863,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         if (!url || typeof url !== "string") return "";
         try {
           return decodeURIComponent(
-            url.split("?")[0].split("#")[0].trim().toLowerCase()
+            url.split("?")[0].split("#")[0].trim().toLowerCase(),
           );
         } catch {
           return url.split("?")[0].split("#")[0].trim().toLowerCase();
@@ -2896,7 +2899,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       const canonicalId = product?.id || currentId || formData?.id || null;
       if (product && !product.id) {
         throw new Error(
-          "Producto en edición sin ID válido. No se guardó para evitar duplicados."
+          "Producto en edición sin ID válido. No se guardó para evitar duplicados.",
         );
       }
       const isNew = !canonicalId;
@@ -2920,7 +2923,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
         showNotification(
           "No tienes una tienda asociada. Por favor crea tu tienda primero.",
           "error",
-          "Tienda requerida"
+          "Tienda requerida",
         );
         setLoading(false);
         return;
@@ -2939,7 +2942,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
       await setDoc(
         doc(db, "productos", targetId),
         { ...productData, fechaActualizacion: new Date() },
-        { merge: true }
+        { merge: true },
       );
       if (isNew) setCurrentId(targetId);
 
@@ -2951,7 +2954,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
             categoria: productData.categoria,
             activo: productData.activo,
           },
-        })
+        }),
       );
 
       // Limpiar borrador guardado después de guardar exitosamente
@@ -3148,12 +3151,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                 if (e.key === "Enter" && newBrandName.trim()) {
                                   handleInputChange(
                                     "empresa",
-                                    newBrandName.trim()
+                                    newBrandName.trim(),
                                   );
                                   setBrands((prev) =>
                                     [...prev, newBrandName.trim()].sort(
-                                      (a, b) => a.localeCompare(b)
-                                    )
+                                      (a, b) => a.localeCompare(b),
+                                    ),
                                   );
                                   setShowNewBrandInput(false);
                                   setNewBrandName("");
@@ -3169,12 +3172,12 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                 if (newBrandName.trim()) {
                                   handleInputChange(
                                     "empresa",
-                                    newBrandName.trim()
+                                    newBrandName.trim(),
                                   );
                                   setBrands((prev) =>
                                     [...prev, newBrandName.trim()].sort(
-                                      (a, b) => a.localeCompare(b)
-                                    )
+                                      (a, b) => a.localeCompare(b),
+                                    ),
                                   );
                                   setShowNewBrandInput(false);
                                   setNewBrandName("");
@@ -3232,7 +3235,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                           onChange={(e) =>
                             handleInputChange(
                               "cantidad",
-                              parseInt(e.target.value) || 0
+                              parseInt(e.target.value) || 0,
                             )
                           }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -3332,7 +3335,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                             onChange={(e) =>
                               handleInputChange(
                                 "nuevaCategoria",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -3499,7 +3502,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                       url.split("/o/")[1]?.split("?")[0] ||
                                       url.split("/").pop()?.split("?")[0];
                                     const decodedPath = decodeURIComponent(
-                                      pathPart || ""
+                                      pathPart || "",
                                     );
                                     fileName =
                                       decodedPath.split("/").pop() ||
@@ -3574,44 +3577,67 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                       <UniversalFileUploader
                         files={[
                           // SOLO mostrar archivos guardados (URLs de Firebase)
+                          // FILTRO CRÍTICO: Excluir la imagen principal de la galería
                           ...(Array.isArray(formData.imagenes) &&
                           formData.imagenes.length > 0
-                            ? formData.imagenes.map((u, i) => {
-                                const url =
-                                  typeof u === "string" ? u : u?.url || u;
-                                // Extraer nombre correctamente de URL de Firebase
-                                // Firebase codifica la ruta, necesitamos decodificar y extraer solo el nombre del archivo
-                                let fileName = `imagen-${i + 1}`;
-                                try {
-                                  if (
-                                    typeof u === "object" &&
-                                    u?.nombreOriginal
-                                  ) {
-                                    fileName = u.nombreOriginal;
-                                  } else if (url) {
-                                    // URL de Firebase: ...o/products%2Fxxx%2Fgallery%2Fnombre.jpg?alt=...
-                                    const pathPart =
-                                      url.split("/o/")[1]?.split("?")[0] ||
-                                      url.split("/").pop()?.split("?")[0];
-                                    const decodedPath = decodeURIComponent(
-                                      pathPart || ""
-                                    );
-                                    fileName =
-                                      decodedPath.split("/").pop() ||
-                                      `imagen-${i + 1}`;
-                                  }
-                                } catch (e) {
-                                  fileName = `imagen-${i + 1}`;
-                                }
-                                return {
-                                  id: `saved-img-${i}-${fileName}`,
-                                  url: url,
-                                  type: "image",
-                                  name: fileName,
-                                  size: 0,
-                                  isUploaded: true,
+                            ? (() => {
+                                // Normalizar URL de imagen principal para comparación
+                                const normalizeUrl = (url) => {
+                                  if (!url || typeof url !== "string")
+                                    return "";
+                                  return url
+                                    .split("?")[0]
+                                    .split("#")[0]
+                                    .trim()
+                                    .toLowerCase();
                                 };
-                              })
+                                const mainUrl = formData.imagen || "";
+                                const mainKey = normalizeUrl(mainUrl);
+
+                                return formData.imagenes
+                                  .filter((u) => {
+                                    const url =
+                                      typeof u === "string" ? u : u?.url || "";
+                                    // Excluir si es la imagen principal
+                                    return normalizeUrl(url) !== mainKey;
+                                  })
+                                  .map((u, i) => {
+                                    const url =
+                                      typeof u === "string" ? u : u?.url || u;
+                                    // Extraer nombre correctamente de URL de Firebase
+                                    // Firebase codifica la ruta, necesitamos decodificar y extraer solo el nombre del archivo
+                                    let fileName = `imagen-${i + 1}`;
+                                    try {
+                                      if (
+                                        typeof u === "object" &&
+                                        u?.nombreOriginal
+                                      ) {
+                                        fileName = u.nombreOriginal;
+                                      } else if (url) {
+                                        // URL de Firebase: ...o/products%2Fxxx%2Fgallery%2Fnombre.jpg?alt=...
+                                        const pathPart =
+                                          url.split("/o/")[1]?.split("?")[0] ||
+                                          url.split("/").pop()?.split("?")[0];
+                                        const decodedPath = decodeURIComponent(
+                                          pathPart || "",
+                                        );
+                                        fileName =
+                                          decodedPath.split("/").pop() ||
+                                          `imagen-${i + 1}`;
+                                      }
+                                    } catch (e) {
+                                      fileName = `imagen-${i + 1}`;
+                                    }
+                                    return {
+                                      id: `saved-img-${i}-${fileName}`,
+                                      url: url,
+                                      type: "image",
+                                      name: fileName,
+                                      size: 0,
+                                      isUploaded: true,
+                                    };
+                                  });
+                              })()
                             : []),
                           ...(Array.isArray(formData.videoUrls) &&
                           formData.videoUrls.length > 0
@@ -3631,7 +3657,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                       url.split("/o/")[1]?.split("?")[0] ||
                                       url.split("/").pop()?.split("?")[0];
                                     const decodedPath = decodeURIComponent(
-                                      pathPart || ""
+                                      pathPart || "",
                                     );
                                     fileName =
                                       decodedPath.split("/").pop() ||
@@ -3727,7 +3753,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                               handleArrayChange(
                                 "etiquetas",
                                 index,
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             placeholder="Etiqueta"
@@ -3773,7 +3799,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                       onChange={(newValue) =>
                         handleInputChange(
                           "caracteristicasAdicionales",
-                          newValue
+                          newValue,
                         )
                       }
                     />
@@ -3838,7 +3864,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                 handleVariantChange(
                                   index,
                                   "color",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -3858,7 +3884,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                 handleVariantChange(
                                   index,
                                   "cantidad",
-                                  parseInt(e.target.value) || 0
+                                  parseInt(e.target.value) || 0,
                                 )
                               }
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -3878,7 +3904,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                 handleVariantChange(
                                   index,
                                   "precio",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -3897,7 +3923,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                 handleVariantChange(
                                   index,
                                   "descripcion",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -3947,7 +3973,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                                 ?.split("?")[0];
                                             const decodedPath =
                                               decodeURIComponent(
-                                                pathPart || ""
+                                                pathPart || "",
                                               );
                                             fileName =
                                               decodedPath.split("/").pop() ||
@@ -4016,7 +4042,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                                 ?.split("?")[0];
                                             const decodedPath =
                                               decodeURIComponent(
-                                                pathPart || ""
+                                                pathPart || "",
                                               );
                                             fileName =
                                               decodedPath.split("/").pop() ||
@@ -4062,7 +4088,7 @@ const ProductForm = ({ product, onClose, onSave, sellerId }) => {
                                                 ?.split("?")[0];
                                             const decodedPath =
                                               decodeURIComponent(
-                                                pathPart || ""
+                                                pathPart || "",
                                               );
                                             fileName =
                                               decodedPath.split("/").pop() ||
