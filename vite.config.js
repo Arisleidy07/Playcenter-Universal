@@ -13,13 +13,22 @@ export default defineConfig({
     },
   },
   build: {
-    commonjsOptions: { transformMixedEsModules: true },
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      include: [/node_modules/],
+    },
     rollupOptions: {
-      external: (id) => id.startsWith("@firebase/webchannel-wrapper"),
+      external: (id) => {
+        // Externalizar todos los módulos internos de Firebase
+        if (id.startsWith("@firebase/")) return true;
+        return false;
+      },
     },
   },
   optimizeDeps: {
+    exclude: ["@firebase/util", "@firebase/webchannel-wrapper"],
     include: [
+      "firebase",
       "firebase/app",
       "firebase/firestore",
       "firebase/auth",
@@ -27,10 +36,8 @@ export default defineConfig({
       "firebase/analytics",
       "firebase/functions",
     ],
-  },
-  resolve: {
-    alias: {
-      "@firebase/functions": "firebase/functions",
+    esbuildOptions: {
+      target: "es2020",
     },
   },
 });
