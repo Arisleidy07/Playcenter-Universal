@@ -15,7 +15,10 @@ export default defineConfig({
   build: {
     commonjsOptions: { transformMixedEsModules: true },
     rollupOptions: {
-      external: ["@firebase/webchannel-wrapper"],
+      external: [
+        "@firebase/webchannel-wrapper",
+        "@firebase/webchannel-wrapper/bloom-blob",
+      ],
     },
   },
   optimizeDeps: {
