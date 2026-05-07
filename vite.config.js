@@ -31,11 +31,16 @@ export default defineConfig({
       "@firebase/auth",
       "@firebase/storage",
       "@firebase/analytics",
-      "@firebase/functions",
       "@firebase/util",
       "@firebase/logger",
       "@firebase/component",
       "@firebase/webchannel-wrapper",
     ],
+    exclude: ["@firebase/functions"],
+  },
+  resolve: {
+    alias: {
+      "@firebase/functions": "firebase/functions",
+    },
   },
 });
