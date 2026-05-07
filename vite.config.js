@@ -14,15 +14,18 @@ export default defineConfig({
   },
   build: {
     commonjsOptions: { transformMixedEsModules: true },
+    rollupOptions: {
+      external: ["@firebase/webchannel-wrapper"],
+    },
   },
   optimizeDeps: {
-    exclude: ["@firebase/functions"],
     include: [
       "firebase/app",
       "firebase/firestore",
       "firebase/auth",
       "firebase/storage",
       "firebase/analytics",
+      "firebase/functions",
     ],
   },
   resolve: {
