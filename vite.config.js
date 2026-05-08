@@ -16,6 +16,9 @@ export default defineConfig({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    rollupOptions: {
+      external: ["@firebase/webchannel-wrapper"],
+    },
   },
   optimizeDeps: {
     include: [
@@ -26,17 +29,11 @@ export default defineConfig({
       "firebase/storage",
       "firebase/analytics",
       "firebase/functions",
-      "@firebase/app",
-      "@firebase/firestore",
-      "@firebase/auth",
-      "@firebase/storage",
-      "@firebase/analytics",
-      "@firebase/util",
-      "@firebase/logger",
-      "@firebase/component",
-      "@firebase/webchannel-wrapper",
     ],
-    exclude: ["@firebase/functions"],
+    exclude: ["@firebase/functions", "@firebase/webchannel-wrapper"],
+    esbuildOptions: {
+      target: "es2020",
+    },
   },
   resolve: {
     alias: {
