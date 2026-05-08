@@ -17,23 +17,4 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
   },
-  optimizeDeps: {
-    include: [
-      "firebase",
-      "firebase/app",
-      "firebase/firestore",
-      "firebase/auth",
-      "firebase/storage",
-      "firebase/analytics",
-      "firebase/functions",
-      "@firebase/functions",
-      "@firebase/webchannel-wrapper",
-    ],
-    esbuildOptions: {
-      target: "es2020",
-    },
-  },
-  resolve: {
-    alias: {},
-  },
 });

@@ -7,7 +7,7 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import { getFunctions } from "@firebase/functions";
+import { getFunctions } from "firebase/functions";
 import { setLogLevel } from "firebase/firestore";
 
 // Suprimir logs verbosos de Firestore en producción
