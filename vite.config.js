@@ -2,7 +2,21 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: "firebase-resolver",
+      resolveId(id) {
+        if (id.startsWith("@firebase/webchannel-wrapper")) {
+          return { id, external: true };
+        }
+        if (id === "@firebase/functions") {
+          return { id: "firebase/functions", external: false };
+        }
+        return null;
+      },
+    },
+  ],
   server: {
     proxy: {
       "/cardnet": {
@@ -17,7 +31,14 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ["@firebase/webchannel-wrapper"],
+      external: [
+        "@firebase/webchannel-wrapper",
+        /@firebase\/webchannel-wrapper\/.*/,
+      ],
+      onwarn(warning, warn) {
+        if (warning.message?.includes("webchannel-wrapper")) return;
+        warn(warning);
+      },
     },
   },
   optimizeDeps: {
@@ -29,15 +50,14 @@ export default defineConfig({
       "firebase/storage",
       "firebase/analytics",
       "firebase/functions",
+      "@firebase/functions",
     ],
-    exclude: ["@firebase/functions", "@firebase/webchannel-wrapper"],
+    exclude: ["@firebase/webchannel-wrapper"],
     esbuildOptions: {
       target: "es2020",
     },
   },
   resolve: {
-    alias: {
-      "@firebase/functions": "firebase/functions",
-    },
+    alias: {},
   },
 });
