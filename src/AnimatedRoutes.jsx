@@ -22,6 +22,8 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import LoginRedirect from "./pages/LoginRedirect";
 import SolicitarVender from "./pages/CrearTienda";
+import VideosSoporte from "./pages/VideosSoporte";
+import VideoDetalle from "./pages/VideoDetalle";
 
 export default function AnimatedRoutes() {
   const location = useLocation();
@@ -204,6 +206,22 @@ export default function AnimatedRoutes() {
           element={
             <PageTransition>
               <LoginRedirect />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/videos-soporte"
+          element={
+            <PageTransition>
+              <VideosSoporte />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/videos-soporte/:videoId"
+          element={
+            <PageTransition>
+              <VideoDetalle />
             </PageTransition>
           }
         />

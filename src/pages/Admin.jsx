@@ -31,6 +31,7 @@ import CategoryManagement from "../components/CategoryManagement";
 import AdminDashboard from "../components/AdminDashboard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import SolicitudesVendedor from "../components/SolicitudesVendedor";
+import VideoManagement from "../components/VideoManagement";
 import GestionTiendas from "../components/GestionTiendas";
 import {
   FiBarChart2,
@@ -49,6 +50,7 @@ import {
   FiPackage,
   FiDollarSign,
   FiX,
+  FiFilm,
 } from "react-icons/fi";
 import { migrateAllLegacyProductMedia } from "../utils/legacyMediaMigrator";
 
@@ -1772,6 +1774,8 @@ export default function Admin() {
         return <GestionTiendas />;
       case "solicitudes":
         return <SolicitudesVendedor />;
+      case "videos":
+        return <VideoManagement />;
       default:
         return (
           <AdminDashboard
@@ -1839,6 +1843,11 @@ export default function Admin() {
                       label: "Solicitudes",
                       icon: <FiUserPlus />,
                       badge: solicitudesPendientes,
+                    },
+                    {
+                      id: "videos",
+                      label: "Videos",
+                      icon: <FiFilm />,
                     },
                   ]
                 : []),

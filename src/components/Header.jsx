@@ -881,6 +881,64 @@ const Header = () => {
                   </svg>
                   Estafetas
                 </Link>
+
+                <div
+                  style={{
+                    width: "1px",
+                    height: "24px",
+                    background: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.1)",
+                  }}
+                ></div>
+
+                <Link
+                  to="/videos-soporte"
+                  className="text-decoration-none d-flex align-items-center gap-2"
+                  style={{
+                    color: isDark ? "#e5e7eb" : "#374151",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(59, 130, 246, 0.1)";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = isDark
+                      ? "#e5e7eb"
+                      : "#374151";
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Videos Soporte
+                </Link>
               </nav>
 
               {/* Botón de cambio de tema (Luna/Sol) */}
@@ -1319,6 +1377,34 @@ const Header = () => {
                       />
                     </svg>
                     Estafetas
+                  </Link>
+
+                  <Link
+                    to="/videos-soporte"
+                    onClick={() => setMenuOpen(false)}
+                    className="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none rounded-3 hover-primary fw-medium"
+                    style={{ color: isDark ? "#f9fafb" : "#111827" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Videos Soporte
                   </Link>
 
                   <Link
