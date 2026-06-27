@@ -1,8 +1,7 @@
 /**
- * VideoManagement.jsx
- * CMS de video-tutoriales para el panel de administración.
- * Colección Firestore: "videosTutoriales"
- * Storage: videos-tutoriales/{id}/video   |   videos-tutoriales/{id}/thumbnail
+ * VideoManagement.jsx — CMS de video-tutoriales (rediseño completo)
+ * Modal fullscreen, auto-slug, auto-publish, categorías dinámicas desde Firestore,
+ * RTE para descripción larga, slider de timeline para miniatura.
  */
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,19 +23,7 @@ import {
 } from "firebase/storage";
 import { db, storage } from "../firebase";
 import { useAuth } from "../context/AuthContext";
-import {
-  FiEdit2,
-  FiTrash2,
-  FiEye,
-  FiEyeOff,
-  FiCopy,
-  FiPlus,
-  FiX,
-  FiVideo,
-  FiImage,
-  FiUpload,
-  FiFilm,
-} from "react-icons/fi";
+import RichTextEditor from "./RichTextEditor";
 
 /* ─── helpers ─────────────────────────────────────────────── */
 const slugify = (str) =>
@@ -49,102 +36,6 @@ const slugify = (str) =>
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 
-const CATEGORIAS = [
-  "Internet",
-  "Cámaras",
-  "Computadoras",
-  "Impresoras",
-  "Celulares",
-  "Redes y Conectividad",
-  "Software",
-  "Periféricos",
-  "Mantenimiento",
-  "Seguridad Digital",
-  "General",
-];
-
-const ESTADOS = [
-  {
-    value: "publicado",
-    label: "Publicado",
-    color: "#16a34a",
-    bg: "rgba(220,252,231,1)",
-  },
-  {
-    value: "borrador",
-    label: "Borrador",
-    color: "#9ca3af",
-    bg: "rgba(243,244,246,1)",
-  },
-];
-
-const EMPTY_FORM = {
-  titulo: "",
-  descripcionCorta: "",
-  contenido: "",
-  categoria: "General",
-  slug: "",
-  estado: "borrador",
-  thumbnailUrl: "",
-  videoUrl: "",
-  videoEsExterno: false,
-  videoUrlExterno: "",
-};
-
-/* ─── extrae fotogramas de un video local ──────────────────── */
-function extractFrames(videoFile, count = 8) {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(videoFile);
-    const video = document.createElement("video");
-    video.src = url;
-    video.muted = true;
-    video.crossOrigin = "anonymous";
-
-    video.onloadedmetadata = () => {
-      const duration = video.duration;
-      const frames = [];
-
-      const captureAt = (time) =>
-        new Promise((res) => {
-          video.currentTime = time;
-          video.onseeked = () => {
-            const canvas = document.createElement("canvas");
-            canvas.width = 320;
-            canvas.height = Math.round(
-              (canvas.width * video.videoHeight) / video.videoWidth,
-            );
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            res({ dataURL: canvas.toDataURL("image/jpeg", 0.7), time });
-          };
-        });
-
-      const times = Array.from(
-        { length: count },
-        (_, i) => Math.round(((i + 0.5) / count) * duration * 10) / 10,
-      );
-
-      const next = async (i) => {
-        if (i >= times.length) {
-          URL.revokeObjectURL(url);
-          resolve(frames);
-          return;
-        }
-        const frame = await captureAt(times[i]);
-        frames.push(frame);
-        next(i + 1);
-      };
-      next(0);
-    };
-
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve([]);
-    };
-  });
-}
-
-/* ─── dataURL → Blob ───────────────────────────────────────── */
 function dataURLtoBlob(dataURL) {
   const [header, data] = dataURL.split(",");
   const mime = header.match(/:(.*?);/)[1];
@@ -154,219 +45,189 @@ function dataURLtoBlob(dataURL) {
   return new Blob([arr], { type: mime });
 }
 
+/* Extraer N fotogramas de un File de video */
+function extractFrames(videoFile, count = 20) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(videoFile);
+    const video = document.createElement("video");
+    video.src = url;
+    video.muted = true;
+    video.crossOrigin = "anonymous";
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+      const frames = [];
+      const times = Array.from(
+        { length: count },
+        (_, i) => Math.round((i / (count - 1)) * duration * 10) / 10,
+      );
+      const captureAt = (time) =>
+        new Promise((res) => {
+          video.currentTime = time;
+          video.onseeked = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 480;
+            canvas.height =
+              Math.round(
+                (canvas.width * video.videoHeight) / video.videoWidth,
+              ) || 270;
+            canvas
+              .getContext("2d")
+              .drawImage(video, 0, 0, canvas.width, canvas.height);
+            res({ dataURL: canvas.toDataURL("image/jpeg", 0.75), time });
+          };
+        });
+      const next = async (i) => {
+        if (i >= times.length) {
+          URL.revokeObjectURL(url);
+          resolve(frames);
+          return;
+        }
+        frames.push(await captureAt(times[i]));
+        next(i + 1);
+      };
+      next(0);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve([]);
+    };
+  });
+}
+
+const EMPTY_FORM = {
+  titulo: "",
+  descripcionCorta: "",
+  contenido: "",
+  categoria: "",
+  thumbnailUrl: "",
+  videoUrl: "",
+  videoEsExterno: false,
+  videoUrlExterno: "",
+  slug: "",
+  estado: "publicado",
+};
+
 /* ══════════════════════════════════════════════════════════════
-   MODAL SELECTOR DE MINIATURA (estilo TikTok)
+   TIMELINE THUMBNAIL SLIDER
 ═══════════════════════════════════════════════════════════════ */
-function ThumbnailPickerModal({ frames, onSelect, onClose }) {
-  const [selected, setSelected] = useState(null);
-
+function ThumbnailTimelineSlider({ frames, selectedIndex, onChange }) {
+  if (!frames || frames.length === 0) return null;
+  const idx = selectedIndex ?? 0;
   return (
-    <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.85)" }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.92, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.92, opacity: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+    <div className="mt-3">
+      {/* Preview grande del frame seleccionado */}
+      <div
+        className="rounded-lg overflow-hidden mb-3 flex items-center justify-center"
+        style={{ background: "#000", aspectRatio: "16/9", maxHeight: 200 }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <FiFilm className="text-blue-600" size={20} />
-            <h3 className="font-bold text-gray-900 dark:text-white text-base">
-              Seleccionar miniatura del video
-            </h3>
-          </div>
+        <img
+          src={frames[idx]?.dataURL}
+          alt="Miniatura seleccionada"
+          className="max-w-full max-h-full object-contain"
+        />
+      </div>
+      {/* Tiempo */}
+      <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">
+        Fotograma {idx + 1} de {frames.length} — {frames[idx]?.time}s
+      </p>
+      {/* Slider */}
+      <input
+        type="range"
+        min={0}
+        max={frames.length - 1}
+        value={idx}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-blue-600"
+        style={{ cursor: "pointer" }}
+      />
+      {/* Strip de thumbnails clickeables */}
+      <div className="flex gap-1 mt-2 overflow-x-auto pb-1">
+        {frames.map((f, i) => (
           <button
+            key={i}
             type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-          >
-            <FiX size={18} />
-          </button>
-        </div>
-
-        {/* Grid de fotogramas */}
-        <div className="p-5">
-          {frames.length === 0 ? (
-            <div className="text-center py-10 text-gray-400 text-sm">
-              No se pudieron extraer fotogramas del video.
-            </div>
-          ) : (
-            <>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                Haz clic en el fotograma que quieres usar como portada.
-              </p>
-              <div className="grid grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1">
-                {frames.map((frame, i) => (
-                  <button
-                    type="button"
-                    key={i}
-                    onClick={() => setSelected(i)}
-                    className="relative rounded-lg overflow-hidden border-2 transition-all duration-150 focus:outline-none"
-                    style={{
-                      borderColor: selected === i ? "#2563eb" : "transparent",
-                      boxShadow:
-                        selected === i
-                          ? "0 0 0 3px rgba(37,99,235,0.3)"
-                          : "none",
-                    }}
-                  >
-                    <img
-                      src={frame.dataURL}
-                      alt={`Fotograma ${i + 1}`}
-                      className="w-full aspect-video object-cover"
-                    />
-                    {selected === i && (
-                      <div
-                        className="absolute inset-0 flex items-center justify-center"
-                        style={{ background: "rgba(37,99,235,0.25)" }}
-                      >
-                        <div
-                          className="rounded-full flex items-center justify-center"
-                          style={{
-                            width: 28,
-                            height: 28,
-                            background: "#2563eb",
-                          }}
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            fill="none"
-                            stroke="#fff"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.5}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    )}
-                    <span
-                      className="absolute bottom-1 right-1 text-white text-[10px] px-1 rounded"
-                      style={{ background: "rgba(0,0,0,0.6)" }}
-                    >
-                      {frame.time}s
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            disabled={selected === null}
-            onClick={() =>
-              selected !== null && onSelect(frames[selected].dataURL)
-            }
-            className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-150 disabled:opacity-40"
+            onClick={() => onChange(i)}
+            className="flex-shrink-0 rounded overflow-hidden transition-all"
             style={{
-              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-              boxShadow: "0 2px 8px rgba(59,130,246,0.4)",
+              width: 56,
+              height: 36,
+              outline:
+                i === idx ? "2px solid #2563eb" : "2px solid transparent",
+              outlineOffset: 1,
             }}
           >
-            Usar este fotograma
+            <img
+              src={f.dataURL}
+              alt=""
+              className="w-full h-full object-cover"
+            />
           </button>
-        </div>
-      </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════
-   FORMULARIO AGREGAR / EDITAR VIDEO
+   FORMULARIO DE VIDEO (modal fullscreen)
 ═══════════════════════════════════════════════════════════════ */
-function VideoForm({ videoInicial, onClose, onSaved }) {
-  const { usuario } = useAuth();
-  const [form, setForm] = useState({ ...EMPTY_FORM, ...(videoInicial || {}) });
+function VideoForm({ initial, categorias, onSave, onClose }) {
+  const [form, setForm] = useState({ ...EMPTY_FORM, ...initial });
   const [videoFile, setVideoFile] = useState(null);
-  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbFile, setThumbFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(
-    videoInicial?.thumbnailUrl || "",
-  );
-  const [videoPreview, setVideoPreview] = useState(
-    videoInicial?.videoUrl || "",
+    initial?.thumbnailUrl || "",
   );
   const [frames, setFrames] = useState([]);
-  const [showFramePicker, setShowFramePicker] = useState(false);
-  const [extractingFrames, setExtractingFrames] = useState(false);
+  const [frameIdx, setFrameIdx] = useState(0);
+  const [extracting, setExtracting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ video: 0, thumb: 0 });
   const [saving, setSaving] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({
-    video: null,
-    thumb: null,
-  });
-  const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+  const [error, setError] = useState("");
+  const [newCat, setNewCat] = useState("");
 
-  /* Auto-slug desde título */
-  const handleTitulo = (val) => {
-    set("titulo", val);
-    if (!videoInicial?.slug || form.slug === slugify(form.titulo)) {
-      set("slug", slugify(val));
-    }
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  /* Auto-slug from title */
+  const handleTitulo = (v) => {
+    set("titulo", v);
+    if (!initial?.id) set("slug", slugify(v));
   };
 
-  /* Carga video local */
+  /* Video file selected → extract frames */
   const handleVideoFile = async (file) => {
     if (!file) return;
     setVideoFile(file);
-    const blobUrl = URL.createObjectURL(file);
-    setVideoPreview(blobUrl);
     setFrames([]);
-    set("videoEsExterno", false);
-    set("videoUrlExterno", "");
+    setFrameIdx(0);
+    setExtracting(true);
+    const f = await extractFrames(file, 20);
+    setFrames(f);
+    if (f.length > 0) {
+      setFrameIdx(0);
+      setThumbnailPreview(f[0].dataURL);
+    }
+    setExtracting(false);
   };
 
-  /* Extrae fotogramas del video local */
-  const handleExtractFrames = async () => {
-    if (!videoFile) return;
-    setExtractingFrames(true);
-    const extracted = await extractFrames(videoFile, 8);
-    setFrames(extracted);
-    setExtractingFrames(false);
-    setShowFramePicker(true);
+  /* Frame selection via slider */
+  const handleFrameChange = (i) => {
+    setFrameIdx(i);
+    if (frames[i]) setThumbnailPreview(frames[i].dataURL);
   };
 
-  /* Se seleccionó un fotograma como miniatura */
-  const handleFrameSelected = (dataURL) => {
-    setThumbnailPreview(dataURL);
-    const blob = dataURLtoBlob(dataURL);
-    setThumbnailFile(new File([blob], "thumbnail.jpg", { type: "image/jpeg" }));
-    setShowFramePicker(false);
-  };
-
-  /* Carga imagen personalizada como miniatura */
-  const handleThumbnailFile = (file) => {
+  /* Manual thumbnail image */
+  const handleThumbFile = (file) => {
     if (!file) return;
-    setThumbnailFile(file);
+    setThumbFile(file);
     setThumbnailPreview(URL.createObjectURL(file));
   };
 
-  /* Sube archivo a Storage con progreso */
+  /* Upload a file to Storage, returns download URL */
   const uploadFile = (file, path, onProgress) =>
     new Promise((resolve, reject) => {
-      const fileRef = storageRef(storage, path);
-      const task = uploadBytesResumable(fileRef, file);
+      const ref = storageRef(storage, path);
+      const task = uploadBytesResumable(ref, file);
       task.on(
         "state_changed",
         (snap) =>
@@ -378,513 +239,488 @@ function VideoForm({ videoInicial, onClose, onSaved }) {
       );
     });
 
-  /* Guardar */
-  const handleSave = async () => {
+  /* Save handler */
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setError("");
     if (!form.titulo.trim()) {
-      alert("El título es obligatorio.");
+      setError("El título es requerido.");
       return;
     }
-    if (!form.slug.trim()) {
-      alert("El slug es obligatorio.");
+    if (!form.videoEsExterno && !videoFile && !form.videoUrl) {
+      setError("Sube un video o proporciona una URL externa.");
       return;
     }
     if (form.videoEsExterno && !form.videoUrlExterno.trim()) {
-      alert("Ingresa la URL externa del video.");
+      setError("Ingresa la URL del video externo.");
       return;
     }
-    if (!form.videoEsExterno && !videoFile && !videoInicial?.videoUrl) {
-      alert("Debes subir un video o ingresar una URL externa.");
-      return;
-    }
-
     setSaving(true);
     try {
-      const docId = videoInicial?.id || `vid_${Date.now()}`;
-      let finalVideoUrl = form.videoEsExterno
-        ? form.videoUrlExterno.trim()
-        : videoInicial?.videoUrl || "";
-      let finalThumbnailUrl =
-        thumbnailPreview && thumbnailPreview.startsWith("data:")
-          ? ""
-          : thumbnailPreview || videoInicial?.thumbnailUrl || "";
+      const docId = initial?.id || doc(collection(db, "videosTutoriales")).id;
 
-      /* Subir video local */
-      if (videoFile) {
+      /* Video */
+      let finalVideoUrl = form.videoUrl;
+      if (form.videoEsExterno) {
+        finalVideoUrl = form.videoUrlExterno.trim();
+      } else if (videoFile) {
         finalVideoUrl = await uploadFile(
           videoFile,
-          `videos-tutoriales/${docId}/video_${Date.now()}`,
+          `videos-tutoriales/${docId}/video`,
           (p) => setUploadProgress((u) => ({ ...u, video: p })),
         );
       }
 
-      /* Subir thumbnail */
-      if (thumbnailFile) {
+      /* Thumbnail */
+      let finalThumbnailUrl = form.thumbnailUrl;
+      if (thumbFile) {
         finalThumbnailUrl = await uploadFile(
-          thumbnailFile,
-          `videos-tutoriales/${docId}/thumbnail_${Date.now()}`,
+          thumbFile,
+          `videos-tutoriales/${docId}/thumbnail`,
+          (p) => setUploadProgress((u) => ({ ...u, thumb: p })),
+        );
+      } else if (thumbnailPreview && thumbnailPreview.startsWith("data:")) {
+        /* frame from video */
+        const blob = dataURLtoBlob(thumbnailPreview);
+        finalThumbnailUrl = await uploadFile(
+          blob,
+          `videos-tutoriales/${docId}/thumbnail`,
           (p) => setUploadProgress((u) => ({ ...u, thumb: p })),
         );
       }
 
+      const slug = form.slug || slugify(form.titulo);
       const payload = {
         titulo: form.titulo.trim(),
         descripcionCorta: form.descripcionCorta.trim(),
-        contenido: form.contenido.trim(),
+        contenido: form.contenido,
         categoria: form.categoria,
-        slug: form.slug.trim(),
-        estado: form.estado,
+        slug,
+        estado: "publicado",
         videoUrl: finalVideoUrl,
-        thumbnailUrl: finalThumbnailUrl,
         videoEsExterno: form.videoEsExterno,
+        thumbnailUrl: finalThumbnailUrl,
         updatedAt: serverTimestamp(),
       };
 
-      if (videoInicial?.id) {
-        await updateDoc(doc(db, "videosTutoriales", videoInicial.id), payload);
+      if (initial?.id) {
+        await updateDoc(doc(db, "videosTutoriales", initial.id), payload);
       } else {
         await addDoc(collection(db, "videosTutoriales"), {
           ...payload,
           createdAt: serverTimestamp(),
-          creadoPor: usuario?.uid || "admin",
         });
       }
-
-      onSaved();
+      onSave();
     } catch (err) {
-      alert("Error al guardar: " + err.message);
+      console.error(err);
+      setError("Error al guardar: " + (err.message || "intenta de nuevo."));
     } finally {
       setSaving(false);
-      setUploadProgress({ video: null, thumb: null });
+      setUploadProgress({ video: 0, thumb: 0 });
     }
   };
 
   return (
-    <>
-      <div
-        className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto py-6 px-4"
-        style={{ background: "rgba(0,0,0,0.65)" }}
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col"
+      style={{ background: "rgba(0,0,0,0.65)" }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 30 }}
+        transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        className="m-auto w-full bg-white dark:bg-gray-900 shadow-2xl flex flex-col"
+        style={{
+          maxWidth: 860,
+          maxHeight: "96vh",
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 32 }}
-          transition={{ type: "spring", damping: 28, stiffness: 300 }}
-          className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2.5">
-              <div
-                className="flex items-center justify-center rounded-lg"
-                style={{
-                  width: 36,
-                  height: 36,
-                  background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-                }}
-              >
-                <FiVideo size={17} color="#fff" />
-              </div>
-              <h2 className="font-bold text-gray-900 dark:text-white text-lg">
-                {videoInicial ? "Editar video" : "Nuevo video tutorial"}
-              </h2>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white">
+            {initial?.id ? "Editar video" : "Agregar video"}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+          >
+            <svg
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <FiX size={18} />
-            </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Body — scrollable */}
+        <form
+          onSubmit={handleSave}
+          className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5"
+          style={{ minHeight: 0 }}
+        >
+          {/* Título */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Título <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.titulo}
+              onChange={(e) => handleTitulo(e.target.value)}
+              placeholder="Ej. Cómo configurar tu router Wi-Fi"
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {form.slug && (
+              <p className="text-[11px] text-gray-400 mt-1">
+                Slug: <span className="font-mono">{form.slug}</span>
+              </p>
+            )}
           </div>
 
-          {/* Body */}
-          <div className="px-6 py-5 space-y-5">
-            {/* Título */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Título <span className="text-blue-500">*</span>
-              </label>
+          {/* Descripción corta */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Descripción corta
+            </label>
+            <textarea
+              value={form.descripcionCorta}
+              onChange={(e) => set("descripcionCorta", e.target.value)}
+              rows={2}
+              placeholder="Resumen breve que aparece en la tarjeta del video"
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+          </div>
+
+          {/* Categoría */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Categoría
+            </label>
+            {categorias.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {categorias.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => set("categoria", c)}
+                    className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                    style={{
+                      background:
+                        form.categoria === c ? "#2563eb" : "rgba(0,0,0,0.05)",
+                      color: form.categoria === c ? "#fff" : "#374151",
+                    }}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 italic">
+                Sin categorías creadas. Escribe una nueva abajo.
+              </p>
+            )}
+
+            {/* Nueva categoría inline */}
+            <div className="flex gap-2 mt-2">
               <input
                 type="text"
-                value={form.titulo}
-                onChange={(e) => handleTitulo(e.target.value)}
-                placeholder="Ej: ¿Cómo instalar una impresora en Windows?"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Slug */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Slug (URL)
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                  /videos-soporte/
-                </span>
-                <input
-                  type="text"
-                  value={form.slug}
-                  onChange={(e) => set("slug", slugify(e.target.value))}
-                  className="flex-1 px-3.5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Descripción corta */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Descripción corta
-              </label>
-              <textarea
-                rows={2}
-                value={form.descripcionCorta}
-                onChange={(e) => set("descripcionCorta", e.target.value)}
-                placeholder="Resumen breve visible en la lista de videos (SEO)"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-            </div>
-
-            {/* Contenido detallado */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Contenido / Descripción detallada
-              </label>
-              <textarea
-                rows={5}
-                value={form.contenido}
-                onChange={(e) => set("contenido", e.target.value)}
-                placeholder="Explicación completa del video. Puedes escribir párrafos separados con líneas en blanco."
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-              />
-            </div>
-
-            {/* Categoría y Estado */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Categoría
-                </label>
-                <select
-                  value={form.categoria}
-                  onChange={(e) => set("categoria", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {CATEGORIAS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Estado de publicación
-                </label>
-                <select
-                  value={form.estado}
-                  onChange={(e) => set("estado", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {ESTADOS.map((e) => (
-                    <option key={e.value} value={e.value}>
-                      {e.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* ── VIDEO ── */}
-            <div
-              className="rounded-xl p-4"
-              style={{
-                border: "1px solid rgba(59,130,246,0.3)",
-                background: "rgba(239,246,255,0.5)",
-              }}
-            >
-              <label className="block text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3 inline-flex items-center gap-2">
-                <FiVideo size={15} /> Video{" "}
-                <span className="text-blue-500">*</span>
-              </label>
-
-              {/* Toggle Local / URL externa */}
-              <div className="flex gap-2 mb-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    set("videoEsExterno", false);
-                    set("videoUrlExterno", "");
-                  }}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    background: !form.videoEsExterno
-                      ? "linear-gradient(135deg,#3b82f6,#2563eb)"
-                      : "rgba(229,231,235,0.8)",
-                    color: !form.videoEsExterno ? "#fff" : "#374151",
-                  }}
-                >
-                  📁 Subir archivo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => set("videoEsExterno", true)}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    background: form.videoEsExterno
-                      ? "linear-gradient(135deg,#3b82f6,#2563eb)"
-                      : "rgba(229,231,235,0.8)",
-                    color: form.videoEsExterno ? "#fff" : "#374151",
-                  }}
-                >
-                  🔗 URL externa
-                </button>
-              </div>
-
-              {form.videoEsExterno ? (
-                <input
-                  type="url"
-                  value={form.videoUrlExterno}
-                  onChange={(e) => set("videoUrlExterno", e.target.value)}
-                  placeholder="https://www.youtube.com/embed/..."
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              ) : (
-                <div>
-                  <label
-                    className="flex items-center justify-center gap-2 py-3 rounded-lg cursor-pointer text-sm font-medium text-blue-700 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all"
-                    htmlFor="input-video-file"
-                  >
-                    <FiUpload size={16} />
-                    {videoFile
-                      ? videoFile.name
-                      : videoInicial?.videoUrl
-                        ? "Cambiar video"
-                        : "Seleccionar video (mp4, mov, webm)"}
-                  </label>
-                  <input
-                    id="input-video-file"
-                    type="file"
-                    accept="video/*"
-                    className="hidden"
-                    onChange={(e) =>
-                      e.target.files[0] && handleVideoFile(e.target.files[0])
+                value={newCat}
+                onChange={(e) => setNewCat(e.target.value)}
+                placeholder="Nueva categoría..."
+                className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (newCat.trim()) {
+                      set("categoria", newCat.trim());
+                      setNewCat("");
                     }
-                  />
-                  {uploadProgress.video !== null && (
-                    <div className="mt-2">
-                      <div className="flex justify-between text-xs text-blue-600 mb-1">
-                        <span>Subiendo video...</span>
-                        <span>{uploadProgress.video}%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-blue-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full transition-all"
-                          style={{ width: `${uploadProgress.video}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {videoPreview && (
-                    <div
-                      className="mt-3 rounded-lg overflow-hidden"
-                      style={{ maxHeight: 160 }}
-                    >
-                      <video
-                        src={videoPreview}
-                        controls
-                        className="w-full rounded-lg"
-                        style={{ maxHeight: 160 }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* ── MINIATURA ── */}
-            <div
-              className="rounded-xl p-4"
-              style={{
-                border: "1px solid rgba(139,92,246,0.3)",
-                background: "rgba(245,243,255,0.5)",
-              }}
-            >
-              <label
-                className="block text-sm font-semibold mb-3 inline-flex items-center gap-2"
-                style={{ color: "#7c3aed" }}
-              >
-                <FiImage size={15} /> Miniatura (portada)
-              </label>
-
-              <div className="flex gap-2 flex-wrap">
-                {/* Botón extraer fotogramas */}
-                {videoFile && (
-                  <button
-                    type="button"
-                    onClick={handleExtractFrames}
-                    disabled={extractingFrames}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-all disabled:opacity-60"
-                    style={{
-                      background: "linear-gradient(135deg,#8b5cf6,#7c3aed)",
-                    }}
-                  >
-                    <FiFilm size={13} />
-                    {extractingFrames ? "Extrayendo..." : "Capturar fotograma"}
-                  </button>
-                )}
-
-                {/* Subir imagen personalizada */}
-                <label
-                  htmlFor="input-thumbnail-file"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer transition-all"
-                  style={{
-                    background: "rgba(229,231,235,0.9)",
-                    color: "#374151",
-                  }}
-                >
-                  <FiUpload size={13} /> Subir imagen
-                </label>
-                <input
-                  id="input-thumbnail-file"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) =>
-                    e.target.files[0] && handleThumbnailFile(e.target.files[0])
                   }
-                />
-              </div>
-
-              {uploadProgress.thumb !== null && (
-                <div className="mt-2">
-                  <div className="flex justify-between text-xs text-purple-600 mb-1">
-                    <span>Subiendo miniatura...</span>
-                    <span>{uploadProgress.thumb}%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-purple-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-purple-500 rounded-full transition-all"
-                      style={{ width: `${uploadProgress.thumb}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {thumbnailPreview ? (
-                <div className="mt-3 relative inline-block">
-                  <img
-                    src={thumbnailPreview}
-                    alt="Miniatura"
-                    className="rounded-lg object-cover"
-                    style={{ width: 180, height: 101 }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setThumbnailPreview("");
-                      setThumbnailFile(null);
-                    }}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-800 text-white text-xs flex items-center justify-center"
-                  >
-                    <FiX size={11} />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  className="mt-3 rounded-lg flex items-center justify-center text-xs text-gray-400"
-                  style={{
-                    width: 180,
-                    height: 101,
-                    border: "2px dashed rgba(139,92,246,0.3)",
-                    background: "rgba(245,243,255,0.6)",
-                  }}
-                >
-                  Sin miniatura
-                </div>
-              )}
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (newCat.trim()) {
+                    set("categoria", newCat.trim());
+                    setNewCat("");
+                  }
+                }}
+                className="px-3 py-2 rounded-lg text-sm font-semibold text-white"
+                style={{ background: "#2563eb" }}
+              >
+                + Agregar
+              </button>
             </div>
+            {form.categoria && (
+              <p className="text-xs text-blue-600 mt-1">
+                Categoría seleccionada: <strong>{form.categoria}</strong>
+              </p>
+            )}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-60 flex items-center gap-2"
-              style={{
-                background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-                boxShadow: "0 2px 8px rgba(59,130,246,0.4)",
-              }}
-            >
-              {saving ? (
-                <>
+          {/* Video — upload o URL externa */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Video <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => set("videoEsExterno", false)}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  background: !form.videoEsExterno
+                    ? "#2563eb"
+                    : "rgba(0,0,0,0.05)",
+                  color: !form.videoEsExterno ? "#fff" : "#374151",
+                }}
+              >
+                Subir archivo
+              </button>
+              <button
+                type="button"
+                onClick={() => set("videoEsExterno", true)}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  background: form.videoEsExterno
+                    ? "#2563eb"
+                    : "rgba(0,0,0,0.05)",
+                  color: form.videoEsExterno ? "#fff" : "#374151",
+                }}
+              >
+                URL externa
+              </button>
+            </div>
+
+            {form.videoEsExterno ? (
+              <input
+                type="url"
+                value={form.videoUrlExterno}
+                onChange={(e) => set("videoUrlExterno", e.target.value)}
+                placeholder="https://www.youtube.com/embed/..."
+                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            ) : (
+              <div>
+                <label className="flex items-center justify-center gap-2 w-full py-8 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 cursor-pointer hover:border-blue-500 transition-colors text-sm text-gray-500 dark:text-gray-400">
                   <svg
-                    className="animate-spin"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
                     fill="none"
                     stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+                      strokeWidth={1.5}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                     />
                   </svg>
-                  Guardando...
-                </>
-              ) : videoInicial ? (
-                "Guardar cambios"
-              ) : (
-                "Publicar video"
-              )}
-            </button>
+                  {videoFile
+                    ? videoFile.name
+                    : form.videoUrl
+                      ? "Video actual (cargado)"
+                      : "Seleccionar video"}
+                  <input
+                    type="file"
+                    accept="video/*"
+                    capture={undefined}
+                    className="sr-only"
+                    onChange={(e) => handleVideoFile(e.target.files?.[0])}
+                  />
+                </label>
+                {uploadProgress.video > 0 && uploadProgress.video < 100 && (
+                  <div className="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 transition-all"
+                      style={{ width: uploadProgress.video + "%" }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </motion.div>
-      </div>
 
-      {/* Modal de fotogramas */}
-      <AnimatePresence>
-        {showFramePicker && (
-          <ThumbnailPickerModal
-            frames={frames}
-            onSelect={handleFrameSelected}
-            onClose={() => setShowFramePicker(false)}
-          />
-        )}
-      </AnimatePresence>
-    </>
+          {/* Miniatura — timeline slider */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Miniatura (portada)
+            </label>
+
+            {extracting && (
+              <div className="flex items-center gap-2 text-xs text-blue-600 mb-2">
+                <svg
+                  className="animate-spin w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                Extrayendo fotogramas...
+              </div>
+            )}
+
+            {frames.length > 0 && !thumbFile && (
+              <>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  Arrastra el slider para elegir el fotograma de portada:
+                </p>
+                <ThumbnailTimelineSlider
+                  frames={frames}
+                  selectedIndex={frameIdx}
+                  onChange={handleFrameChange}
+                />
+              </>
+            )}
+
+            {/* Manual thumbnail upload */}
+            <div className="mt-3">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-xs text-blue-600 hover:text-blue-700 font-medium">
+                <svg
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Subir imagen personalizada
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => handleThumbFile(e.target.files?.[0])}
+                />
+              </label>
+            </div>
+
+            {thumbnailPreview &&
+              !thumbnailPreview.startsWith("data:") &&
+              !thumbFile && (
+                <div
+                  className="mt-2 rounded-lg overflow-hidden"
+                  style={{ maxWidth: 200, background: "#f1f5f9" }}
+                >
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail actual"
+                    className="w-full object-contain"
+                  />
+                </div>
+              )}
+
+            {uploadProgress.thumb > 0 && uploadProgress.thumb < 100 && (
+              <div className="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                <div
+                  className="h-full bg-blue-600 transition-all"
+                  style={{ width: uploadProgress.thumb + "%" }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Descripción larga (RTE) */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Descripción larga
+            </label>
+            <RichTextEditor
+              value={form.contenido}
+              onChange={(v) => set("contenido", v)}
+              placeholder="Escribe una descripción detallada del video..."
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
+        </form>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="videoForm"
+            disabled={saving}
+            onClick={handleSave}
+            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-60 transition-all"
+            style={{
+              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+            }}
+          >
+            {saving
+              ? "Guardando..."
+              : initial?.id
+                ? "Actualizar"
+                : "Publicar video"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════
-   COMPONENTE PRINCIPAL: VideoManagement
+   COMPONENTE PRINCIPAL
 ═══════════════════════════════════════════════════════════════ */
 export default function VideoManagement() {
+  const { usuarioInfo } = useAuth();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [catFilter, setCatFilter] = useState("");
-  const [estadoFilter, setEstadoFilter] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingVideo, setEditingVideo] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [categoriasFire, setCategoriasFire] = useState([]);
 
-  /* Listener en tiempo real */
+  /* Todos los videos */
   useEffect(() => {
     const q = query(
       collection(db, "videosTutoriales"),
@@ -893,7 +729,13 @@ export default function VideoManagement() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        setVideos(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setVideos(lista);
+        /* Extraer categorías únicas dinámicamente */
+        const cats = Array.from(
+          new Set(lista.map((v) => v.categoria).filter(Boolean)),
+        );
+        setCategoriasFire(cats);
         setLoading(false);
       },
       () => setLoading(false),
@@ -901,408 +743,332 @@ export default function VideoManagement() {
     return unsub;
   }, []);
 
-  /* Toggle publicado/borrador */
-  const toggleEstado = async (video) => {
-    const nuevoEstado = video.estado === "publicado" ? "borrador" : "publicado";
-    await updateDoc(doc(db, "videosTutoriales", video.id), {
-      estado: nuevoEstado,
-      updatedAt: serverTimestamp(),
-    });
+  const handleEdit = (video) => {
+    setEditTarget(video);
+    setShowForm(true);
+  };
+  const handleNew = () => {
+    setEditTarget(null);
+    setShowForm(true);
+  };
+  const handleClose = () => {
+    setShowForm(false);
+    setEditTarget(null);
+  };
+  const handleSaved = () => {
+    setShowForm(false);
+    setEditTarget(null);
   };
 
-  /* Eliminar */
   const confirmarEliminar = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
       await deleteDoc(doc(db, "videosTutoriales", deleteTarget.id));
     } catch (err) {
-      alert("Error al eliminar: " + err.message);
+      console.error(err);
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
     }
   };
 
-  /* Copiar enlace */
-  const copyLink = (slug) => {
-    const url = `${window.location.origin}/videos-soporte/${slug}`;
-    navigator.clipboard.writeText(url).then(() => {
-      const t = document.createElement("div");
-      t.textContent = "✅ Enlace copiado";
-      t.style.cssText =
-        "position:fixed;top:20px;right:20px;background:#2563eb;color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;z-index:100000;box-shadow:0 4px 12px rgba(0,0,0,0.2)";
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 2500);
+  const copyLink = (video) => {
+    const url = `${window.location.origin}/videos-soporte/${video.slug}`;
+    navigator.clipboard.writeText(url).catch(() => {});
+  };
+
+  const toggleEstado = async (video) => {
+    const nuevoEstado = video.estado === "publicado" ? "borrador" : "publicado";
+    await updateDoc(doc(db, "videosTutoriales", video.id), {
+      estado: nuevoEstado,
     });
   };
 
-  /* Filtrado */
-  const filtered = videos.filter((v) => {
-    const matchSearch =
-      !search || (v.titulo || "").toLowerCase().includes(search.toLowerCase());
-    const matchCat = !catFilter || v.categoria === catFilter;
-    const matchEst = !estadoFilter || v.estado === estadoFilter;
-    return matchSearch && matchCat && matchEst;
-  });
-
-  const formatFecha = (ts) => {
-    if (!ts) return "—";
-    const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
-    return d.toLocaleDateString("es-DO", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
+  if (!usuarioInfo?.isAdmin && usuarioInfo?.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-[200px] text-sm text-gray-400">
+        Acceso restringido.
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-5">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-blue-900 dark:text-blue-200">
-            Gestión de Videos Tutoriales
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {filtered.length} de {videos.length} videos
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Videos de soporte
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            {videos.length} video{videos.length !== 1 ? "s" : ""} en total
           </p>
         </div>
         <button
           type="button"
-          onClick={() => {
-            setEditingVideo(null);
-            setShowForm(true);
-          }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all"
+          onClick={handleNew}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
           style={{
-            background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-            boxShadow: "0 2px 8px rgba(59,130,246,0.35)",
+            background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+            boxShadow: "0 2px 8px rgba(37,99,235,0.35)",
           }}
         >
-          <FiPlus size={16} /> Agregar video
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Agregar video
         </button>
       </div>
 
-      {/* Filtros */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row gap-3">
-        <input
-          type="text"
-          placeholder="Buscar por título..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 px-3.5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={catFilter}
-          onChange={(e) => setCatFilter(e.target.value)}
-          className="px-3.5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todas las categorías</option>
-          {CATEGORIAS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <select
-          value={estadoFilter}
-          onChange={(e) => setEstadoFilter(e.target.value)}
-          className="px-3.5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos los estados</option>
-          <option value="publicado">Publicado</option>
-          <option value="borrador">Borrador</option>
-        </select>
-      </div>
-
       {/* Tabla */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center items-center py-16">
-            <svg
-              className="animate-spin w-8 h-8 text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <FiVideo
-              size={40}
-              className="mx-auto mb-3 text-gray-300 dark:text-gray-600"
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <svg
+            className="animate-spin w-7 h-7 text-blue-500"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
             />
-            <p className="text-gray-400 dark:text-gray-500 text-sm">
-              {videos.length === 0
-                ? "Aún no hay videos. ¡Agrega el primero!"
-                : "No hay videos que coincidan con los filtros."}
-            </p>
-          </div>
-        ) : (
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+        </div>
+      ) : videos.length === 0 ? (
+        <div className="text-center py-16 text-sm text-gray-400">
+          No hay videos. Agrega el primero.
+        </div>
+      ) : (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700/60">
-                <tr>
-                  {[
-                    "Miniatura",
-                    "Título",
-                    "Categoría",
-                    "Estado",
-                    "Fecha",
-                    "Acciones",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  ))}
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800 text-left">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Miniatura
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Título
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">
+                    Categoría
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Estado
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                <AnimatePresence>
-                  {filtered.map((video) => {
-                    const estado =
-                      ESTADOS.find((e) => e.value === video.estado) ||
-                      ESTADOS[1];
-                    return (
-                      <motion.tr
-                        key={video.id}
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {videos.map((v) => (
+                  <tr
+                    key={v.id}
+                    className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <div
+                        className="rounded-lg overflow-hidden flex-shrink-0"
+                        style={{ width: 72, height: 46, background: "#0f172a" }}
                       >
-                        {/* Miniatura */}
-                        <td className="px-4 py-3">
-                          <div
-                            className="rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700"
-                            style={{ width: 72, height: 40 }}
-                          >
-                            {video.thumbnailUrl ? (
-                              <img
-                                src={video.thumbnailUrl}
-                                alt={video.titulo}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.target.style.display = "none";
-                                }}
+                        {v.thumbnailUrl ? (
+                          <img
+                            src={v.thumbnailUrl}
+                            alt={v.titulo}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-600">
+                            <svg
+                              width="20"
+                              height="20"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"
                               />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <FiVideo size={18} className="text-gray-400" />
-                              </div>
-                            )}
+                            </svg>
                           </div>
-                        </td>
-
-                        {/* Título */}
-                        <td className="px-4 py-3 max-w-[220px]">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
-                            {video.titulo}
-                          </p>
-                          {video.descripcionCorta && (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-1 mt-0.5">
-                              {video.descripcionCorta}
-                            </p>
-                          )}
-                        </td>
-
-                        {/* Categoría */}
-                        <td className="px-4 py-3">
-                          <span
-                            className="inline-block text-xs px-2.5 py-1 rounded-full font-medium"
-                            style={{
-                              background: "rgba(219,234,254,1)",
-                              color: "#1d4ed8",
-                            }}
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-900 dark:text-white line-clamp-1">
+                        {v.titulo}
+                      </p>
+                      {v.slug && (
+                        <p className="text-xs text-gray-400 font-mono mt-0.5">
+                          {v.slug}
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      {v.categoria && (
+                        <span
+                          className="text-xs font-medium px-2.5 py-1 rounded-full"
+                          style={{
+                            background: "rgba(219,234,254,1)",
+                            color: "#1d4ed8",
+                          }}
+                        >
+                          {v.categoria}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleEstado(v)}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-full transition-all"
+                        style={{
+                          background:
+                            v.estado === "publicado"
+                              ? "rgba(220,252,231,1)"
+                              : "rgba(243,244,246,1)",
+                          color:
+                            v.estado === "publicado" ? "#16a34a" : "#9ca3af",
+                        }}
+                      >
+                        {v.estado === "publicado" ? "Publicado" : "Borrador"}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(v)}
+                          title="Editar"
+                          className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 transition-colors"
+                        >
+                          <svg
+                            width="15"
+                            height="15"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            {video.categoria || "—"}
-                          </span>
-                        </td>
-
-                        {/* Estado */}
-                        <td className="px-4 py-3">
-                          <span
-                            className="inline-block text-xs px-2.5 py-1 rounded-full font-semibold"
-                            style={{
-                              background: estado.bg,
-                              color: estado.color,
-                            }}
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => copyLink(v)}
+                          title="Copiar enlace"
+                          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                        >
+                          <svg
+                            width="15"
+                            height="15"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            {estado.label}
-                          </span>
-                        </td>
-
-                        {/* Fecha */}
-                        <td className="px-4 py-3">
-                          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                            {formatFecha(video.createdAt)}
-                          </span>
-                        </td>
-
-                        {/* Acciones */}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5">
-                            {/* Editar */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingVideo(video);
-                                setShowForm(true);
-                              }}
-                              className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 transition-colors"
-                              title="Editar"
-                            >
-                              <FiEdit2 size={15} />
-                            </button>
-
-                            {/* Toggle publicado/borrador */}
-                            <button
-                              type="button"
-                              onClick={() => toggleEstado(video)}
-                              className="p-1.5 rounded-lg transition-colors"
-                              style={{
-                                color:
-                                  video.estado === "publicado"
-                                    ? "#16a34a"
-                                    : "#9ca3af",
-                              }}
-                              title={
-                                video.estado === "publicado"
-                                  ? "Pasar a borrador"
-                                  : "Publicar"
-                              }
-                            >
-                              {video.estado === "publicado" ? (
-                                <FiEye size={15} />
-                              ) : (
-                                <FiEyeOff size={15} />
-                              )}
-                            </button>
-
-                            {/* Previsualizar */}
-                            <a
-                              href={`/videos-soporte/${video.slug}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-                              title="Previsualizar"
-                            >
-                              <svg
-                                width="15"
-                                height="15"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                />
-                              </svg>
-                            </a>
-
-                            {/* Copiar enlace */}
-                            <button
-                              type="button"
-                              onClick={() => copyLink(video.slug)}
-                              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-                              title="Copiar enlace"
-                            >
-                              <FiCopy size={14} />
-                            </button>
-
-                            {/* Eliminar */}
-                            <button
-                              type="button"
-                              onClick={() => setDeleteTarget(video)}
-                              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                              style={{ color: "#6b7280" }}
-                              title="Eliminar"
-                            >
-                              <FiTrash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
-                </AnimatePresence>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(v)}
+                          title="Eliminar"
+                          className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors"
+                        >
+                          <svg
+                            width="15"
+                            height="15"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Modal Formulario */}
+      {/* Modal VideoForm */}
       <AnimatePresence>
         {showForm && (
           <VideoForm
-            videoInicial={editingVideo}
-            onClose={() => {
-              setShowForm(false);
-              setEditingVideo(null);
-            }}
-            onSaved={() => {
-              setShowForm(false);
-              setEditingVideo(null);
-            }}
+            key="video-form"
+            initial={editTarget}
+            categorias={categoriasFire}
+            onSave={handleSaved}
+            onClose={handleClose}
           />
         )}
       </AnimatePresence>
 
-      {/* Modal Confirmar Eliminar */}
+      {/* Modal Confirmar Eliminación */}
       <AnimatePresence>
         {deleteTarget && (
           <div
-            className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.65)" }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.6)" }}
             onClick={() => setDeleteTarget(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.92, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.92, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6"
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-sm"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="text-center mb-4">
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
-                  style={{ background: "rgba(239,68,68,0.1)" }}
-                >
-                  <FiTrash2 size={24} style={{ color: "#ef4444" }} />
-                </div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                  ¿Eliminar video?
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                  "{deleteTarget.titulo}"
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                  Esta acción no se puede deshacer.
-                </p>
-              </div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
+                ¿Eliminar video?
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+                Esta acción es permanente. Se eliminará «{deleteTarget.titulo}».
+              </p>
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -1316,7 +1082,7 @@ export default function VideoManagement() {
                   onClick={confirmarEliminar}
                   disabled={deleting}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-60"
-                  style={{ background: "#2563eb" }}
+                  style={{ background: "#ef4444" }}
                 >
                   {deleting ? "Eliminando..." : "Sí, eliminar"}
                 </button>
