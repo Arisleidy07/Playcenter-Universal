@@ -10,11 +10,14 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   addDoc,
   updateDoc,
   deleteDoc,
   doc,
   serverTimestamp,
+  getDocs,
+  setDoc,
 } from "firebase/firestore";
 import {
   ref as storageRef,
@@ -344,18 +347,18 @@ function VideoForm({ initial, categorias, onSave, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             {initial?.id ? "Editar video" : "Agregar video"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
           >
             <svg
-              width="18"
-              height="18"
+              width="20"
+              height="20"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -373,158 +376,213 @@ function VideoForm({ initial, categorias, onSave, onClose }) {
         {/* Body — scrollable */}
         <form
           onSubmit={handleSave}
-          className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5"
+          className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6"
           style={{ minHeight: 0 }}
         >
-          {/* Título */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              Título <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.titulo}
-              onChange={(e) => handleTitulo(e.target.value)}
-              placeholder="Ej. Cómo configurar tu router Wi-Fi"
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {form.slug && (
-              <p className="text-[11px] text-gray-400 mt-1">
-                Slug: <span className="font-mono">{form.slug}</span>
-              </p>
-            )}
-          </div>
-
-          {/* Descripción corta */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              Descripción corta
-            </label>
-            <textarea
-              value={form.descripcionCorta}
-              onChange={(e) => set("descripcionCorta", e.target.value)}
-              rows={2}
-              placeholder="Resumen breve que aparece en la tarjeta del video"
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            />
-          </div>
-
-          {/* Categoría */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              Categoría
-            </label>
-            {categorias.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {categorias.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => set("categoria", c)}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-                    style={{
-                      background:
-                        form.categoria === c ? "#2563eb" : "rgba(0,0,0,0.05)",
-                      color: form.categoria === c ? "#fff" : "#374151",
-                    }}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-gray-400 italic">
-                Sin categorías creadas. Escribe una nueva abajo.
-              </p>
-            )}
-
-            {/* Nueva categoría inline */}
-            <div className="flex gap-2 mt-2">
+          {/* Grid layout para desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Título */}
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Título <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
-                value={newCat}
-                onChange={(e) => setNewCat(e.target.value)}
-                placeholder="Nueva categoría..."
-                className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (newCat.trim()) {
-                      set("categoria", newCat.trim());
-                      setNewCat("");
-                    }
-                  }
-                }}
+                value={form.titulo}
+                onChange={(e) => handleTitulo(e.target.value)}
+                placeholder="Ej. Cómo configurar tu router Wi-Fi"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button
-                type="button"
-                onClick={() => {
-                  if (newCat.trim()) {
-                    set("categoria", newCat.trim());
-                    setNewCat("");
-                  }
-                }}
-                className="px-3 py-2 rounded-lg text-sm font-semibold text-white"
-                style={{ background: "#2563eb" }}
-              >
-                + Agregar
-              </button>
-            </div>
-            {form.categoria && (
-              <p className="text-xs text-blue-600 mt-1">
-                Categoría seleccionada: <strong>{form.categoria}</strong>
-              </p>
-            )}
-          </div>
-
-          {/* Video — upload o URL externa */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Video <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => set("videoEsExterno", false)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  background: !form.videoEsExterno
-                    ? "#2563eb"
-                    : "rgba(0,0,0,0.05)",
-                  color: !form.videoEsExterno ? "#fff" : "#374151",
-                }}
-              >
-                Subir archivo
-              </button>
-              <button
-                type="button"
-                onClick={() => set("videoEsExterno", true)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  background: form.videoEsExterno
-                    ? "#2563eb"
-                    : "rgba(0,0,0,0.05)",
-                  color: form.videoEsExterno ? "#fff" : "#374151",
-                }}
-              >
-                URL externa
-              </button>
+              {form.slug && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Slug: <span className="font-mono">{form.slug}</span>
+                </p>
+              )}
             </div>
 
-            {form.videoEsExterno ? (
-              <input
-                type="url"
-                value={form.videoUrlExterno}
-                onChange={(e) => set("videoUrlExterno", e.target.value)}
-                placeholder="https://www.youtube.com/embed/..."
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* Descripción corta */}
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Descripción corta
+              </label>
+              <textarea
+                value={form.descripcionCorta}
+                onChange={(e) => set("descripcionCorta", e.target.value)}
+                rows={2}
+                placeholder="Resumen breve que aparece en la tarjeta del video"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
-            ) : (
-              <div>
-                <label className="flex items-center justify-center gap-2 w-full py-8 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 cursor-pointer hover:border-blue-500 transition-colors text-sm text-gray-500 dark:text-gray-400">
+            </div>
+
+            {/* Categoría */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Categoría
+              </label>
+              {categorias.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {categorias.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => set("categoria", c)}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                      style={{
+                        background:
+                          form.categoria === c ? "#2563eb" : "rgba(0,0,0,0.05)",
+                        color: form.categoria === c ? "#fff" : "#374151",
+                      }}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 italic">
+                  Sin categorías creadas. Usa el botón "Categorías" arriba.
+                </p>
+              )}
+              {form.categoria && (
+                <p className="text-xs text-blue-600 mt-2">
+                  Seleccionada: <strong>{form.categoria}</strong>
+                </p>
+              )}
+            </div>
+
+            {/* Video — upload o URL externa */}
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Video <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => set("videoEsExterno", false)}
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                  style={{
+                    background: !form.videoEsExterno
+                      ? "#2563eb"
+                      : "rgba(0,0,0,0.05)",
+                    color: !form.videoEsExterno ? "#fff" : "#374151",
+                  }}
+                >
+                  Subir archivo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => set("videoEsExterno", true)}
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                  style={{
+                    background: form.videoEsExterno
+                      ? "#2563eb"
+                      : "rgba(0,0,0,0.05)",
+                    color: form.videoEsExterno ? "#fff" : "#374151",
+                  }}
+                >
+                  URL externa
+                </button>
+              </div>
+
+              {form.videoEsExterno ? (
+                <input
+                  type="url"
+                  value={form.videoUrlExterno}
+                  onChange={(e) => set("videoUrlExterno", e.target.value)}
+                  placeholder="https://www.youtube.com/embed/..."
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <div>
+                  <label className="flex items-center justify-center gap-2 w-full py-8 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 cursor-pointer hover:border-blue-500 transition-colors text-sm text-gray-500 dark:text-gray-400">
+                    <svg
+                      width="20"
+                      height="20"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    {videoFile
+                      ? videoFile.name
+                      : form.videoUrl
+                        ? "Video actual (cargado)"
+                        : "Seleccionar video"}
+                    <input
+                      type="file"
+                      accept="video/*"
+                      capture={undefined}
+                      className="sr-only"
+                      onChange={(e) => handleVideoFile(e.target.files?.[0])}
+                    />
+                  </label>
+                  {uploadProgress.video > 0 && uploadProgress.video < 100 && (
+                    <div className="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 transition-all"
+                        style={{ width: uploadProgress.video + "%" }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Miniatura — timeline slider */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Miniatura (portada)
+              </label>
+
+              {extracting && (
+                <div className="flex items-center gap-2 text-xs text-blue-600 mb-2">
                   <svg
-                    width="20"
-                    height="20"
+                    className="animate-spin w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  Extrayendo fotogramas...
+                </div>
+              )}
+
+              {frames.length > 0 && !thumbFile && (
+                <>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Arrastra el slider para elegir el fotograma de portada:
+                  </p>
+                  <ThumbnailTimelineSlider
+                    frames={frames}
+                    selectedIndex={frameIdx}
+                    onChange={handleFrameChange}
+                  />
+                </>
+              )}
+
+              {/* Manual thumbnail upload */}
+              <div className="mt-3">
+                <label className="inline-flex items-center gap-2 cursor-pointer text-xs text-blue-600 hover:text-blue-700 font-medium">
+                  <svg
+                    width="14"
+                    height="14"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -532,135 +590,52 @@ function VideoForm({ initial, categorias, onSave, onClose }) {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  {videoFile
-                    ? videoFile.name
-                    : form.videoUrl
-                      ? "Video actual (cargado)"
-                      : "Seleccionar video"}
+                  Subir imagen personalizada
                   <input
                     type="file"
-                    accept="video/*"
-                    capture={undefined}
+                    accept="image/*"
                     className="sr-only"
-                    onChange={(e) => handleVideoFile(e.target.files?.[0])}
+                    onChange={(e) => handleThumbFile(e.target.files?.[0])}
                   />
                 </label>
-                {uploadProgress.video > 0 && uploadProgress.video < 100 && (
-                  <div className="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                    <div
-                      className="h-full bg-blue-600 transition-all"
-                      style={{ width: uploadProgress.video + "%" }}
+              </div>
+
+              {thumbnailPreview &&
+                !thumbnailPreview.startsWith("data:") &&
+                !thumbFile && (
+                  <div
+                    className="mt-2 rounded-lg overflow-hidden"
+                    style={{ maxWidth: 200, background: "#f1f5f9" }}
+                  >
+                    <img
+                      src={thumbnailPreview}
+                      alt="Thumbnail actual"
+                      className="w-full object-contain"
                     />
                   </div>
                 )}
-              </div>
-            )}
-          </div>
 
-          {/* Miniatura — timeline slider */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Miniatura (portada)
-            </label>
-
-            {extracting && (
-              <div className="flex items-center gap-2 text-xs text-blue-600 mb-2">
-                <svg
-                  className="animate-spin w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                Extrayendo fotogramas...
-              </div>
-            )}
-
-            {frames.length > 0 && !thumbFile && (
-              <>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  Arrastra el slider para elegir el fotograma de portada:
-                </p>
-                <ThumbnailTimelineSlider
-                  frames={frames}
-                  selectedIndex={frameIdx}
-                  onChange={handleFrameChange}
-                />
-              </>
-            )}
-
-            {/* Manual thumbnail upload */}
-            <div className="mt-3">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs text-blue-600 hover:text-blue-700 font-medium">
-                <svg
-                  width="14"
-                  height="14"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                Subir imagen personalizada
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => handleThumbFile(e.target.files?.[0])}
-                />
-              </label>
-            </div>
-
-            {thumbnailPreview &&
-              !thumbnailPreview.startsWith("data:") &&
-              !thumbFile && (
-                <div
-                  className="mt-2 rounded-lg overflow-hidden"
-                  style={{ maxWidth: 200, background: "#f1f5f9" }}
-                >
-                  <img
-                    src={thumbnailPreview}
-                    alt="Thumbnail actual"
-                    className="w-full object-contain"
+              {uploadProgress.thumb > 0 && uploadProgress.thumb < 100 && (
+                <div className="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                  <div
+                    className="h-full bg-blue-600 transition-all"
+                    style={{ width: uploadProgress.thumb + "%" }}
                   />
                 </div>
               )}
+            </div>
 
-            {uploadProgress.thumb > 0 && uploadProgress.thumb < 100 && (
-              <div className="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                <div
-                  className="h-full bg-blue-600 transition-all"
-                  style={{ width: uploadProgress.thumb + "%" }}
-                />
-              </div>
-            )}
+            {/* Cerrar grid */}
           </div>
 
-          {/* Descripción larga (RTE) */}
+          {/* Descripción (RTE) */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              Descripción larga
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Descripción
             </label>
             <RichTextEditor
               value={form.contenido}
@@ -719,6 +694,10 @@ export default function VideoManagement() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [categoriasFire, setCategoriasFire] = useState([]);
+  const [showCatManager, setShowCatManager] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [editingCat, setEditingCat] = useState(null);
+  const [editingCatName, setEditingCatName] = useState("");
 
   /* Todos los videos */
   useEffect(() => {
@@ -785,6 +764,98 @@ export default function VideoManagement() {
     });
   };
 
+  /* Gestión de categorías */
+  const addCategoria = async () => {
+    if (!newCatName.trim()) return;
+    const name = newCatName.trim();
+    if (categoriasFire.includes(name)) return;
+    const updated = [...categoriasFire, name];
+    setCategoriasFire(updated);
+    setNewCatName("");
+    /* Guardar en documento de configuración */
+    try {
+      const configRef = doc(db, "config", "videos");
+      await setDoc(configRef, { categorias: updated }, { merge: true });
+    } catch (err) {
+      console.error("Error guardando categorías:", err);
+    }
+  };
+
+  const editCategoria = async (oldName, newName) => {
+    if (!newName.trim() || newName === oldName) return;
+    const updated = categoriasFire.map((c) =>
+      c === oldName ? newName.trim() : c,
+    );
+    setCategoriasFire(updated);
+    setEditingCat(null);
+    setEditingCatName("");
+    /* Actualizar videos con la categoría renombrada */
+    const q = query(
+      collection(db, "videosTutoriales"),
+      where("categoria", "==", oldName),
+    );
+    const snap = await getDocs(q);
+    const batch = snap.docs.map((d) =>
+      updateDoc(doc(db, "videosTutoriales", d.id), {
+        categoria: newName.trim(),
+      }),
+    );
+    await Promise.all(batch);
+    /* Guardar en configuración */
+    try {
+      const configRef = doc(db, "config", "videos");
+      await setDoc(configRef, { categorias: updated }, { merge: true });
+    } catch (err) {
+      console.error("Error guardando categorías:", err);
+    }
+  };
+
+  const deleteCategoria = async (catName) => {
+    if (
+      !confirm(
+        `¿Eliminar categoría "${catName}"? Los videos con esta categoría quedarán sin categoría.`,
+      )
+    )
+      return;
+    const updated = categoriasFire.filter((c) => c !== catName);
+    setCategoriasFire(updated);
+    /* Actualizar videos */
+    const q = query(
+      collection(db, "videosTutoriales"),
+      where("categoria", "==", catName),
+    );
+    const snap = await getDocs(q);
+    const batch = snap.docs.map((d) =>
+      updateDoc(doc(db, "videosTutoriales", d.id), { categoria: "" }),
+    );
+    await Promise.all(batch);
+    /* Guardar en configuración */
+    try {
+      const configRef = doc(db, "config", "videos");
+      await setDoc(configRef, { categorias: updated }, { merge: true });
+    } catch (err) {
+      console.error("Error guardando categorías:", err);
+    }
+  };
+
+  /* Cargar categorías desde configuración al montar */
+  useEffect(() => {
+    const configRef = doc(db, "config", "videos");
+    const unsub = onSnapshot(
+      configRef,
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.categorias && Array.isArray(data.categorias)) {
+            setCategoriasFire(data.categorias);
+          }
+        }
+      },
+      () => {},
+    );
+    return unsub;
+  }, []);
+
   if (!usuarioInfo?.isAdmin && usuarioInfo?.role !== "admin") {
     return (
       <div className="flex items-center justify-center min-h-[200px] text-sm text-gray-400">
@@ -805,31 +876,54 @@ export default function VideoManagement() {
             {videos.length} video{videos.length !== 1 ? "s" : ""} en total
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleNew}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-          style={{
-            background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-            boxShadow: "0 2px 8px rgba(37,99,235,0.35)",
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowCatManager(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Agregar video
-        </button>
+            <svg
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+              />
+            </svg>
+            Categorías
+          </button>
+          <button
+            type="button"
+            onClick={handleNew}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+            style={{
+              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+              boxShadow: "0 2px 8px rgba(37,99,235,0.35)",
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Agregar video
+          </button>
+        </div>
       </div>
 
       {/* Tabla */}
@@ -1086,6 +1180,208 @@ export default function VideoManagement() {
                 >
                   {deleting ? "Eliminando..." : "Sí, eliminar"}
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Gestión de Categorías */}
+      <AnimatePresence>
+        {showCatManager && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.6)" }}
+            onClick={() => setShowCatManager(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Administrar categorías
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowCatManager(false)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Agregar nueva categoría */}
+              <div className="flex gap-2 mb-6">
+                <input
+                  type="text"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  placeholder="Nueva categoría..."
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCategoria();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addCategoria}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                  style={{ background: "#2563eb" }}
+                >
+                  Agregar
+                </button>
+              </div>
+
+              {/* Lista de categorías */}
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {categoriasFire.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic text-center py-4">
+                    No hay categorías creadas.
+                  </p>
+                ) : (
+                  categoriasFire.map((cat) => (
+                    <div
+                      key={cat}
+                      className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                    >
+                      {editingCat === cat ? (
+                        <input
+                          type="text"
+                          value={editingCatName}
+                          onChange={(e) => setEditingCatName(e.target.value)}
+                          className="flex-1 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              editCategoria(cat, editingCatName);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white">
+                          {cat}
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1">
+                        {editingCat === cat ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => editCategoria(cat, editingCatName)}
+                              className="p-1.5 rounded hover:bg-green-100 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400 transition-colors"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCat(null);
+                                setEditingCatName("");
+                              }}
+                              className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCat(cat);
+                                setEditingCatName(cat);
+                              }}
+                              className="p-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-colors"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteCategoria(cat)}
+                              className="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-500 transition-colors"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </motion.div>
           </div>

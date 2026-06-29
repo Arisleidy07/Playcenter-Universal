@@ -97,7 +97,7 @@ export default function VideosSoporte() {
       <div
         className={`border-b ${isDark ? "border-white/[0.06]" : "border-gray-100"}`}
       >
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
           <motion.div
             initial="hidden"
             animate="visible"
@@ -105,16 +105,17 @@ export default function VideosSoporte() {
             transition={{ duration: 0.35 }}
           >
             <h1
-              className="text-2xl sm:text-3xl font-bold tracking-tight mb-2"
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-3"
               style={{ color: isDark ? "#f9fafb" : "#0f172a" }}
             >
               Videos de soporte
             </h1>
             <p
-              className="text-sm sm:text-base"
-              style={{ color: isDark ? "#6b7280" : "#64748b" }}
+              className="text-base sm:text-lg lg:text-xl leading-relaxed"
+              style={{ color: isDark ? "#9ca3af" : "#64748b" }}
             >
-              Guías y tutoriales sobre nuestros productos y servicios.
+              Guías y videos relacionados con nuestros servicios para ayudar a
+              nuestros clientes de forma rápida y sencilla.
             </p>
           </motion.div>
         </div>
